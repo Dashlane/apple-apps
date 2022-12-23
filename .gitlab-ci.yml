@@ -1,0 +1,4 @@
+stages:
+  - security
+include:
+  - local: 'gitlab-ci/Secret-Detection.gitlab-ci.yml'
