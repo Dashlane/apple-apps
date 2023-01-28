@@ -54,5 +54,5 @@ If there is an improvement for the codebase you would like to share with us, we 
 
 |  Dashlane Apps |  Download link | 
 |---|---|
-| Dashlane Password Manager   |  <a href="https://apps.apple.com/fr/app/dashlane/id517914548"><img alt="Download Dashlane Password Manager on App Store" src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg"></a>  |
-| Dashlane Authenticator   |  <a href="https://apps.apple.com/us/app/dashlane-authenticator/id1582978196"><img alt="Download Dashlane Authenticator on App Store" src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg"></a>  |
+| Dashlane Password Manager   |  <a href="https://apps.apple.com/app/dashlane/id517914548"><img alt="Download Dashlane Password Manager on App Store" src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg"></a>  |
+| Dashlane Authenticator   |  <a href="https://apps.apple.com/app/dashlane-authenticator/id1582978196"><img alt="Download Dashlane Authenticator on App Store" src="https://developer.apple.com/assets/elements/badges/download-on-the-app-store.svg"></a>  |
