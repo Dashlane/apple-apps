@@ -254,7 +254,7 @@ extension SSOAccountCreationCoordinator {
 
                                     switch result {
                                     case let .success(sessionServices):
-                                        sessionServices.activityReporter.logSuccesfulLogin()
+                                        sessionServices.activityReporter.logSuccessfulLogin()
                                         self.completion(.accountCreated(sessionServices))
                                     case let .failure(error):
                                         self.showError(error)
@@ -301,7 +301,7 @@ extension SSOAccountCreationInfos {
 }
 
 private extension ActivityReporterProtocol {
-    func logSuccesfulLogin() {
+    func logSuccessfulLogin() {
         report(UserEvent.Login(isFirstLogin: true,
                                mode: .sso,
                                status: .success,

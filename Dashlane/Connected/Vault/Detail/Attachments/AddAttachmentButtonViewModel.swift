@@ -304,14 +304,14 @@ private extension AddAttachmentButtonViewModel.FileData {
 private extension String {
     var imageNameWithExtension: String {
         let filename = NSString(string: self)
-        let pathExtention = filename.pathExtension
+        let pathExtension = filename.pathExtension
         let pathPrefix = filename.deletingPathExtension
         return pathPrefix + ".jpeg"
     }
 
     var pdfDocumentWithExtension: String {
         let filename = NSString(string: self)
-        let pathExtention = filename.pathExtension
+        let pathExtension = filename.pathExtension
         let pathPrefix = filename.deletingPathExtension
         return pathPrefix + ".pdf"
     }

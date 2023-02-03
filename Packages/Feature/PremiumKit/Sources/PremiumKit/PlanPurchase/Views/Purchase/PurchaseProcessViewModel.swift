@@ -121,7 +121,7 @@ private extension PurchaseProcessViewModel {
         case .receiptInvalid:
             basicLog(type: LogType.error, "validateReceipt failure receiptInvalid")
             logPremium(type: LogPremiumType.yearlyReceiptFailedValidation)
-            logPremium(type: LogPremiumType.yearlyErrorOccuredForPurchase)
+            logPremium(type: LogPremiumType.yearlyErrorOccurredForPurchase)
             purchaseUsageLog(action: .error, errorCode: String(TransactionError.receiptInvalid.code))
         default:
             purchaseUsageLog(action: .error, errorCode: String(error.code))
