@@ -214,7 +214,7 @@ extension TwoFADeactivationViewModel: AccountCryptoChangerServiceDelegate {
                 try? self.keychainService.removeServerKey(for: session.login)
                 try? self.persistor.delete(item)
                 self.authenticatorCommunicator.sendMessage(.refresh)
-                self.logger.info("Otp2 deactivation is sucessfull")
+                self.logger.info("Otp2 deactivation is successful")
                 progressState = .completed(L10n.Localizable.twofaDeactivationFinalMessage, { [weak self] in
                     self?.sessionLifeCycleHandler?.logoutAndPerform(action: .startNewSession(session, reason: .masterPasswordChanged))
                 })
