@@ -214,7 +214,7 @@ extension TwoFACompletionViewModel: AccountCryptoChangerServiceDelegate {
                     try? self.keychainService.saveServerKey(serverKey, for: session.login)
                     self.authenticatorCommunicator.sendMessage(.refresh)
                 }
-                self.logger.info("Otp2 activation is sucessfull")
+                self.logger.info("Otp2 activation is successful")
                 self.progressState = .completed(L10n.Localizable.twofaActivationFinalMessage, {
                     self.state = .success(onDismiss: {
                         self.sessionLifeCycleHandler?.logoutAndPerform(action: .startNewSession(session, reason: .masterPasswordChanged))

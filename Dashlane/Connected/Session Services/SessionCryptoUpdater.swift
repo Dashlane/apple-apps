@@ -164,7 +164,7 @@ extension SessionCryptoUpdater: AccountCryptoChangerServiceDelegate {
         self.activeAccountCryptoChanger = nil
         switch result {
         case .success:
-            logger.info("Session Crypto Migration is sucessfull")
+            logger.info("Session Crypto Migration is successful")
         case let .failure(error):
             logger.fatal("Session Crypto Migration has failed", error: error)
         }
