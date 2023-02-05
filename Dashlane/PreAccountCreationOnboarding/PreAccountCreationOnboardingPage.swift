@@ -29,7 +29,7 @@ final class PreAccountCreationOnboardingPage: UIViewController {
             ? UIStoryboard(name: "PreAccountCreationOnboardingiPad", bundle: currentBundle)
             : UIStoryboard(name: "PreAccountCreationOnboarding", bundle: currentBundle)
         guard let controller = storyboard.instantiateViewController(withIdentifier: "PreAccountCreationOnboardingPage") as? PreAccountCreationOnboardingPage else {
-            fatalError("Unable to instatiate PreAccountCreationOnboardingPage")
+            fatalError("Unable to instantiate PreAccountCreationOnboardingPage")
         }
         controller.content = content
 
