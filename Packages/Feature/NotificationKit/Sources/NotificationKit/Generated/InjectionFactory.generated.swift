@@ -71,7 +71,7 @@ extension HomeAnnouncementsServicesContainer {
             return AutofillOnboardingFlowViewModel(
                             autofillService: notificationKitAutofillService,
                             premiumService: announcementsPremiumService,
-                            abTesttingService: abTestingService,
+                            abTestingService: abTestingService,
                             activityReporter: announcementsActivityReporter,
                             userSettings: userSettings,
                             autofillOnboardingIntroViewModelFactory: InjectedFactory(makeAutofillOnboardingIntroViewModel),
