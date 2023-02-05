@@ -32,7 +32,7 @@ struct AddOTPIntroView: View {
             Text(L10n.Localizable._2faSetupIntroSubtitle).font(.body)
                 .minimumScaleFactor(0.6)
                 .foregroundColor(.ds.text.neutral.standard)
-            explaination.fixedSize(horizontal: false, vertical: true)
+            explanation.fixedSize(horizontal: false, vertical: true)
                 .foregroundColor(.ds.text.neutral.standard)
             learnMore
             Spacer()
@@ -71,7 +71,7 @@ struct AddOTPIntroView: View {
         }
     }
 
-    private var explaination: some View {
+    private var explanation: some View {
         struct Line: Hashable {
             let prefix: String
             let content: String

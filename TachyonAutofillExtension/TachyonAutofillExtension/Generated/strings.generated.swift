@@ -16,7 +16,7 @@ internal enum L10n {
         internal static func _2faSetupFailureFor(_ p1: Any) -> String {
       return L10n.tr("Localizable", "2faSetup_failure_for", String(describing: p1), fallback: "_")
     }
-        internal static let _2faSetupIntroExplainationLeadSection1 = L10n.tr("Localizable", "2faSetup_Intro_explaination_lead_section1", fallback: "1.")
+        internal static let _2faSetupIntroExplanationLeadSection1 = L10n.tr("Localizable", "2faSetup_Intro_explanation_lead_section1", fallback: "1.")
         internal static let _2faSetupIntroHelpStep1 = L10n.tr("Localizable", "2faSetup_Intro_Help_step1", fallback: "Go to the security settings of the 3rd-party site or app you want to add")
         internal static let _2faSetupIntroHelpStep2 = L10n.tr("Localizable", "2faSetup_Intro_Help_step2", fallback: "Turn on 2FA (some sites may call this 2-step verification)")
         internal static let _2faSetupIntroHelpStep3 = L10n.tr("Localizable", "2faSetup_Intro_Help_step3", fallback: "Scan the QR code or enter the setup code they provide")
@@ -1414,7 +1414,7 @@ internal enum L10n {
         internal static let mainMenuPasswordChanger = L10n.tr("Localizable", "MainMenuPasswordChanger", fallback: "Password Changer")
         internal static let mainMenuPasswordGenerator = L10n.tr("Localizable", "MainMenuPasswordGenerator", fallback: "Password Generator")
         internal static let mainMenuPayment = L10n.tr("Localizable", "MainMenuPayment", fallback: "Payments")
-        internal static let masterpasswordCreationExplaination = L10n.tr("Localizable", "masterpassword_creation_explaination", fallback: "Note: For your security, we don’t store your Master Password. Make sure you remember it!")
+        internal static let masterpasswordCreationExplanation = L10n.tr("Localizable", "masterpassword_creation_explanation", fallback: "Note: For your security, we don’t store your Master Password. Make sure you remember it!")
         internal static let masterpasswordCreationPlaceholder = L10n.tr("Localizable", "masterpassword_creation_placeholder", fallback: "Create your Master Password")
         internal static let media = L10n.tr("Localizable", "media", fallback: "Media")
         internal static func menuCopyItem(_ p1: Any) -> String {
