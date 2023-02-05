@@ -139,8 +139,8 @@ class AggregatedLogService {
             let passwordCount = dic.value.count
             return result + (passwordCount > 1 ? passwordCount : 0)
         }
-        let reusedDictinct = dictionary.filter { $0.value.count > 1 }.count
-        return (reused, reusedDictinct)
+        let reusedDistinct = dictionary.filter { $0.value.count > 1 }.count
+        return (reused, reusedDistinct)
     }
 
         private func getCommonLogs() -> [ServerKey: String] {
