@@ -74,7 +74,7 @@ extension SessionNotificationService {
         let logger = self.logger
         let settings = self.settings
 
-        webService.sendRequest(to: "/1/devices/setPushNoficationID",
+        webService.sendRequest(to: "/1/devices/setPushNotificationID",
                                using: .post,
                                params: ["type": "ios",
                                         "pushID": tokenString,
