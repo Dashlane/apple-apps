@@ -22,7 +22,7 @@ struct AttachmentsListView: View {
             .onDelete(perform: deleteRow)
         }
         .navigationBarTitleDisplayMode(.inline)
-        .navigationTitle(Text(L10n.Localizable.kwAttachementsTitle))
+        .navigationTitle(Text(L10n.Localizable.kwAttachmentsTitle))
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 AddAttachmentButton(model: model.addAttachmentButtonViewModel)

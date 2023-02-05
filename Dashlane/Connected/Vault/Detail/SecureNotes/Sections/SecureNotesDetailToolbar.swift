@@ -158,7 +158,7 @@ struct SecureNotesDetailToolbar: View {
             Image.ds.attachment.outlined
                 .foregroundColor(.ds.text.neutral.quiet)
         })
-        .accessibilityLabel(Text(L10n.Localizable.kwAttachementsTitle))
+        .accessibilityLabel(Text(L10n.Localizable.kwAttachmentsTitle))
     }
 
         private var toolsButton: some View {

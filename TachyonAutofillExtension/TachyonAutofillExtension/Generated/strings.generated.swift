@@ -888,7 +888,7 @@ internal enum L10n {
         internal static let kwAddPwdsOnbdingEmailPlaceholder = L10n.tr("Localizable", "KW_ADD_PWDS_ONBDING_EMAIL_PLACEHOLDER", fallback: "Enter your email address")
         internal static let kwAttachPremiumMessage = L10n.tr("Localizable", "KW_ATTACH_PREMIUM_MESSAGE", fallback: "Upgrade to Premium to get 1GB file storage. Encrypt your most important documents and access them anywhere.")
         internal static let kwAttachPremiumTitle = L10n.tr("Localizable", "KW_ATTACH_PREMIUM_TITLE", fallback: "Premium Feature")
-        internal static let kwAttachementsTitle = L10n.tr("Localizable", "KW_ATTACHEMENTS_TITLE", fallback: "Attached files")
+        internal static let kwAttachmentsTitle = L10n.tr("Localizable", "KW_ATTACHMENTS_TITLE", fallback: "Attached files")
         internal static let kwAuthoriseCameraAccess = L10n.tr("Localizable", "KW_AUTHORISE_CAMERA_ACCESS", fallback: "Go to Settings")
         internal static let kwAutoLock = L10n.tr("Localizable", "KW_AUTO_LOCK", fallback: "Auto Lock")
         internal static let kwAutoLockTime = L10n.tr("Localizable", "KW_AUTO_LOCK_TIME", fallback: "Auto-lock timeout")
