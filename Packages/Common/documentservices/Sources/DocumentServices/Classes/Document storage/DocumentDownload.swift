@@ -56,7 +56,7 @@ public final class DocumentDownload: NSObject {
         self.isFileAvailableLocally = isFileAvailableLocally
     }
 
-    private func indicateBackgroudTaskEnd() {
+    private func indicateBackgroundTaskEnd() {
         if let backgroundActivity = backgroundActivity {
             ProcessInfo.processInfo.endActivity(backgroundActivity)
         }
@@ -71,7 +71,7 @@ public final class DocumentDownload: NSObject {
         self.backgroundActivity = ProcessInfo.processInfo.beginActivity(options: [.userInitiated], reason: "DocumentDownload")
         if try isFileAvailableLocally(attachment) {
             let url = try await decryptFile()
-            indicateBackgroudTaskEnd()
+            indicateBackgroundTaskEnd()
             progress?.cancel()
             return url
         } else {
@@ -144,7 +144,7 @@ public final class DocumentDownload: NSObject {
     private func handleError(_ error: Error) {
         self.progress?.cancel()
         self.completionHandler?(.failure(error))
-        self.indicateBackgroudTaskEnd()
+        self.indicateBackgroundTaskEnd()
     }
 }
 
