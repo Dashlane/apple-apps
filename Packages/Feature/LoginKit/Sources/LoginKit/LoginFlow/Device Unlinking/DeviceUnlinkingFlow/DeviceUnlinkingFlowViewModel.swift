@@ -23,7 +23,7 @@ public class DeviceUnlinkingFlowViewModel: ObservableObject, LoginKitServicesInj
                               action: (MonobucketUnlinkView.Action) -> Void)
         case multiDevice(limit: Int,
                          devices: [DeviceListEntry],
-                         action: (UnlinkMutltiDevicesView.Action) -> Void)
+                         action: (UnlinkMultiDevicesView.Action) -> Void)
         case purchasePlanFlow(flow: AnyView)
         case loading(DeviceUnlinkLoadingViewModel)
     }

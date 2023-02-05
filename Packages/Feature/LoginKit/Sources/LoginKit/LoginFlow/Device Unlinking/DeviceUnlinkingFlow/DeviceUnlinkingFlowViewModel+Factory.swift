@@ -42,7 +42,7 @@ extension DeviceUnlinkingFlowViewModel {
             }
             self.showMonobucketUnlinkView(device: device, logger: logger)
         case let .multiple(limit):
-            self.showUnlinkMutltiDevicesView(limit: limit, logger: logger)
+            self.showUnlinkMultiDevicesView(limit: limit, logger: logger)
         }
         logger.log(.unlinkScreen, action: .seen)
         userTrackingSessionActivityReporter.reportPageShown(.paywallDeviceSyncLimitUnlinkDevice)
@@ -68,12 +68,12 @@ extension DeviceUnlinkingFlowViewModel {
         self.steps.append(.monobucketUnlink(device: device, action: action))
     }
 
-    func showUnlinkMutltiDevicesView(limit: Int, logger: DeviceLimitUsageLogger) {
+    func showUnlinkMultiDevicesView(limit: Int, logger: DeviceLimitUsageLogger) {
         let devices = deviceUnlinker.currentUserDevices.sorted {
             $0.displayedDevice.lastActivityDate > $1.displayedDevice.lastActivityDate
         }
 
-        let action: (UnlinkMutltiDevicesView.Action) -> Void = { [weak self] action in
+        let action: (UnlinkMultiDevicesView.Action) -> Void = { [weak self] action in
             guard let self = self else {
                 return
             }

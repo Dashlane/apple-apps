@@ -5,7 +5,7 @@ import UIComponents
 import DesignSystem
 import CoreLocalization
 
-public struct UnlinkMutltiDevicesView: View {
+public struct UnlinkMultiDevicesView: View {
         public enum Action {
         case upgrade(Set<DeviceListEntry>)
         case unlink(Set<DeviceListEntry>)
@@ -191,7 +191,7 @@ struct SelectionDeviceButtonStyle: ButtonStyle {
     }
 }
 
-struct UnlinkMutltiDevicesView_Previews: PreviewProvider {
+struct UnlinkMultiDevicesView_Previews: PreviewProvider {
     static var previews: some View {
         MultiContextPreview {
             SelectionDeviceRow(device: BucketDevice(id: "id",
@@ -208,7 +208,7 @@ struct UnlinkMutltiDevicesView_Previews: PreviewProvider {
             .background(.ds.background.default)
             .previewLayout(.sizeThatFits)
 
-            UnlinkMutltiDevicesView(
+            UnlinkMultiDevicesView(
                 limit: 2,
                 devices: [
                     BucketDevice(id: "id",
