@@ -23,7 +23,7 @@ class LoginViewModel: ObservableObject {
     }
     
     func appeared() {
-        refreshRectivationEnabled()
+        refreshReactivationEnabled()
     }
     
     func enableReactivationWebcard() {
@@ -31,7 +31,7 @@ class LoginViewModel: ObservableObject {
         appSettings.safariWebCardActivated = nil
     }
     
-    private func refreshRectivationEnabled() {
+    private func refreshReactivationEnabled() {
         guard BuildEnvironment.current != .appstore else {
             shouldShowReactivationWebcardEnabler = false
             return
