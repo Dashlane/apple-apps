@@ -204,7 +204,7 @@ internal enum L10n {
         internal static let benefit2faAdvanced = L10n.tr("Localizable", "benefit_2fa_advanced", fallback: "**U2F authentication**")
         internal static let benefit2faBasic = L10n.tr("Localizable", "benefit_2fa_basic", fallback: "2-factor authentication (2FA)")
         internal static let benefitAutofill = L10n.tr("Localizable", "benefit_autofill", fallback: "Form and payment autofill")
-        internal static let benefitIndividualAcount = L10n.tr("Localizable", "benefit_individual_acount", fallback: "1 account")
+        internal static let benefitIndividualAccount = L10n.tr("Localizable", "benefit_individual_account", fallback: "1 account")
         internal static func benefitLimitedDeviceOne(_ p1: Any) -> String {
       return L10n.tr("Localizable", "benefit_limited_device_one", String(describing: p1), fallback: "_")
     }

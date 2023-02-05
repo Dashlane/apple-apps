@@ -60,7 +60,7 @@ struct PlanCapabilitiesView: View {
     private var kindRow: some View {
         switch kind {
         case .premium, .essentials, .advanced:
-            Row(L10n.Core.benefitIndividualAcount)
+            Row(L10n.Core.benefitIndividualAccount)
         case .family:
             Row(L10n.Core.planScreensPremiumFamilyAccounts)
         default:

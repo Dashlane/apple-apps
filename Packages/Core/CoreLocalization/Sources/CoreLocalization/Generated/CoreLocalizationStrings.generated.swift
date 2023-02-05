@@ -66,7 +66,7 @@ public enum L10n {
         public static let benefit2faAdvanced = L10n.tr("Core", "benefit_2fa_advanced", fallback: "<strong>U2F authentication</strong>")
         public static let benefit2faBasic = L10n.tr("Core", "benefit_2fa_basic", fallback: "2-factor authentication (2FA)")
         public static let benefitAutofill = L10n.tr("Core", "benefit_autofill", fallback: "Form and payment autofill")
-        public static let benefitIndividualAcount = L10n.tr("Core", "benefit_individual_acount", fallback: "1 account")
+        public static let benefitIndividualAccount = L10n.tr("Core", "benefit_individual_account", fallback: "1 account")
         public static func benefitLimitedDeviceOne(_ p1: Any) -> String {
       return L10n.tr("Core", "benefit_limited_device_one", String(describing: p1), fallback: "_")
     }
