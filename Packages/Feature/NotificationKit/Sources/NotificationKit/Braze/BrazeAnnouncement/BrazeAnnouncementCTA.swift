@@ -24,7 +24,7 @@ struct BrazeAnnouncementCTA {
         }
 
         guard url.isValidBrazeAction() else {
-            throw BrazeAnnouncementDecodingError.urlActionNotReditectingToDashlane
+            throw BrazeAnnouncementDecodingError.urlActionNotRedirectingToDashlane
         }
 
         self.action = .openURL(url)
