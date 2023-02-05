@@ -58,13 +58,13 @@ extension APIConfiguration.Environment {
 
 public struct StagingInformation {
         let apiURL: URL
-        let cloudfareIdentifier: String
-        let cloudfareSecret: String
+        let cloudflareIdentifier: String
+        let cloudflareSecret: String
 
-    public init(apiURL: URL, cloudfareIdentifier: String, cloudfareSecret: String) {
+    public init(apiURL: URL, cloudflareIdentifier: String, cloudflareSecret: String) {
         self.apiURL = apiURL
-        self.cloudfareIdentifier = cloudfareIdentifier
-        self.cloudfareSecret = cloudfareSecret
+        self.cloudflareIdentifier = cloudflareIdentifier
+        self.cloudflareSecret = cloudflareSecret
     }
 }
 
@@ -97,8 +97,8 @@ extension APIConfiguration {
 #if DEBUG
         case let .staging(info):
             let cloudFare =  [
-                "CF-Access-Client-Id": info.cloudfareIdentifier,
-                "CF-Access-Client-Secret": info.cloudfareSecret
+                "CF-Access-Client-Id": info.cloudflareIdentifier,
+                "CF-Access-Client-Secret": info.cloudflareSecret
             ]
             return headers.merging(cloudFare) { left, _ in return left }
 #endif
