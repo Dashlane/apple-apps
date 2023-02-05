@@ -10,7 +10,7 @@ private class ScrollEventListener {
     var isOnTop: Bool
 
     let isScrollingPublisher = PassthroughSubject<Bool, Never>()
-    let isOnTopPubliScrollingPublisher = PassthroughSubject<Bool, Never>()
+    let isOnTopPublicScrollingPublisher = PassthroughSubject<Bool, Never>()
 
     private var cancellables = Set<AnyCancellable>()
        
