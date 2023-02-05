@@ -29,7 +29,7 @@ class PurchaseViewModel: ObservableObject {
         .assign(to: \.state, on: self)
     }
 
-    init(intitialState: State) {
-        state = intitialState
+    init(initialState: State) {
+        state = initialState
     }
 }
