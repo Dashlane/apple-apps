@@ -277,7 +277,7 @@ struct ImportInformationView_Previews: PreviewProvider {
             ImportInformationView(model: .keychainIntroMock, action: nil)
             ImportInformationView(model: .keychainInstructionsMock, action: nil)
             ImportInformationView(model: .chromeIntroMock, action: nil)
-            ImportInformationView(model: .chromeInstrutionsMock, action: nil)
+            ImportInformationView(model: .chromeInstructionsMock, action: nil)
             ImportInformationView(model: .chromeExtensionMock, action: nil)
         }
     }
