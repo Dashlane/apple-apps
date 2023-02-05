@@ -19,7 +19,7 @@ class OTPTokenListViewModel: ObservableObject, SessionServicesInjecting {
     private let vaultItemsService: VaultItemsServiceProtocol
     private let databaseService: AuthenticatorDatabaseServiceProtocol
     private let domainParser: DomainParserProtocol
-    private let domainIconLibray: DomainIconLibraryProtocol
+    private let domainIconLibrary: DomainIconLibraryProtocol
     private let actionHandler: (Action) -> Void
     private let activityReporter: ActivityReporterProtocol
 
@@ -33,10 +33,10 @@ class OTPTokenListViewModel: ObservableObject, SessionServicesInjecting {
          vaultItemsService: VaultItemsServiceProtocol,
          authenticatorDatabaseService: OTPDatabaseService,
          domainParser: DomainParserProtocol,
-         domainIconLibray: DomainIconLibraryProtocol,
+         domainIconLibrary: DomainIconLibraryProtocol,
          actionHandler: @escaping (OTPTokenListViewModel.Action) -> Void) {
         self.vaultItemsService = vaultItemsService
-        self.domainIconLibray = domainIconLibray
+        self.domainIconLibrary = domainIconLibrary
         self.domainParser = domainParser
         self.databaseService = authenticatorDatabaseService
         self.actionHandler = actionHandler
@@ -52,7 +52,7 @@ class OTPTokenListViewModel: ObservableObject, SessionServicesInjecting {
     }
 
     func makeTokenRowViewModel(for token: OTPInfo) -> TokenRowViewModel {
-        return TokenRowViewModel(token: token, domainIconLibrary: domainIconLibray, databaseService: databaseService, domainParser: domainParser)
+        return TokenRowViewModel(token: token, domainIconLibrary: domainIconLibrary, databaseService: databaseService, domainParser: domainParser)
     }
 
     func delete(item: OTPInfo) {
@@ -90,6 +90,6 @@ extension OTPTokenListViewModel {
                                      vaultItemsService: vaultItemService,
                                      authenticatorDatabaseService: OTPDatabaseService(vaultItemsService: vaultItemService, activityReporter: .fake),
                                      domainParser: DomainParserMock(),
-                                     domainIconLibray: IconServiceMock().domain) { _ in }
+                                     domainIconLibrary: IconServiceMock().domain) { _ in }
     }
 }

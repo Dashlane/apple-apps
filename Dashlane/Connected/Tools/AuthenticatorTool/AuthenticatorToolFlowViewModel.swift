@@ -104,7 +104,7 @@ class AuthenticatorToolFlowViewModel: ObservableObject, SessionServicesInjecting
     }
 
     func makeTokenListViewModel() -> OTPTokenListViewModel {
-        return otpTokenListViewModelFactory.make(authenticatorDatabaseService: otpDatabaseService, domainIconLibray: iconService.domain) { [weak self] action in
+        return otpTokenListViewModelFactory.make(authenticatorDatabaseService: otpDatabaseService, domainIconLibrary: iconService.domain) { [weak self] action in
             guard let self = self else { return }
             switch action {
             case .setupAuthentication:
