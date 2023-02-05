@@ -42,11 +42,11 @@ final class MiniBrowserPasswordGeneratorCardViewModel: ObservableObject {
     }
 
     private func generatePassword(options: PasswordCompositionOptions? = nil, length: Int? = nil) -> String {
-        let defaultCompsitionOptions = compositionOptions(letters: passwordGenLettersEnabled, digits: passwordGenDigitsEnabled, symbols: passwordGenSymbolsEnabled)
+        let defaultCompositionOptions = compositionOptions(letters: passwordGenLettersEnabled, digits: passwordGenDigitsEnabled, symbols: passwordGenSymbolsEnabled)
         let defaultLength = 24
 
         return PasswordGenerator(length: Int(length ?? defaultLength),
-                                 composition: options ?? defaultCompsitionOptions,
+                                 composition: options ?? defaultCompositionOptions,
                                  distinguishable: true).generate()
     }
 
