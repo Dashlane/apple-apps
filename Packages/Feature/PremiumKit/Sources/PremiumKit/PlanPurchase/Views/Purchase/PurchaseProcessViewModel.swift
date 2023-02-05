@@ -97,7 +97,7 @@ private extension PurchaseProcessViewModel {
         func purchaseSuccess() {
         stepText = ""
 
-        logPremium(type: LogPremiumType.yearlySuccessfull)
+        logPremium(type: LogPremiumType.yearlySuccessful)
         purchaseUsageLog(action: .purchaseComplete, errorCode: nil)
 
         NotificationCenter.default.addObserver(self,
