@@ -35,7 +35,7 @@ extension PasswordStrength {
     var funFact: String {
         switch self {
             case .veryGuessable:
-                return L10n.Localizable.passwordGeneratorStrengthVeryGuessabble
+                return L10n.Localizable.passwordGeneratorStrengthVeryGuessable
             case .tooGuessable:
                 return  L10n.Localizable.passwordGeneratorStrengthTooGuessable
             case .somewhatGuessable:

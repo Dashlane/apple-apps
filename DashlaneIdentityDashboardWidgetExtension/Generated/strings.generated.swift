@@ -1641,7 +1641,7 @@ internal enum L10n {
         internal static let passwordGeneratorStrengthSafelyUnguessable = L10n.tr("Localizable", "PASSWORD_GENERATOR_STRENGTH_SAFELY_UNGUESSABLE", fallback: "Now that's a strong password!")
         internal static let passwordGeneratorStrengthSomewhatGuessable = L10n.tr("Localizable", "PASSWORD_GENERATOR_STRENGTH_SOMEWHAT_GUESSABLE", fallback: "It's just short of great.")
         internal static let passwordGeneratorStrengthTooGuessable = L10n.tr("Localizable", "PASSWORD_GENERATOR_STRENGTH_TOO_GUESSABLE", fallback: "Good, but we can make it stronger.")
-        internal static let passwordGeneratorStrengthVeryGuessabble = L10n.tr("Localizable", "PASSWORD_GENERATOR_STRENGTH_VERY_GUESSABBLE", fallback: "Let's make this password stronger.")
+        internal static let passwordGeneratorStrengthVeryGuessable = L10n.tr("Localizable", "PASSWORD_GENERATOR_STRENGTH_VERY_GUESSABLE", fallback: "Let's make this password stronger.")
         internal static let passwordGeneratorStrengthVeryUnguessable = L10n.tr("Localizable", "PASSWORD_GENERATOR_STRENGTH_VERY_UNGUESSABLE", fallback: "Ultimate password strength reached!")
         internal static let passwordGeneratorUseButton = L10n.tr("Localizable", "PASSWORD_GENERATOR_USE_BUTTON", fallback: "Use this password")
         internal static let passwordHealthModuleActionButton = L10n.tr("Localizable", "PASSWORD_HEALTH_MODULE_ACTION_BUTTON", fallback: "Explore")
