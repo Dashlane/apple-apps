@@ -14,7 +14,7 @@ public enum LogPremiumType {
     case yearlyPlanDisplaySuccessful
     case yearlyPlanDisplayErrorFailToFetchData
     case yearlyReceiptFailedValidation
-    case yearlyErrorOccuredForPurchase
+    case yearlyErrorOccurredForPurchase
     case yearlyChosen
     case yearlySuccessfull
     case paywallDisplayedSecureNotes
@@ -65,7 +65,7 @@ public class PremiumStatusLogger {
             logCode = UsageLogCode35UserActionsMobile(type: "goPremium", action: "16")
         case .yearlyReceiptFailedValidation:
             logCode = UsageLogCode35UserActionsMobile(type: "goPremium", action: "19")
-        case .yearlyErrorOccuredForPurchase:
+        case .yearlyErrorOccurredForPurchase:
             logCode = UsageLogCode35UserActionsMobile(type: "goPremium", action: "12")
         case .yearlyChosen:
             logCode = UsageLogCode35UserActionsMobile(type: "goPremium", action: "1")
