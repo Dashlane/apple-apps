@@ -82,7 +82,7 @@ struct PremiumAnnouncementsView: View {
     }
 }
 
-private struct DismissableAnnounementModifier: ViewModifier {
+private struct DismissableAnnouncementModifier: ViewModifier {
 
     let dismiss: () -> Void
 
@@ -101,7 +101,7 @@ private struct DismissableAnnounementModifier: ViewModifier {
 
 private extension View {
     func dismissable(_ dismiss: @escaping () -> Void) -> some View {
-        self.modifier(DismissableAnnounementModifier(dismiss: dismiss))
+        self.modifier(DismissableAnnouncementModifier(dismiss: dismiss))
     }
 
 }
