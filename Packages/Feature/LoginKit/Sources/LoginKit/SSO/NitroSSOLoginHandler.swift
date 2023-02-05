@@ -36,7 +36,7 @@ struct NitroSSOLoginHandler: Equatable {
     func callbackInfo(withSAML saml: String) async throws -> SSOCallbackInfos {
         let encryptedPayload = try secureTunnel.push(ConfirmLoginRequest(domainName: login.domainName, samlResponse: saml))
         let response = try await webservice.confirmLogin(encryptedPayload: encryptedPayload.hexadecimalString)
-        let decrytedResponse = try secureTunnel.pull(ConfirmLoginResponse.self, from: response.hexaData)
-        return SSOCallbackInfos(ssoToken: decrytedResponse.ssoToken, serviceProviderKey: decrytedResponse.userServiceProviderKey, exists: decrytedResponse.exists)
+        let decryptedResponse = try secureTunnel.pull(ConfirmLoginResponse.self, from: response.hexaData)
+        return SSOCallbackInfos(ssoToken: decryptedResponse.ssoToken, serviceProviderKey: decryptedResponse.userServiceProviderKey, exists: decryptedResponse.exists)
     }
 }
