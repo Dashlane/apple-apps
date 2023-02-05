@@ -31,7 +31,7 @@ struct BreachStaticField_Previews: PreviewProvider {
     static var previews: some View {
         MultiContextPreview {
             VStack {
-                BreachStaticField(title: "Missing password", text: "If you don't remember it, try resseting with \"forgot password\"")
+                BreachStaticField(title: "Missing password", text: "If you don't remember it, try resetting with \"forgot password\"")
             }
         }.previewLayout(.sizeThatFits)
     }
