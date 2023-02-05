@@ -205,7 +205,7 @@ public class ScreenLocker {
         self.setting.paused = false
     }
 
-            func suspendMomentarelyPrivacyShutter() {
+            func suspendMomentarilyPrivacyShutter() {
         privacyShutterOnAppInactive = false
         DispatchQueue.main.asyncAfter(deadline: .now() + 7) {
             self.privacyShutterOnAppInactive = true
