@@ -71,10 +71,10 @@ public class ScreenLocker {
     }
 
             var currentKernelBootTime: TimeInterval? {
-        var mangementInformationBase = [CTL_KERN, KERN_BOOTTIME]
+        var managementInformationBase = [CTL_KERN, KERN_BOOTTIME]
         var bootTime = timeval()
         var bootTimeSize: Int = MemoryLayout<timeval>.size
-        guard sysctl(&mangementInformationBase, UInt32(mangementInformationBase.count), &bootTime, &bootTimeSize, nil, 0) != -1 else {
+        guard sysctl(&managementInformationBase, UInt32(managementInformationBase.count), &bootTime, &bootTimeSize, nil, 0) != -1 else {
             return nil
         }
         return Date().timeIntervalSince1970 - (TimeInterval(bootTime.tv_sec) + TimeInterval(bootTime.tv_usec) / 1_000_000.0)
