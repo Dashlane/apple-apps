@@ -29,7 +29,7 @@ struct BiometryUnlockView: View {
                 
                 FeedbackView(title: L10n.Localizable.biometryUnlockErrorTitle,
                           message: L10n.Localizable.biometryUnlockErrorMessage(model.biometryType.displayableName) + "\n\n" + L10n.Localizable.biometryUnlockErrorMessage2,
-                          helpCTA: (L10n.Localizable.biometryUnlockErrorCta(model.biometryType.displayableName), UserSupportURL.useBiomtryOrPin.url),
+                          helpCTA: (L10n.Localizable.biometryUnlockErrorCta(model.biometryType.displayableName), UserSupportURL.useBiometryOrPin.url),
                           primaryButton: (L10n.Localizable.biometryUnlockErrorPinButtonTitle, {
                     UIApplication.shared.open(.securitySettings)
                 }),

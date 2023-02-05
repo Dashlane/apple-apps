@@ -8,7 +8,7 @@ enum UserSupportURL: String {
     case base = "_"
     case whatIsDashlane = "_"
     case protectAccountUsing2FA = "_"
-    case useBiomtryOrPin = "_"
+    case useBiometryOrPin = "_"
     case changePin = "_"
     case troubleshooting = "_"
     case helpCenter = "_"
