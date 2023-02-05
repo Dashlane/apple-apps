@@ -120,7 +120,7 @@ public class LoginViewModel: LoginViewModelProtocol, LoginKitServicesInjecting {
     }
 
         func checkForSSOAccountCreation() {
-        accountCreationHandler.accountCreationMethodAvailibility(for: Login(email), context: LoginContext(origin: .mobile)) { result in
+        accountCreationHandler.accountCreationMethodAvailability(for: Login(email), context: LoginContext(origin: .mobile)) { result in
             do {
                 guard let method = try result.get(), case let .sso(info) = method else {
                     throw AccountError.userNotFound
