@@ -2,10 +2,10 @@ import SwiftUI
 
 public extension View {
                         func shakeAnimation(forNumberOfAttempts attempts: Int,
-                        shakesCountPerAttemp: Int = 4,
+                        shakesCountPerAttempt: Int = 4,
                         duration: Double = 0.4) -> some View {
         return self
-            .modifier(Shake(animatableData: CGFloat(attempts), shakesCount: shakesCountPerAttemp))
+            .modifier(Shake(animatableData: CGFloat(attempts), shakesCount: shakesCountPerAttempt))
             .animation(Animation
                 .easeInOut(duration: duration), value: attempts)
     }
