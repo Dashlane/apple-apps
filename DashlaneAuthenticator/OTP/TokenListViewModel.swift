@@ -51,7 +51,7 @@ class TokenListViewModel: ObservableObject {
         self.didDelete = didDelete
         databaseService.codesPublisher
             .map({ $0.sortedByIssuer() })
-            .map { $0.seprateByIsFavorite() }
+            .map { $0.separateByIsFavorite() }
             .sink(receiveValue: { codes in
                 self.tokens = codes[false] ?? []
                 self.favorites = codes[true] ?? []
@@ -87,7 +87,7 @@ class TokenListViewModel: ObservableObject {
 }
 
 extension [OTPInfo] {
-    func seprateByIsFavorite() -> [Bool: [OTPInfo]] {
+    func separateByIsFavorite() -> [Bool: [OTPInfo]] {
         self.reduce(into: [Bool: [OTPInfo]]()) { partialResult, otpInfo in
             partialResult[otpInfo.isFavorite, default: []].append(otpInfo)
         }
