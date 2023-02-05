@@ -1,6 +1,6 @@
 import Foundation
 
-class CodeObfucastionFormatter: FieldFormatter {
+class CodeObfuscationFormatter: FieldFormatter {
     let max: Int?
 
     public init(max: Int? = nil) {
