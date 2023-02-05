@@ -210,7 +210,7 @@ extension SKProductSubscriptionPeriod {
         case .year:
             return "\(self.numberOfUnits) year(s)"
         default:
-            return "unkonwn"
+            return "unknown"
         }
     }
 }
