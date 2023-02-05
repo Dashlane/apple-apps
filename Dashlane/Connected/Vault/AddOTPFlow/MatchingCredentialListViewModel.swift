@@ -45,7 +45,7 @@ extension MatchingCredentialListViewModel {
         MatchingCredentialListViewModel(
             website: website,
             matchingCredentials: matchingCredentials,
-            vaultItemRowModelFactory: .init { .mock(configuration: $0, additionialConfiguration: $1) },
+            vaultItemRowModelFactory: .init { .mock(configuration: $0, additionalConfiguration: $1) },
             completion: completion
         )
     }

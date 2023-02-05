@@ -71,7 +71,7 @@ extension SharingToolViewModel {
                 SharingPendingItemGroupsSectionViewModel(
                     sharingService: sharingService,
                     teamSpacesService: teamSpacesService,
-                    vaultItemRowModelFactory: .init { .mock(configuration: $0, additionialConfiguration: $1)}
+                    vaultItemRowModelFactory: .init { .mock(configuration: $0, additionalConfiguration: $1)}
                 )
             },
             userGroupsSectionViewModelFactory: .init { itemsProvider in
