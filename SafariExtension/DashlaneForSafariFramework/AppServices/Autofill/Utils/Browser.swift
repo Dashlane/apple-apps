@@ -45,7 +45,7 @@ public final class Browser: NSObject, BrowserExport {
     
     func getActiveTab( _ callback: JSValue ) {
         guard callback.isObject else {
-            logger?.error("wrong calllback")
+            logger?.error("wrong callback")
             return
         }
         self._getActiveTab { tabId in
