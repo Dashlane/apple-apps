@@ -10,7 +10,7 @@ class RecoveryCodesScanViewModel: ObservableObject {
     var isProgress: Bool = false
 
     @Published
-    var presentConfirmtion = false
+    var presentConfirmation = false
 
     @Published
     var recoveryCodes: [String] = []
@@ -44,7 +44,7 @@ class RecoveryCodesScanViewModel: ObservableObject {
                                 }
                                 return code
                             }
-                            self.presentConfirmtion = true
+                            self.presentConfirmation = true
                         }
                     }
                 }
