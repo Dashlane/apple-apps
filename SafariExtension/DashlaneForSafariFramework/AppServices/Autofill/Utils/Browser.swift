@@ -11,7 +11,7 @@ import DashlaneCrypto
     func getRandomValues(_ size: Int ) -> [UInt8]
     func openNewTabWithUrl( _ url: String )
     func getLanguages() -> [String]
-    func doesExtensionSupportCommunicationWithLocalRessource(_ safariVersionNumber: String) -> Bool
+    func doesExtensionSupportCommunicationWithLocalResource(_ safariVersionNumber: String) -> Bool
     func tabsOnUpdatedAddListener(_ callback: JSValue)
     func tabsSendMessage(_ tabId: Int, _ message: String, _ options: [String: Any])
     func getURL(_ ofResource: String) -> String?
@@ -90,7 +90,7 @@ public final class Browser: NSObject, BrowserExport {
         return NSLocale.preferredLanguages
     }
     
-    func doesExtensionSupportCommunicationWithLocalRessource(_ safariVersionNumber: String) -> Bool {
+    func doesExtensionSupportCommunicationWithLocalResource(_ safariVersionNumber: String) -> Bool {
                                        return true
     }
     
