@@ -56,14 +56,14 @@ struct PlanRecommandationView: View {
 
 extension PlanRecommandationView {
     var text: String {
-        switch viewModel.recommandedPlan {
+        switch viewModel.recommendedPlan {
         case .premium:
             return L10n.Core.actionItemTrialUpgradeRecommendationDescriptionPremium
         }
     }
 
     var buttonText: String {
-        switch viewModel.recommandedPlan {
+        switch viewModel.recommendedPlan {
         case .premium:
             return L10n.Core.currentPlanCtaPremium
         }
