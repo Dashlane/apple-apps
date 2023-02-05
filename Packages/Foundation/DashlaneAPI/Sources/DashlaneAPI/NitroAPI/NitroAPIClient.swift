@@ -48,7 +48,7 @@ struct EncryptedInput: Encodable {
     let data: String
 }
 
-public struct NitroReguestLogin: Encodable {
+public struct NitroRequestLogin: Encodable {
     let domainName: String
     public init(domainName: String) {
         self.domainName = domainName

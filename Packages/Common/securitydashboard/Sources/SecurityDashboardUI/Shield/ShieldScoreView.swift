@@ -20,7 +20,7 @@ public class ShieldScoreView: View {
     @IBInspectable public var backgroundBarColor: UIColor = .gray { didSet {  self.resetLayersProperties() } }
     #endif
 
-    @IBInspectable public var proressAnimationDuration: CGFloat = 0.25
+    @IBInspectable public var progressAnimationDuration: CGFloat = 0.25
 
     #if os(macOS) 
     @IBInspectable public var animationBarColor: NSColor = .blue { didSet {  self.resetLayersProperties() } }
@@ -37,7 +37,7 @@ public class ShieldScoreView: View {
         }
         set {
             updateColors(forProgress: newValue)
-            barLayer.animateProgress(newValue, duration: proressAnimationDuration)
+            barLayer.animateProgress(newValue, duration: progressAnimationDuration)
         }
     }
 

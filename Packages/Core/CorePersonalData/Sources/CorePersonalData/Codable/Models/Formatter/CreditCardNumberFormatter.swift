@@ -2,10 +2,10 @@ import Foundation
 
 public class CreditCardNumberFormatter: Formatter {
     var obfuscate = false
-    var obfucatingString = "•"
-    public init(obfuscate: Bool = false, obfucatingString: String = "•") {
+    var obfuscatingString = "•"
+    public init(obfuscate: Bool = false, obfuscatingString: String = "•") {
         self.obfuscate = obfuscate
-        self.obfucatingString = obfucatingString
+        self.obfuscatingString = obfuscatingString
         super.init()
     }
 
@@ -33,7 +33,7 @@ public class CreditCardNumberFormatter: Formatter {
 
             var obfuscatedString = String(formattedNumber[...lastSpaceIndex])
             obfuscatedString = obfuscatedString.map {
-                $0 == " " ? " " : obfucatingString
+                $0 == " " ? " " : obfuscatingString
             }.joined()
 
             let indexAfterLastSpace = formattedNumber.index(after: lastSpaceIndex)

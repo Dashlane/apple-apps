@@ -81,7 +81,7 @@ class EmailViewModel: EmailViewModelProtocol {
 
                 shouldDisplayProgress = true
 
-                accountCreationHandler.accountCreationMethodAvailibility(for: Login(email), context: LoginContext(origin: .mobile)) { [weak self] result in
+                accountCreationHandler.accountCreationMethodAvailability(for: Login(email), context: LoginContext(origin: .mobile)) { [weak self] result in
             self?.handle(result, for: login)
         }
     }
@@ -110,12 +110,12 @@ class EmailViewModel: EmailViewModelProtocol {
         return email
     }
 
-        private func handle(_ result: Result<AccountCreationMethodAvailibility?, Error>, for login: Email) {
+        private func handle(_ result: Result<AccountCreationMethodAvailability?, Error>, for login: Email) {
         self.shouldDisplayProgress = false
 
         switch result {
         case .success(let method):
-            handleAccountCreationMethodAvailibility(method, for: login)
+            handleAccountCreationMethodAvailability(method, for: login)
         case .failure(let error):
             if case AccountError.expiredVersion = error {
                 self.currentAlert = VersionValidityAlert.errorAlert()
@@ -125,7 +125,7 @@ class EmailViewModel: EmailViewModelProtocol {
         }
     }
 
-    private func handleAccountCreationMethodAvailibility(_ method: AccountCreationMethodAvailibility?, for login: Email) {
+    private func handleAccountCreationMethodAvailability(_ method: AccountCreationMethodAvailability?, for login: Email) {
         switch method {
         case .none:
             self.bubbleErrorMessage = L10n.Localizable.kwAccountCreationExistingAccount

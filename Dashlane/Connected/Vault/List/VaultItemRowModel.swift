@@ -248,11 +248,11 @@ extension VaultItemRowModel {
 
     static func mock(
         configuration: Configuration,
-        additionialConfiguration: AdditionalConfiguration? = nil
+        additionalConfiguration: AdditionalConfiguration? = nil
     ) -> VaultItemRowModel {
         MockVaultConnectedContainer().makeVaultItemRowModel(
             configuration: configuration,
-            additionalConfiguration: additionialConfiguration
+            additionalConfiguration: additionalConfiguration
         )
     }
 }

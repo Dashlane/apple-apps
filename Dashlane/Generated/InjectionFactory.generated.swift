@@ -2157,13 +2157,13 @@ extension SessionServicesContainer {
 
 extension SessionServicesContainer {
         
-        internal func makeOTPTokenListViewModel(authenticatorDatabaseService: OTPDatabaseService, domainIconLibray: DomainIconLibraryProtocol, actionHandler: @escaping (OTPTokenListViewModel.Action) -> Void) -> OTPTokenListViewModel {
+        internal func makeOTPTokenListViewModel(authenticatorDatabaseService: OTPDatabaseService, domainIconLibrary: DomainIconLibraryProtocol, actionHandler: @escaping (OTPTokenListViewModel.Action) -> Void) -> OTPTokenListViewModel {
             return OTPTokenListViewModel(
                             activityReporter: activityReporter,
                             vaultItemsService: vaultItemsService,
                             authenticatorDatabaseService: authenticatorDatabaseService,
                             domainParser: appServices.domainParser,
-                            domainIconLibray: domainIconLibray,
+                            domainIconLibrary: domainIconLibrary,
                             actionHandler: actionHandler
             )
         }
@@ -4766,16 +4766,16 @@ extension OTPExplorerViewModel {
 
 internal typealias _OTPTokenListViewModelFactory =  (
     _ authenticatorDatabaseService: OTPDatabaseService,
-    _ domainIconLibray: DomainIconLibraryProtocol,
+    _ domainIconLibrary: DomainIconLibraryProtocol,
     _ actionHandler: @escaping (OTPTokenListViewModel.Action) -> Void
 ) -> OTPTokenListViewModel
 
 internal extension InjectedFactory where T == _OTPTokenListViewModelFactory {
     
-    func make(authenticatorDatabaseService: OTPDatabaseService, domainIconLibray: DomainIconLibraryProtocol, actionHandler: @escaping (OTPTokenListViewModel.Action) -> Void) -> OTPTokenListViewModel {
+    func make(authenticatorDatabaseService: OTPDatabaseService, domainIconLibrary: DomainIconLibraryProtocol, actionHandler: @escaping (OTPTokenListViewModel.Action) -> Void) -> OTPTokenListViewModel {
        return factory(
               authenticatorDatabaseService,
-              domainIconLibray,
+              domainIconLibrary,
               actionHandler
        )
     }

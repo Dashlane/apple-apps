@@ -4,7 +4,7 @@ enum BrazeAnnouncementDecodingError: Error {
     case unhandledMessageType
     case wrongNumberOfButtons
     case missingURLActionInButton
-    case urlActionNotReditectingToDashlane
+    case urlActionNotRedirectingToDashlane
     case imageHavingWrongType
     case deviceIsExcludedFromAnnouncement
 }

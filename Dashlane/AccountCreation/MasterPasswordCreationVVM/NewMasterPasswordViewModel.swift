@@ -37,7 +37,7 @@ class NewMasterPasswordViewModel: ObservableObject {
 
     var passwordStrengthMessage: String {
         if password.isEmpty {
-            return L10n.Localizable.masterpasswordCreationExplaination
+            return L10n.Localizable.masterpasswordCreationExplanation
         }
 
         return passwordEvaluation.strength.description

@@ -20,7 +20,7 @@ public struct DeviceUnlinkingFlow: View {
             case let .monobucketUnlink(device, action):
                 MonobucketUnlinkView(device: device, action: action)
             case let .multiDevice(limit, devices, action):
-                UnlinkMutltiDevicesView(limit: limit,
+                UnlinkMultiDevicesView(limit: limit,
                                         devices: devices,
                                         action: action)
             case let .purchasePlanFlow(flow):

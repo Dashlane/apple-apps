@@ -9,7 +9,7 @@ public struct PlanRecommandationViewModel: HomeAnnouncementsServicesInjecting {
         case premium
     }
 
-    let recommandedPlan: PlanRecommandation = .premium
+    let recommendedPlan: PlanRecommandation = .premium
     private let deepLinkingService: NotificationKitDeepLinkingServiceProtocol
     private let activityReporter: ActivityReporterProtocol
     private let userSettings: UserSettings
@@ -24,15 +24,15 @@ public struct PlanRecommandationViewModel: HomeAnnouncementsServicesInjecting {
 
     func learnMore() {
         deepLinkingService.handle(.goToPremium)
-        activityReporter.report(UserEvent.CallToAction(callToActionList: [userTrackingRecommandedCallToAction], chosenAction: userTrackingRecommandedCallToAction, hasChosenNoAction: false))
+        activityReporter.report(UserEvent.CallToAction(callToActionList: [userTrackingRecommendedCallToAction], chosenAction: userTrackingRecommendedCallToAction, hasChosenNoAction: false))
     }
 
     func cancelAction() {
-        activityReporter.report(UserEvent.CallToAction(callToActionList: [userTrackingRecommandedCallToAction], hasChosenNoAction: true))
+        activityReporter.report(UserEvent.CallToAction(callToActionList: [userTrackingRecommendedCallToAction], hasChosenNoAction: true))
     }
 
-    private var userTrackingRecommandedCallToAction: Definition.CallToAction {
-        switch recommandedPlan {
+    private var userTrackingRecommendedCallToAction: Definition.CallToAction {
+        switch recommendedPlan {
         case .premium:
             return .premiumOffer
         }

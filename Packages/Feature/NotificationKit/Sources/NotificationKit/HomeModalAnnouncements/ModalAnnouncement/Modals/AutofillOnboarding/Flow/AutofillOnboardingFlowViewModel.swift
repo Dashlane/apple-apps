@@ -28,7 +28,7 @@ public class AutofillOnboardingFlowViewModel: HomeAnnouncementsServicesInjecting
 
     public init(autofillService: NotificationKitAutofillServiceProtocol,
          premiumService: PremiumServiceProtocol,
-         abTesttingService: ABTestingServiceProtocol,
+         abTestingService: ABTestingServiceProtocol,
          activityReporter: ActivityReporterProtocol,
          userSettings: UserSettings,
          autofillOnboardingIntroViewModelFactory: AutofillOnboardingIntroViewModel.Factory,
@@ -40,7 +40,7 @@ public class AutofillOnboardingFlowViewModel: HomeAnnouncementsServicesInjecting
         self.autofillOnboardingIntroViewModelFactory = autofillOnboardingIntroViewModelFactory
         self.completion = completion
 
-        if abTesttingService.get(test: ABTest.AutofillIosActivationbannereducation.self)?.variant == .a {
+        if abTestingService.get(test: ABTest.AutofillIosActivationbannereducation.self)?.variant == .a {
             self.steps = [.intro(makeAutofillOnboardingIntroViewModel())]
         } else {
             self.steps = [.instructions(makeAutofillOnboardingInstructionsViewModel())]
@@ -99,7 +99,7 @@ extension AutofillOnboardingFlowViewModel {
     static var mock: AutofillOnboardingFlowViewModel {
         .init(autofillService: FakeNotificationKitAutofillService(),
               premiumService: PremiumServiceMock(),
-              abTesttingService: ABTestingServiceMock.mock,
+              abTestingService: ABTestingServiceMock.mock,
               activityReporter: .fake,
               userSettings: .mock,
               autofillOnboardingIntroViewModelFactory: .init({ _,_,_ in .mock }),

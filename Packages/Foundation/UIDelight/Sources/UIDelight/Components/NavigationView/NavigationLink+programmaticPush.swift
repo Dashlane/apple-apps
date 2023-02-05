@@ -73,7 +73,7 @@ struct NavigationLinkProgrammaticPush_Previews: PreviewProvider {
         
         var body: some View {
             NavigationView {
-                Button("Push programatically") {
+                Button("Push programmatically") {
                     isSecondScreenDisplayed = true
                 }
                 .navigationTitle("Boolean Binding")
@@ -94,7 +94,7 @@ struct NavigationLinkProgrammaticPush_Previews: PreviewProvider {
         
         var body: some View {
             NavigationView {
-                Button("Push programatically") {
+                Button("Push programmatically") {
                     step = .secondStep
                 }
                 .navigationTitle("Selection Binding")
@@ -111,7 +111,7 @@ struct NavigationLinkProgrammaticPush_Previews: PreviewProvider {
         
         var body: some View {
             NavigationView {
-                Button("Push programatically") {
+                Button("Push programmatically") {
                     text = "Hello World"
                 }
                 .navigationTitle("Item Binding")

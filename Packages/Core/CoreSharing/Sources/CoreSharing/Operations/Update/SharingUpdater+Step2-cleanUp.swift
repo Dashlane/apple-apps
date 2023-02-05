@@ -38,7 +38,7 @@ extension SharingUpdater {
             return
         }
         
-        var successfullDeletedIds: [Identifier] = []
+        var successfullyDeletedIds: [Identifier] = []
         
         for group in groupsToDelete {
             do {
@@ -49,7 +49,7 @@ extension SharingUpdater {
                     try database.deleteItemContentCaches(withIds: [item.id])
                 }
                 
-                successfullDeletedIds.append(group.id)
+                successfullyDeletedIds.append(group.id)
                 
             } catch let error as SharingInvalidActionError {
                 nextRequest += UpdateRequest(error: error)
@@ -59,8 +59,8 @@ extension SharingUpdater {
             }
         }
         
-        try database.deleteItemGroups(withIds: successfullDeletedIds)
-        logger.debug("\(successfullDeletedIds.count) ItemGroup(s) cleaned that contain only current user, item(s) recreated on vault")
+        try database.deleteItemGroups(withIds: successfullyDeletedIds)
+        logger.debug("\(successfullyDeletedIds.count) ItemGroup(s) cleaned that contain only current user, item(s) recreated on vault")
     }
 }
 

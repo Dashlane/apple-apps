@@ -5,7 +5,7 @@ extension Continent {
 
     var localized: String {
         let keysForContinent: [String: String] = [
-                        "AN": "CONTINENT_ANTARTICA",
+                        "AN": "CONTINENT_ANTARCTICA",
                         "SA": "CONTINENT_SOUTH_AMERICA",
                         "AF": "CONTINENT_AFRICA",
                         "AS": "CONTINENT_ASIA",

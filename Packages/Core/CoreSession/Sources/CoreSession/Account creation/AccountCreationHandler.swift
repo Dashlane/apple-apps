@@ -2,7 +2,7 @@ import Foundation
 import DashTypes
 import SwiftTreats
 
-public enum AccountCreationMethodAvailibility {
+public enum AccountCreationMethodAvailability {
     case sso(SSOLoginInfo)
     case masterpassword
 
@@ -32,15 +32,15 @@ public struct AccountCreationHandler {
         self.accountService = accountService
     }
 
-    public func accountCreationMethodAvailibility(for login: Login, context: LoginContext? = nil, completion: @escaping CompletionBlock<(AccountCreationMethodAvailibility?), Error>) {
+    public func accountCreationMethodAvailability(for login: Login, context: LoginContext? = nil, completion: @escaping CompletionBlock<(AccountCreationMethodAvailability?), Error>) {
         self.accountService.verifyExistence(of: login) { response in
             switch response {
             case let .success(accountInfo):
-                let accountCreationMethodAvailibility = AccountCreationMethodAvailibility(isLoginAvailable: !accountInfo.isAccountRegistered,
+                let accountCreationMethodAvailability = AccountCreationMethodAvailability(isLoginAvailable: !accountInfo.isAccountRegistered,
                                                                                           shouldRegisterViaSSO: accountInfo.sso,
                                                                                           serviceProviderURL: accountInfo.ssoServiceProviderUrl, isNitroProvider: accountInfo.ssoIsNitroProvider ?? false,
                                                                                           context: context)
-                completion(.success(accountCreationMethodAvailibility))
+                completion(.success(accountCreationMethodAvailability))
             case let .failure(error):
                 completion(Result.failure(error))
             }

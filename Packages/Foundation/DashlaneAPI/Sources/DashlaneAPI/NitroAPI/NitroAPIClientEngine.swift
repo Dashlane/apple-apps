@@ -50,8 +50,8 @@ extension NitroAPIClientEngineImp {
 #if DEBUG
         case let .staging(info):
             let cloudFare =  [
-                "CF-Access-Client-Id": info.cloudfareIdentifier,
-                "CF-Access-Client-Secret": info.cloudfareSecret
+                "CF-Access-Client-Id": info.cloudflareIdentifier,
+                "CF-Access-Client-Secret": info.cloudflareSecret
             ]
             return headers.merging(cloudFare) { left, _ in return left }
 #endif

@@ -2,11 +2,11 @@ import Foundation
 #if !os(macOS)
 import UIKit
 
-public protocol MutatableBySubcript: AnyObject {
+public protocol MutableBySubcript: AnyObject {
     
 }
 
-public extension MutatableBySubcript {
+public extension MutableBySubcript {
     subscript<V>(_ key: ReferenceWritableKeyPath<Self, V>) -> V where V: Equatable {
         get {
             self[keyPath: key]
@@ -31,7 +31,7 @@ public extension MutatableBySubcript {
 }
 
 
-extension UIView: MutatableBySubcript {
+extension UIView: MutableBySubcript {
     
 }
 #endif

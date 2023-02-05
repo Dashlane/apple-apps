@@ -20,7 +20,7 @@ public struct MasterPasswordView<Model: MasterPasswordViewModel>: View {
     }
 
     @State
-    var accesoryHelpDisplayed: Bool = false
+    var accessoryHelpDisplayed: Bool = false
 
     @State
     var forgotButtonHelpDisplayed: Bool = false
@@ -220,12 +220,12 @@ public struct MasterPasswordView<Model: MasterPasswordViewModel>: View {
 
     private var helpAccessory: some View {
         Button(action: {
-            self.accesoryHelpDisplayed = true
+            self.accessoryHelpDisplayed = true
             self.model.installerLogService.login.logPasswordHelp()
         }, title: L10n.Core.resetMasterPasswordForget)
         .foregroundColor(.ds.text.brand.standard)
         .padding(5)
-        .actionSheet(isPresented: $accesoryHelpDisplayed, content: helpActionSheet)
+        .actionSheet(isPresented: $accessoryHelpDisplayed, content: helpActionSheet)
     }
 
     private func helpActionSheet() -> ActionSheet {

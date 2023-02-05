@@ -177,7 +177,7 @@ extension SKProductDiscount {
             payment mode: \(self.paymentMode)
             price: \(self.price)
             price locale: (self.priceLocale)
-            subsciption period: \(self.subscriptionPeriod.debugDescription)
+            subscription period: \(self.subscriptionPeriod.debugDescription)
             """
     }
 }
@@ -210,7 +210,7 @@ extension SKProductSubscriptionPeriod {
         case .year:
             return "\(self.numberOfUnits) year(s)"
         default:
-            return "unkonwn"
+            return "unknown"
         }
     }
 }

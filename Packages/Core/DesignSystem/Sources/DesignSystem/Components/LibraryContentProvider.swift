@@ -43,7 +43,7 @@ struct Library: LibraryContentProvider {
 }
 
 #if canImport(UIKit)
-struct ContrainedLibrary: LibraryContentProvider {
+struct ConstrainedLibrary: LibraryContentProvider {
     var views: [LibraryItem] {
         LibraryItem(TextInput("Placeholder", text: .constant("")), title: "TextInput", category: .control)
     }

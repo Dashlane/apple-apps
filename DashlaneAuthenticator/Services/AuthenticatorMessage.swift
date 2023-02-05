@@ -1,6 +1,6 @@
 import Foundation
 
-enum AutheticatorMessage: Codable {
+enum AuthenticatorMessage: Codable {
     case sync
 }
 

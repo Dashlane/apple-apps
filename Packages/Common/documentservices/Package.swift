@@ -36,7 +36,7 @@ let package = Package(
                 .product(name: "CoreNetworking", package: "CoreNetworking")
             ],
             resources: [
-                .process("Test Resouces"),
+                .process("Test Resources"),
                 .process("AttachableObjects.xcdatamodeld"),
                 .process("GeneratedClasses")
             ]
@@ -48,7 +48,7 @@ let package = Package(
                 .product(name: "CoreNetworking", package: "CoreNetworking")
             ],
             resources: [
-                .process("Test Resouces")
+                .process("Test Resources")
             ]
         )
     ]

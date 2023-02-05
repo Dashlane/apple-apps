@@ -53,11 +53,11 @@ class CredentialsProvider: SecurityDashboard.CredentialsProvider {
                 }
 
                 let strength = self.evaluate(credential)
-                let isSensitiveDomin = categorizer.categorize(credential)?.important == true
+                let isSensitiveDomain = categorizer.categorize(credential)?.important == true
 
                 return SecurityDashboardCredentialImplementation(credential: credential,
                                                                  strength: strength,
-                                                                 isSensitiveDomin: isSensitiveDomin)
+                                                                 isSensitiveDomain: isSensitiveDomain)
         }
     }
 }
@@ -80,7 +80,7 @@ struct SecurityDashboardCredentialImplementation: SecurityDashboardCredential {
     let email: String?
     let username: String?
 
-    init(credential: Credential, strength: SecurityDashboard.PasswordStrength, isSensitiveDomin: Bool) {
+    init(credential: Credential, strength: SecurityDashboard.PasswordStrength, isSensitiveDomain: Bool) {
         self.credential = credential
         self.spaceId = credential.spaceId ?? ""
         self.identifier = credential.id.rawValue
@@ -95,7 +95,7 @@ struct SecurityDashboardCredentialImplementation: SecurityDashboardCredential {
 
         self.lastModificationDate = credential.passwordModificationDate ?? credential.userModificationDatetime ?? credential.creationDatetime ?? Date()
 
-        self.sensitiveDomain = isSensitiveDomin
+        self.sensitiveDomain = isSensitiveDomain
 
         self.disabledForPasswordAnalysis = credential.disabledForPasswordAnalysis
     }

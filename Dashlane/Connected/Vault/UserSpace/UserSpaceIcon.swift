@@ -111,7 +111,7 @@ extension UserSpaceIcon.Size {
 
 struct TeamSpaceView_Previews: PreviewProvider {
 
-    static let bussinessSpace = Space(teamId: "id",
+    static let businessSpace = Space(teamId: "id",
                                       teamName: "Jason&Jeremy SAS",
                                       letter: "J",
                                       color: "d22",
@@ -125,7 +125,7 @@ struct TeamSpaceView_Previews: PreviewProvider {
                                       status: .accepted,
                                       info: SpaceInfo())
 
-    static var userTeamSpace = UserSpace.business(.init(space: TeamSpaceView_Previews.bussinessSpace,
+    static var userTeamSpace = UserSpace.business(.init(space: TeamSpaceView_Previews.businessSpace,
                                                         anonymousTeamId: ""))
     static var previews: some View {
         MultiContextPreview {

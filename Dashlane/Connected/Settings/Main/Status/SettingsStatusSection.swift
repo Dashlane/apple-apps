@@ -11,7 +11,7 @@ struct SettingsStatusSection: View {
 
     var body: some View {
         if let team = model.businessTeam {
-            BuinessTeamSettingsSection(team: team)
+            BusinessTeamSettingsSection(team: team)
         } else if let status = model.status {
             ActivePlanSettingsSection(status: status ) {
                 model.showPurchase()

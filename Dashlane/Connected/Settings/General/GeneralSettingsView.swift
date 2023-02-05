@@ -49,8 +49,8 @@ struct GeneralSettingsView: View {
                 }
             }
 
-            Section(footer: Text(L10n.Localizable.clipboardSettingsShouldBeOverridenFooter)) {
-                Toggle(L10n.Localizable.clipboardSettingsShouldBeOverriden, isOn: $viewModel.isClipboardOverridden)
+            Section(footer: Text(L10n.Localizable.clipboardSettingsShouldBeOverriddenFooter)) {
+                Toggle(L10n.Localizable.clipboardSettingsShouldBeOverridden, isOn: $viewModel.isClipboardOverridden)
                     .toggleStyle(SwitchToggleStyle(tint: .green))
             }
 

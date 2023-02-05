@@ -46,7 +46,7 @@ extension ImportInformationViewModel {
         return .init(kind: .chrome, step: .intro)
     }
 
-    static var chromeInstrutionsMock: ImportInformationViewModel {
+    static var chromeInstructionsMock: ImportInformationViewModel {
         return .init(kind: .chrome, step: .instructions)
     }
 

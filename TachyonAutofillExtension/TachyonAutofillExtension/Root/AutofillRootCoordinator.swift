@@ -221,7 +221,7 @@ extension AutofillRootCoordinator: CredentialProvider {
             self.logger?.log(LifeCycleLogEvent.started(domain: credentialIdentity.serviceIdentifier.identifier,
                                                               preselectedCredential: true,
                                                               alreadyAuthenticated: self.persistedSessionServices != nil))
-            guard let sesssionServices = self.persistedSessionServices else {
+            guard let sessionServices = self.persistedSessionServices else {
                 self.logger?.log(LifeCycleLogEvent.failed(userInteractionRequired: true))
                 if self.allAppMessages.contains(.dataMutated) {
                     self.appServices.appExtensionCommunication.write(message: .dataMutated)
@@ -229,7 +229,7 @@ extension AutofillRootCoordinator: CredentialProvider {
                 self.context.cancelRequest(withError: ASExtensionError.userInteractionRequired.nsError)
                 return
             }
-            let connectedCoordinator = self.makeConnectedCoordinator(with: sesssionServices, locked: false)
+            let connectedCoordinator = self.makeConnectedCoordinator(with: sessionServices, locked: false)
             connectedCoordinator.provideCredentialWithoutUserInteraction(for: credentialIdentity) { credential in
                 guard let credential = credential else {
                                                             self.context.cancelRequest(withError: ASExtensionError.userInteractionRequired.nsError)

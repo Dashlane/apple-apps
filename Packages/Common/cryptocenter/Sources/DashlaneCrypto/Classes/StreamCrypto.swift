@@ -57,7 +57,7 @@ public class StreamCrypto: StreamTransfer {
                 completionHandler handler: StreamTransferCompletionHandler?) throws {
         let minimumBlockSize = kCCBlockSizeAES128 * 8
         guard chunkSize >= minimumBlockSize else {
-            throw StreamCryptoError("Chunk size must be at least \(minimumBlockSize) bytes, currenly set to \(chunkSize)")
+            throw StreamCryptoError("Chunk size must be at least \(minimumBlockSize) bytes, currently set to \(chunkSize)")
         }
 
         self.keys = try Keys(withKey: key)

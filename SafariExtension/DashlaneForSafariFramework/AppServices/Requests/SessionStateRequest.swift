@@ -92,12 +92,12 @@ struct SessionStateRequest {
             self.action = action
             self.login = login
 
-            let messsageDictionary = [
+            let messageDictionary = [
                 "action" : action.rawValue,
                 "login" : login,
                 "content": content ?? ""
             ]
-            self.message = Message(message: messsageDictionary, tabId: tabId)
+            self.message = Message(message: messageDictionary, tabId: tabId)
         }
 
         func communication() -> Communication {

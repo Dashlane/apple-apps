@@ -79,7 +79,7 @@ private extension SessionReporterService {
     func configureReportOnSync(using services: SessionServicesContainer) {
 
         services.syncService.$syncStatus
-            .throttle(for: .seconds(5), scheduler: DispatchQueue.backgroudReporter, latest: true)
+            .throttle(for: .seconds(5), scheduler: DispatchQueue.backgroundReporter, latest: true)
             .filter { $0.isIdle }
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
@@ -118,7 +118,7 @@ private extension SessionReporterService {
 
 private extension DispatchQueue {
 
-    static let backgroudReporter = DispatchQueue(label: "com.dashlane.backgroundReporter", qos: .utility)
+    static let backgroundReporter = DispatchQueue(label: "com.dashlane.backgroundReporter", qos: .utility)
 }
 
 private extension Date {

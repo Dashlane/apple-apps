@@ -175,7 +175,7 @@ public class SyncService: Mockable {
     }
     
             public func sync(triggeredBy trigger: Definition.Trigger) {
-        syncLogger.debug("dipatching a sync")
+        syncLogger.debug("dispatching a sync")
         self.latestTrigger = trigger
         syncDispatcher.dispatch()
     }

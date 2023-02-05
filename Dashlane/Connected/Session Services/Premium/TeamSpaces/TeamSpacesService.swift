@@ -100,7 +100,7 @@ public final class TeamSpacesService {
             .sink(receiveCompletion: { completion in
                 switch completion {
                     case let .failure(error):
-                        logger.error("Revoke business team errror", error: error)
+                        logger.error("Revoke business team error", error: error)
                     case .finished: break
                 }
             }, receiveValue: { businessTeam in

@@ -6,26 +6,26 @@ import TOTPGenerator
 import DashlaneAppKit
 
 class PasswordAppCommunicator {
-    private let messageSender: IPCMessageSender<AutheticatorMessage>
+    private let messageSender: IPCMessageSender<AuthenticatorMessage>
     private let messageReceiver: IPCMessageListener<PasswordAppMessage>
     var messageSubscriptions = Set<AnyCancellable>()
     private let appState: ApplicationStateService
     static let messageDirectory = ApplicationGroup.containerURL.appendingPathComponent("AuthenticatorMessaging", isDirectory: true)
     
-    static var passwordAppToAutheticatorUrl: URL {
-        return messageDirectory.appendingPathComponent("PasswordAppToAutheticatorApp.messages")
+    static var passwordAppToAuthenticatorUrl: URL {
+        return messageDirectory.appendingPathComponent("PasswordAppToAuthenticatorApp.messages")
     }
     
     static var authenticatorToPasswordAppUrl: URL {
-        return messageDirectory.appendingPathComponent("AutheticatorAppToPasswordApp.messages")
+        return messageDirectory.appendingPathComponent("AuthenticatorAppToPasswordApp.messages")
     }
     
     init(logger: Logger, appState: ApplicationStateService) {
         self.appState = appState
-        messageReceiver = IPCMessageListener<PasswordAppMessage>(urlToObserve: PasswordAppCommunicator.passwordAppToAutheticatorUrl,
+        messageReceiver = IPCMessageListener<PasswordAppMessage>(urlToObserve: PasswordAppCommunicator.passwordAppToAuthenticatorUrl,
                                                                     coder: IPCMessageCoder(logger: logger, engine: IPCCryptoEngine(encryptionKeyId: "authenticator-encryption-id")),
                                                                     logger: logger)
-        messageSender = IPCMessageSender<AutheticatorMessage>(coder: IPCMessageCoder(logger: logger, engine: IPCCryptoEngine(encryptionKeyId: "authenticator-encryption-id")),
+        messageSender = IPCMessageSender<AuthenticatorMessage>(coder: IPCMessageCoder(logger: logger, engine: IPCCryptoEngine(encryptionKeyId: "authenticator-encryption-id")),
                                               destination: PasswordAppCommunicator.authenticatorToPasswordAppUrl,
                                                                                        logger: logger)
         messageReceiver

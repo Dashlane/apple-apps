@@ -13,10 +13,10 @@ class PurchaseViewModel: ObservableObject {
     @Published
     var state: State = .loading
 
-    private var subcription: AnyCancellable?
+    private var subscription: AnyCancellable?
 
     init(manager: DashlanePremiumManager, logger: PremiumStatusLogger?) {
-        subcription = manager.fetchPurchasePlanGroupsForCurrentSession().map { groups in
+        subscription = manager.fetchPurchasePlanGroupsForCurrentSession().map { groups in
             groups.isEmpty ? .empty : .fetched(groups)
         }
         .replaceError(with: .empty)
@@ -29,7 +29,7 @@ class PurchaseViewModel: ObservableObject {
         .assign(to: \.state, on: self)
     }
 
-    init(intitialState: State) {
-        state = intitialState
+    init(initialState: State) {
+        state = initialState
     }
 }

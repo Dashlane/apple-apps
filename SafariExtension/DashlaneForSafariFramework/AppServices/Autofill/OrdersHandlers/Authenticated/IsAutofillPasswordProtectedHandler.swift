@@ -63,7 +63,7 @@ struct IsAutofillPasswordProtectedHandler: MaverickOrderHandleable, SessionServi
                 guard let credentialId = request.credentialId else {
                     return false
                 }
-                return vaultItemsService.isCredentialProtected(crendentialId: credentialId) == true
+                return vaultItemsService.isCredentialProtected(credentialId: credentialId) == true
             }
         }()
         if shouldProtectDataType {
@@ -75,8 +75,8 @@ struct IsAutofillPasswordProtectedHandler: MaverickOrderHandleable, SessionServi
 }
 
 private extension VaultItemsService {
-    func isCredentialProtected(crendentialId: String) -> Bool {
-        guard let credential = credentials.first(where: { $0.id == Identifier(crendentialId) }) else {
+    func isCredentialProtected(credentialId: String) -> Bool {
+        guard let credential = credentials.first(where: { $0.id == Identifier(credentialId) }) else {
             return false
         }
         return credential.isProtected

@@ -47,7 +47,7 @@ extension SafariExtensionExternalCommunications.SafariExtensionToMainApplication
         default:
             throw DecodingError.dataCorrupted(DecodingError.Context(
                 codingPath: container.codingPath,
-                debugDescription: "Unabled to decode SafariExtensionToMainApplicationMessage enum."
+                debugDescription: "Unable to decode SafariExtensionToMainApplicationMessage enum."
             ))
         }
     }
@@ -80,7 +80,7 @@ extension SafariExtensionExternalCommunications.MainApplicationToSafariExtension
         default:
             throw DecodingError.dataCorrupted(DecodingError.Context(
                 codingPath: container.codingPath,
-                debugDescription: "Unabled to decode MainApplicationToSafariExtensionMessage enum."
+                debugDescription: "Unable to decode MainApplicationToSafariExtensionMessage enum."
             ))
         }
     }

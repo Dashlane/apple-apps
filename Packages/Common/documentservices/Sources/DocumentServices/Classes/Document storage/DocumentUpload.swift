@@ -75,7 +75,7 @@ public final class DocumentUpload: NSObject {
         self.encryptedUrl = try documentCache.urlOfEncryptedDirectory(with: secureFileInfo.id.rawValue)
     }
 
-    private func indicateBackgroudTaskEnd() {
+    private func indicateBackgroundTaskEnd() {
         if let activity = self.backgroundActivity {
             ProcessInfo.processInfo.endActivity(activity)
         }
@@ -91,7 +91,7 @@ public final class DocumentUpload: NSObject {
             try await commitFile()
         } catch {
             self.isFinished = true
-            self.indicateBackgroudTaskEnd()
+            self.indicateBackgroundTaskEnd()
             throw error
         }
     }
@@ -174,6 +174,6 @@ extension DocumentUpload {
         _ = try self.database.save(self.secureFileInfo)
         self.logger.logAttachment(for: self.secureFileInfo, action: .add)
         try FileManager.default.removeItem(at: self.plaintextUrl)
-        self.indicateBackgroudTaskEnd()
+        self.indicateBackgroundTaskEnd()
     }
 }

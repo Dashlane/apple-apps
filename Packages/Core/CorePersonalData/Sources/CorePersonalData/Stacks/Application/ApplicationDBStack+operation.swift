@@ -50,16 +50,16 @@ extension ApplicationDBStack {
     }
     
     private func makeRecord<T: PersonalDataCodable>(metadata: RecordMetadata,
-                                                    existingCotent: PersonalDataCollection = [:],
+                                                    existingContent: PersonalDataCollection = [:],
                                                     item: inout T) throws -> PersonalDataRecord {
         var metadata = metadata
         metadata.markAsPendingUpload()
         metadata.lastLocalUseDate = Date()
         
         try item.prepareForSavingAndValidate()
-        let content = try encoder.encode(item, in: existingCotent)
+        let content = try encoder.encode(item, in: existingContent)
         
-        sharingUploadTrigger.update(&metadata, for: content, oldContent: existingCotent)
+        sharingUploadTrigger.update(&metadata, for: content, oldContent: existingContent)
         
         return PersonalDataRecord(metadata: metadata,
                                   content: content)
@@ -78,7 +78,7 @@ extension ApplicationDBStack {
             return
         }
         let updatedRecord = try makeRecord(metadata: record.metadata,
-                                           existingCotent: record.content,
+                                           existingContent: record.content,
                                            item: &item)
         
         try db.update(updatedRecord)

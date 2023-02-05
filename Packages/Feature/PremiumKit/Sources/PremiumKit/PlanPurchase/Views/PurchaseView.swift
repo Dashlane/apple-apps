@@ -42,13 +42,13 @@ struct PurchaseView_Previews: PreviewProvider {
 
     static var previews: some View {
         MultiContextPreview {
-            PurchaseView(model: PurchaseViewModel(intitialState: .loading), action: { _ in }, content: { _ in
+            PurchaseView(model: PurchaseViewModel(initialState: .loading), action: { _ in }, content: { _ in
                 Text("Hello")
             })
-            PurchaseView(model: PurchaseViewModel(intitialState: .empty), action: { _ in }, content: { _ in
+            PurchaseView(model: PurchaseViewModel(initialState: .empty), action: { _ in }, content: { _ in
                 Text("Hello")
             })
-            PurchaseView(model: PurchaseViewModel(intitialState: .fetched([:])), action: { _ in }, content: { _ in
+            PurchaseView(model: PurchaseViewModel(initialState: .fetched([:])), action: { _ in }, content: { _ in
                 Text("Hello")
             })
         }

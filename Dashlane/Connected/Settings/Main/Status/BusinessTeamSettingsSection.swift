@@ -2,7 +2,7 @@ import SwiftUI
 import CorePremium
 import UIComponents
 
-struct BuinessTeamSettingsSection: View {
+struct BusinessTeamSettingsSection: View {
     let team: BusinessTeam
     var body: some View {
         Section {
@@ -31,10 +31,10 @@ struct BuinessTeamSettingsSection: View {
     }
 }
 
-struct BuinessTeamSettingsSection_Previews: PreviewProvider {
+struct BusinessTeamSettingsSection_Previews: PreviewProvider {
     static var previews: some View {
         List {
-            BuinessTeamSettingsSection(team: .init(space: TeamSpaceView_Previews.bussinessSpace, anonymousTeamId: ""))
+            BusinessTeamSettingsSection(team: .init(space: TeamSpaceView_Previews.businessSpace, anonymousTeamId: ""))
         }.listStyle(.insetGrouped)
     }
 }

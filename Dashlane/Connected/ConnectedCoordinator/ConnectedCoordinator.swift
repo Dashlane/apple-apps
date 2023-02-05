@@ -258,7 +258,7 @@ class ConnectedCoordinator: NSObject, Coordinator, SubcoordinatorOwner {
     }
 
     func finishLaunch() {
-        sessionServices.lockService.locker.screenLocker?.suspendMomentarelyPrivacyShutter()
+        sessionServices.lockService.locker.screenLocker?.suspendMomentarilyPrivacyShutter()
 
         self.sessionServices.appServices.notificationService.requestUserAuthorization()
         self.lockCoordinator.start()

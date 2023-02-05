@@ -92,7 +92,7 @@ struct SharingPendingItemGroupsSection_Previews: PreviewProvider {
             SharingPendingItemGroupsSection(model: .init(
                 sharingService: sharingService,
                 teamSpacesService: teamSpacesServiceOnlyPersonal,
-                vaultItemRowModelFactory: .init { .mock(configuration: $0, additionialConfiguration: $1) })
+                vaultItemRowModelFactory: .init { .mock(configuration: $0, additionalConfiguration: $1) })
             )
         }
         .previewDisplayName("Two Pending Groups")
@@ -102,7 +102,7 @@ struct SharingPendingItemGroupsSection_Previews: PreviewProvider {
             SharingPendingItemGroupsSection(model: .init(
                 sharingService: sharingService,
                 teamSpacesService: teamSpacesServiceWithBusinessTeam,
-                vaultItemRowModelFactory: .init { .mock(configuration: $0, additionialConfiguration: $1) })
+                vaultItemRowModelFactory: .init { .mock(configuration: $0, additionalConfiguration: $1) })
             )
         }
         .previewDisplayName("Select Space Before Accept")
@@ -112,7 +112,7 @@ struct SharingPendingItemGroupsSection_Previews: PreviewProvider {
             SharingPendingItemGroupsSection(model: .init(
                 sharingService: SharingServiceMock(pendingUserGroups: []),
                 teamSpacesService: teamSpacesServiceOnlyPersonal,
-                vaultItemRowModelFactory: .init { .mock(configuration: $0, additionialConfiguration: $1) })
+                vaultItemRowModelFactory: .init { .mock(configuration: $0, additionalConfiguration: $1) })
             )
         }
         .previewDisplayName("Empty")

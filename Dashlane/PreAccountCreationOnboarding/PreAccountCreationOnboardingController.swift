@@ -9,7 +9,7 @@ import DesignSystem
         @objc static func instantiate() -> PreAccountCreationOnboardingController {
         let storyboard = StoryboardScene.PreAccountCreationOnboarding.storyboard
         guard let controller = storyboard.instantiateViewController(withIdentifier: "PreAccountCreationOnboardingController") as? PreAccountCreationOnboardingController else {
-            fatalError("Unable to instatiate PreAccountCreationOnboardingContentViewController")
+            fatalError("Unable to instantiate PreAccountCreationOnboardingContentViewController")
         }
         return controller
     }

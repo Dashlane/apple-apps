@@ -19,7 +19,7 @@ struct NitroSSOLoginHandler: Equatable {
     init(login: String, webservice: NitroAPIClient) async throws {
         let tunnelCreator = try NitroSecureTunnelCreator(webservice: webservice)
         let tunnel = try await tunnelCreator.createTunnel()
-        let encryptedDomain = try tunnel.push(NitroReguestLogin(domainName: login.domainName))
+        let encryptedDomain = try tunnel.push(NitroRequestLogin(domainName: login.domainName))
         let loginResponse = try await webservice.requestLogin(encryptedPayload: encryptedDomain.hexadecimalString)
         let decrypted = try tunnel.pull(NitroLoginResponse.self, from: loginResponse.hexaData)
         self.init(login: login, authorisationURL: decrypted.idpAuthorizeUrl, injectionScript: try NitroInjectionScript.script(callbackURL: decrypted.spCallbackUrl), secureTunnel: tunnel, webservice: webservice)
@@ -36,7 +36,7 @@ struct NitroSSOLoginHandler: Equatable {
     func callbackInfo(withSAML saml: String) async throws -> SSOCallbackInfos {
         let encryptedPayload = try secureTunnel.push(ConfirmLoginRequest(domainName: login.domainName, samlResponse: saml))
         let response = try await webservice.confirmLogin(encryptedPayload: encryptedPayload.hexadecimalString)
-        let decrytedResponse = try secureTunnel.pull(ConfirmLoginResponse.self, from: response.hexaData)
-        return SSOCallbackInfos(ssoToken: decrytedResponse.ssoToken, serviceProviderKey: decrytedResponse.userServiceProviderKey, exists: decrytedResponse.exists)
+        let decryptedResponse = try secureTunnel.pull(ConfirmLoginResponse.self, from: response.hexaData)
+        return SSOCallbackInfos(ssoToken: decryptedResponse.ssoToken, serviceProviderKey: decryptedResponse.userServiceProviderKey, exists: decryptedResponse.exists)
     }
 }

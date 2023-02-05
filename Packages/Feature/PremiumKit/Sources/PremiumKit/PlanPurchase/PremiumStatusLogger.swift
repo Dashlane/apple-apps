@@ -14,9 +14,9 @@ public enum LogPremiumType {
     case yearlyPlanDisplaySuccessful
     case yearlyPlanDisplayErrorFailToFetchData
     case yearlyReceiptFailedValidation
-    case yearlyErrorOccuredForPurchase
+    case yearlyErrorOccurredForPurchase
     case yearlyChosen
-    case yearlySuccessfull
+    case yearlySuccessful
     case paywallDisplayedSecureNotes
     case paywallDisplayedDarkWebMonitoring
 }
@@ -65,11 +65,11 @@ public class PremiumStatusLogger {
             logCode = UsageLogCode35UserActionsMobile(type: "goPremium", action: "16")
         case .yearlyReceiptFailedValidation:
             logCode = UsageLogCode35UserActionsMobile(type: "goPremium", action: "19")
-        case .yearlyErrorOccuredForPurchase:
+        case .yearlyErrorOccurredForPurchase:
             logCode = UsageLogCode35UserActionsMobile(type: "goPremium", action: "12")
         case .yearlyChosen:
             logCode = UsageLogCode35UserActionsMobile(type: "goPremium", action: "1")
-        case .yearlySuccessfull:
+        case .yearlySuccessful:
             logCode = UsageLogCode35UserActionsMobile(type: "goPremium", action: "5")
         case .paywallDisplayedSecureNotes:
             logCode = UsageLogCode75GeneralActions(type: "premium_prompt", subtype: "secure_notes", action: "display")

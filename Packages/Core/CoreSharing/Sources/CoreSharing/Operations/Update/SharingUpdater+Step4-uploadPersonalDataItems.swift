@@ -13,7 +13,7 @@ extension SharingUpdater {
         let uploadByIds = Dictionary(values: uploads)
                 let groups = allItemGroups.filter(forItemIds: Set(uploadByIds.keys))
         
-                var successfullUploads: [UploadOutput] = []
+                var successfulUploads: [UploadOutput] = []
     
         for group in groups {
             guard let groupKey = try groupKeyProvider.groupKey(for: group) else {
@@ -26,7 +26,7 @@ extension SharingUpdater {
                 
                 do {
                     let output = try await self.upload(upload, for: keyPair, in: group, groupKey: groupKey)
-                    successfullUploads.append(output)
+                    successfulUploads.append(output)
                 } catch let error as SharingInvalidActionError {
                     nextRequest += UpdateRequest(error: error)
                     logger.error("item is not up to date")
@@ -37,9 +37,9 @@ extension SharingUpdater {
             }
         }
         
-                try database.save(successfullUploads.map(\.content))
+                try database.save(successfulUploads.map(\.content))
         
-        try await personalDataDB.clearPendingUploads(withIds: successfullUploads.map(\.uploadId))
+        try await personalDataDB.clearPendingUploads(withIds: successfulUploads.map(\.uploadId))
     }
     
                     private func upload(_ upload: SharingItemUpload, for keyPair: ItemKeyPair, in group: ItemGroup, groupKey: SymmetricKey) async throws -> UploadOutput{

@@ -47,7 +47,7 @@ struct RecoveryCodesScannerView: View {
         .navigationBarHidden(true)
         .background(Color.black)
         .overlay(overlayView.hidden(!model.isProgress))
-        .fullScreenCover(isPresented: $model.presentConfirmtion, content: {
+        .fullScreenCover(isPresented: $model.presentConfirmation, content: {
             RecoveryCodesConfirmationView(recoveryCodes: $model.recoveryCodes, save: {
                 recoveryCodes = model.recoveryCodes
                 model.save(recoveryCodes)

@@ -18,16 +18,16 @@ class AuthenticatorService: Mockable {
     let keychainService: AuthenticationKeychainService
 
     private let messageSender: IPCMessageSender<PasswordAppMessage>
-    private let messageReceiver: IPCMessageListener<AutheticatorMessage>
+    private let messageReceiver: IPCMessageListener<AuthenticatorMessage>
 
     static let messageDirectory = ApplicationGroup.containerURL.appendingPathComponent("AuthenticatorMessaging", isDirectory: true)
 
-    static var appToAutheticatorUrl: URL {
-        return messageDirectory.appendingPathComponent("PasswordAppToAutheticatorApp.messages")
+    static var appToAuthenticatorUrl: URL {
+        return messageDirectory.appendingPathComponent("PasswordAppToAuthenticatorApp.messages")
     }
 
     static var authenticatorToAppUrl: URL {
-        return messageDirectory.appendingPathComponent("AutheticatorAppToPasswordApp.messages")
+        return messageDirectory.appendingPathComponent("AuthenticatorAppToPasswordApp.messages")
     }
 
     var subscriptions = Set<AnyCancellable>()
@@ -58,11 +58,11 @@ class AuthenticatorService: Mockable {
         self.accountAPIClient = accountAPIClient
         self.loadingContext = loadingContext
         self.databaseService = authenticatorDatabase
-        messageReceiver = IPCMessageListener<AutheticatorMessage>(urlToObserve: AuthenticatorService.authenticatorToAppUrl,
+        messageReceiver = IPCMessageListener<AuthenticatorMessage>(urlToObserve: AuthenticatorService.authenticatorToAppUrl,
                                                                   coder: IPCMessageCoder(logger: logger, engine: IPCCryptoEngine(encryptionKeyId: "authenticator-encryption-id")),
                                                                   logger: logger)
         messageSender = IPCMessageSender<PasswordAppMessage>(coder: IPCMessageCoder(logger: logger, engine: IPCCryptoEngine(encryptionKeyId: "authenticator-encryption-id")),
-                                                             destination: AuthenticatorService.appToAutheticatorUrl,
+                                                             destination: AuthenticatorService.appToAuthenticatorUrl,
                                                              logger: logger)
         self.authenticatorDisabler = AuthenticatorDisabler(accountAPIClient: accountAPIClient)
 

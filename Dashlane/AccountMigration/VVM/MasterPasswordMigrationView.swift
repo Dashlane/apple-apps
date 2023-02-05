@@ -58,7 +58,7 @@ extension MasterPasswordMigrationView: NavigationBarStyleProvider {
 struct MasterPasswordMigrationView_Previews: PreviewProvider {
     static var previews: some View {
         MasterPasswordMigrationView(title: "Create a Master Password for Dashlane",
-                                    subtitle: "Your account rights have changed. Create a strong Master Password to log in to Dashlane going forward.",
+                                    subtitle: "Your account rights have changed. Create a strong Master Password to log into Dashlane going forward.",
                                     migrateButtonTitle: "Create Master Password",
                                     cancelButtonTitle: "Log out",
                                     completion: {_ in})

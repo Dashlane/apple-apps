@@ -50,12 +50,12 @@ public struct RequestSigner {
 
     func makeSignature(canonicalRequest: URLRequest.CanonicalRequest, timestamp: String) -> String {
         let canonicalizedRequestData = canonicalRequest.request.data(using: .utf8)!
-        let hashedCanonilizedRequest = SHA256.hash(data: canonicalizedRequestData).hexEncodedString()
+        let hashedCanonicalizedRequest = SHA256.hash(data: canonicalizedRequestData).hexEncodedString()
 
         let stringToSign = [
             Self.signatureAlgorithmKey,
             timestamp,
-            hashedCanonilizedRequest
+            hashedCanonicalizedRequest
         ].joined(separator: "\n")
          .data(using: .utf8)!
 

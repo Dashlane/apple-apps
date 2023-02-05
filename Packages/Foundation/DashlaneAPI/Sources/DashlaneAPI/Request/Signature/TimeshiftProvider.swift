@@ -43,10 +43,10 @@ struct TimeshiftProvider {
 
 extension TimeInterval {
             static func currentKernelBootTime() -> TimeInterval? {
-        var mangementInformationBase = [CTL_KERN, KERN_BOOTTIME]
+        var managementInformationBase = [CTL_KERN, KERN_BOOTTIME]
         var bootTime = timeval()
         var bootTimeSize: Int = MemoryLayout<timeval>.size
-        guard sysctl(&mangementInformationBase, UInt32(mangementInformationBase.count), &bootTime, &bootTimeSize, nil, 0) != -1 else {
+        guard sysctl(&managementInformationBase, UInt32(managementInformationBase.count), &bootTime, &bootTimeSize, nil, 0) != -1 else {
             assertionFailure("sysctl call failed")
             return nil
         }

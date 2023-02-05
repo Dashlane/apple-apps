@@ -56,9 +56,9 @@ struct SecurityTokenAlertBuilder {
         return alert
     }
 
-    let fetchTokenEndpont = "_"
+    let fetchTokenEndpoint = "_"
     private func fetchSecurityToken(using legacyWebService: LegacyWebService, completion: @escaping (Result<String, Error>) -> Void) {
-        legacyWebService.sendRequest(to: fetchTokenEndpont,
+        legacyWebService.sendRequest(to: fetchTokenEndpoint,
                                      using: .post,
                                      params: [:],
                                      contentFormat: .queryString,

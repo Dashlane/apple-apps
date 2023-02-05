@@ -97,7 +97,7 @@ extension ShareItemsSelectionViewModel {
         ShareItemsSelectionViewModel(
             vaultItemsPublisher: Just(vaultItems),
             teamSpacesService: .mock(),
-            itemRowViewModelFactory: .init { .mock(configuration: $0, additionialConfiguration: $1) },
+            itemRowViewModelFactory: .init { .mock(configuration: $0, additionalConfiguration: $1) },
             completion: completion
         )
     }

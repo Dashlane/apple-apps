@@ -8,7 +8,7 @@ public final class SyncedSettingsService {
 
     public let didChange = PassthroughSubject<Void, Never>()
 
-    private var subcription: AnyCancellable?
+    private var subscription: AnyCancellable?
     private var settings: Settings {
         didSet {
             guard oldValue != settings else {
@@ -25,7 +25,7 @@ public final class SyncedSettingsService {
         self.database = database
         settings = initialSettings
         self.logger = logger
-        subcription = database
+        subscription = database
             .itemPublisher(for: initialSettings.id, type: Settings.self)
             .ignoreError()
             .receive(on: DispatchQueue.main)
