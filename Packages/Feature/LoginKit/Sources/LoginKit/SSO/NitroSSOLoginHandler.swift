@@ -19,7 +19,7 @@ struct NitroSSOLoginHandler: Equatable {
     init(login: String, webservice: NitroAPIClient) async throws {
         let tunnelCreator = try NitroSecureTunnelCreator(webservice: webservice)
         let tunnel = try await tunnelCreator.createTunnel()
-        let encryptedDomain = try tunnel.push(NitroReguestLogin(domainName: login.domainName))
+        let encryptedDomain = try tunnel.push(NitroRequestLogin(domainName: login.domainName))
         let loginResponse = try await webservice.requestLogin(encryptedPayload: encryptedDomain.hexadecimalString)
         let decrypted = try tunnel.pull(NitroLoginResponse.self, from: loginResponse.hexaData)
         self.init(login: login, authorisationURL: decrypted.idpAuthorizeUrl, injectionScript: try NitroInjectionScript.script(callbackURL: decrypted.spCallbackUrl), secureTunnel: tunnel, webservice: webservice)
