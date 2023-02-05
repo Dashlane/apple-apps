@@ -83,7 +83,7 @@ struct SecurityDashboardLogger {
 }
 
 extension UsageLogService {
-    func secyrityDashboardLogger(for type: SecurityDashboardLogger.SubType, spaceId: String) -> SecurityDashboardLogger {
+    func securityDashboardLogger(for type: SecurityDashboardLogger.SubType, spaceId: String) -> SecurityDashboardLogger {
         return SecurityDashboardLogger(usageLogService: self, type: type, spaceId: spaceId)
     }
 }
