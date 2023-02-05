@@ -43,8 +43,8 @@ final class CredentialLinkingViewModel: ObservableObject {
     func link() {
         credential.linkedServices.associatedDomains.append(LinkedServices.AssociatedDomain(domain: visitedWebsite, source: .remember))
 
-                if let bussinessTeam = teamSpacesService.businessInfo.availableBusinessTeam, bussinessTeam.shouldBeForced(on: credential) {
-            credential.spaceId = bussinessTeam.teamId
+                if let businessTeam = teamSpacesService.businessInfo.availableBusinessTeam, businessTeam.shouldBeForced(on: credential) {
+            credential.spaceId = businessTeam.teamId
         }
 
         _ = try? database.save(credential)

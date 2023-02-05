@@ -259,10 +259,10 @@ private extension DetailService {
 
             @discardableResult
     func updateTeamSpaceIfForced() -> Bool {
-        guard let bussinessTeam = teamSpacesService.availableBusinessTeam, bussinessTeam.shouldBeForced(on: item) else {
+        guard let businessTeam = teamSpacesService.availableBusinessTeam, businessTeam.shouldBeForced(on: item) else {
             return false
         }
-        item.spaceId = bussinessTeam.teamId
+        item.spaceId = businessTeam.teamId
 
         return true
     }
@@ -279,7 +279,7 @@ extension DetailService {
                 selectedSpace: .personal,
                 availableSpaces: [
                     .personal,
-                    .business(.init(space: TeamSpaceView_Previews.bussinessSpace, anonymousTeamId: ""))
+                    .business(.init(space: TeamSpaceView_Previews.businessSpace, anonymousTeamId: ""))
                 ]
             ),
             usageLogService: UsageLogService.fakeService,
