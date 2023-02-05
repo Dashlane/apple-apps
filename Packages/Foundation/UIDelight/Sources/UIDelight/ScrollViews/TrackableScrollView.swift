@@ -84,7 +84,7 @@ struct ViewOffsetKey: PreferenceKey {
     }
 }
 
-struct TrackableScollView_Previews: PreviewProvider {
+struct TrackableScrollView_Previews: PreviewProvider {
     
     struct Example: View {
         
