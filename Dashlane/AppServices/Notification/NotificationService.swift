@@ -44,10 +44,10 @@ class NotificationService: NSObject {
     }
 
         func remoteNotificationPublisher(for predicate: NotificationPredicate<RemoteNotification>) -> AnyPublisher<RemoteNotification, Never> {
-        let subcription = RemoteNotificationSubscription(predicate: predicate)
-        self.remoteNotificationSubcriptions.insert(subcription)
-        let publisher = subcription.publisher.handleEvents(receiveCancel: {
-            self.remoteNotificationSubcriptions.remove(subcription)
+        let subscription = RemoteNotificationSubscription(predicate: predicate)
+        self.remoteNotificationSubcriptions.insert(subscription)
+        let publisher = subscription.publisher.handleEvents(receiveCancel: {
+            self.remoteNotificationSubcriptions.remove(subscription)
         })
         return publisher.receive(on: DispatchQueue.main).eraseToAnyPublisher()
     }
@@ -64,10 +64,10 @@ class NotificationService: NSObject {
     }
 
         func userNotificationPublisher(for predicate: NotificationPredicate<UNNotification>) -> AnyPublisher<UserNotificationEvent, Never> {
-        let subcription = UserNotificationSubscription(predicate: predicate)
-        self.userNotificationSubcriptions.insert(subcription)
-        let publisher = subcription.publisher.handleEvents(receiveCancel: {
-            self.userNotificationSubcriptions.remove(subcription)
+        let subscription = UserNotificationSubscription(predicate: predicate)
+        self.userNotificationSubcriptions.insert(subscription)
+        let publisher = subscription.publisher.handleEvents(receiveCancel: {
+            self.userNotificationSubcriptions.remove(subscription)
         })
 
         return publisher.receive(on: DispatchQueue.main).eraseToAnyPublisher()
@@ -88,11 +88,11 @@ extension NotificationService {
         }.store(in: &cancellables)
 
         remoteNotificationPublisher.sink { [weak self] notification in
-            if let subcription = self?.remoteNotificationSubcriptions.first(for: notification) {
+            if let subscription = self?.remoteNotificationSubcriptions.first(for: notification) {
                 self?.logger.debug("Receive notification \(notification)")
-                subcription.publisher.send(notification)
+                subscription.publisher.send(notification)
             } else {
-                self?.logger.debug("No subcription for notification \(notification)")
+                self?.logger.debug("No subscription for notification \(notification)")
                 notification.completionHandler(.noData)
             }
         }.store(in: &cancellables)
@@ -102,16 +102,16 @@ extension NotificationService {
 
 extension NotificationService: UNUserNotificationCenterDelegate {
     func userNotificationCenter(_ center: UNUserNotificationCenter, willPresent notification: UNNotification, withCompletionHandler completionHandler: @escaping (UNNotificationPresentationOptions) -> Void) {
-        if let subcription = self.userNotificationSubcriptions.first(for: notification) {
-            subcription.publisher.send(.willPresent(notification: notification, completionHandler: completionHandler))
+        if let subscription = self.userNotificationSubcriptions.first(for: notification) {
+            subscription.publisher.send(.willPresent(notification: notification, completionHandler: completionHandler))
         } else {
             completionHandler([])
         }
     }
 
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
-        if let subcription = self.userNotificationSubcriptions.first(for: response.notification) {
-            subcription.publisher.send(.didReceive(response: response, completionHandler: completionHandler))
+        if let subscription = self.userNotificationSubcriptions.first(for: response.notification) {
+            subscription.publisher.send(.didReceive(response: response, completionHandler: completionHandler))
         } else {
             completionHandler()
         }
@@ -124,11 +124,11 @@ extension NotificationService {
             for notification in notifications {
                 self.logger.debug("readDelivered​Notifications userInfo: \(notification.request.content.userInfo)")
 
-                guard let subcription = self.userNotificationSubcriptions.first(for: notification) else {
+                guard let subscription = self.userNotificationSubcriptions.first(for: notification) else {
                     return
                 }
 
-                subcription.publisher.send(.readDelivered(notification: notification, completionHandler: { [weak self] strategy in
+                subscription.publisher.send(.readDelivered(notification: notification, completionHandler: { [weak self] strategy in
                     if strategy == .delete {
                         self?.notificationCenter.removeDeliveredNotifications(withIdentifiers: [notification.request.identifier])
                     }

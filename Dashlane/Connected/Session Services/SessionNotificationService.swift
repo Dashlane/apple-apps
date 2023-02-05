@@ -17,7 +17,7 @@ class SessionNotificationService {
     let notificationService: NotificationService
     let webService: LegacyWebService
 
-    var subcriptions = Set<AnyCancellable>()
+    var subscriptions = Set<AnyCancellable>()
 
     @MainActor
     init(login: Login,
@@ -43,7 +43,7 @@ class SessionNotificationService {
                 }
                 syncService.sync(triggeredBy: .push)
                 notification.completionHandler(.noData) 
-            }.store(in: &subcriptions)
+            }.store(in: &subscriptions)
         }
 
         notificationService.remoteDeviceTokenPublisher()
@@ -57,7 +57,7 @@ class SessionNotificationService {
                     self.sendToken(token)
                     brazeService.registerForNotifications(deviceToken: token)
                 }
-            }.store(in: &subcriptions)
+            }.store(in: &subscriptions)
     }
 }
 

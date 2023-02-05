@@ -11,7 +11,7 @@ public class IPCMessageListener<Message: Decodable> {
     private let shouldDeleteAfterReading: Bool
     private let fileObserver: FileChangeObserver
     private let coordinator: NSFileCoordinator
-    private var subcription: AnyCancellable?
+    private var subscription: AnyCancellable?
 
     public init(urlToObserve: URL, coder: IPCMessageCoderProtocol, logger: Logger, shouldDeleteAfterReading: Bool = true) {
         self.urlToObserve = urlToObserve
@@ -30,7 +30,7 @@ public class IPCMessageListener<Message: Decodable> {
             NSFileCoordinator.addFilePresenter(fileObserver)
         }
         
-        subcription = fileObserver.changePublisher.sink { [weak self] in
+        subscription = fileObserver.changePublisher.sink { [weak self] in
             self?.coordinatedRead()
         }
     }
