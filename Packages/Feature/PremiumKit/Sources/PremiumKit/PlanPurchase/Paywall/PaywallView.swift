@@ -52,7 +52,7 @@ public struct PaywallView: View {
             Spacer()
             VStack(alignment: .center, spacing: 6) {
                 if let kind = model.upgradePlanKind, let planGroup = model.purchasePlanGroup {
-                    RoundedButton(kind.upgrateText, action: { action(.planDetails(planGroup)) })
+                    RoundedButton(kind.upgradeText, action: { action(.planDetails(planGroup)) })
                         .roundedButtonLayout(.fill)
 
                     Button(L10n.Core.paywallsPlanOptionsCTA, action: { action(.displayList) })
@@ -107,7 +107,7 @@ struct PaywallView_Previews: PreviewProvider {
 
 
 extension PurchasePlan.Kind {
-    var upgrateText: String {
+    var upgradeText: String {
         switch self {
         case .premium:
             return L10n.Core.paywallsUpgradeToPremiumCTA
