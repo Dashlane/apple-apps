@@ -251,7 +251,7 @@ struct UnlinkMultiDevicesView_Previews: PreviewProvider {
                                  lastActivityDate: Date().addingTimeInterval(-300),
                                  isBucketOwner: false,
                                  isTemporary: false),
-                    BucketDevice(id: "idPixesl",
+                    BucketDevice(id: "idPixels",
                                  name: "Unsafe Device",
                                  platform: .android,
                                  creationDate: Date(),
