@@ -15,7 +15,7 @@ extension Set where Element == AutofillPolicy {
         case .none:
             return domainAutofillPolicy
         case let .some(pagePolicy):
-            return pagePolicy.policy.isStrictierThan(other: domainAutofillPolicy.policy) ? pagePolicy : domainAutofillPolicy
+            return pagePolicy.policy.isStricterThan(other: domainAutofillPolicy.policy) ? pagePolicy : domainAutofillPolicy
         }
     }
 }

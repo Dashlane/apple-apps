@@ -35,7 +35,7 @@ public class AutofillPolicy: Hashable, Equatable, Codable {
             }
         }
         
-        func isStrictierThan(other: Policy) -> Bool {
+        func isStricterThan(other: Policy) -> Bool {
             rawValue > other.rawValue
         }
     }
