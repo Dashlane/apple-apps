@@ -97,7 +97,7 @@ public class BreachesFetcher {
             let decrypted = decryptor.decrypt(data: cipheredInfo,
                                               using: cipheredKey)
             else {
-                assertionFailure("Coult not decrypt information")
+                assertionFailure("Could not decrypt information")
                 return storedBreaches
         }
 
