@@ -167,7 +167,7 @@ extension ChangeMasterPasswordCoordinator {
                                                                                         from: session,
                                                                                         isSSO: false,
                                                                                         isSSOToMPMigration: false)
-        let masterPaswordChangerCryptoEngine = CryptoChangerEngine(current: session.masterKeyCryptoEngine, new: newSession.masterKeyCryptoEngine)
+        let masterPasswordChangerCryptoEngine = CryptoChangerEngine(current: session.masterKeyCryptoEngine, new: newSession.masterKeyCryptoEngine)
         self.newSession = newSession
 
         let postMPChangeUpdaterService = PostMPChangeUpdaterService(currentCryptoKey: currentCryptoKey,
@@ -181,7 +181,7 @@ extension ChangeMasterPasswordCoordinator {
 
         return RemoteCryptoChangerService(syncService: sessionServices.syncService,
                                           postCryptoChangeHandler: postMPChangeUpdaterService,
-                                          cryptoEngine: masterPaswordChangerCryptoEngine,
+                                          cryptoEngine: masterPasswordChangerCryptoEngine,
                                           apiNetworkingEngine: sessionServices.networkEngineV2,
                                           authTicket: nil,
                                           remoteKeys: nil,
