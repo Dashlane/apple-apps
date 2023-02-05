@@ -32,7 +32,7 @@ extension HashFunction {
 }
 
 extension HashFunction {
-    private var hashFuction: (_ data: UnsafeRawPointer?, _ len: CC_LONG, _ md: UnsafeMutablePointer<UInt8>?) -> UnsafeMutablePointer<UInt8>?? {
+    private var hashFunction: (_ data: UnsafeRawPointer?, _ len: CC_LONG, _ md: UnsafeMutablePointer<UInt8>?) -> UnsafeMutablePointer<UInt8>?? {
         switch self {
         case .md5:
             return CC_MD5
@@ -53,7 +53,7 @@ extension HashFunction {
         var derivedKey = [UInt8](repeating: 0, count: digestLength)
         derivedKey.withUnsafeMutableBytes { derivedKeyBytes in
             data.withUnsafeBytes { dataBytes in
-                let _ = hashFuction(dataBytes.baseAddress, CC_LONG(dataBytes.count), derivedKeyBytes.baseAddress?.bindMemory(to: UInt8.self, capacity: digestLength))
+                let _ = hashFunction(dataBytes.baseAddress, CC_LONG(dataBytes.count), derivedKeyBytes.baseAddress?.bindMemory(to: UInt8.self, capacity: digestLength))
             }
         }
         return Data(bytes: derivedKey, count: digestLength)
