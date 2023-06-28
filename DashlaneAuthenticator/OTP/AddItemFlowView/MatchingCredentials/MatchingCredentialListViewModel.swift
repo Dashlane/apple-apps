@@ -3,6 +3,8 @@ import CorePersonalData
 import Combine
 import DashlaneAppKit
 import DashTypes
+import AuthenticatorKit
+import VaultKit
 
 typealias MatchingCredentialListViewModelCompletion = MatchingCredentialListViewModel.Completion
 
@@ -11,13 +13,12 @@ class MatchingCredentialListViewModel: ObservableObject, AuthenticatorServicesIn
         case createCredential
         case linkToCredential(Credential)
     }
-    
-    
+
     let matchingCredentials: [Credential]
     let issuer: String
     let credentialRowFactory: CredentialRowViewModel.Factory
     private let completion: (Completion) -> Void
-    
+
     init(website: String,
          matchingCredentials: [Credential],
          credentialRowFactory: CredentialRowViewModel.Factory,
@@ -27,15 +28,15 @@ class MatchingCredentialListViewModel: ObservableObject, AuthenticatorServicesIn
         self.credentialRowFactory = credentialRowFactory
         self.completion = completion
     }
-    
+
     func makeCredentialRowViewModel(credential: Credential) -> CredentialRowViewModel {
         credentialRowFactory.make(item: credential)
     }
-    
+
     func createCredential() {
         self.completion(.createCredential)
     }
-    
+
     func link(to credential: Credential) {
         self.completion(.linkToCredential(credential))
     }

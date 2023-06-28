@@ -2,15 +2,15 @@ import Foundation
 import DashTypes
 import SwiftTreats
 
-public struct Credential: PersonalDataCodable, Equatable, Identifiable, Categorisable, DatedPersonalData {
-    public typealias CategoryType = CredentialCategory
-    
+public struct Credential: PersonalDataCodable, Equatable, Identifiable, DatedPersonalData {
     public static let contentType: PersonalDataContentType = .credential
     public static let searchCategory: SearchCategory = .credential
-    
+    public static var xmlRuleExceptions: [String : XMLRuleException] {
+        [CodingKeys.manualAssociatedDomains.stringValue: .skip]
+    }
+
     public enum CodingKeys: String, CodingKey {
         case id
-        case category
         case anonId
         case metadata
         case url
@@ -41,13 +41,11 @@ public struct Credential: PersonalDataCodable, Equatable, Identifiable, Categori
         case attachments
         case isFavorite
     }
-    
+
     public let id: Identifier
-    @Linked
-    public var category: CredentialCategory?
     public var anonId: String
     public let metadata: RecordMetadata
-    
+
     public var login: String
     public var secondaryLogin: String
     public var title: String
@@ -55,7 +53,7 @@ public struct Credential: PersonalDataCodable, Equatable, Identifiable, Categori
     public var email: String
     @JSONEncoded
     public var attachments: Set<Attachment>?
-    
+
         private(set) var legacyOTPSecret: String
         private(set) var rawOTPURL: URL?
     public var otpURL: URL? {
@@ -72,7 +70,7 @@ public struct Credential: PersonalDataCodable, Equatable, Identifiable, Categori
             legacyOTPSecret = ""
         }
     }
-    
+
     public var url: PersonalDataURL?
     public var userSelectedUrl: PersonalDataURL?
     public var useFixedUrl: Bool
@@ -96,7 +94,7 @@ public struct Credential: PersonalDataCodable, Equatable, Identifiable, Categori
     public let localeFormat: String?
     public var isProtected: Bool
     public var isFavorite: Bool
-    
+
             public init() {
         id = Identifier()
         anonId = UUID().uuidString
@@ -127,9 +125,8 @@ public struct Credential: PersonalDataCodable, Equatable, Identifiable, Categori
         numberOfUse = 0
         _attachments = .init(nil)
     }
-    
+
     public init(id: Identifier = .init(),
-                category: Linked<CredentialCategory> = .init(nil),
                 anonId: String = UUID().uuidString,
                 login: String,
                 secondaryLogin: String = "",
@@ -156,11 +153,11 @@ public struct Credential: PersonalDataCodable, Equatable, Identifiable, Categori
                 isProtected: Bool = false,
                 isShared: Bool = false,
                 isFavorite: Bool = false,
-                sharingPermission: SharingPermission? = nil) {
+                sharingPermission: SharingPermission? = nil,
+                syncStatus: RecordMetadata.SyncStatus? = nil) {
         self.id = id
-        self._category = category
         self.anonId = anonId
-        metadata = RecordMetadata(id: .temporary, contentType: .credential, isShared: isShared, sharingPermission: sharingPermission)
+        metadata = RecordMetadata(id: .temporary, contentType: .credential, syncStatus: syncStatus, isShared: isShared, sharingPermission: sharingPermission)
         self.login = login
         self.secondaryLogin = secondaryLogin
         self.title = title
@@ -193,7 +190,17 @@ public struct Credential: PersonalDataCodable, Equatable, Identifiable, Categori
 }
 
 extension Credential {
-    
+
+            public func validate() throws {
+        if email.isEmptyOrWhitespaces() && login.isEmptyOrWhitespaces() && secondaryLogin.isEmptyOrWhitespaces() {
+            let invalidProperty = email.isEmptyOrWhitespaces() ? \Credential.email : \Credential.login
+            throw ItemValidationError(invalidProperty: invalidProperty)
+        } else if url?.domain?.name.isEmptyOrWhitespaces() ?? true && title.isEmptyOrWhitespaces() {
+            let invalidProperty = title.isEmptyOrWhitespaces() ? \Credential.title : \Credential.url
+            throw ItemValidationError(invalidProperty: invalidProperty)
+        }
+    }
+
     public mutating func prepareForSaving() {
                 let mail = DashTypes.Email(login)
         if mail.isValid && email.isEmptyOrWhitespaces() {
@@ -203,23 +210,23 @@ extension Credential {
             login = email
             email = ""
         }
-        
+
                 let urlValue = url?.rawValue ?? ""
         if let url = URL(string: urlValue), url.scheme == nil {
             self.url = PersonalDataURL(rawValue: "_" + urlValue)
         }
-        
+
         let userSelectedUrlValue = userSelectedUrl?.rawValue ?? ""
         if let userSelectedUrl = URL(string: userSelectedUrlValue), userSelectedUrl.scheme == nil {
             self.userSelectedUrl = PersonalDataURL(rawValue: "_" + userSelectedUrlValue)
         }
-    
+
         self.useFixedUrl = (userSelectedUrl != nil)
-        
+
                 if title.isEmpty, let displayDomain = url?.displayDomain {
             title = displayDomain
         }
-        
+
                 if legacyOTPSecret.isEmpty, let secret = otpURL?.standardOTPSecret() {
             legacyOTPSecret = secret
         }
@@ -232,15 +239,31 @@ extension Credential: Searchable {
         let linkedServices = linkedServices.associatedDomains.map { $0.domain }
         return (linkedDomains + linkedServices).joined(separator: " ")
     }
-    
+
     public var searchableKeyPaths: [KeyPath<Credential, String>] {
         [
             \Credential.title,
-            \Credential.login,
-            \Credential.secondaryLogin,
+             \Credential.login,
+             \Credential.secondaryLogin,
+             \Credential.email,
+             \Credential.searchableDomain,
+             \Credential.note
+        ]
+    }
+}
+
+extension Credential: Deduplicable {
+
+    private var domain: String {
+        url?.domain?.name ?? url?.rawValue ?? ""
+    }
+
+    public var deduplicationKeyPaths: [KeyPath<Self, String>] {
+        [
             \Credential.email,
-            \Credential.searchableDomain,
-            \Credential.note
+             \Credential.login,
+             \Credential.password,
+             \Credential.domain
         ]
     }
 }
@@ -254,24 +277,24 @@ extension Credential: Displayable {
             return url?.displayDomain ?? ""
         }
     }
-    
+
     public var displaySubtitle: String? {
-        
+
         if !login.isEmpty {
             return login
         }
-        
+
         if !email.isEmpty {
             return email
         }
-        
+
         if let url = self.url {
             return URL(string: url.rawValue)?.host
         }
-        
+
         return nil
     }
-    
+
     public var displayLogin: String {
         get {
             if !login.isEmpty {
@@ -286,7 +309,7 @@ extension Credential: Displayable {
             login = newValue
         }
     }
-    
+
     public var editableURL: String {
         get {
             return url?.rawValue ?? ""
@@ -305,18 +328,18 @@ fileprivate extension URL {
               !secret.isEmpty,
               let type = host,
               type == "totp" else {
-                  return nil
-              }
+            return nil
+        }
         let period = queryItems["period"] ?? "30"
         let digits = queryItems["digits"] ?? "6"
         let algorithm = queryItems["algorithm"] ?? "sha1"
-        
+
         guard TimeInterval(period) == 30,
               Int(digits) == 6,
               algorithm.lowercased() == "sha1" else {
-                  return nil
-              }
-        
+            return nil
+        }
+
         return secret
     }
 }
@@ -332,41 +355,12 @@ fileprivate extension URLComponents {
         }
         return query
     }
-    
+
     init(otpIssuer issuer: String, email: String, secret: String) {
         self = .init()
         self.scheme = "otpauth"
         self.host = "totp"
         self.path = "/" + issuer + ":" + email
         self.queryItems = [URLQueryItem(name: "secret", value: secret)]
-    }
-}
-
-private extension Credential {
-    var sortableId: String {
-        if !login.isEmpty {
-            return login
-        } else if !secondaryLogin.isEmpty {
-            return secondaryLogin
-        } else {
-            return email
-        }
-    }
-}
-
-extension Collection where Element == Credential {
-        public func sortedByLastUsage() -> [Element] {
-        self.sorted { credentialL, credentialR in
-            switch (credentialL.metadata.lastLocalUseDate, credentialR.metadata.lastLocalUseDate) {
-                case (nil, nil):
-                                        return credentialL.sortableId.lowercased() < credentialR.sortableId.lowercased()
-                case (.some, nil):
-                    return true
-                case (nil, .some):
-                    return false
-                case let (.some(firstDate), .some(secondDate)):
-                    return firstDate.compare(secondDate) == .orderedDescending
-            }
-        }
     }
 }

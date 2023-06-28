@@ -1,3 +1,4 @@
+import DesignSystem
 import SwiftUI
 import UIDelight
 
@@ -15,17 +16,17 @@ struct DarkWebMonitoringDetailFieldView: View {
         VStack(alignment: .leading, spacing: 2) {
             Text(title)
                 .font(.footnote)
-                .foregroundColor(Color(asset: FiberAsset.grey01))
+                .foregroundColor(.ds.text.neutral.quiet)
 
             Text(text)
                 .font(.body)
-                .foregroundColor(Color(asset: FiberAsset.mainCopy))
+                .foregroundColor(.ds.text.neutral.catchy)
 
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .background(Color(asset: FiberAsset.cellBackground))
+        .background(Color.ds.container.agnostic.neutral.supershy)
     }
 }
 

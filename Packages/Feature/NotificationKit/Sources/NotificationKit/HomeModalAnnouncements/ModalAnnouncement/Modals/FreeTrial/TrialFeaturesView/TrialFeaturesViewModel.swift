@@ -23,7 +23,7 @@ public struct TrialFeaturesViewModel: HomeAnnouncementsServicesInjecting {
 
 extension TrialFeaturesViewModel {
     static var mock: TrialFeaturesViewModel {
-        .init(capabilityService: CapabilityServiceMock(),
+        .init(capabilityService: .mock(),
               deepLinkingService: NotificationKitDeepLinkingServiceMock(),
               activityReporter: .fake)
     }

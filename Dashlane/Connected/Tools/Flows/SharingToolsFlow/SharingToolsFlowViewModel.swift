@@ -4,7 +4,7 @@ import VaultKit
 import Combine
 
 @MainActor
-class SharingToolsFlowViewModel: ObservableObject, TabCoordinator, SessionServicesInjecting {
+class SharingToolsFlowViewModel: ObservableObject, SessionServicesInjecting {
 
     enum Step {
         case root
@@ -13,19 +13,6 @@ class SharingToolsFlowViewModel: ObservableObject, TabCoordinator, SessionServic
 
     @Published
     var steps: [Step] = [.root]
-
-        let tag: Int = ConnectedCoordinator.Tab.contacts.tabBarIndexValue
-    let id: UUID = .init()
-    func start() { }
-    let title: String = L10n.Localizable.tabContactsTitle
-    let tabBarImage = NavigationImageSet(image: FiberAsset.tabIconContactsOff,
-                                         selectedImage: FiberAsset.tabIconContactsOn)
-    let sidebarImage = NavigationImageSet(image: FiberAsset.sidebarContacts,
-                                          selectedImage: FiberAsset.sidebarContactsSelected)
-
-    lazy var viewController: UIViewController = {
-        UIHostingController(rootView: SharingToolsFlow(viewModel: self))
-    }()
 
     let accessControl: AccessControlProtocol
     let detailViewFactory: DetailView.Factory

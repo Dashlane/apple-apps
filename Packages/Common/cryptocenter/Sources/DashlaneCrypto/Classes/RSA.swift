@@ -35,25 +35,14 @@ public struct RSA {
                            kSecAttrKeySizeInBits: NSNumber(value: DefaultValues.RSA.keySize)] as NSDictionary
 
         guard let privateKey = SecKeyCreateRandomKey(keyPairAttr as CFDictionary, nil) else {
-            throw RSAError.KeyPairGeneration
+            throw RSAError.keyPairGeneration
         }
 
-
         guard let publicKey = SecKeyCopyPublicKey(privateKey) else {
-            throw RSAError.KeyPairGeneration
+            throw RSAError.keyPairGeneration
         }
 
         return (privateKey, publicKey)
-    }
-
-    private static func blockOffset(forPadding padding: SecPadding) -> Int {
-        if padding == .OAEP {
-            return 66
-        } else if padding == .sigRaw {
-            return 0
-        } else {
-            return 11
-        }
     }
 
     private static func encrypt(blockOfData data: Data, withPublicKey key: SecKey, withAlgorithm algorithm: SecKeyAlgorithm) -> Data? {
@@ -75,8 +64,8 @@ public struct RSA {
     public static func encrypt(data dataToEncrypt: Data,
                                withPublicKey key: SecKey,
                                withAlgorithm algorithm: SecKeyAlgorithm = .rsaEncryptionOAEPSHA256,
-                               withPadding padding: SecPadding = .OAEP) -> Data? {
-        let blockLength = SecKeyGetBlockSize(key) - blockOffset(forPadding: padding)
+                               withPadding algo: SecKeyAlgorithm = .rsaEncryptionOAEPSHA512) -> Data? {
+        let blockLength = SecKeyGetBlockSize(key) - algo.blockOffset
         guard dataToEncrypt.count > blockLength else {
             return encrypt(blockOfData: dataToEncrypt, withPublicKey: key, withAlgorithm: algorithm)
         }
@@ -89,7 +78,7 @@ public struct RSA {
                 return nil
             }
             encryptedData.append(encryptedBlock)
-            position = position + blockLength
+            position += blockLength
         }
         guard !(position..<dataToEncrypt.count).isEmpty else {
             return encryptedData
@@ -134,7 +123,7 @@ public struct RSA {
                 return nil
             }
             decryptedData.append(decryptedBlock)
-            position = position + blockLength
+            position += blockLength
         }
         guard !(position..<dataToDecrypt.count).isEmpty else {
             return decryptedData
@@ -147,4 +136,17 @@ public struct RSA {
         return decryptedData
     }
 
+}
+
+private extension SecKeyAlgorithm {
+    var blockOffset: Int {
+        switch self {
+        case .rsaEncryptionOAEPSHA512:
+            return 66
+        case .rsaSignatureRaw:
+            return 0
+        default:
+            return 11
+        }
+    }
 }

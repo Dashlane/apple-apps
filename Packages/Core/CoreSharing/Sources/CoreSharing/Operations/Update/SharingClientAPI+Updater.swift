@@ -21,12 +21,12 @@ extension Logger {
         for groupError in response.userGroupErrors {
             error("user group \(groupError.groupId): \(groupError.message)")
         }
-        
+
         info("Received \(response.itemGroups.count) item groups")
         for groupError in response.itemGroupErrors {
             error("item group \(groupError.groupId): \(groupError.message)")
         }
-        
+
         info("Received \(response.items.count) items")
         for itemError in response.itemErrors {
             error("item \(itemError.itemId): \(itemError.message)")

@@ -61,11 +61,10 @@ class PasswordGeneratorHistoryViewModel: ObservableObject, SessionServicesInject
                                                              itemId: generatedPassword.userTrackingLogID,
                                                              itemType: .generatedPassword))
 
-        if let domain = generatedPassword.domain?.domain?.name.hashedDomainForLogs {
-            let anonymousEvent = AnonymousEvent.CopyVaultItemField(domain: domain,
-                                                                     field: .password,
-                                                                     itemType: .generatedPassword)
-            activityReporter.report(anonymousEvent)
+        if let domain = generatedPassword.domain?.domain?.name {
+            activityReporter.report(AnonymousEvent.CopyVaultItemField(domain: domain.hashedDomainForLogs(),
+                                                                      field: .password,
+                                                                      itemType: .generatedPassword))
         }
     }
 
@@ -86,7 +85,7 @@ extension PasswordGeneratorHistoryViewModel {
         let container = MockServicesContainer()
 
         return PasswordGeneratorHistoryViewModel(database: container.database,
-                                                 userSettings: UserSettings(internalStore: InMemoryLocalSettingsStore()),
+                                                 userSettings: UserSettings(internalStore: .mock()),
                                                  activityReporter: .fake,
                                                  iconService: container.iconService)
 

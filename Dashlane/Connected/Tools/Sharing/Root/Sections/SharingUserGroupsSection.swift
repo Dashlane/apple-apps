@@ -36,19 +36,31 @@ struct SharingUserGroupsSection_Previews: PreviewProvider {
         SharingItemsUserGroup(id: "group2", name: "Very Long Name for a Group", isMember: false, items: [.mock(id: "2"), .mock(id: "3")], users: [.mock()])
     ])
 
+    static let teamSpacesService = TeamSpacesService.mock(selectedSpace: .both)
+
     static let detailViewModelFactory: SharingItemsUserGroupDetailViewModel.Factory = .init { .mock(userGroup: $0, itemsProvider: $2) }
 
     static var previews: some View {
         NavigationView {
             List {
-                SharingUserGroupsSection(model: .init(itemsProvider: itemsProvider, detailViewModelFactory: detailViewModelFactory, sharingService: sharingService))
+                SharingUserGroupsSection(model: .init(
+                    itemsProvider: itemsProvider,
+                    detailViewModelFactory: detailViewModelFactory,
+                    sharingService: sharingService,
+                    teamSpacesService: teamSpacesService)
+                )
             }
         }
         .listStyle(.insetGrouped)
         .previewDisplayName("Two accepted groups")
 
         List {
-            SharingUserGroupsSection(model: .init(itemsProvider: itemsProvider, detailViewModelFactory: detailViewModelFactory, sharingService: SharingServiceMock()))
+            SharingUserGroupsSection(model: .init(
+                itemsProvider: itemsProvider,
+                detailViewModelFactory: detailViewModelFactory,
+                sharingService: SharingServiceMock(),
+                teamSpacesService: teamSpacesService)
+            )
         }
         .listStyle(.insetGrouped)
         .previewDisplayName("Empty")

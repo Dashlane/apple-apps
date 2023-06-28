@@ -1,7 +1,6 @@
 import Foundation
 import DashTypes
 
-
 public struct SessionStoreProvider: SessionStoreProviderProtocol {
     enum Keys: String {
         case info = "info.json"
@@ -74,9 +73,9 @@ public struct SessionStoreProvider: SessionStoreProviderProtocol {
                 .write(to: url)
         }
     }
-    
+
     public init() {
-        
+
     }
 
     public func currentLoginStore(forContainerURL baseURL: URL) throws -> LoginStore {

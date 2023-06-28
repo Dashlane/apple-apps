@@ -4,6 +4,7 @@ import Combine
 import UIDelight
 import AuthenticatorKit
 import VaultKit
+import IconLibrary
 
 enum TokenRowMode {
     case view
@@ -21,11 +22,11 @@ enum TokenRowAction {
 }
 
 struct TokenRowView: View {
-    
+
     let model: TokenRowViewModel
     let rowMode: TokenRowMode
     let performTrailingAction: (TokenRowAction) -> Void
-    
+
     var columns: [GridItem] {
         if rowMode == .edition {
             return  [
@@ -41,21 +42,21 @@ struct TokenRowView: View {
             GridItem(.fixed(24))
         ]
     }
-    
+
     var showCode: Bool {
         return rowMode == .expanded || rowMode == .preview
     }
-    
+
     var body: some View {
         if rowMode != .edition && rowMode != .preview {
             mainView
                 .contentShape(Rectangle())
                 .contextMenu {
-                    Button{
+                    Button {
                         performTrailingAction(.detail(model.token))
                     } label: {
                         Text(L10n.Localizable.buttonEdit)
-                        Image(asset: SharedAsset.editPen)
+                        Image.ds.action.edit.outlined
                     }
                     Button(action: {
                         var token = model.token
@@ -73,7 +74,7 @@ struct TokenRowView: View {
             mainView
         }
     }
-    
+
     @ViewBuilder
     var mainView: some View {
         LazyVGrid(columns: columns, alignment: .center, spacing: 16) {
@@ -107,31 +108,31 @@ struct TokenRowView: View {
         .padding(.bottom, 16)
         .padding(.trailing, 20)
     }
-    
+
     @ViewBuilder
     private var icon: some View {
         DomainIconView(animate: false,
                        model: model.makeDomainIconViewModel(),
                        placeholderTitle: model.token.configuration.issuerOrTitle)
     }
-    
+
     @ViewBuilder
     var code: some View {
         GeneratedOTPCodeRowView(model: model.makeGeneratedOTPCodeRowViewModel(),
                                 isEditing: rowMode == .edition,
                                 performAction: performTrailingAction)
     }
-    
+
     @ViewBuilder
     var trailingActions: some View {
         if rowMode == .edition {
             Button(action: {
                 performTrailingAction(.detail(model.token))
             }, label: {
-                Image(asset: SharedAsset.editPen)
+                Image.ds.action.edit.outlined
                     .foregroundColor(.ds.text.neutral.standard)
             })
-            
+
             Button(action: {
                 var token = model.token
                 token.isFavorite.toggle()
@@ -141,7 +142,7 @@ struct TokenRowView: View {
                     .foregroundColor(.ds.text.neutral.standard)
             })
         }
-        
+
         if rowMode != .edition {
             Image(systemName: "chevron.down")
                 .rotationEffect(rowMode == .expanded ? .degrees(-180) : .degrees(0))
@@ -158,7 +159,7 @@ struct TokenRowView_Preview: PreviewProvider {
                 TokenRowView(model: .mock(), rowMode: .view, performTrailingAction: { _ in })
                 TokenRowView(model: .mock(), rowMode: .expanded, performTrailingAction: { _ in })
                 TokenRowView(model: .mock(), rowMode: .edition, performTrailingAction: { _ in })
-                
+
             }.previewLayout(.sizeThatFits)
         }
     }

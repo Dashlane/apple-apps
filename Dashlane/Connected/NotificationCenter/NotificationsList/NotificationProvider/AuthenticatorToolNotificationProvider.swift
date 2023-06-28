@@ -3,12 +3,14 @@ import DashlaneAppKit
 import CoreSettings
 import Combine
 import CoreFeature
+import DesignSystem
+import SwiftUI
 
 struct AuthenticatorToolNotification: DashlaneNotification {
 
     let id = "AuthenticatorTool"
     let state: NotificationCenterService.Notification.State
-    let icon = FiberAsset.authenticatorActionItemIcon.swiftUIImage
+    let icon = Image.ds.feature.authenticator.outlined
     let title = L10n.Localizable.authenticatorToolOnboardingActionItemTitle
     let description = L10n.Localizable.authenticatorToolOnboardingActionItemDescription
     let category: NotificationCategory = .whatIsNew
@@ -35,13 +37,11 @@ class AuthenticatorToolNotificationProvider: NotificationProvider {
 
     init(userSettings: UserSettings,
          featureService: FeatureServiceProtocol,
-         settingsStore: LocalSettingsStore,
-         logger: NotificationCenterLogger) {
+         settingsStore: LocalSettingsStore) {
         self.userSettings = userSettings
         self.featureService = featureService
         self.settings = NotificationSettings(prefix: settingsPrefix,
-                                             settings: settingsStore,
-                                             logger: logger)
+                                             settings: settingsStore)
     }
 
     public func notificationPublisher() -> AnyPublisher<[DashlaneNotification], Never> {

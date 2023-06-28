@@ -30,7 +30,7 @@ public extension AsyncSequence {
                 subject.send(completion: .failure(error))
             }
         }
-        
+
         return subject
     }
 }

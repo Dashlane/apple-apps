@@ -2,12 +2,13 @@ import SwiftUI
 import UIDelight
 import DashTypes
 import DesignSystem
+import UIComponents
 
 struct DownloadDashlaneView: View {
-    
+
     @Environment(\.dismiss)
     private var dismiss
-    
+
     let cardContent = [
         L10n.Localizable.backupYourAccountsCardStepDownload,
         L10n.Localizable.backupYourAccountsCardStepCreateAccount,
@@ -20,7 +21,7 @@ struct DownloadDashlaneView: View {
     init(model: DownloadDashlaneViewModel) {
         _viewModel = .init(wrappedValue: model)
     }
-    
+
     var body: some View {
         NavigationView {
             VStack(alignment: .leading) {
@@ -39,14 +40,14 @@ struct DownloadDashlaneView: View {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     CloseButton(action: dismiss.callAsFunction)
                 }
-                
+
             })
             .padding(.horizontal, 24)
             .backgroundColorIgnoringSafeArea(.ds.background.alternate)
             .hiddenNavigationTitle()
         }
     }
-    
+
     var header: some View {
         VStack(alignment: .leading, spacing: 16) {
             Text(L10n.Localizable.backupYourAccountsTitle)
@@ -59,7 +60,7 @@ struct DownloadDashlaneView: View {
                  supportURL: .whatIsDashlane)
         }
     }
-    
+
     var buttons: some View {
         VStack(spacing: 24) {
             RoundedButton(L10n.Localizable.backupYourAccountsDownloadAppCta, action: viewModel.openAppStoreView)

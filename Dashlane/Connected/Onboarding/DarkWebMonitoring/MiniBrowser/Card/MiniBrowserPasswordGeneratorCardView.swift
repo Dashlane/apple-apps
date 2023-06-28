@@ -1,5 +1,8 @@
+import DesignSystem
 import SwiftUI
 import UIDelight
+import VaultKit
+import CoreLocalization
 
 struct MiniBrowserPasswordGeneratorCardView: View {
     private var action: DetailFieldActionSheet.Action
@@ -38,7 +41,7 @@ struct MiniBrowserPasswordGeneratorCardView: View {
                     Button(action: {
                         self.model.refreshPassword()
                     }, label: {
-                        Image(asset: FiberAsset.refreshButton)
+                        Image.ds.action.refresh.outlined
                             .resizable()
                             .foregroundColor(Color.white)
                             .frame(width: refreshImageHeightAndWidth, height: refreshImageHeightAndWidth, alignment: .center)
@@ -80,46 +83,43 @@ struct MiniBrowserPasswordGeneratorCardView: View {
         }
         .frame(maxHeight: maxHeight)
         .background(Color(asset: FiberAsset.mainGreen))
-        .onAppear {
-            self.model.logDisplay()
-        }
     }
 
     private var passwordOptionsView: some View {
         ZStack {
             VStack(alignment: .leading) {
-                Text("\(L10n.Localizable.kwPadExtensionGeneratorLength.uppercased()) \(String(format: "%g", self.model.passwordLength))")
-                    .foregroundColor(Color(asset: FiberAsset.secondaryActionText))
+                Text("\(CoreLocalization.L10n.Core.kwPadExtensionGeneratorLength.uppercased()) \(String(format: "%g", self.model.passwordLength))")
+                    .foregroundColor(.ds.text.inverse.standard)
                     .font(.footnote)
 
                 HStack {
                     Text("4").font(.body).foregroundColor(Color.white)
-                    ColoredSlider(minTrackColor: FiberAsset.sliderAccentColor.color,
-                                  maxTrackColor: FiberAsset.grey04.color,
+                    ColoredSlider(minTrackColor: .ds.text.brand.quiet,
+                                  maxTrackColor: .ds.text.inverse.quiet,
                                   range: 4...32,
                                   step: 1.0,
                                   value: self.$model.passwordLength)
                     Text("32")
                         .font(.body)
-                        .foregroundColor(Color.white)
+                        .foregroundColor(.ds.text.inverse.catchy)
                 }
 
-                Text(L10n.Localizable.kwPadExtensionOptions.uppercased())
-                    .foregroundColor(Color(asset: FiberAsset.secondaryActionText))
+                Text(CoreLocalization.L10n.Core.kwPadExtensionOptions.uppercased())
+                    .foregroundColor(.ds.text.inverse.standard)
                     .font(.body)
 
-                MiniBrowserToggleView(title: L10n.Localizable.kwPadExtensionGeneratorLetters, isOn: self.$model.passwordGenLettersEnabled)
+                MiniBrowserToggleView(title: CoreLocalization.L10n.Core.kwPadExtensionGeneratorLetters, isOn: self.$model.passwordGenLettersEnabled)
                     .disabled(!self.model.passwordGenDigitsEnabled)
                     .fixedSize(horizontal: false, vertical: true)
-                MiniBrowserToggleView(title: L10n.Localizable.kwPadExtensionGeneratorDigits, isOn: self.$model.passwordGenDigitsEnabled)
+                MiniBrowserToggleView(title: CoreLocalization.L10n.Core.kwPadExtensionGeneratorDigits, isOn: self.$model.passwordGenDigitsEnabled)
                     .disabled(!self.model.passwordGenLettersEnabled)
                     .fixedSize(horizontal: false, vertical: true)
-                MiniBrowserToggleView(title: L10n.Localizable.kwPadExtensionGeneratorSymbols, isOn: self.$model.passwordGenSymbolsEnabled)
+                MiniBrowserToggleView(title: CoreLocalization.L10n.Core.kwPadExtensionGeneratorSymbols, isOn: self.$model.passwordGenSymbolsEnabled)
                     .fixedSize(horizontal: false, vertical: true)
             }
             .padding(24)
             .frame(maxWidth: .infinity)
-            .background(Color(asset: FiberAsset.midGreen))
+            .background(Color.ds.container.expressive.brand.quiet.idle)
             .cornerRadius(8)
         }
     }
@@ -128,7 +128,7 @@ struct MiniBrowserPasswordGeneratorCardView: View {
 struct MiniBrowserPasswordGeneratorCardView_Previews: PreviewProvider {
     static var previews: some View {
         MultiContextPreview(dynamicTypePreview: true) {
-            MiniBrowserPasswordGeneratorCardView(model: MiniBrowserPasswordGeneratorCardViewModel(usageLogService: DWMLogService.fakeService), action: .copy({_, _ in}), maxHeight: 305)
+            MiniBrowserPasswordGeneratorCardView(model: MiniBrowserPasswordGeneratorCardViewModel(), action: .copy({_, _ in}), maxHeight: 305)
         }.previewLayout(.sizeThatFits)
     }
 }

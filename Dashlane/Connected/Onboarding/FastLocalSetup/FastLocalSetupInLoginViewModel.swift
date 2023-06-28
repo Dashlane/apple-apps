@@ -6,7 +6,7 @@ import LoginKit
 import CoreSettings
 import DashTypes
 
-class FastLocalSetupInLoginViewModel: BiometrySettingsHandler, FastLocalSetupViewModel, SessionServicesInjecting {
+class FastLocalSetupInLoginViewModel: BiometrySettingsHandler, FastLocalSetupViewModel, SessionServicesInjecting, AccountCreationFlowDependenciesInjecting {
 
     var shouldShowMasterPasswordReset: Bool {
         return masterPassword != nil
@@ -16,7 +16,6 @@ class FastLocalSetupInLoginViewModel: BiometrySettingsHandler, FastLocalSetupVie
         case next
     }
 
-    private let usageLogService: FastLocalSetupLogService
     private let masterPassword: String?
     private let lockService: LockService
     private let masterPasswordResetService: ResetMasterPasswordService
@@ -28,14 +27,12 @@ class FastLocalSetupInLoginViewModel: BiometrySettingsHandler, FastLocalSetupVie
          lockService: LockService,
          masterPasswordResetService: ResetMasterPasswordService,
          userSettings: UserSettings,
-         usageLogService: UsageLogServiceProtocol,
          completion: @escaping (FastLocalSetupInLoginViewModel.Completion) -> Void) {
 
         self.masterPassword = masterPassword
         self.lockService = lockService
         self.masterPasswordResetService = masterPasswordResetService
         self.userSettings = userSettings
-        self.usageLogService = usageLogService.fastLocalSetupLogService
         self.completion = completion
 
         super.init(biometry: biometry)
@@ -54,7 +51,6 @@ class FastLocalSetupInLoginViewModel: BiometrySettingsHandler, FastLocalSetupVie
             try? lockService.secureLockConfigurator.enableRememberMasterPassword()
         }
 
-        logSettings()
         completion(.next)
     }
 
@@ -64,25 +60,5 @@ class FastLocalSetupInLoginViewModel: BiometrySettingsHandler, FastLocalSetupVie
 
     func markDisplay() {
         userSettings[.fastLocalSetupForRemoteLoginDisplayed] = true
-    }
-
-    func logDisplay() {
-        usageLogService.log(.shownInLogin)
-    }
-
-    func logSettings() {
-        switch biometry {
-        case .faceId:
-            usageLogService.log(isBiometricsOn ? .faceIDEnabled : .faceIDDisabled)
-        case .touchId:
-            usageLogService.log(isBiometricsOn ? .touchIDEnabled : .touchIDDisabled)
-        case .none: break
-        }
-
-        if isMasterPasswordResetOn {
-            usageLogService.log(.masterPasswordResetEnabled)
-        } else {
-            usageLogService.log(.masterPasswordResetDisabled)
-        }
     }
 }

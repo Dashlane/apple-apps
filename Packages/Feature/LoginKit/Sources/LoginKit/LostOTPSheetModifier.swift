@@ -13,7 +13,7 @@ public struct LostOTPSheetModifier: ViewModifier {
     public enum Context {
         case login
         case disable2fa
-        
+
         var title: String {
             switch self {
             case .login:
@@ -38,7 +38,7 @@ public struct LostOTPSheetModifier: ViewModifier {
                 return L10n.Core.disableOtpUseRecoveryCodeCta
             }
         }
-        
+
         var smsMessage: String {
             switch self {
             case .login:
@@ -48,7 +48,7 @@ public struct LostOTPSheetModifier: ViewModifier {
             }
         }
     }
-    
+
     @Binding
     var isLostOTPSheetDisplayed: Bool
 
@@ -129,14 +129,14 @@ public struct LostOTPSheetModifier: ViewModifier {
 }
 
 struct RecoveryTextfieldAlertModifier: ViewModifier {
-    
+
     enum Item: String, Identifiable {
         case recoveryCode
         case smsCode
         var id: String {
             rawValue
         }
-        
+
         var title: String {
             switch self {
             case .recoveryCode:
@@ -145,7 +145,7 @@ struct RecoveryTextfieldAlertModifier: ViewModifier {
                 return L10n.Core.otpRecoveryDisableCannotAccessCodesTitle
             }
         }
-        
+
         var message: String {
             switch self {
             case .recoveryCode:
@@ -155,16 +155,16 @@ struct RecoveryTextfieldAlertModifier: ViewModifier {
             }
         }
     }
-    
+
     @Binding
     var item: Item?
-    
+
     @Binding
     var inputBackupCode: String
-    
+
     let context: LostOTPSheetModifier.Context
     let useBackupCode: (String) -> Void
-    
+
     func body(content: Content) -> some View {
         if let item = item {
           content

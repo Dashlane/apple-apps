@@ -1,16 +1,10 @@
+import DesignSystem
 import SwiftUI
 import UIDelight
 import UIComponents
 
 struct OnboardingFAQView: View {
     var questions: [OnboardingFAQ]
-
-    enum Completion {
-        case faqSectionShown
-        case questionOpened(question: OnboardingFAQ)
-    }
-
-    var completion: ((Completion) -> Void)?
 
     var body: some View {
         VStack {
@@ -21,11 +15,8 @@ struct OnboardingFAQView: View {
                 }
             }
         }
-        .background(Color(asset: FiberAsset.buttonTextIncreasedContrast))
+        .background(Color.ds.background.default)
         .edgesIgnoringSafeArea(.bottom)
-        .onAppear {
-            self.completion?(.faqSectionShown)
-        }
     }
 
     var topView: some View {
@@ -34,7 +25,7 @@ struct OnboardingFAQView: View {
             Rectangle()
                 .frame(width: 35, height: 5)
                 .cornerRadius(16)
-                .foregroundColor(Color(asset: FiberAsset.grey04))
+                .foregroundColor(.ds.container.expressive.neutral.quiet.idle)
             Spacer()
         }.padding(.top, 6)
     }
@@ -44,15 +35,11 @@ struct OnboardingFAQView: View {
             Text(L10n.Localizable.guidedOnboardingFAQTitle)
                 .font(DashlaneFont.custom(26, .bold).font)
                 .fixedSize(horizontal: false, vertical: true)
+                .foregroundColor(.ds.text.neutral.catchy)
 
             VStack {
                 ForEach(questions, id: \.rawValue) { question in
-                    OnboardingFAQItemView(question: question) { result in
-                        switch result {
-                        case let .opened(question):
-                            self.completion?(.questionOpened(question: question))
-                        }
-                    }
+                    OnboardingFAQItemView(question: question)
                 }
             }
         }.padding(25.0)

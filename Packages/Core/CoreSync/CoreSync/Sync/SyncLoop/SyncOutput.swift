@@ -5,5 +5,3 @@ public struct SyncOutput {
     public let timestamp: Timestamp
     public let syncReport: SyncReport
 }
-
-public typealias SyncCompletion = (Result<SyncOutput, SyncLoopError>) -> Void

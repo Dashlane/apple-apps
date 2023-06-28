@@ -56,7 +56,7 @@ private extension URL {
 
 public class FakeSettingsFactory: LocalSettingsFactory, KeychainSettingsDataProvider {
 
-    var stores: [Login: InMemoryLocalSettingsStore]
+    var stores: [Login: LocalSettingsStoreMock]
     
     public init() {
         stores = [:]
@@ -66,7 +66,7 @@ public class FakeSettingsFactory: LocalSettingsFactory, KeychainSettingsDataProv
         if let store = stores[login] {
             return store
         }
-        let store = InMemoryLocalSettingsStore()
+        let store = LocalSettingsStoreMock()
         stores[login] = store
         return store
     }

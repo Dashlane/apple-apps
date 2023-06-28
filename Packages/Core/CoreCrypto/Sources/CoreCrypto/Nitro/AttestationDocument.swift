@@ -1,12 +1,12 @@
 import Foundation
 
 public struct AttestationDocument: Decodable {
-    
+
     public struct UserData: Decodable {
         public let header: String
         public let publicKey: String
     }
-    
+
     enum CodingKeys: String, CodingKey {
         case digest
         case cabundle
@@ -16,7 +16,7 @@ public struct AttestationDocument: Decodable {
         case userData = "user_data"
         case pcrs
     }
-    
+
     let digest: String
     public let cabundle: [Data]
     let moduleId: String
@@ -24,7 +24,7 @@ public struct AttestationDocument: Decodable {
     public let certificate: Data
     public let userData: UserData
     public let pcrs: [Int: Data]
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         self.digest = try container.decode(String.self, forKey: .digest)
@@ -34,7 +34,7 @@ public struct AttestationDocument: Decodable {
         self.certificate = try container.decode(Data.self, forKey: .certificate)
         let jsonData = try container.decode(Data.self, forKey: .userData)
         self.userData = try JSONDecoder().decode(UserData.self, from: jsonData)
-        self.pcrs = try container.decode([Int : Data].self, forKey: .pcrs)
+        self.pcrs = try container.decode([Int: Data].self, forKey: .pcrs)
     }
 }
 
@@ -44,11 +44,11 @@ extension AttestationDocument {
         guard let decodedData = cabundle.first?.base64EncodedString().data(using: .utf8), let rootFromAttestation = String(data: decodedData, encoding: .utf8), rootCertificate == rootFromAttestation else {
             throw NitroError.rootCertificateDidNotMatch
         }
-        
+
         guard let certificateFromAttestation = SecCertificateCreateWithData(nil, certificate as CFData) else {
             throw NitroError.invalidCertificate
         }
-        
+
         var certificateChain: [SecCertificate] = try cabundle.map { certificate in
             guard let secCertificate = SecCertificateCreateWithData(nil, certificate as CFData) else {
                 throw NitroError.invalidCertificate
@@ -56,7 +56,7 @@ extension AttestationDocument {
             return secCertificate
         }
         certificateChain.append(certificateFromAttestation)
-        
+
         var trust: SecTrust?
         let status = SecTrustCreateWithCertificates(certificateChain as AnyObject,
                                                     SecPolicyCreateBasicX509(),
@@ -65,7 +65,7 @@ extension AttestationDocument {
             throw NitroError.invalidCertificate
         }
     }
-    
+
     public func verifyPCR(_ localPCRs: [Int: String]) throws {
         try localPCRs.forEach { (index, value) in
             guard pcrs[index]?.hexadecimalString == value else {

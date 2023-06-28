@@ -4,6 +4,9 @@ import AuthenticationServices
 #if canImport(AuthenticatorKit)
 import AuthenticatorKit
 #endif
+#if canImport(AutofillKit)
+import AutofillKit
+#endif
 #if canImport(Combine)
 import Combine
 #endif
@@ -12,6 +15,9 @@ import Contacts
 #endif
 #if canImport(CoreCategorizer)
 import CoreCategorizer
+#endif
+#if canImport(CoreCrypto)
+import CoreCrypto
 #endif
 #if canImport(CoreData)
 import CoreData
@@ -64,14 +70,14 @@ import CryptoKit
 #if canImport(DashTypes)
 import DashTypes
 #endif
+#if canImport(DashlaneAPI)
+import DashlaneAPI
+#endif
 #if canImport(DashlaneAppKit)
 import DashlaneAppKit
 #endif
 #if canImport(DashlaneCrypto)
 import DashlaneCrypto
-#endif
-#if canImport(DashlaneReportKit)
-import DashlaneReportKit
 #endif
 #if canImport(DesignSystem)
 import DesignSystem
@@ -143,26 +149,122 @@ import UniformTypeIdentifiers
 import VaultKit
 #endif
 
+internal protocol AccountCreationFlowDependenciesInjecting { }
+
+ 
+extension AccountCreationFlowDependenciesContainer {
+        @MainActor
+        internal func makeAccountCreationFlowViewModel(completion: @MainActor @escaping (AccountCreationFlowViewModel.CompletionResult) -> Void) -> AccountCreationFlowViewModel {
+            return AccountCreationFlowViewModel(
+                            evaluator: passwordEvaluator,
+                            activityReporter: activityReporter,
+                            emailViewModelFactory: InjectedFactory(makeAccountEmailViewModel),
+                            masterPasswordAccountCreationModelFactory: InjectedFactory(makeMasterPasswordAccountCreationFlowViewModel),
+                            passwordLessAccountCreationModelFactory: InjectedFactory(makePasswordLessAccountCreationFlowViewModel),
+                            completion: completion
+            )
+        }
+        
+}
+
+extension AccountCreationFlowDependenciesContainer {
+        @MainActor
+        internal func makeAccountEmailViewModel(completion: @escaping (_ result: AccountEmailViewModel.CompletionResult) -> Void) -> AccountEmailViewModel {
+            return AccountEmailViewModel(
+                            appAPIClient: appAPIClient,
+                            activityReporter: activityReporter,
+                            completion: completion
+            )
+        }
+        
+}
+
+extension AccountCreationFlowDependenciesContainer {
+        
+        internal func makeFastLocalSetupInAccountCreationViewModel(biometry: Biometry? = Device.biometryType, completion: @escaping (FastLocalSetupInAccountCreationViewModel.Completion) -> Void) -> FastLocalSetupInAccountCreationViewModel {
+            return FastLocalSetupInAccountCreationViewModel(
+                            biometry: biometry,
+                            completion: completion
+            )
+        }
+        
+}
+
+extension AccountCreationFlowDependenciesContainer {
+        
+        internal func makeFastLocalSetupInLoginViewModel(masterPassword: String?, biometry: Biometry?, lockService: LockService, masterPasswordResetService: ResetMasterPasswordService, userSettings: UserSettings, completion: @escaping (FastLocalSetupInLoginViewModel.Completion) -> Void) -> FastLocalSetupInLoginViewModel {
+            return FastLocalSetupInLoginViewModel(
+                            masterPassword: masterPassword,
+                            biometry: biometry,
+                            lockService: lockService,
+                            masterPasswordResetService: masterPasswordResetService,
+                            userSettings: userSettings,
+                            completion: completion
+            )
+        }
+        
+}
+
+extension AccountCreationFlowDependenciesContainer {
+        @MainActor
+        internal func makeMasterPasswordAccountCreationFlowViewModel(configuration: AccountCreationConfiguration, completion: @MainActor @escaping (MasterPasswordAccountCreationFlowViewModel.CompletionResult) -> Void) -> MasterPasswordAccountCreationFlowViewModel {
+            return MasterPasswordAccountCreationFlowViewModel(
+                            configuration: configuration,
+                            userCountryProvider: userCountryProvider,
+                            accountCreationService: accountCreationService,
+                            userConsentViewModelFactory: InjectedFactory(makeUserConsentViewModel),
+                            fastLocalSetupViewModelFactory: InjectedFactory(makeFastLocalSetupInAccountCreationViewModel),
+                            completion: completion
+            )
+        }
+        
+}
+
+extension AccountCreationFlowDependenciesContainer {
+        @MainActor
+        internal func makePasswordLessAccountCreationFlowViewModel(configuration: AccountCreationConfiguration, completion: @MainActor @escaping (PasswordLessAccountCreationFlowViewModel.CompletionResult) -> Void) -> PasswordLessAccountCreationFlowViewModel {
+            return PasswordLessAccountCreationFlowViewModel(
+                            configuration: configuration,
+                            userCountryProvider: userCountryProvider,
+                            accountCreationService: accountCreationService,
+                            userConsentViewModelFactory: InjectedFactory(makeUserConsentViewModel),
+                            fastLocalSetupViewModelFactory: InjectedFactory(makeFastLocalSetupInAccountCreationViewModel),
+                            completion: completion
+            )
+        }
+        
+}
+
+extension AccountCreationFlowDependenciesContainer {
+        
+        internal func makeUserConsentViewModel(isEmailMarketingOptInRequired: Bool, completion: @escaping (UserConsentViewModel.Completion) -> Void) -> UserConsentViewModel {
+            return UserConsentViewModel(
+                            isEmailMarketingOptInRequired: isEmailMarketingOptInRequired,
+                            completion: completion
+            )
+        }
+        
+}
+
 internal protocol AppServicesInjecting { }
 
  
 extension AppServicesContainer {
         
-        internal func makeLoginKitServicesContainer(logger: LoginInstallerLogger) -> LoginKitServicesContainer {
+        internal func makeLoginKitServicesContainer() -> LoginKitServicesContainer {
             return LoginKitServicesContainer(
-                            loginUsageLogService: loginUsageLogService,
+                            loginMetricsReporter: loginMetricsReporter,
                             activityReporter: activityReporter,
                             sessionCleaner: sessionCleaner,
-                            logger: logger,
                             settingsManager: spiegelSettingsManager,
                             keychainService: keychainService,
-                            installerLogService: installerLogService,
                             nonAuthenticatedUKIBasedWebService: nonAuthenticatedUKIBasedWebService,
                             appAPIClient: appAPIClient,
                             sessionCryptoEngineProvider: sessionCryptoEngineProvider,
                             sessionContainer: sessionContainer,
                             rootLogger: rootLogger,
-                            nitroWebService: nitroWebService
+                            nitroWebService: nitroWebService,
+                            passwordEvaluvator: passwordEvaluator
             )
         }
         
@@ -173,16 +275,28 @@ internal protocol MockVaultConnectedInjecting { }
  
 extension MockVaultConnectedContainer {
         
-        internal func makeAddAttachmentButtonViewModel(editingItem: VaultItem, logger: AttachmentsListUsageLogger, shouldDisplayRenameAlert: Bool = true, itemPublisher: AnyPublisher<VaultItem, Never>) -> AddAttachmentButtonViewModel {
+        internal func makeAddAttachmentButtonViewModel(editingItem: VaultItem, shouldDisplayRenameAlert: Bool = true, itemPublisher: AnyPublisher<VaultItem, Never>) -> AddAttachmentButtonViewModel {
             return AddAttachmentButtonViewModel(
                             documentStorageService: documentStorageService,
                             activityReporter: activityReporter,
                             featureService: featureService,
                             editingItem: editingItem,
                             premiumService: premiumService,
-                            logger: logger,
                             shouldDisplayRenameAlert: shouldDisplayRenameAlert,
                             itemPublisher: itemPublisher
+            )
+        }
+        
+}
+
+extension MockVaultConnectedContainer {
+        
+        internal func makeAddLoginDetailsViewModel(website: String, credential: Credential?, supportDashlane2FA: Bool, completion: @escaping (OTPInfo) -> Void) -> AddLoginDetailsViewModel {
+            return AddLoginDetailsViewModel(
+                            website: website,
+                            credential: credential,
+                            supportDashlane2FA: supportDashlane2FA,
+                            completion: completion
             )
         }
         
@@ -195,7 +309,24 @@ extension MockVaultConnectedContainer {
                             activityReporter: activityReporter,
                             vaultItemsService: vaultItemsService,
                             matchingCredentialListViewModelFactory: InjectedFactory(makeMatchingCredentialListViewModel),
+                            addOTPManuallyFlowViewModelFactory: InjectedFactory(makeAddOTPManuallyFlowViewModel),
                             mode: mode,
+                            completion: completion
+            )
+        }
+        
+}
+
+extension MockVaultConnectedContainer {
+        
+        internal func makeAddOTPManuallyFlowViewModel(credential: Credential?, completion: @escaping (AddOTPManuallyFlowViewModel.Completion) -> Void) -> AddOTPManuallyFlowViewModel {
+            return AddOTPManuallyFlowViewModel(
+                            credential: credential,
+                            vaultItemsService: vaultItemsService,
+                            matchingCredentialListViewModelFactory: InjectedFactory(makeMatchingCredentialListViewModel),
+                            chooseWebsiteViewModelFactory: InjectedFactory(makeChooseWebsiteViewModel),
+                            addLoginDetailsViewModelFactory: InjectedFactory(makeAddLoginDetailsViewModel),
+                            credentialDetailViewModelFactory: InjectedFactory(makeCredentialDetailViewModel),
                             completion: completion
             )
         }
@@ -211,8 +342,7 @@ extension MockVaultConnectedContainer {
                             vaultItemsService: vaultItemsService,
                             sharingService: sharedVaultHandling,
                             teamSpacesService: teamSpacesService,
-                            usageLogService: usageLogService,
-                            deepLinkService: deepLinkService,
+                            deepLinkService: vaultKitDeepLinkingService,
                             activityReporter: activityReporter,
                             iconViewModelProvider: makeVaultItemIconViewModel,
                             logger: logger,
@@ -220,8 +350,8 @@ extension MockVaultConnectedContainer {
                             regionInformationService: regionInformationService,
                             userSettings: userSettings,
                             documentStorageService: documentStorageService,
+                            pasteboardService: pasteboardService,
                             attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
-                            attachmentsListViewModelProvider: makeAttachmentsListViewModel,
                             dismiss: dismiss
             )
         }
@@ -237,10 +367,24 @@ extension MockVaultConnectedContainer {
 
 extension MockVaultConnectedContainer {
         
+        internal func makeAttachmentRowViewModel(attachment: Attachment, attachmentPublisher: AnyPublisher<Attachment, Never>, editingItem: DocumentAttachable, deleteAction: @escaping (Attachment) -> Void) -> AttachmentRowViewModel {
+            return AttachmentRowViewModel(
+                            attachment: attachment,
+                            attachmentPublisher: attachmentPublisher,
+                            editingItem: editingItem,
+                            database: database,
+                            documentStorageService: documentStorageService,
+                            deleteAction: deleteAction
+            )
+        }
+        
+}
+
+extension MockVaultConnectedContainer {
+        
         internal func makeAttachmentsListViewModel(editingItem: VaultItem, itemPublisher: AnyPublisher<VaultItem, Never>) -> AttachmentsListViewModel {
             return AttachmentsListViewModel(
                             documentStorageService: documentStorageService,
-                            usageLogService: usageLogService,
                             activityReporter: activityReporter,
                             database: database,
                             editingItem: editingItem,
@@ -257,7 +401,6 @@ extension MockVaultConnectedContainer {
             return AttachmentsSectionViewModel(
                             vaultItemsService: vaultItemsService,
                             item: item,
-                            usageLogService: usageLogService,
                             documentStorageService: documentStorageService,
                             attachmentsListViewModelProvider: makeAttachmentsListViewModel,
                             makeAddAttachmentButtonViewModel: InjectedFactory(makeAddAttachmentButtonViewModel),
@@ -276,8 +419,7 @@ extension MockVaultConnectedContainer {
                             vaultItemsService: vaultItemsService,
                             sharingService: sharedVaultHandling,
                             teamSpacesService: teamSpacesService,
-                            usageLogService: usageLogService,
-                            deepLinkService: deepLinkService,
+                            deepLinkService: vaultKitDeepLinkingService,
                             activityReporter: activityReporter,
                             iconViewModelProvider: makeVaultItemIconViewModel,
                             logger: logger,
@@ -285,8 +427,8 @@ extension MockVaultConnectedContainer {
                             regionInformationService: regionInformationService,
                             userSettings: userSettings,
                             documentStorageService: documentStorageService,
-                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
-                            attachmentsListViewModelProvider: makeAttachmentsListViewModel
+                            pasteboardService: pasteboardService,
+                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
             )
         }
                 
@@ -301,6 +443,19 @@ extension MockVaultConnectedContainer {
 
 extension MockVaultConnectedContainer {
         
+        internal func makeChooseWebsiteViewModel(completion: @escaping (String) -> Void) -> ChooseWebsiteViewModel {
+            return ChooseWebsiteViewModel(
+                            categorizer: categorizer,
+                            activityReporter: activityReporter,
+                            placeholderViewModelFactory: InjectedFactory(makePlaceholderWebsiteViewModel),
+                            completion: completion
+            )
+        }
+        
+}
+
+extension MockVaultConnectedContainer {
+        
         internal func makeCompanyDetailViewModel(item: Company, mode: DetailMode = .viewing) -> CompanyDetailViewModel {
             return CompanyDetailViewModel(
                             item: item,
@@ -308,16 +463,15 @@ extension MockVaultConnectedContainer {
                             vaultItemsService: vaultItemsService,
                             sharingService: sharedVaultHandling,
                             teamSpacesService: teamSpacesService,
-                            usageLogService: usageLogService,
                             documentStorageService: documentStorageService,
-                            deepLinkService: deepLinkService,
+                            deepLinkService: vaultKitDeepLinkingService,
                             activityReporter: activityReporter,
                             iconViewModelProvider: makeVaultItemIconViewModel,
                             logger: logger,
                             accessControl: accessControl,
                             userSettings: userSettings,
-                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
-                            attachmentsListViewModelProvider: makeAttachmentsListViewModel
+                            pasteboardService: pasteboardService,
+                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
             )
         }
                 
@@ -343,10 +497,8 @@ extension MockVaultConnectedContainer {
                             sharingService: sharedVaultHandling,
                             teamSpacesService: teamSpacesService,
                             premiumService: premiumService,
-                            vaultItemsServices: vaultItemsService,
                             iconViewModelProvider: makeVaultItemIconViewModel,
-                            usageLogService: usageLogService,
-                            deepLinkService: deepLinkService,
+                            deepLinkService: vaultKitDeepLinkingService,
                             activityReporter: activityReporter,
                             featureService: featureService,
                             iconService: iconService,
@@ -358,6 +510,7 @@ extension MockVaultConnectedContainer {
                             onboardingService: onboardingService,
                             autofillService: autofillService,
                             documentStorageService: documentStorageService,
+                            pasteboardService: pasteboardService,
                             didSave: didSave,
                             credentialMainSectionModelFactory: InjectedFactory(makeCredentialMainSectionModel),
                             passwordHealthSectionModelFactory: InjectedFactory(makePasswordHealthSectionModel),
@@ -368,8 +521,32 @@ extension MockVaultConnectedContainer {
                             makePasswordGeneratorViewModel: InjectedFactory(makePasswordGeneratorViewModel),
                             addOTPFlowViewModelFactory: InjectedFactory(makeAddOTPFlowViewModel),
                             passwordGeneratorViewModelFactory: makePasswordGeneratorViewModel,
-                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
-                            attachmentsListViewModelProvider: makeAttachmentsListViewModel
+                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
+            )
+        }
+                
+        internal func makeCredentialDetailViewModel(generatedPasswordToLink: GeneratedPassword? = nil, actionPublisher: PassthroughSubject<CredentialDetailViewModel.Action, Never>? = nil, origin: ItemDetailOrigin = ItemDetailOrigin.unknown, didSave: (() -> Void)? = nil, service: DetailService<Credential>) -> CredentialDetailViewModel {
+            return CredentialDetailViewModel(
+                            generatedPasswordToLink: generatedPasswordToLink,
+                            vaultItemsService: vaultItemsService,
+                            actionPublisher: actionPublisher,
+                            origin: origin,
+                            featureService: featureService,
+                            iconService: iconService,
+                            passwordEvaluator: passwordEvaluator,
+                            linkedDomainsService: linkedDomainsService,
+                            onboardingService: onboardingService,
+                            autofillService: autofillService,
+                            didSave: didSave,
+                            credentialMainSectionModelFactory: InjectedFactory(makeCredentialMainSectionModel),
+                            passwordHealthSectionModelFactory: InjectedFactory(makePasswordHealthSectionModel),
+                            passwordAccessorySectionModelFactory: InjectedFactory(makePasswordAccessorySectionModel),
+                            notesSectionModelFactory: InjectedFactory(makeNotesSectionModel),
+                            sharingDetailSectionModelFactory: InjectedFactory(makeSharingDetailSectionModel),
+                            domainsSectionModelFactory: InjectedFactory(makeDomainsSectionModel),
+                            addOTPFlowViewModelFactory: InjectedFactory(makeAddOTPFlowViewModel),
+                            passwordGeneratorViewModelFactory: makePasswordGeneratorViewModel,
+                            service: service
             )
         }
         
@@ -398,8 +575,7 @@ extension MockVaultConnectedContainer {
                             vaultItemsService: vaultItemsService,
                             sharingService: sharedVaultHandling,
                             teamSpacesService: teamSpacesService,
-                            usageLogService: usageLogService,
-                            deepLinkService: deepLinkService,
+                            deepLinkService: vaultKitDeepLinkingService,
                             activityReporter: activityReporter,
                             iconViewModelProvider: makeVaultItemIconViewModel,
                             logger: logger,
@@ -407,8 +583,8 @@ extension MockVaultConnectedContainer {
                             regionInformationService: regionInformationService,
                             userSettings: userSettings,
                             documentStorageService: documentStorageService,
+                            pasteboardService: pasteboardService,
                             attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
-                            attachmentsListViewModelProvider: makeAttachmentsListViewModel,
                             dismiss: dismiss
             )
         }
@@ -442,8 +618,7 @@ extension MockVaultConnectedContainer {
                             vaultItemsService: vaultItemsService,
                             sharingService: sharedVaultHandling,
                             teamSpacesService: teamSpacesService,
-                            usageLogService: usageLogService,
-                            deepLinkService: deepLinkService,
+                            deepLinkService: vaultKitDeepLinkingService,
                             activityReporter: activityReporter,
                             regionInformationService: regionInformationService,
                             iconViewModelProvider: makeVaultItemIconViewModel,
@@ -451,8 +626,8 @@ extension MockVaultConnectedContainer {
                             accessControl: accessControl,
                             userSettings: userSettings,
                             documentStorageService: documentStorageService,
-                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
-                            attachmentsListViewModelProvider: makeAttachmentsListViewModel
+                            pasteboardService: pasteboardService,
+                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
             )
         }
                 
@@ -474,16 +649,15 @@ extension MockVaultConnectedContainer {
                             vaultItemsService: vaultItemsService,
                             sharingService: sharedVaultHandling,
                             teamSpacesService: teamSpacesService,
-                            usageLogService: usageLogService,
                             documentStorageService: documentStorageService,
-                            deepLinkService: deepLinkService,
+                            deepLinkService: vaultKitDeepLinkingService,
                             activityReporter: activityReporter,
                             iconViewModelProvider: makeVaultItemIconViewModel,
                             logger: logger,
                             accessControl: accessControl,
                             userSettings: userSettings,
-                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
-                            attachmentsListViewModelProvider: makeAttachmentsListViewModel
+                            pasteboardService: pasteboardService,
+                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
             )
         }
                 
@@ -504,16 +678,15 @@ extension MockVaultConnectedContainer {
                             vaultItemsService: vaultItemsService,
                             sharingService: sharedVaultHandling,
                             teamSpacesService: teamSpacesService,
-                            usageLogService: usageLogService,
                             documentStorageService: documentStorageService,
-                            deepLinkService: deepLinkService,
+                            deepLinkService: vaultKitDeepLinkingService,
                             activityReporter: activityReporter,
                             iconViewModelProvider: makeVaultItemIconViewModel,
                             logger: logger,
                             accessControl: accessControl,
                             userSettings: userSettings,
-                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
-                            attachmentsListViewModelProvider: makeAttachmentsListViewModel
+                            pasteboardService: pasteboardService,
+                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
             )
         }
                 
@@ -552,16 +725,15 @@ extension MockVaultConnectedContainer {
                             vaultItemsService: vaultItemsService,
                             sharingService: sharedVaultHandling,
                             teamSpacesService: teamSpacesService,
-                            usageLogService: usageLogService,
                             documentStorageService: documentStorageService,
-                            deepLinkService: deepLinkService,
+                            deepLinkService: vaultKitDeepLinkingService,
                             activityReporter: activityReporter,
                             iconViewModelProvider: makeVaultItemIconViewModel,
                             logger: logger,
                             accessControl: accessControl,
                             userSettings: userSettings,
-                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
-                            attachmentsListViewModelProvider: makeAttachmentsListViewModel
+                            pasteboardService: pasteboardService,
+                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
             )
         }
                 
@@ -582,16 +754,15 @@ extension MockVaultConnectedContainer {
                             vaultItemsService: vaultItemsService,
                             sharingService: sharedVaultHandling,
                             teamSpacesService: teamSpacesService,
-                            usageLogService: usageLogService,
                             documentStorageService: documentStorageService,
-                            deepLinkService: deepLinkService,
+                            deepLinkService: vaultKitDeepLinkingService,
                             activityReporter: activityReporter,
                             iconViewModelProvider: makeVaultItemIconViewModel,
                             logger: logger,
                             accessControl: accessControl,
                             userSettings: userSettings,
-                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
-                            attachmentsListViewModelProvider: makeAttachmentsListViewModel
+                            pasteboardService: pasteboardService,
+                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
             )
         }
                 
@@ -628,6 +799,36 @@ extension MockVaultConnectedContainer {
 
 extension MockVaultConnectedContainer {
         
+        internal func makePasskeyDetailViewModel(item: CorePersonalData.Passkey, mode: DetailMode = .viewing, dismiss: (() -> Void)? = nil) -> PasskeyDetailViewModel {
+            return PasskeyDetailViewModel(
+                            item: item,
+                            mode: mode,
+                            vaultItemsService: vaultItemsService,
+                            sharingService: sharedVaultHandling,
+                            teamSpacesService: teamSpacesService,
+                            deepLinkService: vaultKitDeepLinkingService,
+                            activityReporter: activityReporter,
+                            iconViewModelProvider: makeVaultItemIconViewModel,
+                            logger: logger,
+                            accessControl: accessControl,
+                            userSettings: userSettings,
+                            pasteboardService: pasteboardService,
+                            documentStorageService: documentStorageService,
+                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
+                            dismiss: dismiss
+            )
+        }
+                
+        internal func makePasskeyDetailViewModel(service: DetailService<CorePersonalData.Passkey>) -> PasskeyDetailViewModel {
+            return PasskeyDetailViewModel(
+                            service: service
+            )
+        }
+        
+}
+
+extension MockVaultConnectedContainer {
+        
         internal func makePassportDetailViewModel(item: Passport, mode: DetailMode = .viewing) -> PassportDetailViewModel {
             return PassportDetailViewModel(
                             item: item,
@@ -635,16 +836,15 @@ extension MockVaultConnectedContainer {
                             vaultItemsService: vaultItemsService,
                             sharingService: sharedVaultHandling,
                             teamSpacesService: teamSpacesService,
-                            usageLogService: usageLogService,
                             documentStorageService: documentStorageService,
-                            deepLinkService: deepLinkService,
+                            deepLinkService: vaultKitDeepLinkingService,
                             activityReporter: activityReporter,
                             iconViewModelProvider: makeVaultItemIconViewModel,
                             logger: logger,
                             accessControl: accessControl,
                             userSettings: userSettings,
-                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
-                            attachmentsListViewModelProvider: makeAttachmentsListViewModel
+                            pasteboardService: pasteboardService,
+                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
             )
         }
                 
@@ -669,38 +869,38 @@ extension MockVaultConnectedContainer {
 
 extension MockVaultConnectedContainer {
         
-        internal func makePasswordGeneratorViewModel(mode: PasswordGeneratorMode, saveGeneratedPassword: @escaping (GeneratedPassword) -> GeneratedPassword, savePreferencesOnChange: Bool = true) -> PasswordGeneratorViewModel {
+        internal func makePasswordGeneratorViewModel(mode: PasswordGeneratorMode, saveGeneratedPassword: @escaping (GeneratedPassword) -> GeneratedPassword, savePreferencesOnChange: Bool = true, copyAction: @escaping (String) -> Void) -> PasswordGeneratorViewModel {
             return PasswordGeneratorViewModel(
                             mode: mode,
                             saveGeneratedPassword: saveGeneratedPassword,
                             passwordEvaluator: passwordEvaluator,
-                            usageLogService: usageLogService,
                             sessionActivityReporter: activityReporter,
                             userSettings: userSettings,
-                            savePreferencesOnChange: savePreferencesOnChange
+                            savePreferencesOnChange: savePreferencesOnChange,
+                            copyAction: copyAction
             )
         }
                 
-        internal func makePasswordGeneratorViewModel(mode: PasswordGeneratorMode, savePreferencesOnChange: Bool = true) -> PasswordGeneratorViewModel {
+        internal func makePasswordGeneratorViewModel(mode: PasswordGeneratorMode, savePreferencesOnChange: Bool = true, copyAction: @escaping (String) -> Void) -> PasswordGeneratorViewModel {
             return PasswordGeneratorViewModel(
                             mode: mode,
                             database: database,
                             passwordEvaluator: passwordEvaluator,
-                            usageLogService: usageLogService,
                             sessionActivityReporter: activityReporter,
                             userSettings: userSettings,
-                            savePreferencesOnChange: savePreferencesOnChange
+                            savePreferencesOnChange: savePreferencesOnChange,
+                            copyAction: copyAction
             )
         }
                 
-        internal func makePasswordGeneratorViewModel(mode: PasswordGeneratorMode) -> PasswordGeneratorViewModel {
+        internal func makePasswordGeneratorViewModel(mode: PasswordGeneratorMode, copyAction: @escaping (String) -> Void) -> PasswordGeneratorViewModel {
             return PasswordGeneratorViewModel(
                             mode: mode,
                             database: database,
                             passwordEvaluator: passwordEvaluator,
-                            usageLogService: usageLogService,
                             sessionActivityReporter: activityReporter,
-                            userSettings: userSettings
+                            userSettings: userSettings,
+                            copyAction: copyAction
             )
         }
         
@@ -727,17 +927,16 @@ extension MockVaultConnectedContainer {
                             vaultItemsService: vaultItemsService,
                             sharingService: sharedVaultHandling,
                             teamSpacesService: teamSpacesService,
-                            usageLogService: usageLogService,
                             documentStorageService: documentStorageService,
-                            deepLinkService: deepLinkService,
+                            deepLinkService: vaultKitDeepLinkingService,
                             activityReporter: activityReporter,
                             iconViewModelProvider: makeVaultItemIconViewModel,
                             logger: logger,
                             accessControl: accessControl,
                             userSettings: userSettings,
+                            pasteboardService: pasteboardService,
                             attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
-                            regionInformationService: regionInformationService,
-                            attachmentsListViewModelProvider: makeAttachmentsListViewModel
+                            regionInformationService: regionInformationService
             )
         }
                 
@@ -752,18 +951,28 @@ extension MockVaultConnectedContainer {
 
 extension MockVaultConnectedContainer {
         
+        internal func makePlaceholderWebsiteViewModel(website: String) -> PlaceholderWebsiteViewModel {
+            return PlaceholderWebsiteViewModel(
+                            website: website,
+                            domainIconLibrary: domainIconLibrary
+            )
+        }
+        
+}
+
+extension MockVaultConnectedContainer {
+        
         internal func makeQuickActionsMenuViewModel(item: VaultItem, origin: VaultItemRowModel.Origin, isSuggestedItem: Bool) -> QuickActionsMenuViewModel {
             return QuickActionsMenuViewModel(
                             item: item,
                             sharingService: sharedVaultHandling,
                             accessControl: accessControl,
-                            usageLogService: usageLogService,
                             vaultItemsService: vaultItemsService,
                             teamSpacesService: teamSpacesService,
                             activityReporter: activityReporter,
-                            userSettings: userSettings,
                             shareFlowViewModelFactory: InjectedFactory(makeShareFlowViewModel),
                             origin: origin,
+                            pasteboardService: pasteboardService,
                             isSuggestedItem: isSuggestedItem
             )
         }
@@ -814,21 +1023,21 @@ extension MockVaultConnectedContainer {
                             vaultItemsService: vaultItemsService,
                             sharingService: sharedVaultHandling,
                             teamSpacesService: teamSpacesService,
-                            usageLogService: usageLogService,
-                            deepLinkService: deepLinkService,
+                            deepLinkService: vaultKitDeepLinkingService,
                             activityReporter: activityReporter,
+                            pasteboardService: pasteboardService,
                             iconViewModelProvider: makeVaultItemIconViewModel,
                             secureNotesDetailNavigationBarModelFactory: InjectedFactory(makeSecureNotesDetailNavigationBarModel),
                             secureNotesDetailFieldsModelFactory: InjectedFactory(makeSecureNotesDetailFieldsModel),
                             secureNotesDetailToolbarModelFactory: InjectedFactory(makeSecureNotesDetailToolbarModel),
                             sharingMembersDetailLinkModelFactory: InjectedFactory(makeSharingMembersDetailLinkModel),
                             shareButtonViewModelFactory: InjectedFactory(makeShareButtonViewModel),
+                            attachmentsListViewModelFactory: InjectedFactory(makeAttachmentsListViewModel),
+                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
                             logger: logger,
                             documentStorageService: documentStorageService,
                             accessControl: accessControl,
-                            userSettings: userSettings,
-                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
-                            attachmentsListViewModelProvider: makeAttachmentsListViewModel
+                            userSettings: userSettings
             )
         }
                 
@@ -839,7 +1048,8 @@ extension MockVaultConnectedContainer {
                             secureNotesDetailFieldsModelFactory: InjectedFactory(makeSecureNotesDetailFieldsModel),
                             secureNotesDetailToolbarFactory: InjectedFactory(makeSecureNotesDetailToolbarModel),
                             sharingMembersDetailLinkModelFactory: InjectedFactory(makeSharingMembersDetailLinkModel),
-                            shareButtonViewModelFactory: InjectedFactory(makeShareButtonViewModel)
+                            shareButtonViewModelFactory: InjectedFactory(makeShareButtonViewModel),
+                            attachmentsListViewModelFactory: InjectedFactory(makeAttachmentsListViewModel)
             )
         }
         
@@ -907,7 +1117,6 @@ extension MockVaultConnectedContainer {
         internal func makeSharingDetailSectionModel(item: VaultItem) -> SharingDetailSectionModel {
             return SharingDetailSectionModel(
                             item: item,
-                            usageLogService: usageLogService,
                             sharingMembersDetailLinkModelFactory: InjectedFactory(makeSharingMembersDetailLinkModel),
                             shareButtonModelFactory: InjectedFactory(makeShareButtonViewModel)
             )
@@ -952,16 +1161,15 @@ extension MockVaultConnectedContainer {
                             vaultItemsService: vaultItemsService,
                             sharingService: sharedVaultHandling,
                             teamSpacesService: teamSpacesService,
-                            usageLogService: usageLogService,
                             documentStorageService: documentStorageService,
-                            deepLinkService: deepLinkService,
+                            deepLinkService: vaultKitDeepLinkingService,
                             activityReporter: activityReporter,
                             iconViewModelProvider: makeVaultItemIconViewModel,
                             logger: logger,
                             accessControl: accessControl,
                             userSettings: userSettings,
-                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
-                            attachmentsListViewModelProvider: makeAttachmentsListViewModel
+                            pasteboardService: pasteboardService,
+                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
             )
         }
                 
@@ -978,14 +1186,7 @@ extension MockVaultConnectedContainer {
         internal func makeVaultItemIconViewModel(item: VaultItem) -> VaultItemIconViewModel {
             return VaultItemIconViewModel(
                             item: item,
-                            iconService: iconService
-            )
-        }
-                
-        internal func makeVaultItemIconViewModel(item: VaultItem, iconLibrary: DomainIconLibraryProtocol) -> VaultItemIconViewModel {
-            return VaultItemIconViewModel(
-                            item: item,
-                            iconLibrary: iconLibrary
+                            iconLibrary: domainIconLibrary
             )
         }
         
@@ -1001,7 +1202,7 @@ extension MockVaultConnectedContainer {
                             quickActionsMenuViewModelFactory: InjectedFactory(makeQuickActionsMenuViewModel),
                             userSettings: userSettings,
                             accessControl: accessControl,
-                            usageLogService: usageLogService,
+                            pasteboardService: pasteboardService,
                             activityReporter: activityReporter,
                             teamSpacesService: teamSpacesService,
                             vaultItemsService: vaultItemsService,
@@ -1020,16 +1221,15 @@ extension MockVaultConnectedContainer {
                             vaultItemsService: vaultItemsService,
                             sharingService: sharedVaultHandling,
                             teamSpacesService: teamSpacesService,
-                            usageLogService: usageLogService,
                             documentStorageService: documentStorageService,
-                            deepLinkService: deepLinkService,
+                            deepLinkService: vaultKitDeepLinkingService,
                             activityReporter: activityReporter,
                             iconViewModelProvider: makeVaultItemIconViewModel,
                             logger: logger,
                             accessControl: accessControl,
                             userSettings: userSettings,
-                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
-                            attachmentsListViewModelProvider: makeAttachmentsListViewModel
+                            pasteboardService: pasteboardService,
+                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
             )
         }
                 
@@ -1045,15 +1245,69 @@ internal protocol SessionServicesInjecting { }
 
  
 extension SessionServicesContainer {
+        @MainActor
+        internal func makeAccountRecoveryActivationEmbeddedFlowModel(context: AccountRecoveryActivationContext, completion: @MainActor @escaping () -> Void) -> AccountRecoveryActivationEmbeddedFlowModel {
+            return AccountRecoveryActivationEmbeddedFlowModel(
+                            accountRecoveryKeyService: accountRecoveryKeyService,
+                            session: session,
+                            context: context,
+                            activityReporter: activityReporter,
+                            completion: completion
+            )
+        }
         
-        internal func makeAddAttachmentButtonViewModel(editingItem: VaultItem, logger: AttachmentsListUsageLogger, shouldDisplayRenameAlert: Bool = true, itemPublisher: AnyPublisher<VaultItem, Never>) -> AddAttachmentButtonViewModel {
+}
+
+extension SessionServicesContainer {
+        @MainActor
+        internal func makeAccountRecoveryActivationFlowModel(context: AccountRecoveryActivationContext) -> AccountRecoveryActivationFlowModel {
+            return AccountRecoveryActivationFlowModel(
+                            context: context,
+                            activityReporter: activityReporter,
+                            recoveryActivationViewModelFactory: InjectedFactory(makeAccountRecoveryActivationEmbeddedFlowModel)
+            )
+        }
+        
+}
+
+extension SessionServicesContainer {
+        @MainActor
+        internal func makeAccountRecoveryKeyStatusDetailViewModel(isEnabled: Bool) -> AccountRecoveryKeyStatusDetailViewModel {
+            return AccountRecoveryKeyStatusDetailViewModel(
+                            isEnabled: isEnabled,
+                            session: session,
+                            accountRecoveryKeyService: accountRecoveryKeyService,
+                            accountRecoveryActivationFlowModelFactory: InjectedFactory(makeAccountRecoveryActivationFlowModel),
+                            activityReporter: activityReporter,
+                            logger: appServices.rootLogger
+            )
+        }
+        
+}
+
+extension SessionServicesContainer {
+        @MainActor
+        internal func makeAccountRecoveryKeyStatusViewModel() -> AccountRecoveryKeyStatusViewModel {
+            return AccountRecoveryKeyStatusViewModel(
+                            session: session,
+                            appAPIClient: appServices.appAPIClient,
+                            userAPIClient: userDeviceAPIClient,
+                            reachability: appServices.networkReachability,
+                            recoveryKeyStatusDetailViewModelFactory: InjectedFactory(makeAccountRecoveryKeyStatusDetailViewModel)
+            )
+        }
+        
+}
+
+extension SessionServicesContainer {
+        
+        internal func makeAddAttachmentButtonViewModel(editingItem: VaultItem, shouldDisplayRenameAlert: Bool = true, itemPublisher: AnyPublisher<VaultItem, Never>) -> AddAttachmentButtonViewModel {
             return AddAttachmentButtonViewModel(
                             documentStorageService: documentStorageService,
                             activityReporter: activityReporter,
                             featureService: featureService,
                             editingItem: editingItem,
                             premiumService: premiumService,
-                            logger: logger,
                             shouldDisplayRenameAlert: shouldDisplayRenameAlert,
                             itemPublisher: itemPublisher
             )
@@ -1071,8 +1325,33 @@ extension SessionServicesContainer {
                             credentialDetailViewModelFactory: InjectedFactory(makeCredentialDetailViewModel),
                             addPrefilledCredentialViewModelFactory: InjectedFactory(makeAddPrefilledCredentialViewModel),
                             autofillOnboardingFlowViewModelFactory: InjectedFactory(makeAutofillOnboardingFlowViewModel),
-                            sessionServices: self,
-                            usageLogService: activityReporter.legacyUsage
+                            sessionServices: self
+            )
+        }
+        
+}
+
+extension SessionServicesContainer {
+        
+        internal func makeAddLoginDetailsViewModel(website: String, credential: Credential?, supportDashlane2FA: Bool, completion: @escaping (OTPInfo) -> Void) -> AddLoginDetailsViewModel {
+            return AddLoginDetailsViewModel(
+                            website: website,
+                            credential: credential,
+                            supportDashlane2FA: supportDashlane2FA,
+                            completion: completion
+            )
+        }
+        
+}
+
+extension SessionServicesContainer {
+        @MainActor
+        internal func makeAddNewDeviceViewModel(qrCodeViaSystemCamera: String? = nil) -> AddNewDeviceViewModel {
+            return AddNewDeviceViewModel(
+                            session: session,
+                            apiClient: userDeviceAPIClient,
+                            sessionCryptoEngineProvider: appServices.sessionCryptoEngineProvider,
+                            qrCodeViaSystemCamera: qrCodeViaSystemCamera
             )
         }
         
@@ -1085,7 +1364,24 @@ extension SessionServicesContainer {
                             activityReporter: activityReporter,
                             vaultItemsService: vaultItemsService,
                             matchingCredentialListViewModelFactory: InjectedFactory(makeMatchingCredentialListViewModel),
+                            addOTPManuallyFlowViewModelFactory: InjectedFactory(makeAddOTPManuallyFlowViewModel),
                             mode: mode,
+                            completion: completion
+            )
+        }
+        
+}
+
+extension SessionServicesContainer {
+        
+        internal func makeAddOTPManuallyFlowViewModel(credential: Credential?, completion: @escaping (AddOTPManuallyFlowViewModel.Completion) -> Void) -> AddOTPManuallyFlowViewModel {
+            return AddOTPManuallyFlowViewModel(
+                            credential: credential,
+                            vaultItemsService: vaultItemsService,
+                            matchingCredentialListViewModelFactory: InjectedFactory(makeMatchingCredentialListViewModel),
+                            chooseWebsiteViewModelFactory: InjectedFactory(makeChooseWebsiteViewModel),
+                            addLoginDetailsViewModelFactory: InjectedFactory(makeAddLoginDetailsViewModel),
+                            credentialDetailViewModelFactory: InjectedFactory(makeCredentialDetailViewModel),
                             completion: completion
             )
         }
@@ -1099,9 +1395,8 @@ extension SessionServicesContainer {
                             iconViewModelProvider: makeVaultItemIconViewModel,
                             session: session,
                             categorizer: appServices.categorizer,
-                            personalDataURLDecoder: appServices.personalDataURLDecoder,
+                            personalDataURLDecoder: personalDataURLDecoder,
                             vaultItemsService: vaultItemsService,
-                            usageLogService: activityReporter.legacyUsage,
                             didChooseCredential: didChooseCredential
             )
         }
@@ -1117,8 +1412,7 @@ extension SessionServicesContainer {
                             vaultItemsService: vaultItemsService,
                             sharingService: sharingService,
                             teamSpacesService: teamSpacesService,
-                            usageLogService: activityReporter.legacyUsage,
-                            deepLinkService: appServices.deepLinkingService,
+                            deepLinkService: vaultKitDeepLinkingService,
                             activityReporter: activityReporter,
                             iconViewModelProvider: makeVaultItemIconViewModel,
                             logger: appServices.rootLogger,
@@ -1126,8 +1420,8 @@ extension SessionServicesContainer {
                             regionInformationService: appServices.regionInformationService,
                             userSettings: spiegelUserSettings,
                             documentStorageService: documentStorageService,
+                            pasteboardService: pasteboardService,
                             attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
-                            attachmentsListViewModelProvider: makeAttachmentsListViewModel,
                             dismiss: dismiss
             )
         }
@@ -1149,7 +1443,6 @@ extension SessionServicesContainer {
                             attachmentPublisher: attachmentPublisher,
                             editingItem: editingItem,
                             database: database,
-                            usageLogService: activityReporter.legacyUsage,
                             documentStorageService: documentStorageService,
                             deleteAction: deleteAction
             )
@@ -1162,7 +1455,6 @@ extension SessionServicesContainer {
         internal func makeAttachmentsListViewModel(editingItem: VaultItem, itemPublisher: AnyPublisher<VaultItem, Never>) -> AttachmentsListViewModel {
             return AttachmentsListViewModel(
                             documentStorageService: documentStorageService,
-                            usageLogService: activityReporter.legacyUsage,
                             activityReporter: activityReporter,
                             database: database,
                             editingItem: editingItem,
@@ -1179,7 +1471,6 @@ extension SessionServicesContainer {
             return AttachmentsSectionViewModel(
                             vaultItemsService: vaultItemsService,
                             item: item,
-                            usageLogService: activityReporter.legacyUsage,
                             documentStorageService: documentStorageService,
                             attachmentsListViewModelProvider: makeAttachmentsListViewModel,
                             makeAddAttachmentButtonViewModel: InjectedFactory(makeAddAttachmentButtonViewModel),
@@ -1207,6 +1498,7 @@ extension SessionServicesContainer {
                             vaultItemsService: vaultItemsService,
                             activityReporter: activityReporter,
                             deepLinkingService: appServices.deepLinkingService,
+                            otpDatabaseService: otpDatabaseService,
                             iconService: iconService,
                             settings: spiegelLocalSettingsStore,
                             otpExplorerViewModelFactory: InjectedFactory(makeOTPExplorerViewModel),
@@ -1227,8 +1519,7 @@ extension SessionServicesContainer {
                             vaultItemsService: vaultItemsService,
                             sharingService: sharingService,
                             teamSpacesService: teamSpacesService,
-                            usageLogService: activityReporter.legacyUsage,
-                            deepLinkService: appServices.deepLinkingService,
+                            deepLinkService: vaultKitDeepLinkingService,
                             activityReporter: activityReporter,
                             iconViewModelProvider: makeVaultItemIconViewModel,
                             logger: appServices.rootLogger,
@@ -1236,8 +1527,8 @@ extension SessionServicesContainer {
                             regionInformationService: appServices.regionInformationService,
                             userSettings: spiegelUserSettings,
                             documentStorageService: documentStorageService,
-                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
-                            attachmentsListViewModelProvider: makeAttachmentsListViewModel
+                            pasteboardService: pasteboardService,
+                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
             )
         }
                 
@@ -1259,7 +1550,6 @@ extension SessionServicesContainer {
                             domainParser: appServices.domainParser,
                             vaultItemsService: vaultItemsService,
                             dwmOnboardingService: dwmOnboardingService,
-                            usageLogService: activityReporter.legacyUsage,
                             userSettings: spiegelUserSettings,
                             completion: completion
             )
@@ -1303,7 +1593,6 @@ extension SessionServicesContainer {
         internal func makeBreachesListViewModel(completion: @escaping (BreachesListViewModel.Completion) -> Void) -> BreachesListViewModel {
             return BreachesListViewModel(
                             dwmOnboardingService: dwmOnboardingService,
-                            usageLogService: activityReporter.legacyUsage,
                             breachRowProvider: makeBreachViewModel,
                             credentialRowProvider: makeBreachViewModel,
                             completion: completion
@@ -1319,7 +1608,7 @@ extension SessionServicesContainer {
                             session: session,
                             sessionsContainer: appServices.sessionContainer,
                             premiumService: premiumService,
-                            passwordEvaluator: appServices.passwordEvaluator,
+                            passwordEvaluator: passwordEvaluator,
                             logger: appServices.rootLogger,
                             activityReporter: activityReporter,
                             syncService: syncService,
@@ -1328,7 +1617,51 @@ extension SessionServicesContainer {
                             keychainService: appServices.keychainService,
                             sessionCryptoUpdater: sessionCryptoUpdater,
                             databaseDriver: databaseDriver,
-                            sessionLifeCycleHandler: appServices.sessionLifeCycleHandler
+                            sessionLifeCycleHandler: appServices.sessionLifeCycleHandler,
+                            migrationProgressViewModelFactory: InjectedFactory(makeMigrationProgressViewModel)
+            )
+        }
+        
+}
+
+extension SessionServicesContainer {
+        
+        internal func makeChooseWebsiteViewModel(completion: @escaping (String) -> Void) -> ChooseWebsiteViewModel {
+            return ChooseWebsiteViewModel(
+                            categorizer: appServices.categorizer,
+                            activityReporter: activityReporter,
+                            placeholderViewModelFactory: InjectedFactory(makePlaceholderWebsiteViewModel),
+                            completion: completion
+            )
+        }
+        
+}
+
+extension SessionServicesContainer {
+        
+        internal func makeCollectionDetailViewModel(collection: VaultCollection) -> CollectionDetailViewModel {
+            return CollectionDetailViewModel(
+                            collection: collection,
+                            logger: appServices.rootLogger,
+                            activityReporter: activityReporter,
+                            vaultItemsService: vaultItemsService,
+                            teamSpacesService: teamSpacesService,
+                            collectionQuickActionsMenuViewModelFactory: InjectedFactory(makeCollectionQuickActionsMenuViewModel),
+                            vaultItemRowModelFactory: InjectedFactory(makeVaultItemRowModel)
+            )
+        }
+        
+}
+
+extension SessionServicesContainer {
+        @MainActor
+        internal func makeCollectionsFlowViewModel(initialStep: CollectionsFlowViewModel.Step = .list) -> CollectionsFlowViewModel {
+            return CollectionsFlowViewModel(
+                            initialStep: initialStep,
+                            vaultItemsService: vaultItemsService,
+                            detailViewFactory: InjectedFactory(makeDetailView),
+                            collectionsListViewModelFactory: InjectedFactory(makeCollectionsListViewModel),
+                            collectionDetailViewModelFactory: InjectedFactory(makeCollectionDetailViewModel)
             )
         }
         
@@ -1343,16 +1676,15 @@ extension SessionServicesContainer {
                             vaultItemsService: vaultItemsService,
                             sharingService: sharingService,
                             teamSpacesService: teamSpacesService,
-                            usageLogService: activityReporter.legacyUsage,
                             documentStorageService: documentStorageService,
-                            deepLinkService: appServices.deepLinkingService,
+                            deepLinkService: vaultKitDeepLinkingService,
                             activityReporter: activityReporter,
                             iconViewModelProvider: makeVaultItemIconViewModel,
                             logger: appServices.rootLogger,
                             accessControl: accessControl,
                             userSettings: spiegelUserSettings,
-                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
-                            attachmentsListViewModelProvider: makeAttachmentsListViewModel
+                            pasteboardService: pasteboardService,
+                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
             )
         }
                 
@@ -1378,21 +1710,20 @@ extension SessionServicesContainer {
                             sharingService: sharingService,
                             teamSpacesService: teamSpacesService,
                             premiumService: premiumService,
-                            vaultItemsServices: vaultItemsService,
                             iconViewModelProvider: makeVaultItemIconViewModel,
-                            usageLogService: activityReporter.legacyUsage,
-                            deepLinkService: appServices.deepLinkingService,
+                            deepLinkService: vaultKitDeepLinkingService,
                             activityReporter: activityReporter,
                             featureService: featureService,
                             iconService: iconService,
                             logger: appServices.rootLogger,
                             accessControl: accessControl,
                             userSettings: spiegelUserSettings,
-                            passwordEvaluator: appServices.passwordEvaluator,
+                            passwordEvaluator: passwordEvaluator,
                             linkedDomainsService: appServices.linkedDomainService,
                             onboardingService: onboardingService,
                             autofillService: autofillService,
                             documentStorageService: documentStorageService,
+                            pasteboardService: pasteboardService,
                             didSave: didSave,
                             credentialMainSectionModelFactory: InjectedFactory(makeCredentialMainSectionModel),
                             passwordHealthSectionModelFactory: InjectedFactory(makePasswordHealthSectionModel),
@@ -1403,8 +1734,32 @@ extension SessionServicesContainer {
                             makePasswordGeneratorViewModel: InjectedFactory(makePasswordGeneratorViewModel),
                             addOTPFlowViewModelFactory: InjectedFactory(makeAddOTPFlowViewModel),
                             passwordGeneratorViewModelFactory: makePasswordGeneratorViewModel,
-                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
-                            attachmentsListViewModelProvider: makeAttachmentsListViewModel
+                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
+            )
+        }
+                
+        internal func makeCredentialDetailViewModel(generatedPasswordToLink: GeneratedPassword? = nil, actionPublisher: PassthroughSubject<CredentialDetailViewModel.Action, Never>? = nil, origin: ItemDetailOrigin = ItemDetailOrigin.unknown, didSave: (() -> Void)? = nil, service: DetailService<Credential>) -> CredentialDetailViewModel {
+            return CredentialDetailViewModel(
+                            generatedPasswordToLink: generatedPasswordToLink,
+                            vaultItemsService: vaultItemsService,
+                            actionPublisher: actionPublisher,
+                            origin: origin,
+                            featureService: featureService,
+                            iconService: iconService,
+                            passwordEvaluator: passwordEvaluator,
+                            linkedDomainsService: appServices.linkedDomainService,
+                            onboardingService: onboardingService,
+                            autofillService: autofillService,
+                            didSave: didSave,
+                            credentialMainSectionModelFactory: InjectedFactory(makeCredentialMainSectionModel),
+                            passwordHealthSectionModelFactory: InjectedFactory(makePasswordHealthSectionModel),
+                            passwordAccessorySectionModelFactory: InjectedFactory(makePasswordAccessorySectionModel),
+                            notesSectionModelFactory: InjectedFactory(makeNotesSectionModel),
+                            sharingDetailSectionModelFactory: InjectedFactory(makeSharingDetailSectionModel),
+                            domainsSectionModelFactory: InjectedFactory(makeDomainsSectionModel),
+                            addOTPFlowViewModelFactory: InjectedFactory(makeAddOTPFlowViewModel),
+                            passwordGeneratorViewModelFactory: makePasswordGeneratorViewModel,
+                            service: service
             )
         }
         
@@ -1433,8 +1788,7 @@ extension SessionServicesContainer {
                             vaultItemsService: vaultItemsService,
                             sharingService: sharingService,
                             teamSpacesService: teamSpacesService,
-                            usageLogService: activityReporter.legacyUsage,
-                            deepLinkService: appServices.deepLinkingService,
+                            deepLinkService: vaultKitDeepLinkingService,
                             activityReporter: activityReporter,
                             iconViewModelProvider: makeVaultItemIconViewModel,
                             logger: appServices.rootLogger,
@@ -1442,8 +1796,8 @@ extension SessionServicesContainer {
                             regionInformationService: appServices.regionInformationService,
                             userSettings: spiegelUserSettings,
                             documentStorageService: documentStorageService,
+                            pasteboardService: pasteboardService,
                             attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
-                            attachmentsListViewModelProvider: makeAttachmentsListViewModel,
                             dismiss: dismiss
             )
         }
@@ -1458,17 +1812,13 @@ extension SessionServicesContainer {
 }
 
 extension SessionServicesContainer {
-        
-        internal func makeDWMEmailConfirmationViewModel(accountEmail: String, context: DWMOnboardingPresentationContext, emailStatusCheck: DWMEmailConfirmationViewModel.EmailStatusCheckStrategy, completion: @escaping (DWMEmailConfirmationViewModel.Completion) -> Void) -> DWMEmailConfirmationViewModel {
+        @MainActor
+        internal func makeDWMEmailConfirmationViewModel(accountEmail: String, emailStatusCheck: DWMEmailConfirmationViewModel.EmailStatusCheckStrategy) -> DWMEmailConfirmationViewModel {
             return DWMEmailConfirmationViewModel(
                             accountEmail: accountEmail,
-                            context: context,
                             emailStatusCheck: emailStatusCheck,
-                            webservice: legacyWebService,
                             settings: dwmOnboardingSettings,
-                            dwmOnboardingService: dwmOnboardingService,
-                            logsService: activityReporter.legacyUsage,
-                            completion: completion
+                            dwmOnboardingService: dwmOnboardingService
             )
         }
         
@@ -1486,12 +1836,14 @@ extension SessionServicesContainer {
 }
 
 extension SessionServicesContainer {
-        
-        internal func makeDWMRegistrationInGuidedOnboardingViewModel(email: String, completion: ((DWMRegistrationViewModel.Completion) -> Void)?) -> DWMRegistrationInGuidedOnboardingViewModel {
-            return DWMRegistrationInGuidedOnboardingViewModel(
-                            email: email,
-                            dwmOnboardingService: dwmOnboardingService,
-                            logsService: activityReporter.legacyUsage,
+        @MainActor
+        internal func makeDWMOnboardingFlowViewModel(transitionHandler: GuidedOnboardingTransitionHandler?, completion: @escaping (DWMOnboardingFlowViewModel.Completion) -> Void) -> DWMOnboardingFlowViewModel {
+            return DWMOnboardingFlowViewModel(
+                            transitionHandler: transitionHandler,
+                            session: session,
+                            dwmOnboardingSettings: dwmOnboardingSettings,
+                            registrationInGuidedOnboardingVModelFactory: InjectedFactory(makeDWMRegistrationInGuidedOnboardingViewModel),
+                            emailConfirmationViewModelFactory: InjectedFactory(makeDWMEmailConfirmationViewModel),
                             completion: completion
             )
         }
@@ -1499,13 +1851,11 @@ extension SessionServicesContainer {
 }
 
 extension SessionServicesContainer {
-        
-        internal func makeDWMRegistrationInOnboardingChecklistViewModel(email: String, completion: ((DWMRegistrationInOnboardingChecklistViewModel.Completion) -> Void)?) -> DWMRegistrationInOnboardingChecklistViewModel {
-            return DWMRegistrationInOnboardingChecklistViewModel(
+        @MainActor
+        internal func makeDWMRegistrationInGuidedOnboardingViewModel(email: String) -> DWMRegistrationInGuidedOnboardingViewModel {
+            return DWMRegistrationInGuidedOnboardingViewModel(
                             email: email,
-                            dwmOnboardingService: dwmOnboardingService,
-                            logsService: activityReporter.legacyUsage,
-                            completion: completion
+                            dwmOnboardingService: dwmOnboardingService
             )
         }
         
@@ -1526,13 +1876,12 @@ extension SessionServicesContainer {
 
 extension SessionServicesContainer {
         
-        internal func makeDarkWebMonitoringDetailsViewModel(breach: DWMSimplifiedBreach, breachViewModel: BreachViewModel, usageLogService: DWMLogService, actionPublisher: PassthroughSubject<DarkWebToolsFlowViewModel.Action, Never>? = nil) -> DarkWebMonitoringDetailsViewModel {
+        internal func makeDarkWebMonitoringDetailsViewModel(breach: DWMSimplifiedBreach, breachViewModel: BreachViewModel, actionPublisher: PassthroughSubject<DarkWebToolsFlowViewModel.Action, Never>? = nil) -> DarkWebMonitoringDetailsViewModel {
             return DarkWebMonitoringDetailsViewModel(
                             breach: breach,
                             breachViewModel: breachViewModel,
                             darkWebMonitoringService: darkWebMonitoringService,
-                            domainParser: appServices.domainParser,
-                            usageLogService: usageLogService,
+                            domainParser: domainParser,
                             userSettings: spiegelUserSettings,
                             actionPublisher: actionPublisher
             )
@@ -1590,7 +1939,6 @@ extension SessionServicesContainer {
                             dataLeakMonitoringAddEmailViewModelFactory: InjectedFactory(makeDataLeakMonitoringAddEmailViewModel),
                             darkWebMonitoringDetailsViewModelFactory: InjectedFactory(makeDarkWebMonitoringDetailsViewModel),
                             breachViewModelFactory: InjectedFactory(makeBreachViewModel),
-                            usageLogService: activityReporter.legacyUsage,
                             webservice: legacyWebService,
                             notificationService: notificationService,
                             logger: appServices.rootLogger,
@@ -1605,8 +1953,7 @@ extension SessionServicesContainer {
         internal func makeDataLeakMonitoringAddEmailViewModel(login: Login, dataLeakService: DataLeakMonitoringRegisterServiceProtocol) -> DataLeakMonitoringAddEmailViewModel {
             return DataLeakMonitoringAddEmailViewModel(
                             login: login,
-                            dataLeakService: dataLeakService,
-                            usageLogService: activityReporter.legacyUsage
+                            dataLeakService: dataLeakService
             )
         }
         
@@ -1618,7 +1965,32 @@ extension SessionServicesContainer {
             return DetailView(
                             itemDetailViewType: itemDetailViewType,
                             dismiss: dismiss,
-                            sessionServices: self
+                            detailViewFactory: InjectedFactory(makeDetailViewFactory)
+            )
+        }
+        
+}
+
+extension SessionServicesContainer {
+        
+        internal func makeDetailViewFactory() -> DetailViewFactory {
+            return DetailViewFactory(
+                            credentialFactory: InjectedFactory(makeCredentialDetailViewModel),
+                            identityFactory: InjectedFactory(makeIdentityDetailViewModel),
+                            emailFactory: InjectedFactory(makeEmailDetailViewModel),
+                            companyFactory: InjectedFactory(makeCompanyDetailViewModel),
+                            personalWebsiteFactory: InjectedFactory(makeWebsiteDetailViewModel),
+                            phoneFactory: InjectedFactory(makePhoneDetailViewModel),
+                            fiscalInfoFactory: InjectedFactory(makeFiscalInformationDetailViewModel),
+                            idCardFactory: InjectedFactory(makeIDCardDetailViewModel),
+                            passportFactory: InjectedFactory(makePassportDetailViewModel),
+                            socialSecurityFactory: InjectedFactory(makeSocialSecurityDetailViewModel),
+                            drivingLicenseFactory: InjectedFactory(makeDrivingLicenseDetailViewModel),
+                            addressFactory: InjectedFactory(makeAddressDetailViewModel),
+                            creditCardFactory: InjectedFactory(makeCreditCardDetailViewModel),
+                            bankAccountFactory: InjectedFactory(makeBankAccountDetailViewModel),
+                            secureNoteFactory: InjectedFactory(makeSecureNotesDetailViewModel),
+                            passkeyFactory: InjectedFactory(makePasskeyDetailViewModel)
             )
         }
         
@@ -1666,8 +2038,7 @@ extension SessionServicesContainer {
                             vaultItemsService: vaultItemsService,
                             sharingService: sharingService,
                             teamSpacesService: teamSpacesService,
-                            usageLogService: activityReporter.legacyUsage,
-                            deepLinkService: appServices.deepLinkingService,
+                            deepLinkService: vaultKitDeepLinkingService,
                             activityReporter: activityReporter,
                             regionInformationService: appServices.regionInformationService,
                             iconViewModelProvider: makeVaultItemIconViewModel,
@@ -1675,8 +2046,8 @@ extension SessionServicesContainer {
                             accessControl: accessControl,
                             userSettings: spiegelUserSettings,
                             documentStorageService: documentStorageService,
-                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
-                            attachmentsListViewModelProvider: makeAttachmentsListViewModel
+                            pasteboardService: pasteboardService,
+                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
             )
         }
                 
@@ -1698,16 +2069,15 @@ extension SessionServicesContainer {
                             vaultItemsService: vaultItemsService,
                             sharingService: sharingService,
                             teamSpacesService: teamSpacesService,
-                            usageLogService: activityReporter.legacyUsage,
                             documentStorageService: documentStorageService,
-                            deepLinkService: appServices.deepLinkingService,
+                            deepLinkService: vaultKitDeepLinkingService,
                             activityReporter: activityReporter,
                             iconViewModelProvider: makeVaultItemIconViewModel,
                             logger: appServices.rootLogger,
                             accessControl: accessControl,
                             userSettings: spiegelUserSettings,
-                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
-                            attachmentsListViewModelProvider: makeAttachmentsListViewModel
+                            pasteboardService: pasteboardService,
+                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
             )
         }
                 
@@ -1740,7 +2110,6 @@ extension SessionServicesContainer {
                             lockService: lockService,
                             masterPasswordResetService: resetMasterPasswordService,
                             userSettings: spiegelUserSettings,
-                            usageLogService: activityReporter.legacyUsage,
                             completion: completion
             )
         }
@@ -1756,16 +2125,15 @@ extension SessionServicesContainer {
                             vaultItemsService: vaultItemsService,
                             sharingService: sharingService,
                             teamSpacesService: teamSpacesService,
-                            usageLogService: activityReporter.legacyUsage,
                             documentStorageService: documentStorageService,
-                            deepLinkService: appServices.deepLinkingService,
+                            deepLinkService: vaultKitDeepLinkingService,
                             activityReporter: activityReporter,
                             iconViewModelProvider: makeVaultItemIconViewModel,
                             logger: appServices.rootLogger,
                             accessControl: accessControl,
                             userSettings: spiegelUserSettings,
-                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
-                            attachmentsListViewModelProvider: makeAttachmentsListViewModel
+                            pasteboardService: pasteboardService,
+                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
             )
         }
                 
@@ -1778,17 +2146,16 @@ extension SessionServicesContainer {
 }
 
 extension SessionServicesContainer {
-        
+        @MainActor
         internal func makeGeneralSettingsViewModel() -> GeneralSettingsViewModel {
             return GeneralSettingsViewModel(
-                            personalDataURLDecoder: appServices.personalDataURLDecoder,
                             applicationDatabase: database,
                             databaseDriver: databaseDriver,
                             iconService: iconService,
                             activityReporter: activityReporter,
                             userSettings: spiegelUserSettings,
-                            usageLogService: activityReporter.legacyUsage,
-                            exportSecureArchiveViewModelFactory: InjectedFactory(makeExportSecureArchiveViewModel)
+                            exportSecureArchiveViewModelFactory: InjectedFactory(makeExportSecureArchiveViewModel),
+                            dashImportFlowViewModelFactory: InjectedFactory(makeDashImportFlowViewModel)
             )
         }
         
@@ -1819,7 +2186,6 @@ extension SessionServicesContainer {
                             guidedOnboardingService: guidedOnboardingService,
                             dwmOnboardingService: dwmOnboardingService,
                             step: step,
-                            logService: activityReporter.legacyUsage,
                             completion: completion
             )
         }
@@ -1830,7 +2196,6 @@ extension SessionServicesContainer {
         
         internal func makeHelpCenterSettingsViewModel() -> HelpCenterSettingsViewModel {
             return HelpCenterSettingsViewModel(
-                            usageLogService: activityReporter.legacyUsage
             )
         }
         
@@ -1854,18 +2219,17 @@ extension SessionServicesContainer {
                             autofillService: autofillService,
                             userSettings: spiegelUserSettings,
                             viewModelFactory: viewModelFactory,
-                            usageLogService: activityReporter.legacyUsage,
                             brazeService: brazeServiceProtocol,
                             syncedSettings: syncedSettings,
-                            premiumService: announcementsPremiumService,
+                            featureService: featureService,
+                            premiumService: vaultKitPremiumService,
                             deepLinkingService: appServices.deepLinkingService,
                             activityReporter: activityReporter,
-                            capabilityService: capabilityService,
-                            lockService: lockService,
+                            capabilityService: premiumService,
                             abTestingService: authenticatedABTestingService,
                             onboardingAction: onboardingAction,
                             action: action,
-                            homeModalAnnouncementsViewModelFactory: InjectedFactory(makeHomeModalAnnouncementsViewModel),
+                            lastpassDetector: lastpassDetector,
                             vaultListViewModelFactory: InjectedFactory(makeVaultListViewModel),
                             premiumAnnouncementsViewModelFactory: InjectedFactory(makePremiumAnnouncementsViewModel)
             )
@@ -1882,16 +2246,15 @@ extension SessionServicesContainer {
                             vaultItemsService: vaultItemsService,
                             sharingService: sharingService,
                             teamSpacesService: teamSpacesService,
-                            usageLogService: activityReporter.legacyUsage,
                             documentStorageService: documentStorageService,
-                            deepLinkService: appServices.deepLinkingService,
+                            deepLinkService: vaultKitDeepLinkingService,
                             activityReporter: activityReporter,
                             iconViewModelProvider: makeVaultItemIconViewModel,
                             logger: appServices.rootLogger,
                             accessControl: accessControl,
                             userSettings: spiegelUserSettings,
-                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
-                            attachmentsListViewModelProvider: makeAttachmentsListViewModel
+                            pasteboardService: pasteboardService,
+                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
             )
         }
                 
@@ -1909,7 +2272,6 @@ extension SessionServicesContainer {
             return IdentityBreachAlertViewModel(
                             breachesToPresent: breachesToPresent,
                             identityDashboardService: identityDashboardService,
-                            usageLogService: activityReporter.legacyUsage,
                             deepLinkingService: appServices.deepLinkingService,
                             featureService: featureService
             )
@@ -1926,16 +2288,15 @@ extension SessionServicesContainer {
                             vaultItemsService: vaultItemsService,
                             sharingService: sharingService,
                             teamSpacesService: teamSpacesService,
-                            usageLogService: activityReporter.legacyUsage,
                             documentStorageService: documentStorageService,
-                            deepLinkService: appServices.deepLinkingService,
+                            deepLinkService: vaultKitDeepLinkingService,
                             activityReporter: activityReporter,
                             iconViewModelProvider: makeVaultItemIconViewModel,
                             logger: appServices.rootLogger,
                             accessControl: accessControl,
                             userSettings: spiegelUserSettings,
-                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
-                            attachmentsListViewModelProvider: makeAttachmentsListViewModel
+                            pasteboardService: pasteboardService,
+                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
             )
         }
                 
@@ -1965,7 +2326,6 @@ extension SessionServicesContainer {
         
         internal func makeImportMethodViewModel(importService: ImportMethodServiceProtocol, completion: @escaping (ImportMethodCompletion) -> Void) -> ImportMethodViewModel {
             return ImportMethodViewModel(
-                            usageLogService: activityReporter.legacyUsage,
                             dwmSettings: dwmOnboardingSettings,
                             dwmOnboardingService: dwmOnboardingService,
                             importService: importService,
@@ -1980,7 +2340,6 @@ extension SessionServicesContainer {
         
         internal func makeLabsSettingsViewModel(labsService: LabsService) -> LabsSettingsViewModel {
             return LabsSettingsViewModel(
-                            usageLogService: activityReporter.legacyUsage,
                             featureFlipService: featureService,
                             labsService: labsService
             )
@@ -1990,20 +2349,29 @@ extension SessionServicesContainer {
 
 extension SessionServicesContainer {
         @MainActor
-        internal func makeLockViewModel(locker: ScreenLocker, changeMasterPasswordLauncher: @escaping ChangeMasterPasswordLauncher) -> LockViewModel {
+        internal func makeLockViewModel(locker: ScreenLocker, newMasterPassword: String? = nil, changeMasterPasswordLauncher: @escaping ChangeMasterPasswordLauncher) -> LockViewModel {
             return LockViewModel(
                             locker: locker,
+                            session: session,
+                            appServices: appServices,
+                            appAPIClient: appServices.appAPIClient,
+                            userDeviceAPIClient: userDeviceAPIClient,
                             keychainService: appServices.keychainService,
                             userSettings: spiegelUserSettings,
                             resetMasterPasswordService: resetMasterPasswordService,
-                            installerLogService: appServices.installerLogService,
-                            usageLogService: activityReporter.legacyUsage,
                             activityReporter: activityReporter,
                             teamspaceService: teamSpacesService,
-                            loginUsageLogService: appServices.loginUsageLogService,
+                            loginMetricsReporter: appServices.loginMetricsReporter,
                             lockService: lockService,
                             sessionLifeCycleHandler: appServices.sessionLifeCycleHandler,
-                            changeMasterPasswordLauncher: changeMasterPasswordLauncher
+                            syncService: syncService,
+                            sessionCryptoUpdater: sessionCryptoUpdater,
+                            syncedSettings: syncedSettings,
+                            databaseDriver: databaseDriver,
+                            logger: appServices.rootLogger,
+                            newMasterPassword: newMasterPassword,
+                            changeMasterPasswordLauncher: changeMasterPasswordLauncher,
+                            postARKChangeMasterPasswordViewModelFactory: InjectedFactory(makePostARKChangeMasterPasswordViewModel)
             )
         }
         
@@ -2020,30 +2388,31 @@ extension SessionServicesContainer {
 }
 
 extension SessionServicesContainer {
-        
+        @MainActor
         internal func makeMainSettingsViewModel(labsService: LabsService) -> MainSettingsViewModel {
             return MainSettingsViewModel(
                             session: session,
+                            sessionCryptoEngineProvider: appServices.sessionCryptoEngineProvider,
                             premiumService: premiumService,
                             teamSpacesService: teamSpacesService,
-                            deepLinkingService: appServices.deepLinkingService,
                             lockService: lockService,
-                            usageLogService: activityReporter.legacyUsage,
                             sharingLinkService: sharingLinkService,
                             userSettings: spiegelUserSettings,
                             labsService: labsService,
                             featureService: featureService,
-                            settingsStatusSectionViewModelFactory: InjectedFactory(makeSettingsStatusSectionViewModel)
+                            userApiClient: userDeviceAPIClient,
+                            settingsStatusSectionViewModelFactory: InjectedFactory(makeSettingsStatusSectionViewModel),
+                            addNewDeviceFactory: InjectedFactory(makeAddNewDeviceViewModel)
             )
         }
         
 }
 
 extension SessionServicesContainer {
-        
-        internal func makeMasterPasswordResetActivationViewModel(actionHandler: @escaping (MasterPasswordResetActivationViewModel.Action) -> Void) -> MasterPasswordResetActivationViewModel {
+        @MainActor
+        internal func makeMasterPasswordResetActivationViewModel(masterPassword: String, actionHandler: @escaping (MasterPasswordResetActivationViewModel.Action) -> Void) -> MasterPasswordResetActivationViewModel {
             return MasterPasswordResetActivationViewModel(
-                            session: session,
+                            masterPassword: masterPassword,
                             resetMasterPasswordService: resetMasterPasswordService,
                             lockService: lockService,
                             actionHandler: actionHandler
@@ -2067,14 +2436,33 @@ extension SessionServicesContainer {
 
 extension SessionServicesContainer {
         
-        internal func makeMiniBrowserViewModel(email: String, password: String, displayableDomain: String, url: URL, usageLogService: DWMLogService, completion: @escaping (MiniBrowserViewModel.Completion) -> Void) -> MiniBrowserViewModel {
+        internal func makeMigrationProgressViewModel(type: MigrationType, accountCryptoChangerService: AccountCryptoChangerServiceProtocol, context: MigrationProgressViewModel.Context, isProgress: Bool = true, isSuccess: Bool = true, completion: @escaping (Result<Session, Error>) -> Void) -> MigrationProgressViewModel {
+            return MigrationProgressViewModel(
+                            type: type,
+                            accountCryptoChangerService: accountCryptoChangerService,
+                            accountRecoveryKeyService: accountRecoveryKeyService,
+                            userDeviceAPIClient: userDeviceAPIClient,
+                            activityReporter: activityReporter,
+                            syncedSettings: syncedSettings,
+                            context: context,
+                            logger: appServices.rootLogger,
+                            isProgress: isProgress,
+                            isSuccess: isSuccess,
+                            completion: completion
+            )
+        }
+        
+}
+
+extension SessionServicesContainer {
+        
+        internal func makeMiniBrowserViewModel(email: String, password: String, displayableDomain: String, url: URL, completion: @escaping (MiniBrowserViewModel.Completion) -> Void) -> MiniBrowserViewModel {
             return MiniBrowserViewModel(
                             email: email,
                             password: password,
                             displayableDomain: displayableDomain,
                             url: url,
-                            domainParser: appServices.domainParser,
-                            usageLogService: usageLogService,
+                            domainParser: domainParser,
                             userSettings: spiegelUserSettings,
                             completion: completion
             )
@@ -2103,12 +2491,23 @@ extension SessionServicesContainer {
                             premiumService: premiumService,
                             identityDashboardService: identityDashboardService,
                             resetMasterPasswordService: resetMasterPasswordService,
-                            usageLogService: activityReporter.legacyUsage,
                             sharingService: sharingService,
                             teamspaceService: teamSpacesService,
                             abtestService: authenticatedABTestingService,
                             keychainService: appServices.keychainService,
                             featureService: featureService
+            )
+        }
+        
+}
+
+extension SessionServicesContainer {
+        @MainActor
+        internal func makeNotificationsFlowViewModel(notificationCenterService: NotificationCenterServiceProtocol) -> NotificationsFlowViewModel {
+            return NotificationsFlowViewModel(
+                            notificationCenterService: notificationCenterService,
+                            deeplinkService: appServices.deepLinkingService,
+                            notificationsListViewModelFactory: InjectedFactory(makeNotificationsListViewModel)
             )
         }
         
@@ -2124,7 +2523,6 @@ extension SessionServicesContainer {
                             resetMasterPasswordService: resetMasterPasswordService,
                             premiumService: premiumService,
                             lockService: lockService,
-                            usageLogService: activityReporter.legacyUsage,
                             teamspaceService: teamSpacesService,
                             abtestService: authenticatedABTestingService,
                             keychainService: appServices.keychainService,
@@ -2157,13 +2555,13 @@ extension SessionServicesContainer {
 
 extension SessionServicesContainer {
         
-        internal func makeOTPTokenListViewModel(authenticatorDatabaseService: OTPDatabaseService, domainIconLibray: DomainIconLibraryProtocol, actionHandler: @escaping (OTPTokenListViewModel.Action) -> Void) -> OTPTokenListViewModel {
+        internal func makeOTPTokenListViewModel(actionHandler: @escaping (OTPTokenListViewModel.Action) -> Void) -> OTPTokenListViewModel {
             return OTPTokenListViewModel(
                             activityReporter: activityReporter,
                             vaultItemsService: vaultItemsService,
-                            authenticatorDatabaseService: authenticatorDatabaseService,
-                            domainParser: appServices.domainParser,
-                            domainIconLibray: domainIconLibray,
+                            authenticatorDatabaseService: otpDatabaseService,
+                            domainParser: domainParser,
+                            domainIconLibrary: domainIconLibrary,
                             actionHandler: actionHandler
             )
         }
@@ -2186,22 +2584,50 @@ extension SessionServicesContainer {
 
 extension SessionServicesContainer {
         
-        internal func makeOnboardingChecklistViewModel(logsService: OnboardingChecklistLogsService, action: @escaping (OnboardingChecklistFlowViewModel.Action) -> Void) -> OnboardingChecklistViewModel {
+        internal func makeOnboardingChecklistViewModel(action: @escaping (OnboardingChecklistFlowViewModel.Action) -> Void) -> OnboardingChecklistViewModel {
             return OnboardingChecklistViewModel(
+                            session: session,
                             userSettings: spiegelUserSettings,
                             dwmOnboardingSettings: dwmOnboardingSettings,
                             dwmOnboardingService: dwmOnboardingService,
                             vaultItemsService: vaultItemsService,
-                            capabilityService: capabilityService,
+                            capabilityService: premiumService,
                             featureService: featureService,
                             onboardingService: onboardingService,
                             autofillService: autofillService,
-                            logsService: logsService,
-                            lockService: lockService,
                             activityReporter: activityReporter,
-                            userSwitcherViewModel: makeUserSpaceSwitcherViewModel,
                             action: action,
-                            homeModalAnnouncementsViewModelFactory: InjectedFactory(makeHomeModalAnnouncementsViewModel)
+                            userSpaceSwitcherViewModelFactory: InjectedFactory(makeUserSpaceSwitcherViewModel)
+            )
+        }
+        
+}
+
+extension SessionServicesContainer {
+        
+        internal func makePasskeyDetailViewModel(item: CorePersonalData.Passkey, mode: DetailMode = .viewing, dismiss: (() -> Void)? = nil) -> PasskeyDetailViewModel {
+            return PasskeyDetailViewModel(
+                            item: item,
+                            mode: mode,
+                            vaultItemsService: vaultItemsService,
+                            sharingService: sharingService,
+                            teamSpacesService: teamSpacesService,
+                            deepLinkService: vaultKitDeepLinkingService,
+                            activityReporter: activityReporter,
+                            iconViewModelProvider: makeVaultItemIconViewModel,
+                            logger: appServices.rootLogger,
+                            accessControl: accessControl,
+                            userSettings: spiegelUserSettings,
+                            pasteboardService: pasteboardService,
+                            documentStorageService: documentStorageService,
+                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
+                            dismiss: dismiss
+            )
+        }
+                
+        internal func makePasskeyDetailViewModel(service: DetailService<CorePersonalData.Passkey>) -> PasskeyDetailViewModel {
+            return PasskeyDetailViewModel(
+                            service: service
             )
         }
         
@@ -2216,16 +2642,15 @@ extension SessionServicesContainer {
                             vaultItemsService: vaultItemsService,
                             sharingService: sharingService,
                             teamSpacesService: teamSpacesService,
-                            usageLogService: activityReporter.legacyUsage,
                             documentStorageService: documentStorageService,
-                            deepLinkService: appServices.deepLinkingService,
+                            deepLinkService: vaultKitDeepLinkingService,
                             activityReporter: activityReporter,
                             iconViewModelProvider: makeVaultItemIconViewModel,
                             logger: appServices.rootLogger,
                             accessControl: accessControl,
                             userSettings: spiegelUserSettings,
-                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
-                            attachmentsListViewModelProvider: makeAttachmentsListViewModel
+                            pasteboardService: pasteboardService,
+                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
             )
         }
                 
@@ -2242,7 +2667,7 @@ extension SessionServicesContainer {
         internal func makePasswordAccessorySectionModel(service: DetailService<Credential>) -> PasswordAccessorySectionModel {
             return PasswordAccessorySectionModel(
                             service: service,
-                            passwordEvaluator: appServices.passwordEvaluator
+                            passwordEvaluator: passwordEvaluator
             )
         }
         
@@ -2263,9 +2688,10 @@ extension SessionServicesContainer {
 
 extension SessionServicesContainer {
         @MainActor
-        internal func makePasswordGeneratorToolsFlowViewModel() -> PasswordGeneratorToolsFlowViewModel {
+        internal func makePasswordGeneratorToolsFlowViewModel(pasteboardService: PasteboardService) -> PasswordGeneratorToolsFlowViewModel {
             return PasswordGeneratorToolsFlowViewModel(
                             deepLinkingService: appServices.deepLinkingService,
+                            pasteboardService: pasteboardService,
                             passwordGeneratorViewModelFactory: InjectedFactory(makePasswordGeneratorViewModel),
                             passwordGeneratorHistoryViewModelFactory: InjectedFactory(makePasswordGeneratorHistoryViewModel)
             )
@@ -2275,38 +2701,38 @@ extension SessionServicesContainer {
 
 extension SessionServicesContainer {
         
-        internal func makePasswordGeneratorViewModel(mode: PasswordGeneratorMode, saveGeneratedPassword: @escaping (GeneratedPassword) -> GeneratedPassword, savePreferencesOnChange: Bool = true) -> PasswordGeneratorViewModel {
+        internal func makePasswordGeneratorViewModel(mode: PasswordGeneratorMode, saveGeneratedPassword: @escaping (GeneratedPassword) -> GeneratedPassword, savePreferencesOnChange: Bool = true, copyAction: @escaping (String) -> Void) -> PasswordGeneratorViewModel {
             return PasswordGeneratorViewModel(
                             mode: mode,
                             saveGeneratedPassword: saveGeneratedPassword,
-                            passwordEvaluator: appServices.passwordEvaluator,
-                            usageLogService: activityReporter.legacyUsage,
+                            passwordEvaluator: passwordEvaluator,
                             sessionActivityReporter: activityReporter,
                             userSettings: spiegelUserSettings,
-                            savePreferencesOnChange: savePreferencesOnChange
+                            savePreferencesOnChange: savePreferencesOnChange,
+                            copyAction: copyAction
             )
         }
                 
-        internal func makePasswordGeneratorViewModel(mode: PasswordGeneratorMode, savePreferencesOnChange: Bool = true) -> PasswordGeneratorViewModel {
+        internal func makePasswordGeneratorViewModel(mode: PasswordGeneratorMode, savePreferencesOnChange: Bool = true, copyAction: @escaping (String) -> Void) -> PasswordGeneratorViewModel {
             return PasswordGeneratorViewModel(
                             mode: mode,
                             database: database,
-                            passwordEvaluator: appServices.passwordEvaluator,
-                            usageLogService: activityReporter.legacyUsage,
+                            passwordEvaluator: passwordEvaluator,
                             sessionActivityReporter: activityReporter,
                             userSettings: spiegelUserSettings,
-                            savePreferencesOnChange: savePreferencesOnChange
+                            savePreferencesOnChange: savePreferencesOnChange,
+                            copyAction: copyAction
             )
         }
                 
-        internal func makePasswordGeneratorViewModel(mode: PasswordGeneratorMode) -> PasswordGeneratorViewModel {
+        internal func makePasswordGeneratorViewModel(mode: PasswordGeneratorMode, copyAction: @escaping (String) -> Void) -> PasswordGeneratorViewModel {
             return PasswordGeneratorViewModel(
                             mode: mode,
                             database: database,
-                            passwordEvaluator: appServices.passwordEvaluator,
-                            usageLogService: activityReporter.legacyUsage,
+                            passwordEvaluator: passwordEvaluator,
                             sessionActivityReporter: activityReporter,
-                            userSettings: spiegelUserSettings
+                            userSettings: spiegelUserSettings,
+                            copyAction: copyAction
             )
         }
         
@@ -2349,7 +2775,6 @@ extension SessionServicesContainer {
                             maximumCredentialsCount: maximumCredentialsCount,
                             passwordHealthService: identityDashboardService,
                             origin: origin,
-                            usageLogService: activityReporter.legacyUsage,
                             vaultItemsService: vaultItemsService,
                             teamSpaceService: teamSpacesService,
                             vaultItemRowModelFactory: InjectedFactory(makeVaultItemRowModel)
@@ -2363,7 +2788,7 @@ extension SessionServicesContainer {
         internal func makePasswordHealthSectionModel(service: DetailService<Credential>) -> PasswordHealthSectionModel {
             return PasswordHealthSectionModel(
                             service: service,
-                            passwordEvaluator: appServices.passwordEvaluator,
+                            passwordEvaluator: passwordEvaluator,
                             identityDashboardService: identityDashboardService
             )
         }
@@ -2378,7 +2803,18 @@ extension SessionServicesContainer {
                             passwordHealthService: identityDashboardService,
                             origin: origin,
                             teamSpaceService: teamSpacesService,
-                            userSpaceSwitcherViewModel: makeUserSpaceSwitcherViewModel
+                            userSpaceSwitcherViewModelFactory: InjectedFactory(makeUserSpaceSwitcherViewModel)
+            )
+        }
+        
+}
+
+extension SessionServicesContainer {
+        @MainActor
+        internal func makePasswordLessCompletionViewModel(completion: @escaping () -> Void) -> PasswordLessCompletionViewModel {
+            return PasswordLessCompletionViewModel(
+                            accountRecoveryActivationFlowFactory: InjectedFactory(makeAccountRecoveryActivationEmbeddedFlowModel),
+                            completion: completion
             )
         }
         
@@ -2393,17 +2829,16 @@ extension SessionServicesContainer {
                             vaultItemsService: vaultItemsService,
                             sharingService: sharingService,
                             teamSpacesService: teamSpacesService,
-                            usageLogService: activityReporter.legacyUsage,
                             documentStorageService: documentStorageService,
-                            deepLinkService: appServices.deepLinkingService,
+                            deepLinkService: vaultKitDeepLinkingService,
                             activityReporter: activityReporter,
                             iconViewModelProvider: makeVaultItemIconViewModel,
                             logger: appServices.rootLogger,
                             accessControl: accessControl,
                             userSettings: spiegelUserSettings,
+                            pasteboardService: pasteboardService,
                             attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
-                            regionInformationService: appServices.regionInformationService,
-                            attachmentsListViewModelProvider: makeAttachmentsListViewModel
+                            regionInformationService: appServices.regionInformationService
             )
         }
                 
@@ -2420,9 +2855,9 @@ extension SessionServicesContainer {
         
         internal func makePinCodeSettingsViewModel(actionHandler: @escaping (PinCodeSettingsViewModel.Action) -> Void) -> PinCodeSettingsViewModel {
             return PinCodeSettingsViewModel(
+                            session: session,
                             lockService: lockService,
                             teamSpaceService: teamSpacesService,
-                            usageLogService: activityReporter.legacyUsage,
                             actionHandler: actionHandler
             )
         }
@@ -2431,10 +2866,38 @@ extension SessionServicesContainer {
 
 extension SessionServicesContainer {
         
-        internal func makePreAccountCreationOnboardingViewModel(localDataRemover: LocalDataRemover) -> PreAccountCreationOnboardingViewModel {
-            return PreAccountCreationOnboardingViewModel(
-                            installerLogService: appServices.installerLogService,
-                            localDataRemover: localDataRemover
+        internal func makePlaceholderWebsiteViewModel(website: String) -> PlaceholderWebsiteViewModel {
+            return PlaceholderWebsiteViewModel(
+                            website: website,
+                            domainIconLibrary: domainIconLibrary
+            )
+        }
+        
+}
+
+extension SessionServicesContainer {
+        
+        internal func makePostARKChangeMasterPasswordViewModel(accountCryptoChangerService: AccountCryptoChangerServiceProtocol, completion: @escaping (PostARKChangeMasterPasswordViewModel.Completion) -> Void) -> PostARKChangeMasterPasswordViewModel {
+            return PostARKChangeMasterPasswordViewModel(
+                            accountCryptoChangerService: accountCryptoChangerService,
+                            userDeviceAPIClient: userDeviceAPIClient,
+                            syncedSettings: syncedSettings,
+                            activityReporter: activityReporter,
+                            logger: appServices.rootLogger,
+                            migrationProgressViewModelFactory: InjectedFactory(makeMigrationProgressViewModel),
+                            completion: completion
+            )
+        }
+        
+}
+
+extension SessionServicesContainer {
+        
+        internal func makePostAccountRecoveryLoginFlowModel(authenticationMethod: AuthenticationMethod) -> PostAccountRecoveryLoginFlowModel {
+            return PostAccountRecoveryLoginFlowModel(
+                            authenticationMethod: authenticationMethod,
+                            deeplinkService: appServices.deepLinkingService,
+                            changeMasterPasswordFlowViewModelFactory: InjectedFactory(makeChangeMasterPasswordFlowViewModel)
             )
         }
         
@@ -2445,7 +2908,7 @@ extension SessionServicesContainer {
         internal func makePremiumAnnouncementsViewModel(excludedAnnouncements: Set<PremiumAnnouncement> = []) -> PremiumAnnouncementsViewModel {
             return PremiumAnnouncementsViewModel(
                             premiumService: premiumService,
-                            teamspaceService: teamSpacesService,
+                            teamspaceService: teamSpacesServiceProcotol,
                             featureService: featureService,
                             deeplinkService: appServices.deepLinkingService,
                             userSettings: spiegelUserSettings,
@@ -2462,13 +2925,12 @@ extension SessionServicesContainer {
                             item: item,
                             sharingService: sharingService,
                             accessControl: accessControl,
-                            usageLogService: activityReporter.legacyUsage,
                             vaultItemsService: vaultItemsService,
                             teamSpacesService: teamSpacesService,
                             activityReporter: activityReporter,
-                            userSettings: spiegelUserSettings,
                             shareFlowViewModelFactory: InjectedFactory(makeShareFlowViewModel),
                             origin: origin,
+                            pasteboardService: pasteboardService,
                             isSuggestedItem: isSuggestedItem
             )
         }
@@ -2503,8 +2965,7 @@ extension SessionServicesContainer {
         internal func makeSSOEnableBiometricsOrPinViewModel() -> SSOEnableBiometricsOrPinViewModel {
             return SSOEnableBiometricsOrPinViewModel(
                             userSettings: spiegelUserSettings,
-                            lockService: lockService,
-                            usageLogService: activityReporter.legacyUsage
+                            lockService: lockService
             )
         }
         
@@ -2565,21 +3026,21 @@ extension SessionServicesContainer {
                             vaultItemsService: vaultItemsService,
                             sharingService: sharingService,
                             teamSpacesService: teamSpacesService,
-                            usageLogService: activityReporter.legacyUsage,
-                            deepLinkService: appServices.deepLinkingService,
+                            deepLinkService: vaultKitDeepLinkingService,
                             activityReporter: activityReporter,
+                            pasteboardService: pasteboardService,
                             iconViewModelProvider: makeVaultItemIconViewModel,
                             secureNotesDetailNavigationBarModelFactory: InjectedFactory(makeSecureNotesDetailNavigationBarModel),
                             secureNotesDetailFieldsModelFactory: InjectedFactory(makeSecureNotesDetailFieldsModel),
                             secureNotesDetailToolbarModelFactory: InjectedFactory(makeSecureNotesDetailToolbarModel),
                             sharingMembersDetailLinkModelFactory: InjectedFactory(makeSharingMembersDetailLinkModel),
                             shareButtonViewModelFactory: InjectedFactory(makeShareButtonViewModel),
+                            attachmentsListViewModelFactory: InjectedFactory(makeAttachmentsListViewModel),
+                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
                             logger: appServices.rootLogger,
                             documentStorageService: documentStorageService,
                             accessControl: accessControl,
-                            userSettings: spiegelUserSettings,
-                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
-                            attachmentsListViewModelProvider: makeAttachmentsListViewModel
+                            userSettings: spiegelUserSettings
             )
         }
                 
@@ -2590,7 +3051,8 @@ extension SessionServicesContainer {
                             secureNotesDetailFieldsModelFactory: InjectedFactory(makeSecureNotesDetailFieldsModel),
                             secureNotesDetailToolbarFactory: InjectedFactory(makeSecureNotesDetailToolbarModel),
                             sharingMembersDetailLinkModelFactory: InjectedFactory(makeSharingMembersDetailLinkModel),
-                            shareButtonViewModelFactory: InjectedFactory(makeShareButtonViewModel)
+                            shareButtonViewModelFactory: InjectedFactory(makeShareButtonViewModel),
+                            attachmentsListViewModelFactory: InjectedFactory(makeAttachmentsListViewModel)
             )
         }
         
@@ -2608,11 +3070,11 @@ extension SessionServicesContainer {
 }
 
 extension SessionServicesContainer {
-        
+        @MainActor
         internal func makeSecuritySettingsViewModel() -> SecuritySettingsViewModel {
             return SecuritySettingsViewModel(
                             session: session,
-                            teamSpacesService: teamSpacesService,
+                            teamSpacesService: teamSpacesServiceProcotol,
                             featureService: featureService,
                             lockService: lockService,
                             settingsLockSectionViewModelFactory: InjectedFactory(makeSettingsLockSectionViewModel),
@@ -2628,7 +3090,7 @@ extension SessionServicesContainer {
 }
 
 extension SessionServicesContainer {
-        
+        @MainActor
         internal func makeSettingsAccountSectionViewModel(actionHandler: @escaping (MasterPasswordResetActivationViewModel.Action) -> Void) -> SettingsAccountSectionViewModel {
             return SettingsAccountSectionViewModel(
                             session: session,
@@ -2637,12 +3099,12 @@ extension SessionServicesContainer {
                             premiumService: premiumService,
                             deviceListViewModel: makeDeviceListViewModel,
                             subscriptionCodeFetcher: subscriptionCodeFetcher,
-                            usageLogService: activityReporter.legacyUsage,
                             activityReporter: activityReporter,
                             sessionLifeCycleHandler: appServices.sessionLifeCycleHandler,
                             deepLinkingService: appServices.deepLinkingService,
                             masterPasswordResetActivationViewModelFactory: InjectedFactory(makeMasterPasswordResetActivationViewModel),
                             changeMasterPasswordFlowViewModelFactory: InjectedFactory(makeChangeMasterPasswordFlowViewModel),
+                            accountRecoveryKeyStatusViewModelFactory: InjectedFactory(makeAccountRecoveryKeyStatusViewModel),
                             actionHandler: actionHandler
             )
         }
@@ -2653,11 +3115,10 @@ extension SessionServicesContainer {
         
         internal func makeSettingsBiometricToggleViewModel(actionHandler: @escaping (SettingsBiometricToggleViewModel.Action) -> Void) -> SettingsBiometricToggleViewModel {
             return SettingsBiometricToggleViewModel(
+                            session: session,
                             lockService: lockService,
                             featureService: featureService,
-                            teamSpaceService: teamSpacesService,
                             resetMasterPasswordService: resetMasterPasswordService,
-                            usageLogService: activityReporter.legacyUsage,
                             actionHandler: actionHandler
             )
         }
@@ -2672,7 +3133,8 @@ extension SessionServicesContainer {
                             securitySettingsViewModelFactory: InjectedFactory(makeSecuritySettingsViewModel),
                             generalSettingsViewModelFactory: InjectedFactory(makeGeneralSettingsViewModel),
                             helpCenterSettingsViewModelFactory: InjectedFactory(makeHelpCenterSettingsViewModel),
-                            labsSettingsViewModelFactory: InjectedFactory(makeLabsSettingsViewModel)
+                            labsSettingsViewModelFactory: InjectedFactory(makeLabsSettingsViewModel),
+                            deepLinkingService: appServices.deepLinkingService
             )
         }
         
@@ -2694,7 +3156,7 @@ extension SessionServicesContainer {
         internal func makeSettingsStatusSectionViewModel() -> SettingsStatusSectionViewModel {
             return SettingsStatusSectionViewModel(
                             premiumService: premiumService,
-                            teamSpacesService: teamSpacesService,
+                            teamSpacesService: teamSpacesServiceProcotol,
                             deepLinkingService: appServices.deepLinkingService
             )
         }
@@ -2763,7 +3225,6 @@ extension SessionServicesContainer {
         internal func makeSharingDetailSectionModel(item: VaultItem) -> SharingDetailSectionModel {
             return SharingDetailSectionModel(
                             item: item,
-                            usageLogService: activityReporter.legacyUsage,
                             sharingMembersDetailLinkModelFactory: InjectedFactory(makeSharingMembersDetailLinkModel),
                             shareButtonModelFactory: InjectedFactory(makeShareButtonViewModel)
             )
@@ -2780,6 +3241,7 @@ extension SessionServicesContainer {
                             itemsProvider: itemsProvider,
                             vaultIconViewModelFactory: InjectedFactory(makeVaultItemIconViewModel),
                             gravatarIconViewModelFactory: InjectedFactory(makeGravatarIconViewModel),
+                            detailViewFactory: InjectedFactory(makeDetailView),
                             teamSpacesService: teamSpacesService,
                             sharingService: sharingService
             )
@@ -2911,7 +3373,8 @@ extension SessionServicesContainer {
             return SharingUserGroupsSectionViewModel(
                             itemsProvider: itemsProvider,
                             detailViewModelFactory: InjectedFactory(makeSharingItemsUserGroupDetailViewModel),
-                            sharingService: sharingService
+                            sharingService: sharingService,
+                            teamSpacesService: vaultKitTeamSpacesServiceProcotol
             )
         }
         
@@ -2932,6 +3395,21 @@ extension SessionServicesContainer {
 
 extension SessionServicesContainer {
         
+        internal func makeSidebarViewModel() -> SidebarViewModel {
+            return SidebarViewModel(
+                            toolsService: toolsService,
+                            teamSpacesService: vaultKitTeamSpacesServiceProcotol,
+                            vaultItemsService: vaultItemsService,
+                            deeplinkingService: appServices.deepLinkingService,
+                            settingsFlowViewModelFactory: InjectedFactory(makeSettingsFlowViewModel),
+                            collectionNamingViewModelFactory: InjectedFactory(makeCollectionNamingViewModel)
+            )
+        }
+        
+}
+
+extension SessionServicesContainer {
+        
         internal func makeSocialSecurityDetailViewModel(item: SocialSecurityInformation, mode: DetailMode = .viewing) -> SocialSecurityDetailViewModel {
             return SocialSecurityDetailViewModel(
                             item: item,
@@ -2939,16 +3417,15 @@ extension SessionServicesContainer {
                             vaultItemsService: vaultItemsService,
                             sharingService: sharingService,
                             teamSpacesService: teamSpacesService,
-                            usageLogService: activityReporter.legacyUsage,
                             documentStorageService: documentStorageService,
-                            deepLinkService: appServices.deepLinkingService,
+                            deepLinkService: vaultKitDeepLinkingService,
                             activityReporter: activityReporter,
                             iconViewModelProvider: makeVaultItemIconViewModel,
                             logger: appServices.rootLogger,
                             accessControl: accessControl,
                             userSettings: spiegelUserSettings,
-                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
-                            attachmentsListViewModelProvider: makeAttachmentsListViewModel
+                            pasteboardService: pasteboardService,
+                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
             )
         }
                 
@@ -2967,7 +3444,7 @@ extension SessionServicesContainer {
                             toolsItem: toolsItem,
                             userSettings: spiegelUserSettings,
                             vpnService: vpnService,
-                            capabilityService: capabilityService,
+                            capabilityService: premiumService,
                             deepLinkingService: appServices.deepLinkingService,
                             darkWebMonitoringService: darkWebMonitoringService,
                             toolsViewModelFactory: InjectedFactory(makeToolsViewModel),
@@ -2977,7 +3454,8 @@ extension SessionServicesContainer {
                             vpnAvailableToolsFlowViewModelFactory: InjectedFactory(makeVPNAvailableToolsFlowViewModel),
                             sharingToolsFlowViewModelFactory: InjectedFactory(makeSharingToolsFlowViewModel),
                             darkWebToolsFlowViewModelFactory: InjectedFactory(makeDarkWebToolsFlowViewModel),
-                            unresolvedAlertViewModelFactory: InjectedFactory(makeUnresolvedAlertViewModel)
+                            unresolvedAlertViewModelFactory: InjectedFactory(makeUnresolvedAlertViewModel),
+                            collectionsFlowViewModelFactory: InjectedFactory(makeCollectionsFlowViewModel)
             )
         }
         
@@ -2988,7 +3466,6 @@ extension SessionServicesContainer {
         internal func makeToolsViewModel(didSelectItem: PassthroughSubject<ToolsItem, Never>) -> ToolsViewModel {
             return ToolsViewModel(
                             toolsService: toolsService,
-                            usageLogService: activityReporter.legacyUsage,
                             premiumService: premiumService,
                             didSelectItem: didSelectItem
             )
@@ -3001,7 +3478,7 @@ extension SessionServicesContainer {
         internal func makeTrialPeriodNotificationRowViewModel(notification: DashlaneNotification) -> TrialPeriodNotificationRowViewModel {
             return TrialPeriodNotificationRowViewModel(
                             notification: notification,
-                            capabilityService: capabilityService,
+                            capabilityService: premiumService,
                             deepLinkingService: appServices.deepLinkingService,
                             activityReporter: activityReporter
             )
@@ -3023,15 +3500,13 @@ extension SessionServicesContainer {
 
 extension SessionServicesContainer {
         
-        internal func makeTwoFACompletionViewModel(option: TFAOption, response: TOTPActivationResponse, accountAPIClient: AccountAPIClientProtocol, completion: @escaping () -> Void) -> TwoFACompletionViewModel {
+        internal func makeTwoFACompletionViewModel(option: TFAOption, response: TOTPActivationResponse, completion: @escaping () -> Void) -> TwoFACompletionViewModel {
             return TwoFACompletionViewModel(
                             option: option,
                             response: response,
                             session: session,
                             sessionsContainer: appServices.sessionContainer,
                             keychainService: appServices.keychainService,
-                            accountAPIClient: accountAPIClient,
-                            persistor: appServices.authenticatorDatabaseService,
                             authenticatorCommunicator: authenticatorAppCommunicator,
                             syncService: syncService,
                             resetMasterPasswordService: resetMasterPasswordService,
@@ -3040,6 +3515,7 @@ extension SessionServicesContainer {
                             activityReporter: activityReporter,
                             authenticatedAPIClient: userDeviceAPIClient,
                             appAPIClient: appServices.appAPIClient,
+                            userDeviceAPIClient: userDeviceAPIClient,
                             sessionLifeCycleHandler: appServices.sessionLifeCycleHandler,
                             logger: appServices.rootLogger,
                             completion: completion
@@ -3056,6 +3532,7 @@ extension SessionServicesContainer {
                             sessionsContainer: appServices.sessionContainer,
                             authenticatedAPIClient: userDeviceAPIClient,
                             appAPIClient: appServices.appAPIClient,
+                            userAPIClient: userDeviceAPIClient,
                             logger: appServices.rootLogger,
                             authenticatorCommunicator: authenticatorAppCommunicator,
                             syncService: syncService,
@@ -3064,7 +3541,6 @@ extension SessionServicesContainer {
                             activityReporter: activityReporter,
                             resetMasterPasswordService: resetMasterPasswordService,
                             databaseDriver: databaseDriver,
-                            persistor: appServices.authenticatorDatabaseService,
                             sessionLifeCycleHandler: appServices.sessionLifeCycleHandler,
                             isTwoFAEnforced: isTwoFAEnforced,
                             recover2faWebService: recover2faWebService
@@ -3075,9 +3551,9 @@ extension SessionServicesContainer {
 
 extension SessionServicesContainer {
         @MainActor
-        internal func makeTwoFAPhoneNumberSetupViewModel(accountAPIClient: AccountAPIClientProtocol, option: TFAOption, completion: @escaping (TOTPActivationResponse?) -> Void) -> TwoFAPhoneNumberSetupViewModel {
+        internal func makeTwoFAPhoneNumberSetupViewModel(option: TFAOption, completion: @escaping (TOTPActivationResponse?) -> Void) -> TwoFAPhoneNumberSetupViewModel {
             return TwoFAPhoneNumberSetupViewModel(
-                            accountAPIClient: accountAPIClient,
+                            userAPIClient: userDeviceAPIClient,
                             option: option,
                             regionInformationService: appServices.regionInformationService,
                             completion: completion
@@ -3092,10 +3568,11 @@ extension SessionServicesContainer {
             return TwoFASettingsViewModel(
                             login: login,
                             loginOTPOption: loginOTPOption,
-                            authenticatedAPIClient: userDeviceAPIClient,
+                            userAPIClient: userDeviceAPIClient,
                             nonAuthenticatedUKIBasedWebService: legacyWebService,
                             logger: appServices.rootLogger,
                             isTwoFAEnforced: isTwoFAEnforced,
+                            reachability: appServices.networkReachability,
                             sessionLifeCycleHandler: appServices.sessionLifeCycleHandler,
                             twoFADeactivationViewModelFactory: InjectedFactory(makeTwoFADeactivationViewModel),
                             twoFAActivationViewModelFactory: InjectedFactory(makeTwoFAActivationViewModel),
@@ -3119,9 +3596,9 @@ extension SessionServicesContainer {
 
 extension SessionServicesContainer {
         @MainActor
-        internal func makeTwoFactorEnforcementViewModel(accountAPIClient: AccountAPIClientProtocol, logout: @escaping () -> Void) -> TwoFactorEnforcementViewModel {
+        internal func makeTwoFactorEnforcementViewModel(logout: @escaping () -> Void) -> TwoFactorEnforcementViewModel {
             return TwoFactorEnforcementViewModel(
-                            accountAPIClient: accountAPIClient,
+                            userDeviceAPIClient: userDeviceAPIClient,
                             lockService: lockService,
                             twoFASetupViewModelFactory: InjectedFactory(makeTwoFASetupViewModel),
                             logout: logout
@@ -3134,21 +3611,9 @@ extension SessionServicesContainer {
         
         internal func makeUnresolvedAlertViewModel() -> UnresolvedAlertViewModel {
             return UnresolvedAlertViewModel(
-                            usageLogService: activityReporter.legacyUsage,
                             identityDashboardService: identityDashboardService,
                             deeplinkService: appServices.deepLinkingService,
                             passwordHealthFlowViewModelFactory: InjectedFactory(makePasswordHealthFlowViewModel)
-            )
-        }
-        
-}
-
-extension SessionServicesContainer {
-        
-        internal func makeUserSpaceSwitcherViewModel() -> UserSpaceSwitcherViewModel {
-            return UserSpaceSwitcherViewModel(
-                            teamSpacesService: teamSpacesService,
-                            activityReporter: activityReporter
             )
         }
         
@@ -3192,6 +3657,7 @@ extension SessionServicesContainer {
                             activityReporter: activityReporter,
                             accessControl: accessControl,
                             iconService: iconService,
+                            pasteboardService: pasteboardService,
                             actionPublisher: actionPublisher
             )
         }
@@ -3210,8 +3676,7 @@ extension SessionServicesContainer {
                             addItemFlowViewModelFactory: InjectedFactory(makeAddItemFlowViewModel),
                             autofillOnboardingFlowViewModelFactory: InjectedFactory(makeAutofillOnboardingFlowViewModel),
                             onboardingChecklistFlowViewModelFactory: InjectedFactory(makeOnboardingChecklistFlowViewModel),
-                            sessionServices: self,
-                            usageLogService: activityReporter.legacyUsage
+                            sessionServices: self
             )
         }
         
@@ -3222,14 +3687,7 @@ extension SessionServicesContainer {
         internal func makeVaultItemIconViewModel(item: VaultItem) -> VaultItemIconViewModel {
             return VaultItemIconViewModel(
                             item: item,
-                            iconService: iconService
-            )
-        }
-                
-        internal func makeVaultItemIconViewModel(item: VaultItem, iconLibrary: DomainIconLibraryProtocol) -> VaultItemIconViewModel {
-            return VaultItemIconViewModel(
-                            item: item,
-                            iconLibrary: iconLibrary
+                            iconLibrary: domainIconLibrary
             )
         }
         
@@ -3245,7 +3703,7 @@ extension SessionServicesContainer {
                             quickActionsMenuViewModelFactory: InjectedFactory(makeQuickActionsMenuViewModel),
                             userSettings: spiegelUserSettings,
                             accessControl: accessControl,
-                            usageLogService: activityReporter.legacyUsage,
+                            pasteboardService: pasteboardService,
                             activityReporter: activityReporter,
                             teamSpacesService: teamSpacesService,
                             vaultItemsService: vaultItemsService,
@@ -3257,7 +3715,7 @@ extension SessionServicesContainer {
 
 extension SessionServicesContainer {
         
-        internal func makeVaultListViewModel(filter: VaultListFilter, completion: @escaping (VaultListCompletion) -> Void) -> VaultListViewModel {
+        internal func makeVaultListViewModel(filter: VaultItemsSection, completion: @escaping (VaultListCompletion) -> Void) -> VaultListViewModel {
             return VaultListViewModel(
                             filter: filter,
                             activityReporter: activityReporter,
@@ -3271,16 +3729,15 @@ extension SessionServicesContainer {
 
 extension SessionServicesContainer {
         
-        internal func makeVaultSearchViewModel(activeFilter: VaultListFilter, completion: @escaping (VaultListCompletion) -> Void) -> VaultSearchViewModel {
+        internal func makeVaultSearchViewModel(activeFilter: VaultItemsSection, completion: @escaping (VaultListCompletion) -> Void) -> VaultSearchViewModel {
             return VaultSearchViewModel(
                             vaultItemsService: vaultItemsService,
-                            capabilityService: capabilityService,
+                            capabilityService: premiumService,
                             sharingService: sharingService,
                             featureService: featureService,
                             activityReporter: activityReporter,
                             teamSpacesService: teamSpacesService,
-                            userSwitcherViewModel: makeUserSpaceSwitcherViewModel,
-                            usageLogService: activityReporter.legacyUsage,
+                            userSwitcherViewModelFactory: InjectedFactory(makeUserSpaceSwitcherViewModel),
                             vaultItemRowModelFactory: InjectedFactory(makeVaultItemRowModel),
                             activeFilter: activeFilter,
                             completion: completion
@@ -3298,16 +3755,15 @@ extension SessionServicesContainer {
                             vaultItemsService: vaultItemsService,
                             sharingService: sharingService,
                             teamSpacesService: teamSpacesService,
-                            usageLogService: activityReporter.legacyUsage,
                             documentStorageService: documentStorageService,
-                            deepLinkService: appServices.deepLinkingService,
+                            deepLinkService: vaultKitDeepLinkingService,
                             activityReporter: activityReporter,
                             iconViewModelProvider: makeVaultItemIconViewModel,
                             logger: appServices.rootLogger,
                             accessControl: accessControl,
                             userSettings: spiegelUserSettings,
-                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
-                            attachmentsListViewModelProvider: makeAttachmentsListViewModel
+                            pasteboardService: pasteboardService,
+                            attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
             )
         }
                 
@@ -3320,19 +3776,125 @@ extension SessionServicesContainer {
 }
 
 
-internal typealias _AddAttachmentButtonViewModelFactory =  (
+internal typealias _AccountCreationFlowViewModelFactory = @MainActor (
+    _ completion: @MainActor @escaping (AccountCreationFlowViewModel.CompletionResult) -> Void
+) -> AccountCreationFlowViewModel
+
+internal extension InjectedFactory where T == _AccountCreationFlowViewModelFactory {
+    @MainActor
+    func make(completion: @MainActor @escaping (AccountCreationFlowViewModel.CompletionResult) -> Void) -> AccountCreationFlowViewModel {
+       return factory(
+              completion
+       )
+    }
+}
+
+extension AccountCreationFlowViewModel {
+        internal typealias Factory = InjectedFactory<_AccountCreationFlowViewModelFactory>
+}
+
+
+internal typealias _AccountEmailViewModelFactory = @MainActor (
+    _ completion: @escaping (_ result: AccountEmailViewModel.CompletionResult) -> Void
+) -> AccountEmailViewModel
+
+internal extension InjectedFactory where T == _AccountEmailViewModelFactory {
+    @MainActor
+    func make(completion: @escaping (_ result: AccountEmailViewModel.CompletionResult) -> Void) -> AccountEmailViewModel {
+       return factory(
+              completion
+       )
+    }
+}
+
+extension AccountEmailViewModel {
+        internal typealias Factory = InjectedFactory<_AccountEmailViewModelFactory>
+}
+
+
+internal typealias _AccountRecoveryActivationEmbeddedFlowModelFactory = @MainActor (
+    _ context: AccountRecoveryActivationContext,
+    _ completion: @MainActor @escaping () -> Void
+) -> AccountRecoveryActivationEmbeddedFlowModel
+
+internal extension InjectedFactory where T == _AccountRecoveryActivationEmbeddedFlowModelFactory {
+    @MainActor
+    func make(context: AccountRecoveryActivationContext, completion: @MainActor @escaping () -> Void) -> AccountRecoveryActivationEmbeddedFlowModel {
+       return factory(
+              context,
+              completion
+       )
+    }
+}
+
+extension AccountRecoveryActivationEmbeddedFlowModel {
+        internal typealias Factory = InjectedFactory<_AccountRecoveryActivationEmbeddedFlowModelFactory>
+}
+
+
+internal typealias _AccountRecoveryActivationFlowModelFactory = @MainActor (
+    _ context: AccountRecoveryActivationContext
+) -> AccountRecoveryActivationFlowModel
+
+internal extension InjectedFactory where T == _AccountRecoveryActivationFlowModelFactory {
+    @MainActor
+    func make(context: AccountRecoveryActivationContext) -> AccountRecoveryActivationFlowModel {
+       return factory(
+              context
+       )
+    }
+}
+
+extension AccountRecoveryActivationFlowModel {
+        internal typealias Factory = InjectedFactory<_AccountRecoveryActivationFlowModelFactory>
+}
+
+
+internal typealias _AccountRecoveryKeyStatusDetailViewModelFactory = @MainActor (
+    _ isEnabled: Bool
+) -> AccountRecoveryKeyStatusDetailViewModel
+
+internal extension InjectedFactory where T == _AccountRecoveryKeyStatusDetailViewModelFactory {
+    @MainActor
+    func make(isEnabled: Bool) -> AccountRecoveryKeyStatusDetailViewModel {
+       return factory(
+              isEnabled
+       )
+    }
+}
+
+extension AccountRecoveryKeyStatusDetailViewModel {
+        internal typealias Factory = InjectedFactory<_AccountRecoveryKeyStatusDetailViewModelFactory>
+}
+
+
+internal typealias _AccountRecoveryKeyStatusViewModelFactory = @MainActor (
+) -> AccountRecoveryKeyStatusViewModel
+
+internal extension InjectedFactory where T == _AccountRecoveryKeyStatusViewModelFactory {
+    @MainActor
+    func make() -> AccountRecoveryKeyStatusViewModel {
+       return factory(
+       )
+    }
+}
+
+extension AccountRecoveryKeyStatusViewModel {
+        internal typealias Factory = InjectedFactory<_AccountRecoveryKeyStatusViewModelFactory>
+}
+
+
+public typealias _AddAttachmentButtonViewModelFactory =  (
     _ editingItem: VaultItem,
-    _ logger: AttachmentsListUsageLogger,
     _ shouldDisplayRenameAlert: Bool,
     _ itemPublisher: AnyPublisher<VaultItem, Never>
 ) -> AddAttachmentButtonViewModel
 
-internal extension InjectedFactory where T == _AddAttachmentButtonViewModelFactory {
+public extension InjectedFactory where T == _AddAttachmentButtonViewModelFactory {
     
-    func make(editingItem: VaultItem, logger: AttachmentsListUsageLogger, shouldDisplayRenameAlert: Bool = true, itemPublisher: AnyPublisher<VaultItem, Never>) -> AddAttachmentButtonViewModel {
+    func make(editingItem: VaultItem, shouldDisplayRenameAlert: Bool = true, itemPublisher: AnyPublisher<VaultItem, Never>) -> AddAttachmentButtonViewModel {
        return factory(
               editingItem,
-              logger,
               shouldDisplayRenameAlert,
               itemPublisher
        )
@@ -3340,7 +3902,7 @@ internal extension InjectedFactory where T == _AddAttachmentButtonViewModelFacto
 }
 
 extension AddAttachmentButtonViewModel {
-        internal typealias Factory = InjectedFactory<_AddAttachmentButtonViewModelFactory>
+        public typealias Factory = InjectedFactory<_AddAttachmentButtonViewModelFactory>
 }
 
 
@@ -3364,6 +3926,48 @@ extension AddItemFlowViewModel {
 }
 
 
+public typealias _AddLoginDetailsViewModelFactory =  (
+    _ website: String,
+    _ credential: Credential?,
+    _ supportDashlane2FA: Bool,
+    _ completion: @escaping (OTPInfo) -> Void
+) -> AddLoginDetailsViewModel
+
+public extension InjectedFactory where T == _AddLoginDetailsViewModelFactory {
+    
+    func make(website: String, credential: Credential?, supportDashlane2FA: Bool, completion: @escaping (OTPInfo) -> Void) -> AddLoginDetailsViewModel {
+       return factory(
+              website,
+              credential,
+              supportDashlane2FA,
+              completion
+       )
+    }
+}
+
+extension AddLoginDetailsViewModel {
+        public typealias Factory = InjectedFactory<_AddLoginDetailsViewModelFactory>
+}
+
+
+internal typealias _AddNewDeviceViewModelFactory = @MainActor (
+    _ qrCodeViaSystemCamera: String?
+) -> AddNewDeviceViewModel
+
+internal extension InjectedFactory where T == _AddNewDeviceViewModelFactory {
+    @MainActor
+    func make(qrCodeViaSystemCamera: String? = nil) -> AddNewDeviceViewModel {
+       return factory(
+              qrCodeViaSystemCamera
+       )
+    }
+}
+
+extension AddNewDeviceViewModel {
+        internal typealias Factory = InjectedFactory<_AddNewDeviceViewModelFactory>
+}
+
+
 internal typealias _AddOTPFlowViewModelFactory =  (
     _ mode: AddOTPFlowViewModel.Mode,
     _ completion: @escaping () -> Void
@@ -3381,6 +3985,26 @@ internal extension InjectedFactory where T == _AddOTPFlowViewModelFactory {
 
 extension AddOTPFlowViewModel {
         internal typealias Factory = InjectedFactory<_AddOTPFlowViewModelFactory>
+}
+
+
+internal typealias _AddOTPManuallyFlowViewModelFactory =  (
+    _ credential: Credential?,
+    _ completion: @escaping (AddOTPManuallyFlowViewModel.Completion) -> Void
+) -> AddOTPManuallyFlowViewModel
+
+internal extension InjectedFactory where T == _AddOTPManuallyFlowViewModelFactory {
+    
+    func make(credential: Credential?, completion: @escaping (AddOTPManuallyFlowViewModel.Completion) -> Void) -> AddOTPManuallyFlowViewModel {
+       return factory(
+              credential,
+              completion
+       )
+    }
+}
+
+extension AddOTPManuallyFlowViewModel {
+        internal typealias Factory = InjectedFactory<_AddOTPManuallyFlowViewModelFactory>
 }
 
 
@@ -3442,14 +4066,14 @@ extension AddressDetailViewModel {
 }
 
 
-internal typealias _AttachmentRowViewModelFactory =  (
+public typealias _AttachmentRowViewModelFactory =  (
     _ attachment: Attachment,
     _ attachmentPublisher: AnyPublisher<Attachment, Never>,
     _ editingItem: DocumentAttachable,
     _ deleteAction: @escaping (Attachment) -> Void
 ) -> AttachmentRowViewModel
 
-internal extension InjectedFactory where T == _AttachmentRowViewModelFactory {
+public extension InjectedFactory where T == _AttachmentRowViewModelFactory {
     
     func make(attachment: Attachment, attachmentPublisher: AnyPublisher<Attachment, Never>, editingItem: DocumentAttachable, deleteAction: @escaping (Attachment) -> Void) -> AttachmentRowViewModel {
        return factory(
@@ -3462,16 +4086,16 @@ internal extension InjectedFactory where T == _AttachmentRowViewModelFactory {
 }
 
 extension AttachmentRowViewModel {
-        internal typealias Factory = InjectedFactory<_AttachmentRowViewModelFactory>
+        public typealias Factory = InjectedFactory<_AttachmentRowViewModelFactory>
 }
 
 
-internal typealias _AttachmentsListViewModelFactory =  (
+public typealias _AttachmentsListViewModelFactory =  (
     _ editingItem: VaultItem,
     _ itemPublisher: AnyPublisher<VaultItem, Never>
 ) -> AttachmentsListViewModel
 
-internal extension InjectedFactory where T == _AttachmentsListViewModelFactory {
+public extension InjectedFactory where T == _AttachmentsListViewModelFactory {
     
     func make(editingItem: VaultItem, itemPublisher: AnyPublisher<VaultItem, Never>) -> AttachmentsListViewModel {
        return factory(
@@ -3482,16 +4106,16 @@ internal extension InjectedFactory where T == _AttachmentsListViewModelFactory {
 }
 
 extension AttachmentsListViewModel {
-        internal typealias Factory = InjectedFactory<_AttachmentsListViewModelFactory>
+        public typealias Factory = InjectedFactory<_AttachmentsListViewModelFactory>
 }
 
 
-internal typealias _AttachmentsSectionViewModelFactory =  (
+public typealias _AttachmentsSectionViewModelFactory =  (
     _ item: VaultItem,
     _ itemPublisher: AnyPublisher<VaultItem, Never>
 ) -> AttachmentsSectionViewModel
 
-internal extension InjectedFactory where T == _AttachmentsSectionViewModelFactory {
+public extension InjectedFactory where T == _AttachmentsSectionViewModelFactory {
     
     func make(item: VaultItem, itemPublisher: AnyPublisher<VaultItem, Never>) -> AttachmentsSectionViewModel {
        return factory(
@@ -3502,7 +4126,7 @@ internal extension InjectedFactory where T == _AttachmentsSectionViewModelFactor
 }
 
 extension AttachmentsSectionViewModel {
-        internal typealias Factory = InjectedFactory<_AttachmentsSectionViewModelFactory>
+        public typealias Factory = InjectedFactory<_AttachmentsSectionViewModelFactory>
 }
 
 
@@ -3700,6 +4324,60 @@ extension ChangeMasterPasswordFlowViewModel {
 }
 
 
+public typealias _ChooseWebsiteViewModelFactory =  (
+    _ completion: @escaping (String) -> Void
+) -> ChooseWebsiteViewModel
+
+public extension InjectedFactory where T == _ChooseWebsiteViewModelFactory {
+    
+    func make(completion: @escaping (String) -> Void) -> ChooseWebsiteViewModel {
+       return factory(
+              completion
+       )
+    }
+}
+
+extension ChooseWebsiteViewModel {
+        public typealias Factory = InjectedFactory<_ChooseWebsiteViewModelFactory>
+}
+
+
+internal typealias _CollectionDetailViewModelFactory =  (
+    _ collection: VaultCollection
+) -> CollectionDetailViewModel
+
+internal extension InjectedFactory where T == _CollectionDetailViewModelFactory {
+    
+    func make(collection: VaultCollection) -> CollectionDetailViewModel {
+       return factory(
+              collection
+       )
+    }
+}
+
+extension CollectionDetailViewModel {
+        internal typealias Factory = InjectedFactory<_CollectionDetailViewModelFactory>
+}
+
+
+internal typealias _CollectionsFlowViewModelFactory = @MainActor (
+    _ initialStep: CollectionsFlowViewModel.Step
+) -> CollectionsFlowViewModel
+
+internal extension InjectedFactory where T == _CollectionsFlowViewModelFactory {
+    @MainActor
+    func make(initialStep: CollectionsFlowViewModel.Step = .list) -> CollectionsFlowViewModel {
+       return factory(
+              initialStep
+       )
+    }
+}
+
+extension CollectionsFlowViewModel {
+        internal typealias Factory = InjectedFactory<_CollectionsFlowViewModelFactory>
+}
+
+
 internal typealias _CompanyDetailViewModelFactory =  (
     _ item: Company,
     _ mode: DetailMode
@@ -3763,6 +4441,32 @@ internal extension InjectedFactory where T == _CredentialDetailViewModelFactory 
 
 extension CredentialDetailViewModel {
         internal typealias Factory = InjectedFactory<_CredentialDetailViewModelFactory>
+}
+
+
+internal typealias _CredentialDetailViewModelSecondFactory =  (
+    _ generatedPasswordToLink: GeneratedPassword?,
+    _ actionPublisher: PassthroughSubject<CredentialDetailViewModel.Action, Never>?,
+    _ origin: ItemDetailOrigin,
+    _ didSave: (() -> Void)?,
+    _ service: DetailService<Credential>
+) -> CredentialDetailViewModel
+
+internal extension InjectedFactory where T == _CredentialDetailViewModelSecondFactory {
+    
+    func make(generatedPasswordToLink: GeneratedPassword? = nil, actionPublisher: PassthroughSubject<CredentialDetailViewModel.Action, Never>? = nil, origin: ItemDetailOrigin = ItemDetailOrigin.unknown, didSave: (() -> Void)? = nil, service: DetailService<Credential>) -> CredentialDetailViewModel {
+       return factory(
+              generatedPasswordToLink,
+              actionPublisher,
+              origin,
+              didSave,
+              service
+       )
+    }
+}
+
+extension CredentialDetailViewModel {
+        internal typealias SecondFactory = InjectedFactory<_CredentialDetailViewModelSecondFactory>
 }
 
 
@@ -3830,21 +4534,17 @@ extension CreditCardDetailViewModel {
 }
 
 
-internal typealias _DWMEmailConfirmationViewModelFactory =  (
+internal typealias _DWMEmailConfirmationViewModelFactory = @MainActor (
     _ accountEmail: String,
-    _ context: DWMOnboardingPresentationContext,
-    _ emailStatusCheck: DWMEmailConfirmationViewModel.EmailStatusCheckStrategy,
-    _ completion: @escaping (DWMEmailConfirmationViewModel.Completion) -> Void
+    _ emailStatusCheck: DWMEmailConfirmationViewModel.EmailStatusCheckStrategy
 ) -> DWMEmailConfirmationViewModel
 
 internal extension InjectedFactory where T == _DWMEmailConfirmationViewModelFactory {
-    
-    func make(accountEmail: String, context: DWMOnboardingPresentationContext, emailStatusCheck: DWMEmailConfirmationViewModel.EmailStatusCheckStrategy, completion: @escaping (DWMEmailConfirmationViewModel.Completion) -> Void) -> DWMEmailConfirmationViewModel {
+    @MainActor
+    func make(accountEmail: String, emailStatusCheck: DWMEmailConfirmationViewModel.EmailStatusCheckStrategy) -> DWMEmailConfirmationViewModel {
        return factory(
               accountEmail,
-              context,
-              emailStatusCheck,
-              completion
+              emailStatusCheck
        )
     }
 }
@@ -3872,43 +4572,41 @@ extension DWMItemIconViewModel {
 }
 
 
-internal typealias _DWMRegistrationInGuidedOnboardingViewModelFactory =  (
-    _ email: String,
-    _ completion: ((DWMRegistrationViewModel.Completion) -> Void)?
+internal typealias _DWMOnboardingFlowViewModelFactory = @MainActor (
+    _ transitionHandler: GuidedOnboardingTransitionHandler?,
+    _ completion: @escaping (DWMOnboardingFlowViewModel.Completion) -> Void
+) -> DWMOnboardingFlowViewModel
+
+internal extension InjectedFactory where T == _DWMOnboardingFlowViewModelFactory {
+    @MainActor
+    func make(transitionHandler: GuidedOnboardingTransitionHandler?, completion: @escaping (DWMOnboardingFlowViewModel.Completion) -> Void) -> DWMOnboardingFlowViewModel {
+       return factory(
+              transitionHandler,
+              completion
+       )
+    }
+}
+
+extension DWMOnboardingFlowViewModel {
+        internal typealias Factory = InjectedFactory<_DWMOnboardingFlowViewModelFactory>
+}
+
+
+internal typealias _DWMRegistrationInGuidedOnboardingViewModelFactory = @MainActor (
+    _ email: String
 ) -> DWMRegistrationInGuidedOnboardingViewModel
 
 internal extension InjectedFactory where T == _DWMRegistrationInGuidedOnboardingViewModelFactory {
-    
-    func make(email: String, completion: ((DWMRegistrationViewModel.Completion) -> Void)?) -> DWMRegistrationInGuidedOnboardingViewModel {
+    @MainActor
+    func make(email: String) -> DWMRegistrationInGuidedOnboardingViewModel {
        return factory(
-              email,
-              completion
+              email
        )
     }
 }
 
 extension DWMRegistrationInGuidedOnboardingViewModel {
         internal typealias Factory = InjectedFactory<_DWMRegistrationInGuidedOnboardingViewModelFactory>
-}
-
-
-internal typealias _DWMRegistrationInOnboardingChecklistViewModelFactory =  (
-    _ email: String,
-    _ completion: ((DWMRegistrationInOnboardingChecklistViewModel.Completion) -> Void)?
-) -> DWMRegistrationInOnboardingChecklistViewModel
-
-internal extension InjectedFactory where T == _DWMRegistrationInOnboardingChecklistViewModelFactory {
-    
-    func make(email: String, completion: ((DWMRegistrationInOnboardingChecklistViewModel.Completion) -> Void)?) -> DWMRegistrationInOnboardingChecklistViewModel {
-       return factory(
-              email,
-              completion
-       )
-    }
-}
-
-extension DWMRegistrationInOnboardingChecklistViewModel {
-        internal typealias Factory = InjectedFactory<_DWMRegistrationInOnboardingChecklistViewModelFactory>
 }
 
 
@@ -3933,17 +4631,15 @@ extension DarkWebMonitoringBreachListViewModel {
 internal typealias _DarkWebMonitoringDetailsViewModelFactory =  (
     _ breach: DWMSimplifiedBreach,
     _ breachViewModel: BreachViewModel,
-    _ usageLogService: DWMLogService,
     _ actionPublisher: PassthroughSubject<DarkWebToolsFlowViewModel.Action, Never>?
 ) -> DarkWebMonitoringDetailsViewModel
 
 internal extension InjectedFactory where T == _DarkWebMonitoringDetailsViewModelFactory {
     
-    func make(breach: DWMSimplifiedBreach, breachViewModel: BreachViewModel, usageLogService: DWMLogService, actionPublisher: PassthroughSubject<DarkWebToolsFlowViewModel.Action, Never>? = nil) -> DarkWebMonitoringDetailsViewModel {
+    func make(breach: DWMSimplifiedBreach, breachViewModel: BreachViewModel, actionPublisher: PassthroughSubject<DarkWebToolsFlowViewModel.Action, Never>? = nil) -> DarkWebMonitoringDetailsViewModel {
        return factory(
               breach,
               breachViewModel,
-              usageLogService,
               actionPublisher
        )
     }
@@ -4063,6 +4759,22 @@ internal extension InjectedFactory where T == _DetailViewFactory {
 
 extension DetailView {
         internal typealias Factory = InjectedFactory<_DetailViewFactory>
+}
+
+
+internal typealias _DetailViewFactoryFactory =  (
+) -> DetailViewFactory
+
+internal extension InjectedFactory where T == _DetailViewFactoryFactory {
+    
+    func make() -> DetailViewFactory {
+       return factory(
+       )
+    }
+}
+
+extension DetailViewFactory {
+        internal typealias Factory = InjectedFactory<_DetailViewFactoryFactory>
 }
 
 
@@ -4212,6 +4924,26 @@ extension ExportSecureArchiveViewModel {
 }
 
 
+internal typealias _FastLocalSetupInAccountCreationViewModelFactory =  (
+    _ biometry: Biometry?,
+    _ completion: @escaping (FastLocalSetupInAccountCreationViewModel.Completion) -> Void
+) -> FastLocalSetupInAccountCreationViewModel
+
+internal extension InjectedFactory where T == _FastLocalSetupInAccountCreationViewModelFactory {
+    
+    func make(biometry: Biometry? = Device.biometryType, completion: @escaping (FastLocalSetupInAccountCreationViewModel.Completion) -> Void) -> FastLocalSetupInAccountCreationViewModel {
+       return factory(
+              biometry,
+              completion
+       )
+    }
+}
+
+extension FastLocalSetupInAccountCreationViewModel {
+        internal typealias Factory = InjectedFactory<_FastLocalSetupInAccountCreationViewModelFactory>
+}
+
+
 internal typealias _FastLocalSetupInLoginViewModelFactory =  (
     _ masterPassword: String?,
     _ biometry: Biometry?,
@@ -4231,6 +4963,34 @@ internal extension InjectedFactory where T == _FastLocalSetupInLoginViewModelFac
 
 extension FastLocalSetupInLoginViewModel {
         internal typealias Factory = InjectedFactory<_FastLocalSetupInLoginViewModelFactory>
+}
+
+
+internal typealias _FastLocalSetupInLoginViewModelSecondFactory =  (
+    _ masterPassword: String?,
+    _ biometry: Biometry?,
+    _ lockService: LockService,
+    _ masterPasswordResetService: ResetMasterPasswordService,
+    _ userSettings: UserSettings,
+    _ completion: @escaping (FastLocalSetupInLoginViewModel.Completion) -> Void
+) -> FastLocalSetupInLoginViewModel
+
+internal extension InjectedFactory where T == _FastLocalSetupInLoginViewModelSecondFactory {
+    
+    func make(masterPassword: String?, biometry: Biometry?, lockService: LockService, masterPasswordResetService: ResetMasterPasswordService, userSettings: UserSettings, completion: @escaping (FastLocalSetupInLoginViewModel.Completion) -> Void) -> FastLocalSetupInLoginViewModel {
+       return factory(
+              masterPassword,
+              biometry,
+              lockService,
+              masterPasswordResetService,
+              userSettings,
+              completion
+       )
+    }
+}
+
+extension FastLocalSetupInLoginViewModel {
+        internal typealias SecondFactory = InjectedFactory<_FastLocalSetupInLoginViewModelSecondFactory>
 }
 
 
@@ -4272,11 +5032,11 @@ extension FiscalInformationDetailViewModel {
 }
 
 
-internal typealias _GeneralSettingsViewModelFactory =  (
+internal typealias _GeneralSettingsViewModelFactory = @MainActor (
 ) -> GeneralSettingsViewModel
 
 internal extension InjectedFactory where T == _GeneralSettingsViewModelFactory {
-    
+    @MainActor
     func make() -> GeneralSettingsViewModel {
        return factory(
        )
@@ -4554,14 +5314,16 @@ extension LabsSettingsViewModel {
 
 internal typealias _LockViewModelFactory = @MainActor (
     _ locker: ScreenLocker,
+    _ newMasterPassword: String?,
     _ changeMasterPasswordLauncher: @escaping ChangeMasterPasswordLauncher
 ) -> LockViewModel
 
 internal extension InjectedFactory where T == _LockViewModelFactory {
     @MainActor
-    func make(locker: ScreenLocker, changeMasterPasswordLauncher: @escaping ChangeMasterPasswordLauncher) -> LockViewModel {
+    func make(locker: ScreenLocker, newMasterPassword: String? = nil, changeMasterPasswordLauncher: @escaping ChangeMasterPasswordLauncher) -> LockViewModel {
        return factory(
               locker,
+              newMasterPassword,
               changeMasterPasswordLauncher
        )
     }
@@ -4573,14 +5335,12 @@ extension LockViewModel {
 
 
 public typealias _LoginKitServicesContainerFactory =  (
-    _ logger: LoginInstallerLogger
 ) -> LoginKitServicesContainer
 
 public extension InjectedFactory where T == _LoginKitServicesContainerFactory {
     
-    func make(logger: LoginInstallerLogger) -> LoginKitServicesContainer {
+    func make() -> LoginKitServicesContainer {
        return factory(
-              logger
        )
     }
 }
@@ -4606,12 +5366,12 @@ extension M2WSettings {
 }
 
 
-internal typealias _MainSettingsViewModelFactory =  (
+internal typealias _MainSettingsViewModelFactory = @MainActor (
     _ labsService: LabsService
 ) -> MainSettingsViewModel
 
 internal extension InjectedFactory where T == _MainSettingsViewModelFactory {
-    
+    @MainActor
     func make(labsService: LabsService) -> MainSettingsViewModel {
        return factory(
               labsService
@@ -4624,14 +5384,36 @@ extension MainSettingsViewModel {
 }
 
 
-internal typealias _MasterPasswordResetActivationViewModelFactory =  (
+internal typealias _MasterPasswordAccountCreationFlowViewModelFactory = @MainActor (
+    _ configuration: AccountCreationConfiguration,
+    _ completion: @MainActor @escaping (MasterPasswordAccountCreationFlowViewModel.CompletionResult) -> Void
+) -> MasterPasswordAccountCreationFlowViewModel
+
+internal extension InjectedFactory where T == _MasterPasswordAccountCreationFlowViewModelFactory {
+    @MainActor
+    func make(configuration: AccountCreationConfiguration, completion: @MainActor @escaping (MasterPasswordAccountCreationFlowViewModel.CompletionResult) -> Void) -> MasterPasswordAccountCreationFlowViewModel {
+       return factory(
+              configuration,
+              completion
+       )
+    }
+}
+
+extension MasterPasswordAccountCreationFlowViewModel {
+        internal typealias Factory = InjectedFactory<_MasterPasswordAccountCreationFlowViewModelFactory>
+}
+
+
+internal typealias _MasterPasswordResetActivationViewModelFactory = @MainActor (
+    _ masterPassword: String,
     _ actionHandler: @escaping (MasterPasswordResetActivationViewModel.Action) -> Void
 ) -> MasterPasswordResetActivationViewModel
 
 internal extension InjectedFactory where T == _MasterPasswordResetActivationViewModelFactory {
-    
-    func make(actionHandler: @escaping (MasterPasswordResetActivationViewModel.Action) -> Void) -> MasterPasswordResetActivationViewModel {
+    @MainActor
+    func make(masterPassword: String, actionHandler: @escaping (MasterPasswordResetActivationViewModel.Action) -> Void) -> MasterPasswordResetActivationViewModel {
        return factory(
+              masterPassword,
               actionHandler
        )
     }
@@ -4664,24 +5446,50 @@ extension MatchingCredentialListViewModel {
 }
 
 
+internal typealias _MigrationProgressViewModelFactory =  (
+    _ type: MigrationType,
+    _ accountCryptoChangerService: AccountCryptoChangerServiceProtocol,
+    _ context: MigrationProgressViewModel.Context,
+    _ isProgress: Bool,
+    _ isSuccess: Bool,
+    _ completion: @escaping (Result<Session, Error>) -> Void
+) -> MigrationProgressViewModel
+
+internal extension InjectedFactory where T == _MigrationProgressViewModelFactory {
+    
+    func make(type: MigrationType, accountCryptoChangerService: AccountCryptoChangerServiceProtocol, context: MigrationProgressViewModel.Context, isProgress: Bool = true, isSuccess: Bool = true, completion: @escaping (Result<Session, Error>) -> Void) -> MigrationProgressViewModel {
+       return factory(
+              type,
+              accountCryptoChangerService,
+              context,
+              isProgress,
+              isSuccess,
+              completion
+       )
+    }
+}
+
+extension MigrationProgressViewModel {
+        internal typealias Factory = InjectedFactory<_MigrationProgressViewModelFactory>
+}
+
+
 internal typealias _MiniBrowserViewModelFactory =  (
     _ email: String,
     _ password: String,
     _ displayableDomain: String,
     _ url: URL,
-    _ usageLogService: DWMLogService,
     _ completion: @escaping (MiniBrowserViewModel.Completion) -> Void
 ) -> MiniBrowserViewModel
 
 internal extension InjectedFactory where T == _MiniBrowserViewModelFactory {
     
-    func make(email: String, password: String, displayableDomain: String, url: URL, usageLogService: DWMLogService, completion: @escaping (MiniBrowserViewModel.Completion) -> Void) -> MiniBrowserViewModel {
+    func make(email: String, password: String, displayableDomain: String, url: URL, completion: @escaping (MiniBrowserViewModel.Completion) -> Void) -> MiniBrowserViewModel {
        return factory(
               email,
               password,
               displayableDomain,
               url,
-              usageLogService,
               completion
        )
     }
@@ -4726,6 +5534,24 @@ extension NotificationCenterService {
 }
 
 
+internal typealias _NotificationsFlowViewModelFactory = @MainActor (
+    _ notificationCenterService: NotificationCenterServiceProtocol
+) -> NotificationsFlowViewModel
+
+internal extension InjectedFactory where T == _NotificationsFlowViewModelFactory {
+    @MainActor
+    func make(notificationCenterService: NotificationCenterServiceProtocol) -> NotificationsFlowViewModel {
+       return factory(
+              notificationCenterService
+       )
+    }
+}
+
+extension NotificationsFlowViewModel {
+        internal typealias Factory = InjectedFactory<_NotificationsFlowViewModelFactory>
+}
+
+
 internal typealias _NotificationsListViewModelFactory =  (
     _ notificationCenterService: NotificationCenterServiceProtocol
 ) -> NotificationsListViewModel
@@ -4765,17 +5591,13 @@ extension OTPExplorerViewModel {
 
 
 internal typealias _OTPTokenListViewModelFactory =  (
-    _ authenticatorDatabaseService: OTPDatabaseService,
-    _ domainIconLibray: DomainIconLibraryProtocol,
     _ actionHandler: @escaping (OTPTokenListViewModel.Action) -> Void
 ) -> OTPTokenListViewModel
 
 internal extension InjectedFactory where T == _OTPTokenListViewModelFactory {
     
-    func make(authenticatorDatabaseService: OTPDatabaseService, domainIconLibray: DomainIconLibraryProtocol, actionHandler: @escaping (OTPTokenListViewModel.Action) -> Void) -> OTPTokenListViewModel {
+    func make(actionHandler: @escaping (OTPTokenListViewModel.Action) -> Void) -> OTPTokenListViewModel {
        return factory(
-              authenticatorDatabaseService,
-              domainIconLibray,
               actionHandler
        )
     }
@@ -4809,15 +5631,13 @@ extension OnboardingChecklistFlowViewModel {
 
 
 internal typealias _OnboardingChecklistViewModelFactory =  (
-    _ logsService: OnboardingChecklistLogsService,
     _ action: @escaping (OnboardingChecklistFlowViewModel.Action) -> Void
 ) -> OnboardingChecklistViewModel
 
 internal extension InjectedFactory where T == _OnboardingChecklistViewModelFactory {
     
-    func make(logsService: OnboardingChecklistLogsService, action: @escaping (OnboardingChecklistFlowViewModel.Action) -> Void) -> OnboardingChecklistViewModel {
+    func make(action: @escaping (OnboardingChecklistFlowViewModel.Action) -> Void) -> OnboardingChecklistViewModel {
        return factory(
-              logsService,
               action
        )
     }
@@ -4825,6 +5645,46 @@ internal extension InjectedFactory where T == _OnboardingChecklistViewModelFacto
 
 extension OnboardingChecklistViewModel {
         internal typealias Factory = InjectedFactory<_OnboardingChecklistViewModelFactory>
+}
+
+
+internal typealias _PasskeyDetailViewModelFactory =  (
+    _ item: CorePersonalData.Passkey,
+    _ mode: DetailMode,
+    _ dismiss: (() -> Void)?
+) -> PasskeyDetailViewModel
+
+internal extension InjectedFactory where T == _PasskeyDetailViewModelFactory {
+    
+    func make(item: CorePersonalData.Passkey, mode: DetailMode = .viewing, dismiss: (() -> Void)? = nil) -> PasskeyDetailViewModel {
+       return factory(
+              item,
+              mode,
+              dismiss
+       )
+    }
+}
+
+extension PasskeyDetailViewModel {
+        internal typealias Factory = InjectedFactory<_PasskeyDetailViewModelFactory>
+}
+
+
+internal typealias _PasskeyDetailViewModelSecondFactory =  (
+    _ service: DetailService<CorePersonalData.Passkey>
+) -> PasskeyDetailViewModel
+
+internal extension InjectedFactory where T == _PasskeyDetailViewModelSecondFactory {
+    
+    func make(service: DetailService<CorePersonalData.Passkey>) -> PasskeyDetailViewModel {
+       return factory(
+              service
+       )
+    }
+}
+
+extension PasskeyDetailViewModel {
+        internal typealias SecondFactory = InjectedFactory<_PasskeyDetailViewModelSecondFactory>
 }
 
 
@@ -4901,12 +5761,14 @@ extension PasswordGeneratorHistoryViewModel {
 
 
 internal typealias _PasswordGeneratorToolsFlowViewModelFactory = @MainActor (
+    _ pasteboardService: PasteboardService
 ) -> PasswordGeneratorToolsFlowViewModel
 
 internal extension InjectedFactory where T == _PasswordGeneratorToolsFlowViewModelFactory {
     @MainActor
-    func make() -> PasswordGeneratorToolsFlowViewModel {
+    func make(pasteboardService: PasteboardService) -> PasswordGeneratorToolsFlowViewModel {
        return factory(
+              pasteboardService
        )
     }
 }
@@ -4916,63 +5778,69 @@ extension PasswordGeneratorToolsFlowViewModel {
 }
 
 
-internal typealias _PasswordGeneratorViewModelFactory =  (
+public typealias _PasswordGeneratorViewModelFactory =  (
     _ mode: PasswordGeneratorMode,
     _ saveGeneratedPassword: @escaping (GeneratedPassword) -> GeneratedPassword,
-    _ savePreferencesOnChange: Bool
+    _ savePreferencesOnChange: Bool,
+    _ copyAction: @escaping (String) -> Void
 ) -> PasswordGeneratorViewModel
 
-internal extension InjectedFactory where T == _PasswordGeneratorViewModelFactory {
+public extension InjectedFactory where T == _PasswordGeneratorViewModelFactory {
     
-    func make(mode: PasswordGeneratorMode, saveGeneratedPassword: @escaping (GeneratedPassword) -> GeneratedPassword, savePreferencesOnChange: Bool = true) -> PasswordGeneratorViewModel {
+    func make(mode: PasswordGeneratorMode, saveGeneratedPassword: @escaping (GeneratedPassword) -> GeneratedPassword, savePreferencesOnChange: Bool = true, copyAction: @escaping (String) -> Void) -> PasswordGeneratorViewModel {
        return factory(
               mode,
               saveGeneratedPassword,
-              savePreferencesOnChange
+              savePreferencesOnChange,
+              copyAction
        )
     }
 }
 
 extension PasswordGeneratorViewModel {
-        internal typealias Factory = InjectedFactory<_PasswordGeneratorViewModelFactory>
+        public typealias Factory = InjectedFactory<_PasswordGeneratorViewModelFactory>
 }
 
 
-internal typealias _PasswordGeneratorViewModelSecondFactory =  (
+public typealias _PasswordGeneratorViewModelSecondFactory =  (
     _ mode: PasswordGeneratorMode,
-    _ savePreferencesOnChange: Bool
+    _ savePreferencesOnChange: Bool,
+    _ copyAction: @escaping (String) -> Void
 ) -> PasswordGeneratorViewModel
 
-internal extension InjectedFactory where T == _PasswordGeneratorViewModelSecondFactory {
+public extension InjectedFactory where T == _PasswordGeneratorViewModelSecondFactory {
     
-    func make(mode: PasswordGeneratorMode, savePreferencesOnChange: Bool = true) -> PasswordGeneratorViewModel {
+    func make(mode: PasswordGeneratorMode, savePreferencesOnChange: Bool = true, copyAction: @escaping (String) -> Void) -> PasswordGeneratorViewModel {
        return factory(
               mode,
-              savePreferencesOnChange
+              savePreferencesOnChange,
+              copyAction
        )
     }
 }
 
 extension PasswordGeneratorViewModel {
-        internal typealias SecondFactory = InjectedFactory<_PasswordGeneratorViewModelSecondFactory>
+        public typealias SecondFactory = InjectedFactory<_PasswordGeneratorViewModelSecondFactory>
 }
 
 
-internal typealias _PasswordGeneratorViewModelThirdFactory =  (
-    _ mode: PasswordGeneratorMode
+public typealias _PasswordGeneratorViewModelThirdFactory =  (
+    _ mode: PasswordGeneratorMode,
+    _ copyAction: @escaping (String) -> Void
 ) -> PasswordGeneratorViewModel
 
-internal extension InjectedFactory where T == _PasswordGeneratorViewModelThirdFactory {
+public extension InjectedFactory where T == _PasswordGeneratorViewModelThirdFactory {
     
-    func make(mode: PasswordGeneratorMode) -> PasswordGeneratorViewModel {
+    func make(mode: PasswordGeneratorMode, copyAction: @escaping (String) -> Void) -> PasswordGeneratorViewModel {
        return factory(
-              mode
+              mode,
+              copyAction
        )
     }
 }
 
 extension PasswordGeneratorViewModel {
-        internal typealias ThirdFactory = InjectedFactory<_PasswordGeneratorViewModelThirdFactory>
+        public typealias ThirdFactory = InjectedFactory<_PasswordGeneratorViewModelThirdFactory>
 }
 
 
@@ -5072,6 +5940,44 @@ extension PasswordHealthViewModel {
 }
 
 
+internal typealias _PasswordLessAccountCreationFlowViewModelFactory = @MainActor (
+    _ configuration: AccountCreationConfiguration,
+    _ completion: @MainActor @escaping (PasswordLessAccountCreationFlowViewModel.CompletionResult) -> Void
+) -> PasswordLessAccountCreationFlowViewModel
+
+internal extension InjectedFactory where T == _PasswordLessAccountCreationFlowViewModelFactory {
+    @MainActor
+    func make(configuration: AccountCreationConfiguration, completion: @MainActor @escaping (PasswordLessAccountCreationFlowViewModel.CompletionResult) -> Void) -> PasswordLessAccountCreationFlowViewModel {
+       return factory(
+              configuration,
+              completion
+       )
+    }
+}
+
+extension PasswordLessAccountCreationFlowViewModel {
+        internal typealias Factory = InjectedFactory<_PasswordLessAccountCreationFlowViewModelFactory>
+}
+
+
+internal typealias _PasswordLessCompletionViewModelFactory = @MainActor (
+    _ completion: @escaping () -> Void
+) -> PasswordLessCompletionViewModel
+
+internal extension InjectedFactory where T == _PasswordLessCompletionViewModelFactory {
+    @MainActor
+    func make(completion: @escaping () -> Void) -> PasswordLessCompletionViewModel {
+       return factory(
+              completion
+       )
+    }
+}
+
+extension PasswordLessCompletionViewModel {
+        internal typealias Factory = InjectedFactory<_PasswordLessCompletionViewModelFactory>
+}
+
+
 internal typealias _PhoneDetailViewModelFactory =  (
     _ item: Phone,
     _ mode: DetailMode
@@ -5128,21 +6034,59 @@ extension PinCodeSettingsViewModel {
 }
 
 
-internal typealias _PreAccountCreationOnboardingViewModelFactory =  (
-    _ localDataRemover: LocalDataRemover
-) -> PreAccountCreationOnboardingViewModel
+public typealias _PlaceholderWebsiteViewModelFactory =  (
+    _ website: String
+) -> PlaceholderWebsiteViewModel
 
-internal extension InjectedFactory where T == _PreAccountCreationOnboardingViewModelFactory {
+public extension InjectedFactory where T == _PlaceholderWebsiteViewModelFactory {
     
-    func make(localDataRemover: LocalDataRemover) -> PreAccountCreationOnboardingViewModel {
+    func make(website: String) -> PlaceholderWebsiteViewModel {
        return factory(
-              localDataRemover
+              website
        )
     }
 }
 
-extension PreAccountCreationOnboardingViewModel {
-        internal typealias Factory = InjectedFactory<_PreAccountCreationOnboardingViewModelFactory>
+extension PlaceholderWebsiteViewModel {
+        public typealias Factory = InjectedFactory<_PlaceholderWebsiteViewModelFactory>
+}
+
+
+internal typealias _PostARKChangeMasterPasswordViewModelFactory =  (
+    _ accountCryptoChangerService: AccountCryptoChangerServiceProtocol,
+    _ completion: @escaping (PostARKChangeMasterPasswordViewModel.Completion) -> Void
+) -> PostARKChangeMasterPasswordViewModel
+
+internal extension InjectedFactory where T == _PostARKChangeMasterPasswordViewModelFactory {
+    
+    func make(accountCryptoChangerService: AccountCryptoChangerServiceProtocol, completion: @escaping (PostARKChangeMasterPasswordViewModel.Completion) -> Void) -> PostARKChangeMasterPasswordViewModel {
+       return factory(
+              accountCryptoChangerService,
+              completion
+       )
+    }
+}
+
+extension PostARKChangeMasterPasswordViewModel {
+        internal typealias Factory = InjectedFactory<_PostARKChangeMasterPasswordViewModelFactory>
+}
+
+
+internal typealias _PostAccountRecoveryLoginFlowModelFactory =  (
+    _ authenticationMethod: AuthenticationMethod
+) -> PostAccountRecoveryLoginFlowModel
+
+internal extension InjectedFactory where T == _PostAccountRecoveryLoginFlowModelFactory {
+    
+    func make(authenticationMethod: AuthenticationMethod) -> PostAccountRecoveryLoginFlowModel {
+       return factory(
+              authenticationMethod
+       )
+    }
+}
+
+extension PostAccountRecoveryLoginFlowModel {
+        internal typealias Factory = InjectedFactory<_PostAccountRecoveryLoginFlowModelFactory>
 }
 
 
@@ -5368,11 +6312,11 @@ extension SecurityAlertNotificationRowViewModel {
 }
 
 
-internal typealias _SecuritySettingsViewModelFactory =  (
+internal typealias _SecuritySettingsViewModelFactory = @MainActor (
 ) -> SecuritySettingsViewModel
 
 internal extension InjectedFactory where T == _SecuritySettingsViewModelFactory {
-    
+    @MainActor
     func make() -> SecuritySettingsViewModel {
        return factory(
        )
@@ -5384,12 +6328,12 @@ extension SecuritySettingsViewModel {
 }
 
 
-internal typealias _SettingsAccountSectionViewModelFactory =  (
+internal typealias _SettingsAccountSectionViewModelFactory = @MainActor (
     _ actionHandler: @escaping (MasterPasswordResetActivationViewModel.Action) -> Void
 ) -> SettingsAccountSectionViewModel
 
 internal extension InjectedFactory where T == _SettingsAccountSectionViewModelFactory {
-    
+    @MainActor
     func make(actionHandler: @escaping (MasterPasswordResetActivationViewModel.Action) -> Void) -> SettingsAccountSectionViewModel {
        return factory(
               actionHandler
@@ -5784,6 +6728,22 @@ extension SharingUsersSectionViewModel {
 }
 
 
+internal typealias _SidebarViewModelFactory =  (
+) -> SidebarViewModel
+
+internal extension InjectedFactory where T == _SidebarViewModelFactory {
+    
+    func make() -> SidebarViewModel {
+       return factory(
+       )
+    }
+}
+
+extension SidebarViewModel {
+        internal typealias Factory = InjectedFactory<_SidebarViewModelFactory>
+}
+
+
 internal typealias _SocialSecurityDetailViewModelFactory =  (
     _ item: SocialSecurityInformation,
     _ mode: DetailMode
@@ -5895,17 +6855,15 @@ extension TwoFAActivationViewModel {
 internal typealias _TwoFACompletionViewModelFactory =  (
     _ option: TFAOption,
     _ response: TOTPActivationResponse,
-    _ accountAPIClient: AccountAPIClientProtocol,
     _ completion: @escaping () -> Void
 ) -> TwoFACompletionViewModel
 
 internal extension InjectedFactory where T == _TwoFACompletionViewModelFactory {
     
-    func make(option: TFAOption, response: TOTPActivationResponse, accountAPIClient: AccountAPIClientProtocol, completion: @escaping () -> Void) -> TwoFACompletionViewModel {
+    func make(option: TFAOption, response: TOTPActivationResponse, completion: @escaping () -> Void) -> TwoFACompletionViewModel {
        return factory(
               option,
               response,
-              accountAPIClient,
               completion
        )
     }
@@ -5937,16 +6895,14 @@ extension TwoFADeactivationViewModel {
 
 
 internal typealias _TwoFAPhoneNumberSetupViewModelFactory = @MainActor (
-    _ accountAPIClient: AccountAPIClientProtocol,
     _ option: TFAOption,
     _ completion: @escaping (TOTPActivationResponse?) -> Void
 ) -> TwoFAPhoneNumberSetupViewModel
 
 internal extension InjectedFactory where T == _TwoFAPhoneNumberSetupViewModelFactory {
     @MainActor
-    func make(accountAPIClient: AccountAPIClientProtocol, option: TFAOption, completion: @escaping (TOTPActivationResponse?) -> Void) -> TwoFAPhoneNumberSetupViewModel {
+    func make(option: TFAOption, completion: @escaping (TOTPActivationResponse?) -> Void) -> TwoFAPhoneNumberSetupViewModel {
        return factory(
-              accountAPIClient,
               option,
               completion
        )
@@ -5997,15 +6953,13 @@ extension TwoFASetupViewModel {
 
 
 internal typealias _TwoFactorEnforcementViewModelFactory = @MainActor (
-    _ accountAPIClient: AccountAPIClientProtocol,
     _ logout: @escaping () -> Void
 ) -> TwoFactorEnforcementViewModel
 
 internal extension InjectedFactory where T == _TwoFactorEnforcementViewModelFactory {
     @MainActor
-    func make(accountAPIClient: AccountAPIClientProtocol, logout: @escaping () -> Void) -> TwoFactorEnforcementViewModel {
+    func make(logout: @escaping () -> Void) -> TwoFactorEnforcementViewModel {
        return factory(
-              accountAPIClient,
               logout
        )
     }
@@ -6032,19 +6986,23 @@ extension UnresolvedAlertViewModel {
 }
 
 
-internal typealias _UserSpaceSwitcherViewModelFactory =  (
-) -> UserSpaceSwitcherViewModel
+internal typealias _UserConsentViewModelFactory =  (
+    _ isEmailMarketingOptInRequired: Bool,
+    _ completion: @escaping (UserConsentViewModel.Completion) -> Void
+) -> UserConsentViewModel
 
-internal extension InjectedFactory where T == _UserSpaceSwitcherViewModelFactory {
+internal extension InjectedFactory where T == _UserConsentViewModelFactory {
     
-    func make() -> UserSpaceSwitcherViewModel {
+    func make(isEmailMarketingOptInRequired: Bool, completion: @escaping (UserConsentViewModel.Completion) -> Void) -> UserConsentViewModel {
        return factory(
+              isEmailMarketingOptInRequired,
+              completion
        )
     }
 }
 
-extension UserSpaceSwitcherViewModel {
-        internal typealias Factory = InjectedFactory<_UserSpaceSwitcherViewModelFactory>
+extension UserConsentViewModel {
+        internal typealias Factory = InjectedFactory<_UserConsentViewModelFactory>
 }
 
 
@@ -6144,26 +7102,6 @@ extension VaultItemIconViewModel {
 }
 
 
-public typealias _VaultItemIconViewModelSecondFactory =  (
-    _ item: VaultItem,
-    _ iconLibrary: DomainIconLibraryProtocol
-) -> VaultItemIconViewModel
-
-public extension InjectedFactory where T == _VaultItemIconViewModelSecondFactory {
-    
-    func make(item: VaultItem, iconLibrary: DomainIconLibraryProtocol) -> VaultItemIconViewModel {
-       return factory(
-              item,
-              iconLibrary
-       )
-    }
-}
-
-extension VaultItemIconViewModel {
-        public typealias SecondFactory = InjectedFactory<_VaultItemIconViewModelSecondFactory>
-}
-
-
 internal typealias _VaultItemRowModelFactory =  (
     _ configuration: VaultItemRowModel.Configuration,
     _ additionalConfiguration: VaultItemRowModel.AdditionalConfiguration?
@@ -6185,13 +7123,13 @@ extension VaultItemRowModel {
 
 
 internal typealias _VaultListViewModelFactory =  (
-    _ filter: VaultListFilter,
+    _ filter: VaultItemsSection,
     _ completion: @escaping (VaultListCompletion) -> Void
 ) -> VaultListViewModel
 
 internal extension InjectedFactory where T == _VaultListViewModelFactory {
     
-    func make(filter: VaultListFilter, completion: @escaping (VaultListCompletion) -> Void) -> VaultListViewModel {
+    func make(filter: VaultItemsSection, completion: @escaping (VaultListCompletion) -> Void) -> VaultListViewModel {
        return factory(
               filter,
               completion
@@ -6205,13 +7143,13 @@ extension VaultListViewModel {
 
 
 internal typealias _VaultSearchViewModelFactory =  (
-    _ activeFilter: VaultListFilter,
+    _ activeFilter: VaultItemsSection,
     _ completion: @escaping (VaultListCompletion) -> Void
 ) -> VaultSearchViewModel
 
 internal extension InjectedFactory where T == _VaultSearchViewModelFactory {
     
-    func make(activeFilter: VaultListFilter, completion: @escaping (VaultListCompletion) -> Void) -> VaultSearchViewModel {
+    func make(activeFilter: VaultItemsSection, completion: @escaping (VaultListCompletion) -> Void) -> VaultSearchViewModel {
        return factory(
               activeFilter,
               completion

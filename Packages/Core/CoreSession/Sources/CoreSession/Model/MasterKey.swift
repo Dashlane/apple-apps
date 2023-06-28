@@ -4,21 +4,14 @@ import DashTypes
 public enum MasterKey: Equatable, Codable {
     case masterPassword(String, serverKey: String? = nil)
     case ssoKey(Data) 
-    
-    public var masterPassword: String? {
-        guard case let .masterPassword (masterPassword, _) = self else {
-            return nil
-        }
-        return masterPassword
-    }
-    
+
     public var serverKey: String? {
-        guard case let .masterPassword (_, serverKey) = self else {
+        guard case let .masterPassword(_, serverKey) = self else {
             return nil
         }
         return serverKey
     }
-    
+
     public var secret: EncryptionSecret {
         switch self {
         case let .masterPassword(masterPassword, serverKey):
@@ -31,7 +24,7 @@ public enum MasterKey: Equatable, Codable {
             return .key(key)
         }
     }
-    
+
     public func masterKey(withServerKey serverKey: String?) -> MasterKey {
         switch self {
         case let .masterPassword(masterPassword, _):
@@ -40,9 +33,9 @@ public enum MasterKey: Equatable, Codable {
             return self
         }
     }
-    
-    public static func ==(lhs: MasterKey, rhs: MasterKey) -> Bool {
-        switch (lhs,rhs) {
+
+    public static func == (lhs: MasterKey, rhs: MasterKey) -> Bool {
+        switch (lhs, rhs) {
         case (let .masterPassword(lhsPassword, _), let .masterPassword(rhsPassword, _)):
             return lhsPassword == rhsPassword
         case (let .ssoKey(lhsData), let .ssoKey(rhsData)):

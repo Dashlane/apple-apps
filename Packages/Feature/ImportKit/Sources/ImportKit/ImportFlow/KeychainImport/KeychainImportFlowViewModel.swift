@@ -4,10 +4,14 @@ import Foundation
 import CorePersonalData
 import CoreUserTracking
 import VaultKit
+import CorePremium
 
-public class KeychainImportFlowViewModel: ImportFlowViewModel {
+@MainActor
+public class KeychainImportFlowViewModel: ImportFlowViewModel, ImportKitServicesInjecting {
 
-    public typealias AnyImportViewModel = KeychainImportViewModel
+    public typealias AnyImportViewModel = CSVImportViewModel
+    public var fileData: Data?
+    public var isLoading: Bool = false
 
     public let kind: ImportFlowKind = .keychain
 
@@ -15,44 +19,67 @@ public class KeychainImportFlowViewModel: ImportFlowViewModel {
     public var steps: [ImportFlowStep]
 
     public var showPasswordView: Bool = false
-    public let shouldDisplayRootBackButton: Bool
 
     public var dismissPublisher: AnyPublisher<ImportDismissAction, Never> {
         return dismissSubject.eraseToAnyPublisher()
     }
 
-    private let personalDataURLDecoder: CorePersonalData.PersonalDataURLDecoder
+    private let personalDataURLDecoder: PersonalDataURLDecoderProtocol
     private let applicationDatabase: ApplicationDatabase
     private let iconService: IconServiceProtocol
     private let activityReporter: ActivityReporterProtocol
 
     private let dismissSubject = PassthroughSubject<ImportDismissAction, Never>()
 
-    private var importViewModel: KeychainImportViewModel!
+    private var importViewModel: CSVImportViewModel!
+    private let csvImportViewModelFactory: CSVImportViewModel.Factory
+    private let importInformationViewModelFactory: ImportInformationViewModel.Factory
 
     public init(
-        initialStep: ImportFlowStep = .intro(.init(kind: .keychain, step: .intro)),
-        fromDeeplink: Bool = false,
-        personalDataURLDecoder: CorePersonalData.PersonalDataURLDecoder,
+        initialStep: ImportFlowStep,
+        personalDataURLDecoder: PersonalDataURLDecoderProtocol,
         applicationDatabase: ApplicationDatabase,
         iconService: IconServiceProtocol,
-        activityReporter: ActivityReporterProtocol
+        activityReporter: ActivityReporterProtocol,
+        csvImportViewModelFactory: CSVImportViewModel.Factory,
+        importInformationViewModelFactory: ImportInformationViewModel.Factory
     ) {
         steps = [initialStep]
-        self.shouldDisplayRootBackButton = fromDeeplink
         self.personalDataURLDecoder = personalDataURLDecoder
         self.applicationDatabase = applicationDatabase
         self.iconService = iconService
         self.activityReporter = activityReporter
+        self.csvImportViewModelFactory = csvImportViewModelFactory
+        self.importInformationViewModelFactory = importInformationViewModelFactory
+    }
+
+    public convenience init(
+        personalDataURLDecoder: PersonalDataURLDecoderProtocol,
+        applicationDatabase: ApplicationDatabase,
+        iconService: IconServiceProtocol,
+        activityReporter: ActivityReporterProtocol,
+        csvImportViewModelFactory: CSVImportViewModel.Factory,
+        importInformationViewModelFactory: ImportInformationViewModel.Factory
+    ) {
+        let step = ImportFlowStep.intro(importInformationViewModelFactory.make(kind: .keychain, step: .intro))
+        self.init(initialStep: step,
+                  personalDataURLDecoder: personalDataURLDecoder,
+                  applicationDatabase: applicationDatabase,
+                  iconService: iconService,
+                  activityReporter: activityReporter,
+                  csvImportViewModelFactory: csvImportViewModelFactory,
+                  importInformationViewModelFactory: importInformationViewModelFactory)
     }
 
     private func makeImportViewModel(withArchiveData: Data) {
-        let importService = KeychainImportService(file: withArchiveData,
-                                                  applicationDatabase: applicationDatabase)
-        let viewModel = KeychainImportViewModel(importService: importService,
-                                                iconService: iconService,
-                                                personalDataURLDecoder: personalDataURLDecoder,
-                                                activityReporter: activityReporter)
+        let importService = CSVImportService(file: withArchiveData,
+                                             csvOrigin: .keychain,
+                                             applicationDatabase: applicationDatabase,
+                                             personalDataURLDecoder: personalDataURLDecoder)
+        let viewModel = csvImportViewModelFactory.make(importService: importService,
+                                                       didSave: {
+            self.dismissSubject.send(.dismiss)
+        })
         self.importViewModel = viewModel
     }
 
@@ -65,7 +92,8 @@ public class KeychainImportFlowViewModel: ImportFlowViewModel {
         case .importCompleted(let data):
             handleImportCompleted(data)
         case .nextInfo, .done:
-            steps.append(.instructions(.init(kind: kind, step: .instructions)))
+            let viewModel = importInformationViewModelFactory.make(kind: kind, step: .instructions)
+            steps.append(.instructions(viewModel))
         case .close:
             assertionFailure("Inadmissible action for this step")
         }
@@ -97,7 +125,7 @@ public class KeychainImportFlowViewModel: ImportFlowViewModel {
         }
     }
 
-    public func handleListAction(_ action: ImportListView<KeychainImportViewModel>.Action) {
+    public func handleListAction(_ action: ImportListView<CSVImportViewModel>.Action) {
         switch action {
         case .saved:
             dismissSubject.send(.dismiss)

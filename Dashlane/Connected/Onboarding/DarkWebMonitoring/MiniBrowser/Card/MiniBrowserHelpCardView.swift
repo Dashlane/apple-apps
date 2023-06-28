@@ -1,5 +1,8 @@
+import DesignSystem
 import SwiftUI
 import UIDelight
+import VaultKit
+import CoreLocalization
 
 struct MiniBrowserHelpCardView: View {
 
@@ -28,7 +31,7 @@ struct MiniBrowserHelpCardView: View {
         VStack {
             VStack(alignment: .leading, spacing: 0) {
                 Text(L10n.Localizable.dwmOnboardingCardWSIDTabChangePwd)
-                    .foregroundColor(Color.white)
+                    .foregroundColor(.ds.text.inverse.catchy)
                     .font(.headline)
                     .padding(.bottom, 4)
 
@@ -42,7 +45,8 @@ struct MiniBrowserHelpCardView: View {
                         Image(systemName: "arrowtriangle.down.fill")
                             .resizable()
                             .frame(width: 8, height: 4, alignment: .center)
-                    }.foregroundColor(Color(asset: FiberAsset.secondaryActionText))
+                    }
+                    .foregroundColor(.ds.text.inverse.quiet)
                 }).padding(.bottom, 16)
 
                 VStack {
@@ -78,7 +82,7 @@ struct MiniBrowserHelpCardView: View {
                 .padding(.leading, 16.0)
                 .padding(.top, 16.0)
 
-            BreachTextField(title: L10n.Localizable.kwEmailPlaceholder,
+            BreachTextField(title: CoreLocalization.L10n.Core.kwEmailPlaceholder,
                             text: Binding.constant(model.email),
                             isUserInteractionEnabled: false)
                 .actions([emailAction])
@@ -119,8 +123,7 @@ struct MiniBrowserHelpCardView_Previews: PreviewProvider {
                 MiniBrowserHelpCardView(model:
                     MiniBrowserHelpCardViewModel(email: "_",
                                              password: "MyPassword",
-                                             domain: "pinterest.com",
-                                             usageLogService: DWMLogService.fakeService),
+                                             domain: "pinterest.com"),
                                         emailAction: .copy({_, _ in }),
                                         passwordAction: .copy({_, _ in }),
                                         maxHeight: 305)

@@ -7,7 +7,6 @@ public protocol CodeNamePair {
     init(code: String, name: String)
 }
 
-
 public struct RegionCodeComponentsInfo {
     public let countryCode: String
     public let subcode: String
@@ -52,7 +51,7 @@ extension CodeNamePair {
         var container = encoder.singleValueContainer()
         try container.encode(code)
     }
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         let code = try container.decode(String.self)

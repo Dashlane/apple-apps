@@ -11,7 +11,6 @@ public protocol SharingGroupMember {
     var parentGroupId: Identifier { get }
 }
 
-
 public extension SharingMemberStatus {
     var isAcceptedOrPending: Bool {
         return [.pending, .accepted].contains(self)
@@ -29,4 +28,3 @@ extension User: SharingGroupMember {
         return id
     }
 }
-

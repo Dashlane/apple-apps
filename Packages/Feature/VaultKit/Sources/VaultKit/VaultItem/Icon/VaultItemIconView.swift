@@ -11,7 +11,7 @@ public struct VaultItemIconView: View {
         self.isListStyle = isListStyle
         self.model = model
     }
-    
+
     @ViewBuilder
     public var body: some View {
         switch model.item.icon(forListStyle: isListStyle) {

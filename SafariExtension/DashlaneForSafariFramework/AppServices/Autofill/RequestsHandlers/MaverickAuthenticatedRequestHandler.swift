@@ -80,7 +80,7 @@ struct MaverickAuthenticatedRequestHandler: MaverickRequestHandler {
         case .openGetPremiumWindows:
             handlerResponse = try OpenPremiumOrder(maverickOrderMessage: order.message).makeResponse()
         case .usageLog:
-            handlerResponse = try sessionServicesContainer.viewModelFactory.makeMaverickUsageLogHandler(maverickOrderMessage: order.message).makeResponse()
+            handlerResponse = nil
         case .getAnalysisEnabledStatusOnUrl:
             let handler = sessionServicesContainer.viewModelFactory.makeAuthenticatedAnalysisStatusHandler()
             handlerResponse = try GetAnalysisEnabledStatusOnUrlHandler(maverickOrderMessage: order.message, sessionState: .loggedIn(handler)).makeResponse()

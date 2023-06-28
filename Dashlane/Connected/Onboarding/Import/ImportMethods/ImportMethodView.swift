@@ -3,6 +3,7 @@ import UIDelight
 import DashlaneAppKit
 import UIComponents
 import DesignSystem
+import CoreLocalization
 
 struct ImportMethodView<Model: ImportMethodViewModelProtocol>: View {
 
@@ -49,14 +50,14 @@ struct ImportMethodView<Model: ImportMethodViewModelProtocol>: View {
                 }
             }
         }
-        .backgroundColorIgnoringSafeArea(Color(asset: FiberAsset.appBackground))
+        .backgroundColorIgnoringSafeArea(.ds.background.default)
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
-                NavigationBarButton(L10n.Localizable.kwBack, action: viewModel.back)
+                NavigationBarButton(CoreLocalization.L10n.Core.kwBack, action: viewModel.back)
             }
         }
-        .navigationTitle(viewModel.shouldShowDWMScanResult ? L10n.Localizable.dwmOnboardingFixBreachesMainTitle : "")
+        .navigationTitle(viewModel.shouldShowDWMScanResult ? L10n.Localizable.dwmOnboardingFixBreachesMainTitle : CoreLocalization.L10n.Core.m2WImportGenericImportScreenHeader)
         .reportPageAppearance(.import)
         .onAppear {
             viewModel.logDisplay()
@@ -65,27 +66,28 @@ struct ImportMethodView<Model: ImportMethodViewModelProtocol>: View {
 
         private var darkWebMonitoringResults: some View {
         HStack(alignment: .top, spacing: 10) {
-            Image(asset: FiberAsset.noBreachesMessageIcon)
+            Image.ds.feedback.success.outlined
                 .fiberAccessibilityHidden(true)
+                .foregroundColor(.ds.text.positive.quiet)
             VStack(alignment: .leading, spacing: 10) {
                 Text(L10n.Localizable.darkWebMonitoringOnboardingResultsNoBreachesTitle)
-                    .foregroundColor(Color(asset: FiberAsset.dwmOnboardingResultMessageText))
+                    .foregroundColor(.ds.text.positive.standard)
                     .font(.headline)
                     .fixedSize(horizontal: false, vertical: true)
                 Text(L10n.Localizable.darkWebMonitoringOnboardingResultsNoBreachesBody)
-                    .foregroundColor(Color(asset: FiberAsset.dwmOnboardingResultMessageText))
+                    .foregroundColor(.ds.text.positive.standard)
                     .font(.subheadline)
                     .fixedSize(horizontal: false, vertical: true)
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(16)
-        .background(Color(asset: FiberAsset.iconPlaceholderBackground))
+        .background(Color.ds.container.expressive.positive.quiet.idle)
         .cornerRadius(4)
         .padding(.horizontal, 8)
         .padding(.top, 24)
         .fiberAccessibilityElement(children: .combine)
-        .fiberAccessibilityLabel(Text("\(L10n.Localizable.accessibilityInfoSection): \(L10n.Localizable.darkWebMonitoringOnboardingResultsNoBreachesTitle), \(L10n.Localizable.darkWebMonitoringOnboardingResultsNoBreachesBody)"))
+        .fiberAccessibilityLabel(Text("\(CoreLocalization.L10n.Core.accessibilityInfoSection): \(L10n.Localizable.darkWebMonitoringOnboardingResultsNoBreachesTitle), \(L10n.Localizable.darkWebMonitoringOnboardingResultsNoBreachesBody)"))
     }
 }
 

@@ -7,15 +7,15 @@ extension SocialSecurityInformation {
     public var listIcon: VaultItemIcon {
         return .static(.ds.item.socialSecurity.outlined, backgroundColor: backgroundColor)
     }
-    
+
     public var icon: VaultItemIcon {
         return .static(.ds.item.socialSecurity.outlined, backgroundColor: backgroundColor)
     }
-    
+
     public static var addIcon: SwiftUI.Image {
         .ds.item.socialSecurity.outlined
     }
-    
+
     public var backgroundColor: SwiftUI.Color? {
         switch country?.code {
         case "FR":

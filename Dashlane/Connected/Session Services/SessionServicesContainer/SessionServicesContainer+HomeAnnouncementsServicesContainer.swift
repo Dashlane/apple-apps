@@ -5,8 +5,15 @@ import CoreUserTracking
 import CorePremium
 import CoreSettings
 import CoreFeature
+import AutofillKit
+import Combine
 
 extension SessionServicesContainer: HomeAnnouncementsServicesContainer {
+
+    var capabilityService: CorePremium.CapabilityServiceProtocol {
+        premiumService
+    }
+
     var login: DashTypes.Login { session.login }
 
         var announcementsActivityReporter: CoreUserTracking.ActivityReporterProtocol {
@@ -24,5 +31,11 @@ extension SessionServicesContainer: HomeAnnouncementsServicesContainer {
 
     var notificationKitAutofillService: NotificationKit.NotificationKitAutofillServiceProtocol { autofillService }
 
-    var abTestingService: CoreFeature.ABTestingServiceProtocol { authenticatedABTestingService }
+    var notificationKitFeatureService: CoreFeature.FeatureServiceProtocol { featureService }
+}
+
+extension AutofillService: NotificationKit.NotificationKitAutofillServiceProtocol {
+    public var notificationKitActivationStatus: Published<AutofillActivationStatus>.Publisher {
+        $activationStatus
+    }
 }

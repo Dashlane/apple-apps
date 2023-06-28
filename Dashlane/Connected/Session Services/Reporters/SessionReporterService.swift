@@ -4,45 +4,35 @@ import CoreUserTracking
 import CoreFeature
 import Combine
 import LoginKit
+import DashlaneAPI
 import DashTypes
+import CoreSession
 
 class SessionReporterService: DependenciesContainer {
     let activityReporter: ActivityReporterProtocol
     let deviceInformation: DeviceInformationReporting
-
-        let legacyAggregated: AggregatedLogService
-        let legacyUsage: UsageLogServiceProtocol
+    let loginMetricsReporter: LoginMetricsReporter
 
     private var subscriptions: Set<AnyCancellable> = []
 
     init(activityReporter: ActivityReporterProtocol,
-         deviceInformation: DeviceInformationReporting,
-         legacyAggregated: AggregatedLogService,
-         legacyUsage: UsageLogServiceProtocol) {
+         loginMetricsReporter: LoginMetricsReporter,
+         deviceInformation: DeviceInformationReporting) {
         self.activityReporter = activityReporter
+        self.loginMetricsReporter = loginMetricsReporter
         self.deviceInformation = deviceInformation
-        self.legacyAggregated = legacyAggregated
-        self.legacyUsage = legacyUsage
     }
 
         func postLoadConfigure(using services: SessionServicesContainer, loadingContext: SessionLoadingContext) {
 
         reportPerformanceMetrics(for: loadingContext)
-        legacyUsage.sendCachedLogs()
-        if loadingContext == .accountCreation {
-            legacyUsage.sendAccountCreationUsageLogs()
-        }
-        services.appServices.loginUsageLogService.reset()
+        services.appServices.loginMetricsReporter.reset()
         deviceInformation.report()
-        performDeduplicationAudit(using: services)
 
         configureReportOnSync(using: services)
-        configureReportFlipsStatus(using: services.featureService)
     }
 
     func unload(reason: SessionServicesUnloadReason) {
-        legacyUsage.unload(loginStartDate: legacyAggregated.startDate) {}
-        legacyAggregated.unload()
         if reason == .userLogsOut {
             deviceInformation.reportOnLogout()
         }
@@ -50,36 +40,20 @@ class SessionReporterService: DependenciesContainer {
     }
 
     private func reportPerformanceMetrics(for loadingContext: SessionLoadingContext) {
-        if let performanceLogInfo = legacyUsage.getPerformanceLogInfo(),
+        if let performanceLogInfo = loginMetricsReporter.getPerformanceLogInfo(.login),
            let measureName = loadingContext.measureName {
             activityReporter.report(performanceLogInfo.performanceUserEvent(for: measureName))
+            loginMetricsReporter.resetTimer(.login)
         }
-        legacyUsage.sendLoginUsageLogs(loadingContext: loadingContext)
     }
 }
 
 private extension SessionReporterService {
 
-    func performDeduplicationAudit(using services: SessionServicesContainer) {
-        if services.featureService.isEnabled(.deduplicationAudit) {
-            DeduplicationAudit(credentials: services.vaultItemsService.credentials,
-                               linkedDomainService: services.appServices.linkedDomainService,
-                               usageLogService: legacyUsage,
-                               userSettings: services.spiegelUserSettings)
-                .performAuditIfNeeded()
-        }
-    }
-
-    func configureReportFlipsStatus(using featureService: FeatureService) {
-        featureService.featureFlipUsageLogger.logsPublisher().sink { [weak self] log in
-            self?.legacyUsage.post(log)
-        }.store(in: &subscriptions)
-    }
-
     func configureReportOnSync(using services: SessionServicesContainer) {
 
         services.syncService.$syncStatus
-            .throttle(for: .seconds(5), scheduler: DispatchQueue.backgroudReporter, latest: true)
+            .throttle(for: .seconds(5), scheduler: DispatchQueue.backgroundReporter, latest: true)
             .filter { $0.isIdle }
             .receive(on: DispatchQueue.main)
             .sink { [weak self] _ in
@@ -105,6 +79,7 @@ private extension SessionReporterService {
         let vaultReportService = VaultReportService(identityDashboardService: services.identityDashboardService,
                                                     userSettings: services.spiegelUserSettings,
                                                     vaultItemsService: services.vaultItemsService,
+                                                    apiClient: services.userDeviceAPIClient.useractivity,
                                                     teamSpacesService: services.teamSpacesService,
                                                     activityReporter: services.activityReporter)
         vaultReportService.report()
@@ -118,7 +93,7 @@ private extension SessionReporterService {
 
 private extension DispatchQueue {
 
-    static let backgroudReporter = DispatchQueue(label: "com.dashlane.backgroundReporter", qos: .utility)
+    static let backgroundReporter = DispatchQueue(label: "com.dashlane.backgroundReporter", qos: .utility)
 }
 
 private extension Date {

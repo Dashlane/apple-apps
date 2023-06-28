@@ -7,7 +7,7 @@ public struct EmbeddedViewController: UIViewControllerRepresentable {
     public init(_ viewControllerFactory: @escaping () -> UIViewController) {
         self.viewControllerFactory = viewControllerFactory
     }
-    
+
     public init(_ viewControllerFactory: @autoclosure @escaping () -> UIViewController) {
         self.viewControllerFactory = viewControllerFactory
     }

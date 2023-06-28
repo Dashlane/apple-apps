@@ -3,9 +3,9 @@ import SwiftUI
 import UIComponents
 
 struct SuccessView: View {
-    
+
     let completion: () -> Void
-    
+
     var body: some View {
         VStack {
             LottieView(.success, loopMode: .playOnce)
@@ -25,6 +25,6 @@ struct SuccessView: View {
 
 struct SuccessView_previews: PreviewProvider {
     static var previews: some View {
-        SuccessView() {}
+        SuccessView {}
     }
 }

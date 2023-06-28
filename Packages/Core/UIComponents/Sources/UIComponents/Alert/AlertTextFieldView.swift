@@ -132,36 +132,48 @@ public struct AlertTextFieldView<Content: View>: View {
     }
 
     private var textField: some View {
-        TextInput(placeholder,
-                  text: $textFieldInput)
-            .submitLabel(.go)
-            .textInputAutocapitalization(.never)
-            .textContentType(.oneTimeCode) 
-            .disableAutocorrection(true)
-            .padding(6)
-            .padding([.horizontal, .bottom])
-            .textInputIsSecure(isSecure)
+        Group {
+            if isSecure {
+                DS.PasswordField(placeholder, text: $textFieldInput)
+            } else {
+                DS.TextField(placeholder, text: $textFieldInput)
+            }
+        }
+        .textFieldDisableLabelPersistency()
+        .submitLabel(.go)
+        .textInputAutocapitalization(.never)
+        .textContentType(.oneTimeCode) 
+        .autocorrectionDisabled()
+        .padding(6)
+        .padding([.horizontal, .bottom])
     }
 }
 
 struct AlertTextFieldView_Previews: PreviewProvider {
+    struct Preview: View {
+        @State private var text = ""
+
+        var body: some View {
+            AlertTextFieldView(title: "Title",
+                               message: "Message",
+                               placeholder: "field placeholder",
+                               isSecure: false,
+                               textFieldInput: $text,
+                               buttons: {
+                Group {
+                    Button("Hello") {
+                        print("hello")
+                    }
+                    Divider()
+                    Button("World") {
+                        print("world")
+                    }
+                }
+            })
+        }
+    }
     static var previews: some View {
-        AlertTextFieldView(title: "Title",
-                           message: "Message",
-                           placeholder: "field placeholder",
-                           isSecure: false,
-                           textFieldInput: Binding<String>.constant(""),
-                           buttons: {
-            Group {
-                Button("Hello") {
-                    print("hello")
-                }
-                Divider()
-                Button("World") {
-                    print("world")
-                }
-            }
-        })
+        Preview()
     }
 }
 #endif

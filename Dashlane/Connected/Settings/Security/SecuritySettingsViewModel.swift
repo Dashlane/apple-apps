@@ -5,7 +5,6 @@ import CryptoKit
 import SwiftTreats
 import CoreSession
 import DashlaneAppKit
-import DashlaneReportKit
 import CoreUserTracking
 import CorePasswords
 import DashTypes
@@ -14,6 +13,7 @@ import CorePersonalData
 import CoreFeature
 import CorePremium
 
+@MainActor
 final class SecuritySettingsViewModel: ObservableObject, SessionServicesInjecting {
     typealias Confirmed = Bool
 
@@ -74,11 +74,15 @@ final class SecuritySettingsViewModel: ObservableObject, SessionServicesInjectin
     }
 
     var shouldDisplayOTP: Bool {
-        !teamSpacesService.isSSOUser && !Device.isMac && featureService.isEnabled(.twoFASettings)
+        session.configuration.info.accountType == .masterPassword && !Device.isMac && featureService.isEnabled(.twoFASettings)
     }
 
     var shouldDisplayAutoLockOptions: Bool {
         lockService.shouldDisplayAutoLockOptions == true
+    }
+
+    var isMasterPasswordAccount: Bool {
+        return session.configuration.info.accountType == .masterPassword
     }
 
     var twoFASettingsMessage: String {
@@ -104,8 +108,8 @@ final class SecuritySettingsViewModel: ObservableObject, SessionServicesInjectin
         settingsBiometricToggleViewModelFactory.make(actionHandler: handleBiometricAction)
     }
 
-    private func makeMasterPasswordResetActivationViewModel() -> MasterPasswordResetActivationViewModel {
-        masterPasswordResetActivationViewModelFactory.make(actionHandler: handleMasterPasswordResetAction)
+    private func makeMasterPasswordResetActivationViewModel(masterPassword: String) -> MasterPasswordResetActivationViewModel {
+        masterPasswordResetActivationViewModelFactory.make(masterPassword: masterPassword, actionHandler: handleMasterPasswordResetAction)
     }
 
     private func makePinCodeSettingsViewModel() -> PinCodeSettingsViewModel {
@@ -125,8 +129,8 @@ final class SecuritySettingsViewModel: ObservableObject, SessionServicesInjectin
 
         private func handlePinCodeAction(_ action: PinCodeSettingsViewModel.Action) {
         switch action {
-        case .deactivateMasterPasswordReset:
-            accountSectionViewModel.masterPasswordResetActivationViewModel.deactivateMasterPasswordReset()
+        case let .deactivateMasterPasswordReset(masterPassword):
+            accountSectionViewModel.makeMasterPasswordResetActivationViewModel(masterPassword: masterPassword).deactivateMasterPasswordReset()
         case .disableBiometry:
             biometricToggleViewModel.useBiometry(false)
         case .disableRememberMasterPassword:
@@ -136,10 +140,10 @@ final class SecuritySettingsViewModel: ObservableObject, SessionServicesInjectin
 
     private func handleBiometricAction(_ action: SettingsBiometricToggleViewModel.Action) {
         switch action {
-        case .enableMasterPasswordReset:
-            accountSectionViewModel.masterPasswordResetActivationViewModel.startMasterPasswordChallenge()
-        case .disableResetMasterPassword:
-            accountSectionViewModel.masterPasswordResetActivationViewModel.deactivateMasterPasswordReset()
+        case let .enableMasterPasswordReset(masterPassword):
+            accountSectionViewModel.makeMasterPasswordResetActivationViewModel(masterPassword: masterPassword).startMasterPasswordChallenge()
+        case let .disableResetMasterPassword(masterPassword):
+            accountSectionViewModel.makeMasterPasswordResetActivationViewModel(masterPassword: masterPassword).deactivateMasterPasswordReset()
         case .disableRememberMasterPassword:
             rememberMasterPasswordToggleViewModel.useRememberMasterPassword(false)
         case .disablePinCode:
@@ -168,13 +172,13 @@ final class SecuritySettingsViewModel: ObservableObject, SessionServicesInjectin
 
         static var mock: SecuritySettingsViewModel {
         .init(session: .mock,
-              teamSpacesService: TeamSpacesServiceMock(),
+              teamSpacesService: .mock(),
               featureService: .mock(),
               lockService: LockServiceMock(),
               settingsLockSectionViewModelFactory: .init({ .mock }),
               settingsAccountSectionViewModelFactory: .init({ _ in .mock }),
               settingsBiometricToggleViewModelFactory: .init({ _ in .mock }),
-              masterPasswordResetActivationViewModelFactory: .init({ _ in .mock }),
+              masterPasswordResetActivationViewModelFactory: .init({ _, _  in .mock }),
               pinCodeSettingsViewModelFactory: .init({ _ in .mock }),
               rememberMasterPasswordToggleViewModelFactory: .init({ _ in .mock }),
               twoFASettingsViewModelFactory: .init({ _, _, _ in .mock }))

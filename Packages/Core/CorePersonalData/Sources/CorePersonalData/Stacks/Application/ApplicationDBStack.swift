@@ -9,20 +9,20 @@ public struct ApplicationDBStack: ApplicationDatabase {
     let encoder = PersonalDataEncoder()
     let historyUpdater: HistoryUpdater
     let sharingUploadTrigger = SharingUploadTrigger()
-    
+
     public init(driver: DatabaseDriver,
                 historyUserInfo: HistoryUserInfo,
                 codeDecoder: CodeDecoder?,
-                personalDataURLDecoder: PersonalDataURLDecoder?,
+                personalDataURLDecoder: PersonalDataURLDecoderProtocol?,
                 logger: Logger) {
         self.driver = driver
         self.logger = logger
         historyUpdater = HistoryUpdater(info: historyUserInfo)
-        
+
         self.decoder = PersonalDataDecoder(codeDecoder: codeDecoder,
                                            personalDataURLDecoder: personalDataURLDecoder)
     }
-    
+
     @inline(__always)
     private func decodeIgnoringErrors<Output: PersonalDataCodable>(_ output: Output.Type, from records: [PersonalDataRecord]) -> [Output] {
         return records.compactMap {
@@ -34,7 +34,7 @@ public struct ApplicationDBStack: ApplicationDatabase {
             }
         }
     }
-    
+
     @inline(__always)
     func decode<Output: PersonalDataCodable>(_ output: Output.Type, from records: [PersonalDataRecord], ignoreDecodingErrors: Bool) throws -> [Output] {
         if ignoreDecodingErrors {
@@ -45,12 +45,12 @@ public struct ApplicationDBStack: ApplicationDatabase {
             }
         }
     }
-    
+
     @inline(__always)
     func decode<Output: PersonalDataCodable>(_ output: Output.Type, from record: PersonalDataRecord) throws -> Output {
         try decoder.decode(Output.self, from: record, using: makeLinkedFetcher())
     }
-    
+
     @inline(__always)
     func makeLinkedFetcher() -> LinkedFetcher {
         LinkedFetcherImpl(driver: driver)
@@ -61,18 +61,18 @@ class LinkedFetcherImpl: LinkedFetcher {
     var caches: [Identifier: PersonalDataRecord] = [:]
     let decoder = PersonalDataDecoder()
     let driver: DatabaseDriver
-    
+
     public init(driver: DatabaseDriver) {
         self.driver = driver
     }
-    
+
     func fetch<T: PersonalDataCodable>(with id: Identifier, type: T.Type) throws -> T? {
         guard let record = try fetchRecord(with: id) else {
             return nil
         }
         return try decoder.decode(T.self, from: record)
     }
-    
+
     private func fetchRecord(with id: Identifier) throws -> PersonalDataRecord? {
         if let cached = caches[id] {
             return cached

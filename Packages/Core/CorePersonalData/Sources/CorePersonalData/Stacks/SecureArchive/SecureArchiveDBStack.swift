@@ -10,7 +10,7 @@ public struct SecureArchiveDBStack {
         case noEncryptedData
         case encryptionFailed
     }
-    
+
     public init(driver: DatabaseDriver, cryptoEngine: CryptoEngine) {
         self.driver = driver
         self.cryptoEngine = cryptoEngine
@@ -44,7 +44,7 @@ public struct SecureArchiveDBStack {
         }
     }
 
-                public func `import`(fromSecureArchiveData data: Data) throws  {
+                public func `import`(fromSecureArchiveData data: Data) throws {
         let unlockedArchive = try unlock(secureArchiveData: data)
         let records = try extract(fromBackupContent: unlockedArchive)
 
@@ -53,20 +53,20 @@ public struct SecureArchiveDBStack {
 
         public func exportSecureArchive(to fileURL: URL) throws {
         let acceptedTypes = PersonalDataContentType.secureArchiveCases
-        
+
         let records = try driver.read { db in
             try acceptedTypes.map { type in
                 try db.fetchAll(by: type)
             }.joined()
         }
-        
+
         let objectIDs = records.map(\.id.rawValue).joined(separator: ";")
         let encryptedContent = try records
             .makeXML()
             .toQtCompressedData()
             .encrypt(using: cryptoEngine)
             .base64EncodedString()
-        
+
         let secureArchive = """
                 -------------------- Dashlane Secured Export ----------------------
                 --------------------        Id BEGIN         ----------------------
@@ -78,7 +78,7 @@ public struct SecureArchiveDBStack {
                 --------------------       Files BEGIN       ----------------------
                 --------------------        Files END        ----------------------
                 """
-        
+
         try secureArchive.write(to: fileURL, atomically: true, encoding: .utf8)
     }
 }
@@ -91,7 +91,7 @@ fileprivate extension String {
             indexOfDataBeginDelimiter < indexOfDataEndDelimiter else {
                 throw SecureArchiveDBStack.SecureArchiveError.noEncryptedData
         }
-        
+
         let base64 = lines[indexOfDataBeginDelimiter..<indexOfDataEndDelimiter].joined()
         guard let data = Data(base64Encoded: base64) else {
             throw SecureArchiveDBStack.SecureArchiveError.noEncryptedData

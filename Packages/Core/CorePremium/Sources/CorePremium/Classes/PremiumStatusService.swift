@@ -1,4 +1,3 @@
-
 import Foundation
 import DashTypes
 
@@ -7,11 +6,11 @@ public enum PremiumStatusServiceError: String, Error {
 }
 
 public final class PremiumStatusService {
-    
+
     private enum Endpoint: String {
         case status = "/3/premium/status"
     }
-    
+
     private enum Key: String {
         case key
         case secureFileInfoId
@@ -25,24 +24,24 @@ public final class PremiumStatusService {
         case platform
                 case checkAdvanced
     }
-    
+
     private struct Constants {
                 static let platform = "iOS"
     }
-    
+
     private let webservice: LegacyWebService
-    
+
     public init(webservice: LegacyWebService) {
         self.webservice = webservice
     }
-    
+
     static public var decoder: JSONDecoder {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .secondsSince1970
         return decoder
     }
-    
-    public func getStatus(completion handler: @escaping (Result<(PremiumStatus, Data), Error>) ->Void) {
+
+    public func getStatus(completion handler: @escaping (Result<(PremiumStatus, Data), Error>) -> Void) {
         let parameters: [String: Codable] = [
             Key.autoRenewal.rawValue: true,
             Key.teamInformation.rawValue: true,

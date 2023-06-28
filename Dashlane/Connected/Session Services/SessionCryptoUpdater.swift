@@ -21,7 +21,7 @@ class SessionCryptoUpdater {
     let teamSpacesService: TeamSpacesService
     let featureService: FeatureServiceProtocol
     let activityReporter: ActivityReporterProtocol
-
+    let userDeviceApiClient: UserDeviceAPIClient
     let settings: SyncedSettingsService
     let logger: Logger
     private var subscription: AnyCancellable?
@@ -30,6 +30,8 @@ class SessionCryptoUpdater {
 
     @Atomic
     private var isDisabled = false
+
+    var subscriptions = Set<AnyCancellable>()
 
     init(session: Session,
          sessionsContainer: SessionsContainerProtocol,
@@ -40,7 +42,8 @@ class SessionCryptoUpdater {
          teamSpacesService: TeamSpacesService,
          featureService: FeatureServiceProtocol,
          settings: SyncedSettingsService,
-         logger: Logger) {
+         logger: Logger,
+         userDeviceApiClient: UserDeviceAPIClient) {
         self.session = session
         self.sessionsContainer = sessionsContainer
         self.syncService = syncService
@@ -51,7 +54,7 @@ class SessionCryptoUpdater {
         self.featureService = featureService
         self.settings = settings
         self.logger = logger
-
+        self.userDeviceApiClient = userDeviceApiClient
         let teamspaceCryptoPublisher = teamSpacesService
             .$businessTeamsInfo
             .map {
@@ -125,7 +128,17 @@ class SessionCryptoUpdater {
                                                                              apiNetworkingEngine: networkEngine,
                                                                              logger: self.logger,
                                                                              cryptoSettings: config)
-            activeAccountCryptoChanger.delegate = self
+            activeAccountCryptoChanger.progressPublisher.sink { [weak self] state in
+                guard let self = self else {
+                    return
+                }
+                switch state {
+                case  let .inProgress(progression):
+                    self.didProgress(progression)
+                case let .finished(result):
+                    self.didFinish(with: result)
+                }
+            }.store(in: &subscriptions)
             activeAccountCryptoChanger.start()
             self.activeAccountCryptoChanger = activeAccountCryptoChanger
 
@@ -155,7 +168,7 @@ class SessionCryptoUpdater {
     }
 }
 
-extension SessionCryptoUpdater: AccountCryptoChangerServiceDelegate {
+ extension SessionCryptoUpdater {
     func didProgress(_ progression: AccountCryptoChangerService.Progression) {
         logger.debug("Migration progress: \(progression)")
     }
@@ -164,7 +177,7 @@ extension SessionCryptoUpdater: AccountCryptoChangerServiceDelegate {
         self.activeAccountCryptoChanger = nil
         switch result {
         case .success:
-            logger.info("Session Crypto Migration is sucessfull")
+            logger.info("Session Crypto Migration is successful")
         case let .failure(error):
             logger.fatal("Session Crypto Migration has failed", error: error)
         }
@@ -183,6 +196,7 @@ extension SessionCryptoUpdater {
                              teamSpacesService: .mock(),
                              featureService: .mock(),
                              settings: .mock,
-                             logger: LoggerMock())
+                             logger: LoggerMock(),
+                             userDeviceApiClient: .fake)
     }
 }

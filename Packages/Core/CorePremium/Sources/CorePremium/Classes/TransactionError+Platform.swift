@@ -47,5 +47,4 @@ extension TransactionError {
     }
 }
 
-
 #endif

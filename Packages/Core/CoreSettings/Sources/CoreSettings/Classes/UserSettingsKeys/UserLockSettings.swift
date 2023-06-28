@@ -35,5 +35,4 @@ public enum UserLockSettingsKey: String, CaseIterable, LocalSettingsKey {
     }
 }
 
-
 public typealias UserLockSettings = KeyedSettings<UserLockSettingsKey>

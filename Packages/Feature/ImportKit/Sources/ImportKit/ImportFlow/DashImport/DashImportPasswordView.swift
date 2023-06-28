@@ -7,7 +7,6 @@ import UIDelight
 import UIComponents
 
 public struct DashImportPasswordView: View {
-
     public enum Action {
         case cancel
         case extracted
@@ -20,14 +19,16 @@ public struct DashImportPasswordView: View {
     @FocusState
     private var isTextFieldFocused: Bool
 
+    @State private var showWrongPasswordError = false
+
     @State
     private var disableUnlockButton = false
 
-    private let action: (Action) -> Void
+    private let action: @MainActor (Action) -> Void
 
     private let learnMoreURL = URL(string: "_")!
 
-    public init(model: DashImportViewModel, action: @escaping ((Action) -> Void)) {
+    public init(model: DashImportViewModel, action: @escaping (@MainActor (Action) -> Void)) {
         self._model = .init(wrappedValue: model)
         self.action = action
     }
@@ -38,18 +39,18 @@ public struct DashImportPasswordView: View {
                 VStack(alignment: .leading, spacing: 0) {
                     Spacer()
                         .frame(height: 28)
-                    
+
                     VStack(alignment: .leading, spacing: 0) {
                         title
                         description
                     }
                     .fiberAccessibilityElement(children: .combine)
-                    
+
                     passwordField
                     informationBox
-                    
+
                     Spacer()
-                    
+
                     ctaButton
                 }
             }
@@ -65,6 +66,7 @@ public struct DashImportPasswordView: View {
             .reportPageAppearance(.importBackupfileEnterPassword)
             .ignoresSafeArea(.keyboard)
         }
+        .navigationViewStyle(.stack)
     }
 
     private var title: some View {
@@ -89,25 +91,31 @@ public struct DashImportPasswordView: View {
 
     private var passwordField: some View {
         VStack(alignment: .leading, spacing: 8) {
-            TextInput(L10n.Core.m2WImportFromDashPasswordScreenFieldPlaceholder, text: $model.password)
-                .focused($isTextFieldFocused)
-                .textInputIsSecure(true)
-                .onSubmit(validate)
-                .disabled(model.inProgress)
-                .submitLabel(.go)
-                .shakeAnimation(forNumberOfAttempts: model.attempts)
-                .padding(.horizontal, 8)
-
-            if model.showWrongPasswordError {
-                Text(L10n.Core.m2WImportFromDashPasswordScreenWrongPassword)
-                    .font(.footnote)
-                    .foregroundColor(.ds.text.danger.standard)
-                    .padding(.horizontal, 12)
-            }
+            DS.PasswordField(
+                L10n.Core.KWAuthentifiantIOS.password,
+                placeholder: L10n.Core.m2WImportFromDashPasswordScreenFieldPlaceholder,
+                text: $model.password,
+                feedback: {
+                    if showWrongPasswordError {
+                        TextFieldTextualFeedback(L10n.Core.m2WImportFromDashPasswordScreenWrongPassword)
+                            .transition(.opacity)
+                    }
+                }
+            )
+            .textFieldFeedbackAppearance(showWrongPasswordError ? .error : nil)
+            .focused($isTextFieldFocused)
+            .onSubmit(validate)
+            .disabled(model.inProgress)
+            .submitLabel(.go)
+            .shakeAnimation(forNumberOfAttempts: model.attempts)
+            .padding(.horizontal, 8)
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 26)
         .onChange(of: model.showWrongPasswordError) { newValue in
+            withAnimation(.easeOut(duration: 0.2)) {
+                showWrongPasswordError = newValue
+            }
             guard newValue else { return }
             isTextFieldFocused = true
         }
@@ -139,23 +147,25 @@ public struct DashImportPasswordView: View {
         RoundedButton(L10n.Core.m2WImportFromDashPasswordScreenUnlockImport, action: validate)
             .roundedButtonDisplayProgressIndicator(model.inProgress)
             .roundedButtonLayout(.fill)
-        .disabled(disableUnlockButton && !model.showWrongPasswordError)
-        .padding(.horizontal, 16)
-        .padding(.vertical, 30)
+            .disabled(disableUnlockButton || model.showWrongPasswordError)
+            .padding(.horizontal, 16)
+            .padding(.vertical, 30)
     }
 
     private func validate() {
         disableUnlockButton = true
 
-        model.validate { result in
-            DispatchQueue.main.async {
-                switch result {
-                case .success:
-                    self.action(.extracted)
-                case .failure:
+        Task { @MainActor in
+            do {
+                try await model.validate()
+                self.action(.extracted)
+            } catch {
+                if case DashImportViewModel.ValidationError.extractionFailed = error {
                     self.action(.extractionError)
                 }
             }
+
+            disableUnlockButton = false
         }
     }
 

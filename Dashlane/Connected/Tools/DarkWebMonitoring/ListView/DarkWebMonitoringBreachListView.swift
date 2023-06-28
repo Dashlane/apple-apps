@@ -4,6 +4,7 @@ import Combine
 import SecurityDashboard
 import UIDelight
 import UIComponents
+import CoreLocalization
 
 struct DarkWebMonitoringBreachListView: View {
 
@@ -138,7 +139,7 @@ struct DarkWebMonitoringBreachListView: View {
 
     private var alertView: Alert {
         Alert(title: Text(L10n.Localizable.dwmDetailViewDeleteConfirmTitle),
-              primaryButton: Alert.Button.default(Text(L10n.Localizable.kwDelete), action: {
+              primaryButton: Alert.Button.default(Text(CoreLocalization.L10n.Core.kwDelete), action: {
                 deleteItems()
                 toBeDeleted = nil
               }),
@@ -160,7 +161,6 @@ struct DarkWebMonitoringBreachListView_Previews: PreviewProvider {
             DarkWebMonitoringBreachListView(viewModel: .mock(breaches: [], isMonitoringAvailable: true))
             DarkWebMonitoringBreachListView(viewModel: .mock(breaches: [], isMonitoringAvailable: true), selectedListType: 1)
             DarkWebMonitoringBreachListView(viewModel: .mock(breaches: [], isMonitoringAvailable: false))
-
         }
     }
 }

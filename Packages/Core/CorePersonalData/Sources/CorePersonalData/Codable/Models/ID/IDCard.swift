@@ -23,13 +23,13 @@ public struct IDCard: PersonalDataCodable, Equatable, Identifiable, IdentityLink
         case nationality = "localeFormat"
         case linkedIdentity
     }
-    
+
     public enum Mode {
         case hongKong
         case france
         case other
     }
-    
+
     public var id: Identifier
     public let metadata: RecordMetadata
     public var anonId: String
@@ -57,7 +57,7 @@ public struct IDCard: PersonalDataCodable, Equatable, Identifiable, IdentityLink
         }
         return nationality.idCardMode
     }
-    
+
     public init() {
         id = Identifier()
         _attachments = .init(nil)
@@ -71,7 +71,7 @@ public struct IDCard: PersonalDataCodable, Equatable, Identifiable, IdentityLink
         creationDatetime = Date()
         nationality = CountryCodeNamePair.systemCountryCode
     }
-    
+
     init(id: Identifier,
          anonId: String,
          number: String,

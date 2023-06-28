@@ -1,6 +1,8 @@
+import CoreLocalization
 import CorePersonalData
 import SwiftUI
 import UIDelight
+import VaultKit
 
 struct PasswordHealthSection: View {
 
@@ -25,7 +27,7 @@ struct PasswordHealthSection: View {
     }
 
     private var complexityRow: some View {
-        let complexityText = L10n.Localizable.passwordDetailText(for: model.passwordStrength)
+        let complexityText = CoreLocalization.L10n.Core.passwordDetailText(for: model.passwordStrength)
         return PartlyModifiedText(text: L10n.Localizable.authentifiantDetailSafetyPasswordComplexity(complexityText),
                                   toBeModified: complexityText,
                                   toBeModifiedModifier: {

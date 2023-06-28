@@ -1,5 +1,6 @@
 import Foundation
 import DashTypes
+import DashlaneAPI
 
 public struct AccountCreationInfo: Encodable {
     public let login: String
@@ -7,7 +8,7 @@ public struct AccountCreationInfo: Encodable {
     public let contactPhone: String?
     public let appVersion: String
     public let sdkVersion: String
-    public let platform: String
+    public let platform: AccountCreateUserPlatform
     public let settings: CoreSessionSettings
     public let consents: [Consent]
     public let deviceName: String
@@ -19,8 +20,26 @@ public struct AccountCreationInfo: Encodable {
     public let osLanguage: String
     public let askM2dToken: Bool
     public let sharingKeys: SharingKeys
+    public let accountType: AccountAccountType
 
-    public init(login: String, contactEmail: String, contactPhone: String? = nil, appVersion: String, sdkVersion: String = "1.0.0.0", platform: String, settings: CoreSessionSettings, deviceName: String, origin: String, abTestingVersion: String, country: String, language: String, askM2dToken: Bool = true, sharingKeys: SharingKeys, consents: [Consent]) {
+    public init(
+        login: String,
+        contactEmail: String,
+        contactPhone: String? = nil,
+        appVersion: String,
+        sdkVersion: String = "1.0.0.0",
+        platform: AccountCreateUserPlatform,
+        settings: CoreSessionSettings,
+        deviceName: String,
+        origin: String,
+        abTestingVersion: String,
+        country: String,
+        language: String,
+        askM2dToken: Bool = true,
+        sharingKeys: SharingKeys,
+        consents: [Consent],
+        accountType: AccountAccountType
+    ) {
 
         self.login = login.lowercased()
         self.contactEmail = contactEmail.lowercased()
@@ -39,5 +58,6 @@ public struct AccountCreationInfo: Encodable {
         self.askM2dToken = askM2dToken
         self.sharingKeys = sharingKeys
         self.consents = consents
+        self.accountType = accountType
     }
 }

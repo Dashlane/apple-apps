@@ -3,6 +3,7 @@ import SwiftUI
 import UIDelight
 import UIComponents
 import DesignSystem
+import CoreLocalization
 
 struct RecoveryCodesView: View {
 
@@ -81,9 +82,9 @@ struct RecoveryCodesView: View {
                     Button(action: {
                         UIPasteboard.general.string = model.codes.joined(separator: "\n")
                     }, label: {
-                        Text(L10n.Localizable.kwCopy)
+                        Text(CoreLocalization.L10n.Core.kwCopy)
                         Image(systemName: "doc.on.doc")
-                            .fiberAccessibilityLabel(Text(L10n.Localizable.kwCopy))
+                            .fiberAccessibilityLabel(Text(CoreLocalization.L10n.Core.kwCopy))
                     })
                  }
         }

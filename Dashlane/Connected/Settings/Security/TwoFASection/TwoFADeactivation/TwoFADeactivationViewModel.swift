@@ -26,10 +26,9 @@ class TwoFADeactivationViewModel: ObservableObject, SessionServicesInjecting {
     let sessionsContainer: SessionsContainerProtocol
     let authenticatedAPIClient: DeprecatedCustomAPIClient
     let appAPIClient: AppAPIClient
+    let userAPIClient: UserDeviceAPIClient
     let logger: Logger
     let option: Dashlane2FAType
-    let accountAPIClient: AccountAPIClientProtocol
-    let persistor: AuthenticatorDatabaseServiceProtocol
     let syncService: SyncServiceProtocol
     let keychainService: AuthenticationKeychainServiceProtocol
     let sessionCryptoUpdater: SessionCryptoUpdater
@@ -46,7 +45,7 @@ class TwoFADeactivationViewModel: ObservableObject, SessionServicesInjecting {
     var state: State
 
     @Published
-    var progressState: TwoFAProgressView.State = .inProgress(L10n.Localizable.twofaDeactivationProgressMessage)
+    var progressState: ProgressionState = .inProgress(L10n.Localizable.twofaDeactivationProgressMessage)
 
     @Published
     var isTokenError = false
@@ -69,12 +68,14 @@ class TwoFADeactivationViewModel: ObservableObject, SessionServicesInjecting {
     var canValidate: Bool {
         otpValue.count == 6
     }
-
+    var subscriptions = Set<AnyCancellable>()
     var accountCryptoChangerService: AccountCryptoChangerService?
+
     init(session: Session,
          sessionsContainer: SessionsContainerProtocol,
          authenticatedAPIClient: DeprecatedCustomAPIClient,
          appAPIClient: AppAPIClient,
+         userAPIClient: UserDeviceAPIClient,
          logger: Logger,
          authenticatorCommunicator: AuthenticatorServiceProtocol,
          syncService: SyncServiceProtocol,
@@ -83,7 +84,6 @@ class TwoFADeactivationViewModel: ObservableObject, SessionServicesInjecting {
          activityReporter: ActivityReporterProtocol,
          resetMasterPasswordService: ResetMasterPasswordServiceProtocol,
          databaseDriver: DatabaseDriver,
-         persistor: AuthenticatorDatabaseServiceProtocol,
          sessionLifeCycleHandler: SessionLifeCycleHandler?,
          isTwoFAEnforced: Bool,
          recover2faWebService: Recover2FAWebService) {
@@ -91,9 +91,8 @@ class TwoFADeactivationViewModel: ObservableObject, SessionServicesInjecting {
         self.sessionsContainer = sessionsContainer
         self.authenticatedAPIClient = authenticatedAPIClient
         self.appAPIClient = appAPIClient
+        self.userAPIClient = userAPIClient
         self.option = session.configuration.info.loginOTPOption != nil ? .otp2 : .otp1
-        self.accountAPIClient = AccountAPIClient(apiClient: authenticatedAPIClient)
-        self.persistor = persistor
         self.authenticatorCommunicator = authenticatorCommunicator
         self.syncService = syncService
         self.keychainService = keychainService
@@ -130,7 +129,7 @@ class TwoFADeactivationViewModel: ObservableObject, SessionServicesInjecting {
 
     func disableOtp1(_ code: String) async throws {
         let authTicket = try await validateOTP(code)
-        try await self.accountAPIClient.deactivateTOTP(withAuthTicket: authTicket)
+        try await self.userAPIClient.authentication.deactivateTOTP(authTicket: authTicket)
         deleteCodeFromAuthenticatorApp()
         await MainActor.run {
             progressState = .completed(L10n.Localizable.twofaDeactivationFinalMessage, {
@@ -152,25 +151,23 @@ class TwoFADeactivationViewModel: ObservableObject, SessionServicesInjecting {
 extension TwoFADeactivationViewModel {
 
     func validateOTP(_ code: String) async throws -> String {
-        let webservice = AccountAPIClient(apiClient: appAPIClient)
-        let verificationResponse = try await webservice
-            .performVerification(with: PerformTOTPVerificationRequest(login: session.login.email, otp: code))
+        let verificationResponse = try await appAPIClient.authentication.performTotpVerification.callAsFunction(login: session.login.email, otp: code)
         return verificationResponse.authTicket
     }
 
     @MainActor
     func deleteCodeFromAuthenticatorApp() {
-        guard let otpInfo = (persistor.codes.filter { $0.configuration.login == session.login.email && $0.isDashlaneOTP }.last) else {
+        guard let otpInfo = (authenticatorCommunicator.codes.filter { $0.configuration.login == session.login.email && $0.isDashlaneOTP }.last) else {
             return
         }
-        try? self.persistor.delete(otpInfo)
+        self.authenticatorCommunicator.deleteOTP(otpInfo)
         self.authenticatorCommunicator.sendMessage(.refresh)
     }
 
     func startOTP2Deactivation(withAuthTicket authTicket: String) {
         do {
             let migratingSession = try sessionsContainer.prepareMigration(of: session,
-                                                                          to: .masterPassword(session.configuration.masterKey.masterPassword!, serverKey: nil), remoteKey: nil,
+                                                                          to: .masterPassword(session.authenticationMethod.userMasterPassword!, serverKey: nil), remoteKey: nil,
                                                                           cryptoConfig: CryptoRawConfig.masterPasswordBasedDefault,
                                                                           accountMigrationType: .masterPasswordToMasterPassword, loginOTPOption: nil)
 
@@ -191,7 +188,19 @@ extension TwoFADeactivationViewModel {
                                                                           logger: self.logger,
                                                                           cryptoSettings: migratingSession.target.cryptoConfig)
 
-            accountCryptoChangerService?.delegate = self
+            accountCryptoChangerService?.progressPublisher
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] state in
+                guard let self = self else {
+                    return
+                }
+                switch state {
+                case let .inProgress(progression):
+                    self.didProgress(progression)
+                case let .finished(result):
+                    self.didFinish(with: result)
+                }
+            }.store(in: &subscriptions)
             accountCryptoChangerService?.start()
         } catch {
             state = .failure
@@ -199,29 +208,27 @@ extension TwoFADeactivationViewModel {
     }
 }
 
-extension TwoFADeactivationViewModel: AccountCryptoChangerServiceDelegate {
+extension TwoFADeactivationViewModel {
     func didProgress(_ progression: AccountCryptoChangerService.Progression) {
         logger.debug("Otp2 deactivation in progress: \(progression)")
     }
 
     func didFinish(with result: Result<Session, AccountCryptoChangerError>) {
-        DispatchQueue.main.async { [self] in
-            switch result {
-            case .success(let session):
-                guard let item = (self.persistor.codes.filter { $0.configuration.login == session.login.email  && $0.isDashlaneOTP }.last) else {
-                    return
-                }
-                try? self.keychainService.removeServerKey(for: session.login)
-                try? self.persistor.delete(item)
-                self.authenticatorCommunicator.sendMessage(.refresh)
-                self.logger.info("Otp2 deactivation is sucessfull")
-                progressState = .completed(L10n.Localizable.twofaDeactivationFinalMessage, { [weak self] in
-                    self?.sessionLifeCycleHandler?.logoutAndPerform(action: .startNewSession(session, reason: .masterPasswordChanged))
-                })
-            case let .failure(error):
-                self.logger.fatal("Otp2 deactivation failed", error: error)
-                state = .failure
+        switch result {
+        case .success(let session):
+            guard let item = (self.authenticatorCommunicator.codes.filter { $0.configuration.login == session.login.email  && $0.isDashlaneOTP }.last) else {
+                return
             }
+            try? self.keychainService.removeServerKey(for: session.login)
+            self.authenticatorCommunicator.deleteOTP(item)
+            self.authenticatorCommunicator.sendMessage(.refresh)
+            self.logger.info("Otp2 deactivation is sucessful")
+            progressState = .completed(L10n.Localizable.twofaDeactivationFinalMessage, { [weak self] in
+                self?.sessionLifeCycleHandler?.logoutAndPerform(action: .startNewSession(session, reason: .masterPasswordChanged))
+            })
+        case let .failure(error):
+            self.logger.fatal("Otp2 deactivation failed", error: error)
+            state = .failure
         }
     }
 }
@@ -229,10 +236,11 @@ extension TwoFADeactivationViewModel: AccountCryptoChangerServiceDelegate {
 extension TwoFADeactivationViewModel {
     static func mock(state: State = .otpInput) -> TwoFADeactivationViewModel {
         let services = MockServicesContainer()
-        var model = TwoFADeactivationViewModel(session: .mock,
+        let model = TwoFADeactivationViewModel(session: .mock,
                                                sessionsContainer: FakeSessionsContainer(),
                                                authenticatedAPIClient: .fake,
-                                               appAPIClient: .mock({ _ in }),
+                                               appAPIClient: .fake,
+                                               userAPIClient: .fake,
                                                logger: LoggerMock(),
                                                authenticatorCommunicator: AuthenticatorAppCommunicatorMock(),
                                                syncService: services.syncService,
@@ -241,7 +249,6 @@ extension TwoFADeactivationViewModel {
                                                activityReporter: .fake,
                                                resetMasterPasswordService: ResetMasterPasswordService.mock,
                                                databaseDriver: InMemoryDatabaseDriver(),
-                                               persistor: AuthenticatorDatabaseServiceMock(),
                                                sessionLifeCycleHandler: nil,
                                                isTwoFAEnforced: false,
                                                recover2faWebService: .init(webService: LegacyWebServiceMock(response: ""), login: .init("_")))

@@ -17,17 +17,16 @@ public struct LocalLoginFlow: View {
             switch step {
             case let .unlock(viewModel):
                 LocalLoginUnlockView(viewModel: viewModel)
-            case let .otp(validator, hasLock):
-                TOTPLoginView(model: self.viewModel.makeTotpViewModel(validator: validator, hasLock: hasLock))
+            case let .otp(option, hasLock):
+                AccountVerificationFlow(model: viewModel.makeAccountVerificationFlowViewModel(method: .totp(option.pushType), hasLock: hasLock))
             case let .sso(validator):
                 if validator.isNitroProvider {
-                    NitroSSOLoginView(model: viewModel.makeNitroSSOLoginViewModel(with: validator))
+                    NitroSSOLoginView(model: viewModel.makeNitroSSOLoginViewModel(with: validator), clearCookies: true)
                 } else {
-                    SelfHostedSSOView(model: viewModel.makeSelfHostedSSOLoginViewModel(with: validator))
+                    SelfHostedSSOView(model: viewModel.makeSelfHostedSSOLoginViewModel(with: validator), clearCookies: true)
                 }
             }
         }
     }
 }
 #endif
-

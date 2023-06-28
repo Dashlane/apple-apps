@@ -2,6 +2,8 @@ import Foundation
 import SwiftUI
 import CorePersonalData
 import UIDelight
+import VaultKit
+import CoreLocalization
 
 struct EmailDetailView: View {
     @ObservedObject
@@ -15,15 +17,20 @@ struct EmailDetailView: View {
         DetailContainerView(service: model.service) {
             Section {
                 if model.mode.isEditing {
-                    TextDetailField(title: L10n.Localizable.KWEmailIOS.emailName, text: $model.item.name)
+                    TextDetailField(title: CoreLocalization.L10n.Core.KWEmailIOS.emailName, text: $model.item.name)
                         .textInputAutocapitalization(.words)
                 }
-                TextDetailField(title: L10n.Localizable.KWEmailIOS.email,
-                                text: $model.item.value)
-                    .actions([.copy(model.copy)])
-                    .keyboardType(.emailAddress)
-                    .fiberFieldType(.email)
-                PickerDetailField(title: L10n.Localizable.KWEmailIOS.type,
+
+                TextDetailField(
+                    title: CoreLocalization.L10n.Core.KWEmailIOS.email,
+                    text: $model.item.value,
+                    actions: [.copy(model.copy)]
+                )
+                .actions([.copy(model.copy)])
+                .keyboardType(.emailAddress)
+                .fiberFieldType(.email)
+
+                PickerDetailField(title: CoreLocalization.L10n.Core.KWEmailIOS.type,
                                   selection: $model.item.type,
                                   elements: Email.EmailType.allCases,
                                   content: { item in

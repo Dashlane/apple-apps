@@ -7,6 +7,7 @@ import DashlaneAppKit
 import CoreUserTracking
 import CoreSettings
 import VaultKit
+import UIComponents
 
 class BankAccountDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting, MockVaultConnectedInjecting {
 
@@ -50,8 +51,7 @@ class BankAccountDetailViewModel: DetailViewModelProtocol, SessionServicesInject
         vaultItemsService: VaultItemsServiceProtocol,
         sharingService: SharedVaultHandling,
         teamSpacesService: TeamSpacesService,
-        usageLogService: UsageLogServiceProtocol,
-        deepLinkService: DeepLinkingServiceProtocol,
+        deepLinkService: VaultKit.DeepLinkingServiceProtocol,
         activityReporter: ActivityReporterProtocol,
         iconViewModelProvider: @escaping (VaultItem) -> VaultItemIconViewModel,
         logger: Logger,
@@ -59,8 +59,8 @@ class BankAccountDetailViewModel: DetailViewModelProtocol, SessionServicesInject
         regionInformationService: RegionInformationService,
         userSettings: UserSettings,
         documentStorageService: DocumentStorageService,
-        attachmentSectionFactory: AttachmentsSectionViewModel.Factory,
-        attachmentsListViewModelProvider: @escaping (VaultItem, AnyPublisher<VaultItem, Never>) -> AttachmentsListViewModel
+        pasteboardService: PasteboardServiceProtocol,
+        attachmentSectionFactory: AttachmentsSectionViewModel.Factory
     ) {
         self.init(
             service: .init(
@@ -69,16 +69,15 @@ class BankAccountDetailViewModel: DetailViewModelProtocol, SessionServicesInject
                 vaultItemsService: vaultItemsService,
                 sharingService: sharingService,
                 teamSpacesService: teamSpacesService,
-                usageLogService: usageLogService,
                 documentStorageService: documentStorageService,
                 deepLinkService: deepLinkService,
                 activityReporter: activityReporter,
                 iconViewModelProvider: iconViewModelProvider,
+                attachmentSectionFactory: attachmentSectionFactory,
                 logger: logger,
                 accessControl: accessControl,
                 userSettings: userSettings,
-                attachmentSectionFactory: attachmentSectionFactory,
-                attachmentsListViewModelProvider: attachmentsListViewModelProvider
+                pasteboardService: pasteboardService
             ),
             regionInformationService: regionInformationService
         )

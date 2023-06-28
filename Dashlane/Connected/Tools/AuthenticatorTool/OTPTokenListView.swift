@@ -8,6 +8,7 @@ import IconLibrary
 import DesignSystem
 import UIComponents
 import VaultKit
+import CoreLocalization
 
 struct OTPTokenListView: View {
 
@@ -38,8 +39,10 @@ struct OTPTokenListView: View {
     var expansionLabel: some View {
         HStack(spacing: 3) {
             Text(isListExpanded ? L10n.Localizable.otpToolSeeLess : L10n.Localizable.otpToolSeeAll)
+                .foregroundColor(.ds.text.brand.standard)
             Image(systemName: isListExpanded ? "chevron.up" : "chevron.down")
-        }.foregroundColor(Color(asset: FiberAsset.accentColor))
+                .foregroundColor(.ds.text.brand.quiet)
+        }
         .frame(height: 50)
         .font(.headline)
     }
@@ -86,7 +89,7 @@ struct OTPTokenListView: View {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(action: { isEditing.toggle() },
                        label: {
-                    Text(isEditing ? L10n.Localizable.kwDoneButton :  L10n.Localizable.kwEdit)
+                    Text(isEditing ? CoreLocalization.L10n.Core.kwDoneButton :  CoreLocalization.L10n.Core.kwEdit)
                         .foregroundColor(.ds.text.neutral.standard)
                 })
             }
@@ -114,15 +117,26 @@ struct OTPTokenListView: View {
     func rowView(for token: OTPInfo) -> some View {
         TokenRowView(model: viewModel.makeTokenRowViewModel(for: token),
                      rowMode: rowMode(for: token),
+                     expandCollapseAction: { toggle(token) },
                      performTrailingAction: handleRowTrailingAction)
         .frame(minHeight: 60)
-        .contentShape(Rectangle())
-        .onTapGesture {
-            if expandedToken == token {
-                expandedToken = nil
-            } else {
-                expandedToken = token
-            }
+        .background(
+            Color.ds.background.default
+                .onTapGesture {
+                    toggle(token)
+                }
+                .fiberAccessibilityHidden(true)
+        )
+        .fiberAccessibilityAction {
+            toggle(token)
+        }
+    }
+
+    private func toggle(_ token: OTPInfo) {
+        if expandedToken == token {
+            expandedToken = nil
+        } else {
+            expandedToken = token
         }
     }
 
@@ -147,7 +161,7 @@ struct OTPTokenListView: View {
         switch action {
         case let .copy(code, otpInfo):
             viewModel.copy(code, for: otpInfo)
-            toast(L10n.Localizable.kwCopied, image: .ds.action.copy.outlined)
+            toast(CoreLocalization.L10n.Core.kwCopied, image: .ds.action.copy.outlined)
             UINotificationFeedbackGenerator().notificationOccurred(.success)
         case let .delete(token):
             self.itemToDelete = token

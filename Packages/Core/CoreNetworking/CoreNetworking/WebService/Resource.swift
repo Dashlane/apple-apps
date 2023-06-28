@@ -24,7 +24,7 @@ public struct Resource<A> {
 
     public let request: Request
     public let parse: DataParser<A>
-    
+
     public init(request: Request, parse: @escaping DataParser<A> ) {
         self.request = request
         self.parse = parse

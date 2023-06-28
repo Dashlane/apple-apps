@@ -31,7 +31,7 @@ struct DarkWebMonitoringMonitoredEmailsView<Model: DarkWebMonitoringMonitoredEma
                                              isUnrolled: $model.shouldShowEmailSection)
 
         }
-        .background(.ds.container.expressive.brand.quiet.idle)
+        .background(.ds.container.agnostic.neutral.quiet)
         .clipShape(RoundedRectangle(cornerRadius: 8))
         .padding(.horizontal, 16)
         .padding(.top, 16)
@@ -54,8 +54,6 @@ struct DarkWebMonitoringMonitoredEmailsView<Model: DarkWebMonitoringMonitoredEma
                 numberOfSpotsAvailableText.hidden(!model.isMonitoringEnabled)
             }
         }
-        .onTapGesture {
-                    }
         .frame(idealHeight: 440, maxHeight: 440)
     }
 

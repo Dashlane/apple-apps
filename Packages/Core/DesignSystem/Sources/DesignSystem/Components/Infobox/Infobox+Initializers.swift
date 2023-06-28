@@ -4,8 +4,8 @@ import SwiftUI
 @resultBuilder
 public struct InfoboxButtonsBuilder {
     public typealias TextButton = Button<Text>
-    
-    public static func buildExpression(_ button: TextButton) -> [TextButton]  {
+
+    public static func buildExpression(_ button: TextButton) -> [TextButton] {
         [button]
     }
 

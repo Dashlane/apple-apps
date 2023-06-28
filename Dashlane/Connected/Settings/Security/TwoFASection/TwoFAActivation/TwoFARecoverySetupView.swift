@@ -55,12 +55,12 @@ struct TwoFARecoverySetupView: View {
                 .foregroundColor(.ds.text.neutral.catchy)
             VStack(alignment: .leading, spacing: 16) {
                 HStack(alignment: .top, spacing: 14) {
-                    Image(asset: FiberAsset.successStepper)
+                    Image.ds.feedback.success.outlined
                     Text(L10n.Localizable.twofaRecoverySetupMessage1)
                 }
 
                 HStack(alignment: .top, spacing: 14) {
-                    Image(asset: FiberAsset.successStepper)
+                    Image.ds.feedback.success.outlined
                     Text(L10n.Localizable.twofaRecoverySetupMessage2)
                 }
             }

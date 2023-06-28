@@ -9,6 +9,7 @@ import DashTypes
 import CoreSettings
 import UIComponents
 import VaultKit
+import CoreLocalization
 
 struct PasswordGeneratorHistoryView: View {
     @ObservedObject
@@ -31,14 +32,16 @@ struct PasswordGeneratorHistoryView: View {
                     emptyView
             }
         }
-        .navigationTitle(L10n.Localizable.generatedPasswordListTitle)
+        .navigationTitle(CoreLocalization.L10n.Core.generatedPasswordListTitle)
         .animation(.easeOut, value: model.state)
         .reportPageAppearance(.toolsPasswordGeneratorHistory)
     }
 
     private var emptyView: some View {
         VStack(spacing: 12) {
-            Image(asset: FiberAsset.historyLarge)
+            Image.ds.historyBackup.outlined
+                .foregroundColor(.ds.text.brand.quiet)
+                .accessibilityHidden(true)
 
             Text(L10n.Localizable.generatedPasswordListEmptyTitle)
                 .font(DashlaneFont.custom(26, .bold).font)
@@ -52,8 +55,7 @@ struct PasswordGeneratorHistoryView: View {
             }
         }
         .listStyle(InsetGroupedListStyle())
-
-        .background(Color(asset: FiberAsset.appBackground).edgesIgnoringSafeArea(.all))
+        .background(Color.ds.background.default.edgesIgnoringSafeArea(.all))
     }
 
     @ViewBuilder
@@ -101,18 +103,33 @@ private struct PasswordGeneratedRow: View {
                     Text(generatedPassword.displayedDate)
                 }
                 .font(.footnote)
-                .foregroundColor(Color(asset: FiberAsset.placeholder))
+                .foregroundColor(.ds.text.neutral.quiet)
             }
             .padding(.bottom, 5)
-            .fiberAccessibilityElement(children: .combine)
-            Image(asset: FiberAsset.copyItem)
-                .foregroundColor(Color(asset: FiberAsset.accentColor))
+            .fiberAccessibilityElement(children: .ignore)
+            .fiberAccessibilityAddTraits(.isButton)
+            .fiberAccessibilityLabel(Text(accessibilityRowLabel))
+
+            Image.ds.action.copy.outlined
+                .foregroundColor(.ds.text.brand.quiet)
                 .tapWithFeedbackForMobile(action)
                 .fiberAccessibilityLabel(Text(L10n.Localizable.copyPassword))
         }
         .padding(.top, 2)
         .buttonStyle(PlainButtonStyle())
 
+    }
+
+    var accessibilityRowLabel: String {
+        let subtitle = L10n.subtitle(for: generatedPassword)
+        guard let password = generatedPassword.password else {
+            return "\(subtitle)"
+        }
+        if shouldReveal {
+            return "\(password), \(subtitle), \(L10n.Localizable.passwordHistoryHideGenerated)"
+        } else {
+            return "\(subtitle), \(L10n.Localizable.passwordHistoryShowGenerated)"
+        }
     }
 
     private var iconPlaceholderText: String {
@@ -125,16 +142,24 @@ private struct PasswordGeneratedRow: View {
 
     @ViewBuilder
     private var subtitle: some View {
+        let subtitle = L10n.subtitle(for: generatedPassword)
         if let domain = generatedPassword.domain?.displayDomain {
-            let baseText: String = generatedPassword.authId != nil ?
-            L10n.Localizable.generatedPasswordSavedOn(domain) : L10n.Localizable.generatedPasswordGeneratedOn(domain)
-
-            PartlyModifiedText(text: baseText, toBeModified: domain) { text in
+            PartlyModifiedText(text: subtitle, toBeModified: domain) { text in
                 text
-                    .foregroundColor(Color(asset: FiberAsset.accentColor))
+                    .foregroundColor(.ds.text.brand.standard)
             }
         } else {
-            Text(L10n.Localizable.generatedPasswordGeneratedNoDomain)
+            Text(subtitle)
+        }
+    }
+
+    func subtitleContent(domain: String?) -> String {
+        if let domain {
+            let baseText: String = generatedPassword.authId != nil ?
+             L10n.Localizable.generatedPasswordSavedOn(domain) : L10n.Localizable.generatedPasswordGeneratedOn(domain)
+            return baseText
+        } else {
+            return L10n.Localizable.generatedPasswordGeneratedNoDomain
         }
     }
 
@@ -174,6 +199,18 @@ private struct PasswordGeneratedRow: View {
     }
 }
 
+private extension L10n {
+    static func subtitle(for generatedPassword: GeneratedPassword) -> String {
+        if let domain = generatedPassword.domain?.displayDomain {
+            let baseText: String = generatedPassword.authId != nil ?
+             L10n.Localizable.generatedPasswordSavedOn(domain) : L10n.Localizable.generatedPasswordGeneratedOn(domain)
+            return baseText
+        } else {
+            return L10n.Localizable.generatedPasswordGeneratedNoDomain
+        }
+    }
+}
+
 private extension View {
         func tapWithFeedbackForMobile(_ action: @escaping () -> Void) -> some View {
 #if targetEnvironment(macCatalyst)
@@ -192,11 +229,10 @@ private extension PasswordGeneratedRow {
                                                    itemType: .generatedPassword)
         report?(event)
 
-        if let domain = generatedPassword.domain?.domain?.name.hashedDomainForLogs {
-            let anonymousEvent = AnonymousEvent.RevealVaultItemField(domain: domain,
-                                                                     field: .password,
-                                                                     itemType: .generatedPassword)
-            report?(anonymousEvent)
+        if let domain = generatedPassword.domain?.domain?.name {
+            report?(AnonymousEvent.RevealVaultItemField(domain: domain.hashedDomainForLogs(),
+                                                        field: .password,
+                                                        itemType: .generatedPassword))
         }
     }
 }
@@ -234,7 +270,7 @@ struct PasswordGeneratorHistory_Previews: PreviewProvider {
         return password
     }()
 
-    static let settings = UserSettings(internalStore: InMemoryLocalSettingsStore())
+    static let settings = UserSettings(internalStore: .mock())
 
     static var previews: some View {
         MultiContextPreview {

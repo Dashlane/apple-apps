@@ -11,11 +11,11 @@ struct UnlockView: View {
 
     @Environment(\.dismiss)
     private var dismiss
-    
+
     init(model: @autoclosure @escaping () -> UnlockViewModel) {
         _model = .init(wrappedValue: model())
     }
-    
+
     var body: some View {
         NavigationView {
             mainView
@@ -35,7 +35,7 @@ struct UnlockView: View {
             lockView
         }
     }
-    
+
     @ViewBuilder
     private var lockView: some View {
         switch model.mode {
@@ -46,20 +46,20 @@ struct UnlockView: View {
                     model.completion(result)
                 }
             }))
-            
-        case let .pincode(pin, attempts, masterKey):
-            PinUnlockView(model: model.makePinUnlockViewModel(pin: pin, pinCodeAttempts: attempts, masterKey: masterKey, completion: { result in
+
+        case let .pincode(lock):
+            PinUnlockView(model: model.makePinUnlockViewModel(pin: lock.code, pinCodeAttempts: lock.attempts, masterKey: lock.masterKey, completion: { result in
                 DispatchQueue.main.async {
                     dismiss()
                     model.completion(result)
                 }
             }))
-        case let .biometryAndPincode(pin, attempts, masterKey, biometry):
-            BiometryAndPinUnlockView(model: model.makeBiometryAndPinUnlockViewModel(pin: pin,
-                                                                              pinCodeAttempts: attempts,
-                                                                              masterKey: masterKey,
-                                                                              biometryType: biometry,
-                                                                              completion: { result in
+        case let .biometryAndPincode(lock, biometry):
+            BiometryAndPinUnlockView(model: model.makeBiometryAndPinUnlockViewModel(pin: lock.code,
+                                                                                    pinCodeAttempts: lock.attempts,
+                                                                                    masterKey: lock.masterKey,
+                                                                                    biometryType: biometry,
+                                                                                    completion: { result in
                 DispatchQueue.main.async {
                     dismiss()
                     model.completion(result)

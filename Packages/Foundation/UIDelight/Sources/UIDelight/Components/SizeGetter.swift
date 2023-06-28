@@ -28,7 +28,7 @@ private struct GeometryGetter: View {
 }
 
 private struct SizePreferenceKey: PreferenceKey {
-    static var defaultValue = CGSize(width: 0, height: 100)
+    static var defaultValue = CGSize.zero
 
     static func reduce(value: inout CGSize, nextValue: () -> CGSize) {
         value = nextValue()

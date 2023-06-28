@@ -11,7 +11,7 @@ struct DarkWebMonitoringEmailRowPlaceholderView: View {
             placeholder
             Text(example)
                 .font(.body)
-                .foregroundColor(Color(asset: FiberAsset.grey01))
+                .foregroundColor(.ds.text.neutral.quiet)
                 .padding(.leading, 16)
             Spacer()
         }

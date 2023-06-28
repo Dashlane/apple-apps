@@ -1,6 +1,5 @@
 import Combine
 import CorePersonalData
-import DashlaneReportKit
 import Foundation
 import SecurityDashboard
 import UIKit
@@ -18,7 +17,7 @@ final class PasswordHealthViewModel: ObservableObject, SessionServicesInjecting 
     let passwordHealthService: IdentityDashboardServiceProtocol
     let origin: PasswordHealthFlowViewModel.Origin
     let teamSpaceService: TeamSpacesService
-    let userSpaceSwitcherViewModel: UserSpaceSwitcherViewModel
+    let userSpaceSwitcherViewModelFactory: UserSpaceSwitcherViewModel.Factory
 
     @Published
     var score: Int?
@@ -58,13 +57,13 @@ final class PasswordHealthViewModel: ObservableObject, SessionServicesInjecting 
         passwordHealthService: IdentityDashboardServiceProtocol,
         origin: PasswordHealthFlowViewModel.Origin,
         teamSpaceService: TeamSpacesService,
-        userSpaceSwitcherViewModel: @escaping () -> UserSpaceSwitcherViewModel
+        userSpaceSwitcherViewModelFactory: UserSpaceSwitcherViewModel.Factory
     ) {
         self.passwordHealthListViewModelFactory = passwordHealthListViewModelFactory
         self.passwordHealthService = passwordHealthService
         self.origin = origin
         self.teamSpaceService = teamSpaceService
-        self.userSpaceSwitcherViewModel = userSpaceSwitcherViewModel()
+        self.userSpaceSwitcherViewModelFactory = userSpaceSwitcherViewModelFactory
         self.score = nil
 
         registerHandlers()
@@ -120,6 +119,6 @@ extension PasswordHealthViewModel {
         passwordHealthService: IdentityDashboardService.mock,
         origin: .identityDashboard,
         teamSpaceService: .mock(),
-        userSpaceSwitcherViewModel: { .mock }
+        userSpaceSwitcherViewModelFactory: .init({ .mock })
     )
 }

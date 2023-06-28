@@ -4,11 +4,11 @@ import SwiftTreats
 import Combine
 
 final class AppStoreProductViewer: NSObject, SKStoreProductViewControllerDelegate {
-    
+
     enum Identifier: String {
                 case passwordManager = "517914548"
         case authenticator = "1582978196"
-        
+
         var scheme: String {
             switch self {
             case .passwordManager:
@@ -18,15 +18,15 @@ final class AppStoreProductViewer: NSObject, SKStoreProductViewControllerDelegat
             }
         }
     }
-    
+
     private let viewController = SKStoreProductViewController()
     private let identifier: Identifier
-    
+
     private var isDisplayingStoreProductViewController = false
-    
+
     private var dismissed: VoidCompletionBlock?
     private var cancellables = Set<AnyCancellable>()
-    
+
     init(identifier: Identifier) {
         self.identifier = identifier
         super.init()
@@ -37,21 +37,21 @@ final class AppStoreProductViewer: NSObject, SKStoreProductViewControllerDelegat
             self?.viewController.dismiss(animated: true)
         }.store(in: &cancellables)
     }
-    
+
     func prepareAppStorePage() async throws {
         guard !isDisplayingStoreProductViewController else { return }
         let parameters = [
             SKStoreProductParameterITunesItemIdentifier: identifier.rawValue
-        ] as [String : Any]
+        ] as [String: Any]
         _ = try await viewController.loadProduct(withParameters: parameters)
     }
-    
+
     func openAppStorePage(dismissed: @escaping () -> Void) {
         guard !isDisplayingStoreProductViewController else { return }
         isDisplayingStoreProductViewController = true
         viewController.delegate = self
         self.dismissed = dismissed
-        guard let scene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene,
+        guard let scene = UIApplication.shared.keyWindowScene,
               let rootController = scene.keyWindow?.rootViewController else {
             assertionFailure("Could not access the window")
             return
@@ -64,10 +64,9 @@ final class AppStoreProductViewer: NSObject, SKStoreProductViewControllerDelegat
         }
         rootController.present(viewController, animated: true, completion: nil)
     }
-    
+
     func productViewControllerDidFinish(_ viewController: SKStoreProductViewController) {
         isDisplayingStoreProductViewController = false
         dismissed?()
     }
 }
-

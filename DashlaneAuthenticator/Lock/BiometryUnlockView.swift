@@ -5,16 +5,17 @@ import CoreSession
 import UIDelight
 import DesignSystem
 import CoreKeychain
+import LoginKit
 
 struct BiometryUnlockView: View {
-    
+
     @StateObject
     var model: BiometryUnlockViewModel
 
     init(model: @autoclosure @escaping () -> BiometryUnlockViewModel) {
         _model = .init(wrappedValue: model())
     }
-    
+
     var body: some View {
         mainView
             .onAppear {
@@ -26,7 +27,7 @@ struct BiometryUnlockView: View {
                 }
             }
             .navigation(isActive: $model.showError) {
-                
+
                 FeedbackView(title: L10n.Localizable.biometryUnlockErrorTitle,
                           message: L10n.Localizable.biometryUnlockErrorMessage(model.biometryType.displayableName) + "\n\n" + L10n.Localizable.biometryUnlockErrorMessage2,
                           helpCTA: (L10n.Localizable.biometryUnlockErrorCta(model.biometryType.displayableName), UserSupportURL.useBiomtryOrPin.url),
@@ -36,7 +37,7 @@ struct BiometryUnlockView: View {
                           secondaryButton: nil)
             }
     }
-    
+
     var mainView: some View {
         VStack {
             topView
@@ -51,27 +52,30 @@ struct BiometryUnlockView: View {
         .padding(.bottom, 24)
         .backgroundColorIgnoringSafeArea(.ds.background.alternate)
     }
-    
+
     var centerView: some View {
         VStack {
             Text(model.showRetry ? L10n.Localizable.biometryUnlockRetryTitle(model.biometryType.displayableName) : L10n.Localizable.biometryUnlockTitle(model.biometryType.displayableName))
                 .foregroundColor(.ds.text.neutral.catchy)
                 .font(.body)
-            Button(action: {
-                Task {
-                    await model.validate()
+            Button(
+                action: {
+                    Task {
+                        await model.validate()
+                    }
+                },
+                label: {
+                    (model.biometryType == .touchId ? Image.ds.fingerprint.outlined : Image.ds.faceId.outlined)
+                        .foregroundColor(.ds.text.neutral.catchy)
                 }
-            }) {
-                Image(asset: model.biometryType == .touchId ? AuthenticatorAsset.fingerprint : AuthenticatorAsset.faceId)
-                    .foregroundColor(.ds.text.neutral.catchy)
-            }.disabled(model.inProgress)
+            ).disabled(model.inProgress)
         }
     }
-    
+
     var topView: some View {
         VStack {
             Image(asset: AuthenticatorAsset.logoLockUp)
-                .foregroundColor(Color(asset: AuthenticatorAsset.oddityBrand))
+                .foregroundColor(.ds.text.brand.quiet)
             Text(model.login.email)
                 .multilineTextAlignment(.center)
                 .lineLimit(nil)
@@ -80,7 +84,7 @@ struct BiometryUnlockView: View {
                 .foregroundColor(.ds.text.neutral.standard)
         }
     }
-    
+
     var bottomView: some View {
         VStack(spacing: 8) {
             RoundedButton(L10n.Localizable.biometryUnlockErrorRetryButtonTitle) {

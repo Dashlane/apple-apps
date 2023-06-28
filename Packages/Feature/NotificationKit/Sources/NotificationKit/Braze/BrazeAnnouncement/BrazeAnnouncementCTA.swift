@@ -9,8 +9,8 @@ struct BrazeAnnouncementCTA {
     let action: BrazeAnnouncementAction
 
     init(identifier: Int,
-                  title: String,
-                  action: BrazeAnnouncementAction) {
+         title: String,
+         action: BrazeAnnouncementAction) {
         self.identifier = identifier
         self.title = title
         self.action = action
@@ -24,7 +24,7 @@ struct BrazeAnnouncementCTA {
         }
 
         guard url.isValidBrazeAction() else {
-            throw BrazeAnnouncementDecodingError.urlActionNotReditectingToDashlane
+            throw BrazeAnnouncementDecodingError.urlActionNotRedirectingToDashlane
         }
 
         self.action = .openURL(url)

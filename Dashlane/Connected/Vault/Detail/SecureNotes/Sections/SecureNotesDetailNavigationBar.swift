@@ -3,6 +3,8 @@ import SwiftTreats
 import SwiftUI
 import UIComponents
 import UIDelight
+import VaultKit
+import CoreLocalization
 
 struct SecureNotesDetailNavigationBar: View, DismissibleDetailView {
 
@@ -37,9 +39,9 @@ struct SecureNotesDetailNavigationBar: View, DismissibleDetailView {
 
     private var navigationTitle: Text {
         if model.mode.isAdding {
-            return Text(L10n.Localizable.kwadddatakwSecureNoteIOS)
+            return Text(CoreLocalization.L10n.Core.kwadddatakwSecureNoteIOS)
         } else if model.mode.isEditing {
-            return Text(L10n.Localizable.kwEdit)
+            return Text(CoreLocalization.L10n.Core.kwEdit)
         } else {
             return Text("")
         }
@@ -48,13 +50,13 @@ struct SecureNotesDetailNavigationBar: View, DismissibleDetailView {
     @ViewBuilder
     private var leadingButton: some View {
         if model.mode == .updating {
-            Button(L10n.Localizable.kwEditClose) {
+            Button(CoreLocalization.L10n.Core.kwEditClose) {
                 withAnimation(.easeInOut) { model.cancel() }
             }
         } else if model.mode.isAdding {
-            Button(L10n.Localizable.cancel, action: dismiss)
+            Button(CoreLocalization.L10n.Core.cancel, action: dismiss)
         } else if navigator()?.canDismiss == true || specificBackButton == .close {
-            Button(L10n.Localizable.kwButtonClose, action: dismiss) 
+            Button(CoreLocalization.L10n.Core.kwButtonClose, action: dismiss) 
         } else if isPresented || specificBackButton == .back {
             BackButton(color: .ds.text.brand.standard, action: dismiss)
         }
@@ -63,12 +65,12 @@ struct SecureNotesDetailNavigationBar: View, DismissibleDetailView {
     private var trailingButton: some View {
         Group {
             if model.mode.isEditing {
-                Button(L10n.Localizable.kwDoneButton) {
+                Button(CoreLocalization.L10n.Core.kwDoneButton) {
                     withAnimation(.easeInOut) { save() }
                 }
                 .disabled(!model.canSave)
             } else {
-                Button(L10n.Localizable.kwEdit, action: activateEdit)
+                Button(CoreLocalization.L10n.Core.kwEdit, action: activateEdit)
             }
         }
     }

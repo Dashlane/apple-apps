@@ -10,7 +10,7 @@ class SessionAuthenticatorService {
     let userDefaults: UserDefaults = UserDefaults.standard
     let authenticationRequestPublisher = PassthroughSubject<AuthenticationRequest, Never>()
 
-    var deviceToken: Data? = nil
+    var deviceToken: Data?
     var cancellables = Set<AnyCancellable>()
 
     init(apiClient: DeprecatedCustomAPIClient, notificationService: NotificationService) {
@@ -52,9 +52,9 @@ class SessionAuthenticatorService {
 }
 
 struct DeviceRegistrationRequest: Encodable {
-    
+
     let push: PushInfo
-    
+
     init(id: String) {
         self.push = PushInfo(pushId: id, platform: "apn")
     }
@@ -65,4 +65,4 @@ struct PushInfo: Encodable {
     let platform: String
 }
 
-fileprivate struct Empty: Codable {}
+private struct Empty: Codable {}

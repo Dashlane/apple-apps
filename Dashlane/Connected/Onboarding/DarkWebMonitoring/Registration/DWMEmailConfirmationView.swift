@@ -3,11 +3,21 @@ import UIDelight
 import LoginKit
 import UIComponents
 import DesignSystem
+import CoreLocalization
 
-struct DWMEmailConfirmationView<Model: DWMEmailConfirmationViewModelProtocol>: View {
+struct DWMEmailConfirmationView: View {
+
+    enum Action {
+        case cancel
+        case skip
+        case unexpectedError
+    }
 
     @ObservedObject
-    var viewModel: Model
+    var viewModel: DWMEmailConfirmationViewModel
+
+    let transitionHandler: GuidedOnboardingTransitionHandler?
+    let action: (Action) -> Void
 
     @State
     var scrollingEnabled: Bool = false
@@ -15,14 +25,7 @@ struct DWMEmailConfirmationView<Model: DWMEmailConfirmationViewModelProtocol>: V
     @State
     var screenHeight: CGFloat = .zero
 
-    private let transitionHandler: GuidedOnboardingTransitionHandler?
-
     private var enableTapAndDragGesture: Bool { viewModel.isInFinalState && !scrollingEnabled }
-
-    init(viewModel: Model, transitionHandler: GuidedOnboardingTransitionHandler? = nil) {
-        self.viewModel = viewModel
-        self.transitionHandler = transitionHandler
-    }
 
     var body: some View {
         ZStack {
@@ -35,9 +38,9 @@ struct DWMEmailConfirmationView<Model: DWMEmailConfirmationViewModelProtocol>: V
             VStack(spacing: 0) {
                                 self.animationViewIfNeeded(for: self.viewModel.state, with: screenHeight)
 
-                self.message(for: self.viewModel.state, in: self.viewModel.context)
+                message(for: viewModel.state)
                 Spacer()
-                self.actions(for: self.viewModel.state, in: self.viewModel.context)
+                actions(for: viewModel.state)
                     .padding(.bottom, 48)
             }
             .frame(maxWidth: .infinity)
@@ -45,15 +48,23 @@ struct DWMEmailConfirmationView<Model: DWMEmailConfirmationViewModelProtocol>: V
             .embedInScrollViewIfNeeded { scrollViewNeeded in
                 self.scrollingEnabled = scrollViewNeeded
             }
-            .loginAppearance()
-            .alert(isPresented: $viewModel.shouldDisplayError) {
-                Alert(title: Text(viewModel.errorContent), dismissButton: .default(Text(L10n.Localizable.kwButtonOk), action: viewModel.errorDismissalCompletion))
+            .loginAppearance(backgroundColor: .ds.background.default)
+            .alert(item: $viewModel.alert) { alert in
+                Alert(
+                    title: Text(alert.message),
+                    dismissButton: .default(Text(CoreLocalization.L10n.Core.kwButtonOk)) {
+                        if alert.isUnexpected {
+                            action(.unexpectedError)
+                        }
+                    }
+                )
             }
             .onTapGesture(enabled: enableTapAndDragGesture) {
                 self.transitionHandler?.dismiss()
             }
             .gesture(enableTapAndDragGesture ? dragGesture : nil)
         }
+        .navigationBarHidden(true)
     }
 
     var dragGesture: some Gesture {
@@ -94,7 +105,7 @@ struct DWMEmailConfirmationView<Model: DWMEmailConfirmationViewModelProtocol>: V
             .frame(width: 78, height: 78)
     }
 
-            private func animationViewIfNeeded(for state: DWMScanState, with screenHeight: CGFloat) -> some View {
+            private func animationViewIfNeeded(for state: DWMEmailConfirmationViewModel.ScanState, with screenHeight: CGFloat) -> some View {
         switch state {
         case .fetchingEmailConfirmationStatus:
             return animationContainer(for: loadingAnimation, with: screenHeight).id("loading").eraseToAnyView()
@@ -103,9 +114,6 @@ struct DWMEmailConfirmationView<Model: DWMEmailConfirmationViewModelProtocol>: V
         case .breachesFound:
             return animationContainer(for: completionAnimation, with: screenHeight).id("completion").eraseToAnyView()
         case .breachesNotFound:
-                        if viewModel.context == .onboardingChecklist {
-                return animationContainer(for: completionAnimation, with: screenHeight).id("completion").eraseToAnyView()
-            }
                         return Spacer().eraseToAnyView()
         }
     }
@@ -117,39 +125,31 @@ struct DWMEmailConfirmationView<Model: DWMEmailConfirmationViewModelProtocol>: V
     }
 
         @ViewBuilder
-    private func message(for state: DWMScanState, in context: DWMOnboardingPresentationContext) -> some View {
+    private func message(for state: DWMEmailConfirmationViewModel.ScanState) -> some View {
         switch state {
         case .fetchingEmailConfirmationStatus, .emailNotConfirmedYet:
             VStack {
-                self.styledTitle(state.title(for: context))
+                self.styledTitle(state.title)
             }
         case .breachesFound, .breachesNotFound:
             VStack {
-                self.styledTitle(state.title(for: context))
-                self.styledSubtitle(state.subtitle(for: context))
+                self.styledTitle(state.title)
+                self.styledSubtitle(state.subtitle)
             }
         }
     }
 
         @ViewBuilder
-    private func actions(for state: DWMScanState, in context: DWMOnboardingPresentationContext) -> some View {
+    private func actions(for state: DWMEmailConfirmationViewModel.ScanState) -> some View {
         switch state {
         case .fetchingEmailConfirmationStatus:
             cancel
         case .emailNotConfirmedYet:
             failureMenu
         case .breachesFound:
-            if viewModel.context == .onboardingChecklist {
-                continueButton
-            } else {
-                revealView(title: L10n.Localizable.darkWebMonitoringOnboardingEmailConfirmationConfirmedSwipeUp)
-            }
+            revealView(title: L10n.Localizable.darkWebMonitoringOnboardingEmailConfirmationConfirmedSwipeUp)
         case .breachesNotFound:
-                        if viewModel.context == .onboardingChecklist {
-                continueButton
-            } else {
-                revealView(title: L10n.Localizable.darkWebMonitoringOnboardingEmailConfirmationNoBreachesSwipeUp)
-            }
+            revealView(title: L10n.Localizable.darkWebMonitoringOnboardingEmailConfirmationNoBreachesSwipeUp)
         }
     }
 
@@ -157,55 +157,48 @@ struct DWMEmailConfirmationView<Model: DWMEmailConfirmationViewModelProtocol>: V
     private var failureMenu: some View {
         VStack(spacing: 16) {
             tryAgainButton
-            if viewModel.context == .guidedOnboarding {
-                skipButton
-            } else if viewModel.context == .onboardingChecklist {
-                cancel
-            }
+            skipButton
         }
     }
 
     private var cancel: some View {
-        Button(action: self.viewModel.cancel) {
-            Text(L10n.Localizable.darkWebMonitoringOnboardingEmailConfirmationFetchingCancel)
-                .font(.body)
-                .foregroundColor(Color(asset: FiberAsset.buttonBackgroundIncreasedContrast))
-                .padding(16)
-                .padding(.horizontal, 24)
-                .fixedSize(horizontal: false, vertical: true)
-        }
+        Button(
+            action: {
+                viewModel.cancel()
+                action(.cancel)
+            }, label: {
+                Text(L10n.Localizable.darkWebMonitoringOnboardingEmailConfirmationFetchingCancel)
+                    .font(.body)
+                    .foregroundColor(.ds.text.brand.standard)
+                    .padding(16)
+                    .padding(.horizontal, 24)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
+        )
     }
 
     private var tryAgainButton: some View {
         RoundedButton(L10n.Localizable.darkWebMonitoringOnboardingEmailConfirmationFailureTryAgain,
-                      action: { self.viewModel.checkEmailConfirmationStatus(userInitiated: true) })
+                      action: { self.viewModel.checkEmailConfirmationStatus() })
         .roundedButtonLayout(.fill)
         .padding(.top, 20)
         .padding(.horizontal, 24)
     }
 
     private var skipButton: some View {
-        Button(action: {
-            self.viewModel.skip()
-        }, label: {
-            Text(L10n.Localizable.darkWebMonitoringOnboardingEmailConfirmationFailureSkip)
-                .font(.body)
-                .padding(16)
-                .foregroundColor(Color(asset: FiberAsset.buttonBackgroundIncreasedContrast))
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.horizontal, 24)
-        })
-    }
-
-    private var continueButton: some View {
-        Button(action: self.viewModel.emailConfirmedFromChecklist) {
-            Text(L10n.Localizable.darkWebMonitoringOnboardingEmailConfirmationConfirmedContinue)
-                .padding(16)
-                .font(.headline)
-                .foregroundColor(Color(asset: FiberAsset.buttonBackgroundIncreasedContrast))
-                .fixedSize(horizontal: false, vertical: true)
-                .padding(.horizontal, 24)
-        }
+        Button(
+            action: {
+                viewModel.skip()
+                action(.skip)
+            }, label: {
+                Text(L10n.Localizable.darkWebMonitoringOnboardingEmailConfirmationFailureSkip)
+                    .font(.body)
+                    .padding(16)
+                    .foregroundColor(.ds.text.brand.standard)
+                    .fixedSize(horizontal: false, vertical: true)
+                    .padding(.horizontal, 24)
+            }
+        )
     }
 
     private var revealButton: some View {
@@ -213,7 +206,7 @@ struct DWMEmailConfirmationView<Model: DWMEmailConfirmationViewModelProtocol>: V
             Text(L10n.Localizable.kwCmContinue)
                 .font(.headline)
                 .padding(.top, 16)
-                .foregroundColor(Color(asset: FiberAsset.buttonBackgroundIncreasedContrast))
+                .foregroundColor(.ds.text.brand.standard)
                 .fixedSize(horizontal: false, vertical: true)
         })
     }
@@ -224,14 +217,14 @@ struct DWMEmailConfirmationView<Model: DWMEmailConfirmationViewModelProtocol>: V
                 revealButton
             } else {
                 HStack(spacing: 24.0) {
-                    Image(asset: FiberAsset.arrowUp)
+                    Image.ds.caretUp.outlined
                         .colorMultiply(Color(asset: FiberAsset.pageControlSelected))
                     Text(title)
                         .font(.body)
-                        .foregroundColor(Color(asset: FiberAsset.mainCopy))
+                        .foregroundColor(.ds.text.neutral.catchy)
                         .fixedSize(horizontal: false, vertical: true)
                         .multilineTextAlignment(.center)
-                    Image(asset: FiberAsset.arrowUp)
+                    Image.ds.caretUp.outlined
                         .colorMultiply(Color(asset: FiberAsset.pageControlSelected))
                 }
             }
@@ -266,7 +259,7 @@ struct DWMEmailConfirmationView<Model: DWMEmailConfirmationViewModelProtocol>: V
 }
 
 extension DWMEmailConfirmationView: NavigationBarStyleProvider {
-    var navigationBarStyle: NavigationBarStyle {
+    var navigationBarStyle: UIComponents.NavigationBarStyle {
         let appearance = UINavigationBarAppearance()
         appearance.shadowColor = .clear
         appearance.backgroundColor = FiberAsset.searchBarBackgroundInactive.color
@@ -274,8 +267,8 @@ extension DWMEmailConfirmationView: NavigationBarStyleProvider {
     }
 }
 
-private extension DWMScanState {
-    func title(for context: DWMOnboardingPresentationContext) -> String {
+private extension DWMEmailConfirmationViewModel.ScanState {
+    var title: String {
         switch self {
         case .fetchingEmailConfirmationStatus:
             return L10n.Localizable.darkWebMonitoringOnboardingEmailConfirmationFetchingTitle
@@ -284,16 +277,11 @@ private extension DWMScanState {
         case .breachesFound:
             return L10n.Localizable.darkWebMonitoringOnboardingEmailConfirmationConfirmedTitle
         case .breachesNotFound:
-            switch context {
-            case .onboardingChecklist:
-                return L10n.Localizable.darkWebMonitoringOnboardingEmailConfirmationConfirmedTitle
-            case .guidedOnboarding:
-                return L10n.Localizable.darkWebMonitoringOnboardingEmailConfirmationNoBreachesTitle
-            }
+            return L10n.Localizable.darkWebMonitoringOnboardingEmailConfirmationNoBreachesTitle
         }
     }
 
-    func subtitle(for context: DWMOnboardingPresentationContext) -> String {
+    var subtitle: String {
         switch self {
         case .fetchingEmailConfirmationStatus:
             return ""
@@ -302,48 +290,18 @@ private extension DWMScanState {
         case .breachesFound:
             return L10n.Localizable.darkWebMonitoringOnboardingEmailConfirmationConfirmedSubtitle
         case .breachesNotFound:
-            switch context {
-            case .onboardingChecklist:
-                return L10n.Localizable.darkWebMonitoringOnboardingEmailConfirmationConfirmedSubtitle
-            case .guidedOnboarding:
-                return L10n.Localizable.darkWebMonitoringOnboardingEmailConfirmationNoBreachesSubtitle
-            }
+            return L10n.Localizable.darkWebMonitoringOnboardingEmailConfirmationNoBreachesSubtitle
         }
     }
 }
 
 struct DWMEmailConfirmationView_Previews: PreviewProvider {
-    class FakeModel: DWMEmailConfirmationViewModelProtocol {
-        @Published
-        var state: DWMScanState
-        var context: DWMOnboardingPresentationContext = .guidedOnboarding
-
-        @Published
-        var shouldShowMailAppsMenu: Bool = false
-
-        @Published
-        var shouldDisplayError: Bool = false
-        var errorContent: String = ""
-        var errorDismissalCompletion: (() -> Void)?
-
-        var isInFinalState: Bool = false
-
-        func skip() {}
-        func cancel() {}
-        func checkEmailConfirmationStatus(userInitiated: Bool) {}
-        func emailConfirmedFromChecklist() {}
-
-        init(state: DWMScanState) {
-            self.state = state
-        }
-    }
-
     static var previews: some View {
         MultiContextPreview(deviceRange: .some([.iPhoneSE]), dynamicTypePreview: true) {
-            DWMEmailConfirmationView(viewModel: FakeModel(state: .fetchingEmailConfirmationStatus))
-            DWMEmailConfirmationView(viewModel: FakeModel(state: .emailNotConfirmedYet))
-            DWMEmailConfirmationView(viewModel: FakeModel(state: .breachesFound))
-            DWMEmailConfirmationView(viewModel: FakeModel(state: .breachesNotFound))
+            DWMEmailConfirmationView(viewModel: .mock(state: .fetchingEmailConfirmationStatus), transitionHandler: nil, action: { _ in })
+            DWMEmailConfirmationView(viewModel: .mock(state: .emailNotConfirmedYet), transitionHandler: nil, action: { _ in })
+            DWMEmailConfirmationView(viewModel: .mock(state: .breachesFound), transitionHandler: nil, action: { _ in })
+            DWMEmailConfirmationView(viewModel: .mock(state: .breachesNotFound), transitionHandler: nil, action: { _ in })
         }
     }
 }

@@ -8,6 +8,8 @@ import DashTypes
 import LoginKit
 import CoreSettings
 import UIDelight
+import UIComponents
+import CorePersonalData
 
 struct LockView: View {
     @StateObject
@@ -29,14 +31,21 @@ struct LockView: View {
                 .padding(.top, 20)
                 .loginAppearance()
             case let .masterPassword(model):
-                MasterPasswordView(model: model, showProgressIndicator: false)
+                MasterPasswordLocalView(model: model, showProgressIndicator: false)
             case let .biometry(model):
                 BiometryView(model: model, showProgressIndicator: false)
             case let .pinCode(model):
                 LockPinCodeAndBiometryView(model: model)
+            case let .sso(login):
+                SSOUnlockView(login: login, completion: viewModel.unlockWithSSO)
+            case let .passwordLessRecovery(recoverFromFailure):
+                PasswordLessRecoveryView(model: viewModel.makePasswordLessRecoveryViewModel(recoverFromFailure: recoverFromFailure))
             }
         }
         .animation(.default, value: viewModel.lock)
+        .fullScreenCover(item: $viewModel.newMasterPassword) { newMasterPassword in
+            PostARKChangeMasterPasswordView(model: viewModel.makePostARKChangeMasterPasswordViewModel(newMasterPassword: newMasterPassword))
+        }
     }
 }
 
@@ -53,40 +62,51 @@ struct LockView_Previews: PreviewProvider {
 
     static var resetMasterPasswordService: ResetMasterPasswordService {
         return ResetMasterPasswordService(login: login,
-                                          settings: InMemoryLocalSettingsStore(),
+                                          settings: .mock(),
                                           keychainService: keychainService)
     }
 
     static var userSecuritySettings: UserSettings {
-        return UserSettings(internalStore: InMemoryLocalSettingsStore())
+        return UserSettings(internalStore: .mock())
     }
 
     static var previews: some View {
         let locker = ScreenLocker(masterKey: .masterPassword("Azerty12", serverKey: nil),
                                   secureLockProvider: SecureLockMode.masterKey,
-                                  settings: InMemoryLocalSettingsStore(),
+                                  settings: .mock(),
                                   teamSpaceService: .mock(),
                                   logger: LocalLogger(),
                                   login: login)
         let model = LockViewModel(locker: locker,
+                                  session: .mock,
+                                  appServices: (try? AppServicesContainer(sessionLifeCycleHandler: FakeSessionLifeCycleHandler(), crashReporter: CrashReporterService(target: .app), appLaunchTimeStamp: 1))!,
+                                  appAPIClient: .fake,
+                                  userDeviceAPIClient: .fake,
                                   keychainService: keychainService,
                                   userSettings: userSecuritySettings,
                                   resetMasterPasswordService: resetMasterPasswordService,
-                                  installerLogService: InstallerLogService.mock,
-                                  usageLogService: UsageLogService.fakeService,
                                   activityReporter: .fake,
                                   teamspaceService: .mock(),
-                                  loginUsageLogService: LoginUsageLogService.mock,
+                                  loginMetricsReporter: .fake,
                                   lockService: LockServiceMock(),
                                   sessionLifeCycleHandler: nil,
-                                  changeMasterPasswordLauncher: {})
+                                  syncService: SyncServiceMock(),
+                                  sessionCryptoUpdater: .mock,
+                                  syncedSettings: .mock,
+                                  databaseDriver: InMemoryDatabaseDriver(),
+                                  logger: LoggerMock(),
+                                  newMasterPassword: "Azerty12",
+                                  changeMasterPasswordLauncher: {},
+                                  postARKChangeMasterPasswordViewModelFactory: .init({ _, _ in
+                .mock
+        }))
 
         LockView(viewModel: model)
     }
 }
 
 extension LockView: NavigationBarStyleProvider {
-    var navigationBarStyle: NavigationBarStyle {
+    var navigationBarStyle: UIComponents.NavigationBarStyle {
         return .transparent()
     }
 

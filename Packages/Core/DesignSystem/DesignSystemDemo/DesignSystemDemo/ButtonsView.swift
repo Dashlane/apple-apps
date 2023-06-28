@@ -60,18 +60,18 @@ struct ButtonsView: View {
             ForEach(Array(Mood.allCases.enumerated()), id: \.offset) { index, mood in
                 HStack(spacing: 20) {
                     VStack {
-                        ForEach(Array(Intensity.allCases.enumerated()), id: \.offset) { x, intensity in
+                        ForEach(Array(Intensity.allCases.enumerated()), id: \.offset) { xIndex, intensity in
                             RoundedButton(
-                                "Title \(x + index * Intensity.allCases.count)",
+                                "Title \(xIndex + index * Intensity.allCases.count)",
                                 icon: Image("infobox"),
                                 action: {})
                             .style(mood: mood, intensity: intensity)
                         }
                     }
                     VStack {
-                        ForEach(Array(Intensity.allCases.enumerated()), id: \.offset) { y, intensity in
+                        ForEach(Array(Intensity.allCases.enumerated()), id: \.offset) { yIndex, intensity in
                             RoundedButton(
-                                "Title \(y + index * Intensity.allCases.count + numberOfAppearances)",
+                                "Title \(yIndex + index * Intensity.allCases.count + numberOfAppearances)",
                                 icon: Image("infobox"),
                                 action: {})
                             .style(mood: mood, intensity: intensity)

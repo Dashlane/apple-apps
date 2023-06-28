@@ -6,7 +6,8 @@ public enum SearchCategory: Int {
     case secureNote
     case payment
     case credential
-    
+    case collection
+
             var priority: Int {
         return rawValue
     }

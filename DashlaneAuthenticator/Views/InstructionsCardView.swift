@@ -4,12 +4,12 @@ import UIDelight
 struct InstructionsCardView: View {
 
     let cardContent: [String]
-    
+
     let columns = [
         GridItem(.fixed(32), spacing: 16),
-        GridItem(.flexible(minimum: 0, maximum: .infinity), alignment: .leading),
+        GridItem(.flexible(minimum: 0, maximum: .infinity), alignment: .leading)
     ]
-    
+
     var body: some View {
         LazyVGrid(columns: columns) {
             ForEach(cardContent.indices, id: \.self) { index in
@@ -24,7 +24,7 @@ struct InstructionsCardView: View {
         .cornerRadius(10)
         .fiberAccessibilityElement(children: .combine)
     }
-    
+
     func badgeAndContent(index: Int, content: String) -> some View {
         Group {
             Circle()
@@ -39,7 +39,7 @@ struct InstructionsCardView: View {
                 .foregroundColor(.ds.text.neutral.catchy)
         }
     }
-    
+
     func cardSpacer() -> some View {
         Group {
             Rectangle()
@@ -63,6 +63,6 @@ struct InstructionsCardView_Previews: PreviewProvider {
             .padding()
                 .backgroundColorIgnoringSafeArea(.ds.background.alternate)
         }
-            
+
     }
 }

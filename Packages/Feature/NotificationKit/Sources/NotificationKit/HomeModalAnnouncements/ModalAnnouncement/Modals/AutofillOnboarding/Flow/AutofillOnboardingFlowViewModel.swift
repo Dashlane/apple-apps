@@ -27,12 +27,12 @@ public class AutofillOnboardingFlowViewModel: HomeAnnouncementsServicesInjecting
     private var subscriptions: Set<AnyCancellable> = .init([])
 
     public init(autofillService: NotificationKitAutofillServiceProtocol,
-         premiumService: PremiumServiceProtocol,
-         abTesttingService: ABTestingServiceProtocol,
-         activityReporter: ActivityReporterProtocol,
-         userSettings: UserSettings,
-         autofillOnboardingIntroViewModelFactory: AutofillOnboardingIntroViewModel.Factory,
-         completion: @MainActor @escaping () -> Void) {
+                premiumService: PremiumServiceProtocol,
+                featureService: FeatureServiceProtocol,
+                activityReporter: ActivityReporterProtocol,
+                userSettings: UserSettings,
+                autofillOnboardingIntroViewModelFactory: AutofillOnboardingIntroViewModel.Factory,
+                completion: @MainActor @escaping () -> Void) {
         self.autofillService = autofillService
         self.premiumService = premiumService
         self.activityReporter = activityReporter
@@ -40,7 +40,7 @@ public class AutofillOnboardingFlowViewModel: HomeAnnouncementsServicesInjecting
         self.autofillOnboardingIntroViewModelFactory = autofillOnboardingIntroViewModelFactory
         self.completion = completion
 
-        if abTesttingService.get(test: ABTest.AutofillIosActivationbannereducation.self)?.variant == .a {
+        if featureService.isEnabled(.autofillBannerEducation) {
             self.steps = [.intro(makeAutofillOnboardingIntroViewModel())]
         } else {
             self.steps = [.instructions(makeAutofillOnboardingInstructionsViewModel())]
@@ -99,11 +99,10 @@ extension AutofillOnboardingFlowViewModel {
     static var mock: AutofillOnboardingFlowViewModel {
         .init(autofillService: FakeNotificationKitAutofillService(),
               premiumService: PremiumServiceMock(),
-              abTesttingService: ABTestingServiceMock.mock,
+              featureService: .mock(),
               activityReporter: .fake,
               userSettings: .mock,
-              autofillOnboardingIntroViewModelFactory: .init({ _,_,_ in .mock }),
+              autofillOnboardingIntroViewModelFactory: .init({ _, _, _ in .mock }),
               completion: {})
     }
 }
-

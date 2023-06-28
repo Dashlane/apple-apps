@@ -20,7 +20,7 @@ public class SHA1Hasher {
     }
 
     public func final() -> Data {
-        var digest = Array<UInt8>(repeating: 0, count: Int(CC_SHA1_DIGEST_LENGTH))
+        var digest = [UInt8](repeating: 0, count: Int(CC_SHA1_DIGEST_LENGTH))
         CC_SHA1_Final(&digest, context)
         return Data(digest)
     }
@@ -28,7 +28,7 @@ public class SHA1Hasher {
 
 public struct Derivation {
 
-            static public func SharingV1BytesToKey(salt: Data, data: Data) -> (key: Data, iv: Data) {
+            static public func sharingV1BytesToKey(salt: Data, data: Data) -> (key: Data, iv: Data) {
 
         let count = 5
 
@@ -63,10 +63,10 @@ public struct Derivation {
     }
 
     static public func PBKDF2(of passwordBytes: [CChar],
-                             using algorithm: PseudoRandomAlgorithm,
-                             derivedKeyLength: Int,
-                             salt: [UInt8] = Random.generate16BytesSalt(),
-                             numberOfIterations: Int) -> Data? {
+                              using algorithm: PseudoRandomAlgorithm,
+                              derivedKeyLength: Int,
+                              salt: [UInt8] = Random.generate16BytesSalt(),
+                              numberOfIterations: Int) -> Data? {
         var derivedKey = [UInt8](repeating: 0, count: derivedKeyLength)
         CCKeyDerivationPBKDF(CCPBKDFAlgorithm(kCCPBKDF2),
                              passwordBytes,
@@ -81,10 +81,10 @@ public struct Derivation {
     }
 
     static public func PBKDF2(of password: String,
-                             using algorithm: PseudoRandomAlgorithm,
-                             derivedKeyLength: Int,
-                             salt: [UInt8] = Random.generate16BytesSalt(),
-                             numberOfIterations: Int) -> Data? {
+                              using algorithm: PseudoRandomAlgorithm,
+                              derivedKeyLength: Int,
+                              salt: [UInt8] = Random.generate16BytesSalt(),
+                              numberOfIterations: Int) -> Data? {
         let passwordCharArray = [CChar](password.utf8CString)
         let passwordBytes = (passwordCharArray.last == 0) ? [CChar](passwordCharArray[0..<passwordCharArray.count - 1]) : passwordCharArray
         return PBKDF2(of: passwordBytes,

@@ -14,7 +14,9 @@ import LoginKit
 import CoreLocalization
 import CoreSync
 import CyrilKit
+import UIComponents
 
+@MainActor
 class SSOAccountCreationCoordinator: NSObject, Coordinator {
 
     enum Step: Equatable {
@@ -30,7 +32,6 @@ class SSOAccountCreationCoordinator: NSObject, Coordinator {
 
     let email: DashTypes.Email
     let navigator: Navigator
-    private let accountCreationHandler: AccountCreationHandler
     private let completion: (CompletionResult) -> Void
     private let isEmailMarketingOptInRequired: Bool
     private let initialStep: Step
@@ -38,34 +39,28 @@ class SSOAccountCreationCoordinator: NSObject, Coordinator {
     private let creationLogger: Logger
     private let logger: Logger
     private var sessionServicesSubscription: AnyCancellable?
-    private let ssoLogger: SSOLoginInstallerLogger
     private let isNitroProvider: Bool
 
     init(email: DashTypes.Email,
          appServices: AppServicesContainer,
          navigator: Navigator,
-         accountCreationHandler: AccountCreationHandler,
          isEmailMarketingOptInRequired: Bool,
          logger: Logger,
          initialStep: Step,
-         ssoLogger: SSOLoginInstallerLogger,
          isNitroProvider: Bool,
          completion: @escaping (CompletionResult) -> Void) {
         self.email = email
         self.navigator = navigator
-        self.accountCreationHandler = accountCreationHandler
         self.completion = completion
         self.isEmailMarketingOptInRequired = isEmailMarketingOptInRequired
         self.initialStep = initialStep
         self.appServices = appServices
         self.logger = logger
         self.creationLogger = appServices.rootLogger[.accountCreation]
-        self.ssoLogger = ssoLogger
         self.isNitroProvider = isNitroProvider
     }
 
     func start() {
-        ssoLogger.log(.createAccountEmailWillProvisionAccount)
         move(to: initialStep)
     }
 
@@ -76,10 +71,13 @@ class SSOAccountCreationCoordinator: NSObject, Coordinator {
         case let .userConsent(ssoToken, serviceProviderKey):
             navigator.push(makeUserConsentView(ssoToken: ssoToken, serviceProviderKey: serviceProviderKey))
         case let .createAccount(ssoToken, serviceProviderKey, hasUserAcceptedTermsAndConditions, hasUserAcceptedEmailMarketing):
-            createAccount(ssoToken: ssoToken,
-                          serviceProviderKey: serviceProviderKey,
-                          hasUserAcceptedTermsAndConditions: hasUserAcceptedTermsAndConditions,
-                          hasUserAcceptedEmailMarketing: hasUserAcceptedEmailMarketing)
+            Task {
+                await createAccount(ssoToken: ssoToken,
+                              serviceProviderKey: serviceProviderKey,
+                              hasUserAcceptedTermsAndConditions: hasUserAcceptedTermsAndConditions,
+                              hasUserAcceptedEmailMarketing: hasUserAcceptedEmailMarketing)
+            }
+
         }
     }
 
@@ -141,7 +139,7 @@ class SSOAccountCreationCoordinator: NSObject, Coordinator {
     func createAccount(ssoToken: String,
                        serviceProviderKey: String,
                        hasUserAcceptedTermsAndConditions: Bool,
-                       hasUserAcceptedEmailMarketing: Bool) {
+                       hasUserAcceptedEmailMarketing: Bool) async {
         do {
                         let ssoServerKey = Random.randomData(ofSize: 64)
             let remoteKey = Random.randomData(ofSize: 64)
@@ -167,9 +165,9 @@ class SSOAccountCreationCoordinator: NSObject, Coordinator {
                 .encrypt(using: remoteCryptoEngine)
                 .base64EncodedString()
 
-            let settings = CoreSessionSettings(time: Timestamp.now.rawValue, content: initialSettings)
-            let consents = [Consent(type: .emailsOffersAndTips, status: hasUserAcceptedEmailMarketing),
-                            Consent(type: .privacyPolicyAndToS, status: true)]
+            let settings = CoreSessionSettings(content: initialSettings, time: Int(Timestamp.now.rawValue))
+            let consents = [Consent(consentType: .emailsOffersAndTips, status: hasUserAcceptedEmailMarketing),
+                            Consent(consentType: .privacyPolicyAndToS, status: true)]
 
             guard let sharingKeys = try? SharingKeys.makeAccountDefault(privateKeyCryptoEngine: remoteCryptoEngine) else {
                 creationLogger.error("Failed to create sharing keys")
@@ -183,11 +181,11 @@ class SSOAccountCreationCoordinator: NSObject, Coordinator {
                                                    sharingKeys: sharingKeys,
                                                    ssoToken: ssoToken,
                                                    ssoServerKey: ssoServerKey.base64EncodedString(),
-                                                   remoteKeys: [RemoteKey(uuid: UUID().uuidString.lowercased(),
+                                                   remoteKeys: [AppAPIClient.Account.CreateUserWithSSO.RemoteKeys(uuid: UUID().uuidString.lowercased(),
                                                                           key: encryptedRemoteKey.base64EncodedString(),
                                                                           type: .sso)])
 
-            self.createSSOAccount(with: creationInfo, ssoKey: ssoKey, remoteKey: remoteKey, cryptoConfig: cryptoConfig)
+            await self.createSSOAccount(with: creationInfo, ssoKey: ssoKey, remoteKey: remoteKey, cryptoConfig: cryptoConfig)
         } catch {
             creationLogger.error("Failed to create account", error: error)
             self.showError(AccountError.unknown)
@@ -195,35 +193,31 @@ class SSOAccountCreationCoordinator: NSObject, Coordinator {
     }
 }
 
+@MainActor
 extension SSOAccountCreationCoordinator {
 
-    func createSSOAccount(with accountInfos: SSOAccountCreationInfos, ssoKey: Data, remoteKey: Data, cryptoConfig: CryptoRawConfig) {
-        self.accountCreationHandler.createSSOAccount(with: accountInfos) { [weak self] result in
-            guard let self = self else {
-                return
-            }
-            switch result {
-            case .success(let accountInfo):
-                let authentication = ServerAuthentication(deviceAccessKey: accountInfo.deviceAccessKey, deviceSecretKey: accountInfo.deviceSecretKey)
-                let sessionConfiguration = SessionConfiguration(login: Login(accountInfos.login),
-                                                                masterKey: .ssoKey(ssoKey),
-                                                                keys: SessionSecureKeys(serverAuthentication: authentication,
-                                                                                        remoteKey: remoteKey,
-                                                                                        analyticsIds: accountInfo.analyticsIds),
-                                                                info: SessionInfo(deviceAccessKey: accountInfo.deviceAccessKey,
-                                                                                  loginOTPOption: nil,
-                                                                                  isPartOfSSOCompany: true))
-                self.appServices.installerLogService.accountCreation.log(.finishingAccountCreation)
-                self.createSession(with: sessionConfiguration, cryptoConfig: cryptoConfig)
-            case let .failure(error):
-                self.showError(error)
-                self.logger.error("Failed to create account", error: error)
-            }
+    func createSSOAccount(with accountInfos: SSOAccountCreationInfos, ssoKey: Data, remoteKey: Data, cryptoConfig: CryptoRawConfig) async {
+        do {
+            let accountInfo = try await self.appServices.appAPIClient.account.createSSOAccount(with: accountInfos)
+            let authentication = ServerAuthentication(deviceAccessKey: accountInfo.deviceAccessKey, deviceSecretKey: accountInfo.deviceSecretKey)
+            let sessionConfiguration = SessionConfiguration(login: Login(accountInfos.login),
+                                                            masterKey: .ssoKey(ssoKey),
+                                                            keys: SessionSecureKeys(serverAuthentication: authentication,
+                                                                                    remoteKey: remoteKey,
+                                                                                    analyticsIds: AnalyticsIdentifiers(device: accountInfo.deviceAnalyticsId, user: accountInfo.userAnalyticsId)),
+                                                            info: SessionInfo(deviceAccessKey: accountInfo.deviceAccessKey,
+                                                                              loginOTPOption: nil,
+                                                                              accountType: .sso))
+            self.createSession(with: sessionConfiguration, cryptoConfig: cryptoConfig)
+        } catch {
+            self.showError(error)
+            self.logger.error("Failed to create account", error: error)
         }
     }
 
     private func makeLoginHandler() -> LoginHandler {
         return LoginHandler(sessionsContainer: appServices.sessionContainer,
+                            appApiClient: appServices.appAPIClient,
                             apiClient: appServices.appAPIClient,
                             deviceInfo: DeviceInfo.default,
                             logger: self.logger,
@@ -231,20 +225,19 @@ extension SSOAccountCreationCoordinator {
                             removeLocalDataHandler: appServices.sessionCleaner.removeLocalData)
     }
 
-    private func createSession(with sessionConfiguration: SessionConfiguration, cryptoConfig: CryptoRawConfig) {
-        self.makeLoginHandler().createSession(with: sessionConfiguration, cryptoConfig: cryptoConfig) { [weak self] result in
-            guard let self = self else { return }
-            switch result {
-            case let .success(session):
-                self.buildSessionServices(from: session)
-            case let .failure(error):
-                self.logger.error("Failed to create session", error: error)
-            }
-        }
-    }
+	private func createSession(with sessionConfiguration: SessionConfiguration, cryptoConfig: CryptoRawConfig) {
+		Task.detached {
+			do {
+				let session = try await self.makeLoginHandler().createSession(with: sessionConfiguration, cryptoConfig: cryptoConfig)
+				await self.buildSessionServices(from: session)
+			} catch {
+				self.logger.error("Failed to create session", error: error)
+			}
+		}
+	}
 
+	@MainActor
     func buildSessionServices(from session: Session) {
-        self.appServices.loginUsageLogService.didRegisterNewDevice()
         self.sessionServicesSubscription = SessionServicesContainer
             .buildSessionServices(from: session,
                                   appServices: self.appServices,
@@ -254,7 +247,7 @@ extension SSOAccountCreationCoordinator {
 
                                     switch result {
                                     case let .success(sessionServices):
-                                        sessionServices.activityReporter.logSuccesfulLogin()
+                                        sessionServices.activityReporter.logSuccessfulLogin()
                                         self.completion(.accountCreated(sessionServices))
                                     case let .failure(error):
                                         self.showError(error)
@@ -269,9 +262,9 @@ extension SSOAccountCreationCoordinator {
             if case AccountCreationError.expiredVersion = error {
                 return VersionValidityAlert.errorAlert()
             } else {
-                let title = CoreLocalization.L10n.errorMessage(for: error, login: Login(self.email.address))
+                let title = CoreLocalization.L10n.errorMessage(for: error)
                 let alert = UIAlertController(title: title, message: nil, preferredStyle: .alert)
-                alert.addAction(UIAlertAction.init(title: L10n.Localizable.kwButtonOk, style: .default, handler: nil))
+                alert.addAction(UIAlertAction.init(title: CoreLocalization.L10n.Core.kwButtonOk, style: .default, handler: nil))
                 return alert
             }
         }()
@@ -283,11 +276,11 @@ extension SSOAccountCreationCoordinator {
 }
 
 extension SSOAccountCreationInfos {
-    init(email: String, settings: CoreSessionSettings, consents: [Consent], sharingKeys: SharingKeys, ssoToken: String, ssoServerKey: String, remoteKeys: [CoreSession.RemoteKey]) {
+    init(email: String, settings: CoreSessionSettings, consents: [Consent], sharingKeys: SharingKeys, ssoToken: String, ssoServerKey: String, remoteKeys: [AppAPIClient.Account.CreateUserWithSSO.RemoteKeys]) {
             self.init(login: email,
                       contactEmail: email,
                       appVersion: Application.version(),
-                      platform: System.platform,
+                      platform: AccountCreateUserPlatform(rawValue: System.platform) ?? .serverIphone,
                       settings: settings,
                       deviceName: Device.name,
                       country: System.country,
@@ -301,7 +294,7 @@ extension SSOAccountCreationInfos {
 }
 
 private extension ActivityReporterProtocol {
-    func logSuccesfulLogin() {
+    func logSuccessfulLogin() {
         report(UserEvent.Login(isFirstLogin: true,
                                mode: .sso,
                                status: .success,

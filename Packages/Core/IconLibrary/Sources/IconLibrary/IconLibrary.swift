@@ -2,7 +2,7 @@ import Foundation
 import DashTypes
 import Combine
 
-fileprivate let colorsCacheKeySuffix = "_colors"
+private let colorsCacheKeySuffix = "_colors"
 
 public protocol IconLibraryRequest {
     var cacheKey: String { get }
@@ -20,25 +20,25 @@ public actor IconLibrary<Provider: IconInfoProvider> {
         case inProgress(Task<IconCache, Error>)
         case ready(IconCache)
     }
-    
-    public static var defaultCacheValidationInterval: TimeInterval  { 
+
+    public static var defaultCacheValidationInterval: TimeInterval { 
         return 60 * 60 * 24 * 30
     }
 
     public let cacheValidationInterval: TimeInterval
     public var logger: Logger
     public let provider: Provider
-    
+
     nonisolated let onDiskCache: OnDiskRemoteFileCache
     private var cache: [String: CacheEntry] = [:]
     private let cryptoEngine: CryptoEngine
     private let imageDownloader: FileDownloaderProtocol
 
     public init(cacheDirectory: URL,
-                            cacheValidationInterval: TimeInterval = IconLibrary<Provider>.defaultCacheValidationInterval,
-                            cryptoEngine: CryptoEngine,
-                            provider: Provider,
-                            logger: Logger) {
+                cacheValidationInterval: TimeInterval = IconLibrary<Provider>.defaultCacheValidationInterval,
+                cryptoEngine: CryptoEngine,
+                provider: Provider,
+                logger: Logger) {
         self.init(cacheDirectory: cacheDirectory,
                   cacheValidationInterval: cacheValidationInterval,
                   cryptoEngine: cryptoEngine,
@@ -86,7 +86,7 @@ public actor IconLibrary<Provider: IconInfoProvider> {
                         throw error
                     }
                 }
-                
+
                 cache[cacheKey] = .inProgress(task)
                 let iconCache = try await task.value
                 cache[cacheKey] = .ready(iconCache)
@@ -120,14 +120,14 @@ public actor IconLibrary<Provider: IconInfoProvider> {
         let icon = Icon(image: image, colors: colorSet)
         return IconCache(icon: icon, modificationDate: modificationDate)
     }
-    
+
     private func downloadAndUpdateCache(for request: Request, cacheKey: String, diskCache: IconCache?) async throws -> IconCache {
         let colorsCacheKey = cacheKey.appending(colorsCacheKeySuffix)
-        
+
                 guard let (url, iconColorSet) = try await provider.iconInfo(for: request) else {
             return IconCache()
         }
-        
+
         let etag = diskCache != nil ? try onDiskCache.etag(forKey: cacheKey) : nil
         let result = try await imageDownloader.download(at: url, etag: etag)
         switch result {
@@ -135,22 +135,22 @@ public actor IconLibrary<Provider: IconInfoProvider> {
                 let date = Date()
                 var iconCache = diskCache ?? IconCache()
                 iconCache.modificationDate = date
-                
+
                 try onDiskCache.setModificationDate(date, forKey: cacheKey)
-                
+
                 return iconCache
-                
+
             case let .data(data, etag: etag): 
                 let image = Image(data: data)
                 let colors = iconColorSet
-                
+
                 try onDiskCache.save(data, forKey: cacheKey)
                 try onDiskCache.saveETag(etag, forKey: cacheKey)
                 try onDiskCache.save(JSONEncoder().encode(colors), forKey: colorsCacheKey)
                 let modificationDate = try onDiskCache.modificationDate(forKey: cacheKey)
-                
+
                 return IconCache(icon: Icon(image: image, colors: colors), modificationDate: modificationDate)
-                
+
             case .noFile:
                 try onDiskCache.save(Data(), forKey: cacheKey)
                 let modificationDate = try onDiskCache.modificationDate(forKey: cacheKey)
@@ -158,13 +158,12 @@ public actor IconLibrary<Provider: IconInfoProvider> {
                 return IconCache(modificationDate: modificationDate)
         }
     }
-    
+
     public func flushCache() {
         cache.removeAll()
     }
-    
+
     func set(_ entry: CacheEntry, forKey key: String) {
         cache[key] = entry
     }
 }
-

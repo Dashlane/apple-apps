@@ -3,6 +3,7 @@ import CoreSharing
 import VaultKit
 import DashTypes
 import UIComponents
+import CorePersonalData
 
 struct SharingItemsUserDetailView: View {
     @StateObject
@@ -60,11 +61,15 @@ struct SharingItemsUserDetailView: View {
         var items: some View {
         Section {
             ForEach(model.items) { item in
-                SharedItemInfoRow(model: model.makeRowViewModel(item: item)) {
-                    actions(for: item)
-                }.onRevokeSharing {
-                    model.revoke(item)
-                }
+                NavigationLink(destination: {
+                    model.detailView(for: item)
+                }, label: {
+                    SharedItemInfoRow(model: model.makeRowViewModel(item: item)) {
+                        actions(for: item)
+                    }.onRevokeSharing {
+                        model.revoke(item)
+                    }
+                })
             }
         }
     }
@@ -89,7 +94,7 @@ struct SharingItemsUserDetailView: View {
 
  struct SharingItemsUserDetailView_Previews: PreviewProvider {
     static var previews: some View {
-        SharingItemsUserDetailView(model: .mock(user: .init(id: "_", items: [.mock(id: "1"), .mock(id: "2")]), itemsProvider: .mock(vaultItemByIds: [
+        SharingItemsUserDetailView(model: .mock(user: .init(id: "_", items: [.mock(id: "1"), .mock(id: "2")]), item: Credential(), itemsProvider: .mock(vaultItemByIds: [
             "1": PersonalDataMock.Credentials.sharedAdminPermissionCredential,
             "2": PersonalDataMock.Credentials.sharedLimitedPermissionCredential
         ])))

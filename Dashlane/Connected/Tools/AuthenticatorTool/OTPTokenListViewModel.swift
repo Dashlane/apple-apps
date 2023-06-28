@@ -8,6 +8,7 @@ import AuthenticatorKit
 import CoreUserTracking
 import DashTypes
 import VaultKit
+import DomainParser
 
 class OTPTokenListViewModel: ObservableObject, SessionServicesInjecting {
 
@@ -19,7 +20,7 @@ class OTPTokenListViewModel: ObservableObject, SessionServicesInjecting {
     private let vaultItemsService: VaultItemsServiceProtocol
     private let databaseService: AuthenticatorDatabaseServiceProtocol
     private let domainParser: DomainParserProtocol
-    private let domainIconLibray: DomainIconLibraryProtocol
+    private let domainIconLibrary: DomainIconLibraryProtocol
     private let actionHandler: (Action) -> Void
     private let activityReporter: ActivityReporterProtocol
 
@@ -33,10 +34,10 @@ class OTPTokenListViewModel: ObservableObject, SessionServicesInjecting {
          vaultItemsService: VaultItemsServiceProtocol,
          authenticatorDatabaseService: OTPDatabaseService,
          domainParser: DomainParserProtocol,
-         domainIconLibray: DomainIconLibraryProtocol,
+         domainIconLibrary: DomainIconLibraryProtocol,
          actionHandler: @escaping (OTPTokenListViewModel.Action) -> Void) {
         self.vaultItemsService = vaultItemsService
-        self.domainIconLibray = domainIconLibray
+        self.domainIconLibrary = domainIconLibrary
         self.domainParser = domainParser
         self.databaseService = authenticatorDatabaseService
         self.actionHandler = actionHandler
@@ -52,7 +53,7 @@ class OTPTokenListViewModel: ObservableObject, SessionServicesInjecting {
     }
 
     func makeTokenRowViewModel(for token: OTPInfo) -> TokenRowViewModel {
-        return TokenRowViewModel(token: token, domainIconLibrary: domainIconLibray, databaseService: databaseService, domainParser: domainParser)
+        return TokenRowViewModel(token: token, domainIconLibrary: domainIconLibrary, databaseService: databaseService, domainParser: domainParser)
     }
 
     func delete(item: OTPInfo) {
@@ -69,8 +70,8 @@ class OTPTokenListViewModel: ObservableObject, SessionServicesInjecting {
                                                              isProtected: false,
                                                              itemId: otpInfo.id.rawValue,
                                                              itemType: .credential))
-        if let domain = otpInfo.configuration.issuer?.hashedDomainForLogs {
-            activityReporter.report(AnonymousEvent.CopyVaultItemField(domain: domain,
+        if let domain = otpInfo.configuration.issuer {
+            activityReporter.report(AnonymousEvent.CopyVaultItemField(domain: domain.hashedDomainForLogs(),
                                                                       field: .otpSecret,
                                                                       itemType: .credential))
         }
@@ -89,7 +90,7 @@ extension OTPTokenListViewModel {
         return OTPTokenListViewModel(activityReporter: .fake,
                                      vaultItemsService: vaultItemService,
                                      authenticatorDatabaseService: OTPDatabaseService(vaultItemsService: vaultItemService, activityReporter: .fake),
-                                     domainParser: DomainParserMock(),
-                                     domainIconLibray: IconServiceMock().domain) { _ in }
+                                     domainParser: FakeDomainParser(),
+                                     domainIconLibrary: IconServiceMock().domain) { _ in }
     }
 }

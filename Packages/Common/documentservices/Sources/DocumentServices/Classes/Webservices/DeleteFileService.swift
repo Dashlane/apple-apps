@@ -2,22 +2,22 @@ import Foundation
 import DashTypes
 
 public struct DeleteFileService {
-    
+
     private enum Endpoint: String {
         case commit = "_"
     }
-    
+
     private enum Key: String {
         case key
         case secureFileInfoId
     }
-    
+
     private let webservice: ProgressableNetworkingEngine
-    
+
     public init(webservice: ProgressableNetworkingEngine) {
         self.webservice = webservice
     }
-    
+
                                 public func delete(key: String, secureFileInfoId: String) async throws -> Quota {
         let params: [String: Encodable] = [
             Key.secureFileInfoId.rawValue: secureFileInfoId,

@@ -4,7 +4,7 @@ import DashTypes
 
 public protocol DatabaseWriter: DatabaseReader {
     var changes: Set<DatabaseChange> { get }
-    
+
     mutating func save(_ records: [PersonalDataRecord], shouldCreateSnapshot: Bool) throws
     mutating func insert(_ records: [PersonalDataRecord], shouldCreateSnapshot: Bool) throws
     mutating func update(_ records: [PersonalDataRecord], shouldCreateSnapshot: Bool) throws
@@ -27,49 +27,49 @@ public extension DatabaseWriter {
     mutating func save(_ records: [PersonalDataRecord]) throws {
         try save(records, shouldCreateSnapshot: false)
     }
-    
+
     mutating func insert(_ records: [PersonalDataRecord]) throws {
         try insert(records, shouldCreateSnapshot: false)
     }
-    
+
     mutating func update(_ records: [PersonalDataRecord]) throws {
         try update(records, shouldCreateSnapshot: false)
     }
-    
+
     mutating func save(_ record: PersonalDataRecord) throws {
         try save(record, shouldCreateSnapshot: false)
     }
-    
+
     mutating func insert(_ record: PersonalDataRecord) throws {
         try insert(record, shouldCreateSnapshot: false)
     }
-    
+
     mutating func update(_ record: PersonalDataRecord) throws {
         try update(record, shouldCreateSnapshot: false)
     }
 }
-    
+
 public extension DatabaseWriter {
     mutating func save(_ record: PersonalDataRecord, shouldCreateSnapshot: Bool) throws {
         try save([record], shouldCreateSnapshot: shouldCreateSnapshot)
     }
-    
+
     mutating func insert(_ record: PersonalDataRecord, shouldCreateSnapshot: Bool) throws {
         try insert([record], shouldCreateSnapshot: shouldCreateSnapshot)
     }
-    
+
     mutating func update(_ record: PersonalDataRecord, shouldCreateSnapshot: Bool) throws {
         try update([record], shouldCreateSnapshot: shouldCreateSnapshot)
     }
-    
+
     mutating func delete(_ record: PersonalDataRecord) throws {
         try delete([record])
     }
-    
+
     mutating func delete(with id: Identifier) throws {
         try delete(with: [id])
     }
-    
+
     mutating func delete(_ records: [PersonalDataRecord]) throws {
         try delete(with: records.map(\.id))
     }

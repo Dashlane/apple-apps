@@ -9,7 +9,7 @@ public struct AccountCreationResponse: Decodable {
     let token: String?
     public let deviceAnalyticsId: String
     public let userAnalyticsId: String
-    
+
         public var analyticsIds: AnalyticsIdentifiers {
         return AnalyticsIdentifiers(device: deviceAnalyticsId, user: userAnalyticsId)
     }

@@ -44,6 +44,7 @@ struct EnableOtherBrowserOnboardingView: View {
                               action: {
                     if isExtensionInstalled {
                         openExtension()
+                        skip() 
                     } else {
                         getExtension()
                     }

@@ -5,6 +5,7 @@ import DashlaneAppKit
 import UIComponents
 import VaultKit
 import DesignSystem
+import CoreLocalization
 
 struct AddItemView: View {
     @Environment(\.dismiss)
@@ -35,7 +36,7 @@ struct AddItemView: View {
         if isPresented {
             BackButton(action: dismiss.callAsFunction)
         } else {
-            NavigationBarButton(L10n.Localizable.cancel) {
+            NavigationBarButton(CoreLocalization.L10n.Core.cancel) {
                 self.navigator()?.dismiss()
             }
         }

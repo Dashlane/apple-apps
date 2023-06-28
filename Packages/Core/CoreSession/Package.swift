@@ -3,13 +3,13 @@ import PackageDescription
 let package = Package(
     name: "CoreSession",
     platforms: [
-        .iOS(.v15),
-        .macOS(.v12)
+        .iOS(.v16),
+        .macOS(.v13)
     ],
     products: [
         .library(
             name: "CoreSession",
-            targets: ["CoreSession"]),
+            targets: ["CoreSession"])
     ],
     dependencies: [
         .package(path: "../../Foundation/DashTypes"),
@@ -31,22 +31,11 @@ let package = Package(
             dependencies: [
                 "CoreSession",
                 .product(name: "DashTypes", package: "DashTypes"),
-                .product(name: "CoreNetworking", package: "CoreNetworking"),
+                .product(name: "CoreNetworking", package: "CoreNetworking")
             ],
             resources: [
                 .process("Resources")
             ]
-        ),
-               .testTarget(
-           name: "CoreSessionIntegrationTests",
-           dependencies: [
-               "CoreSession",
-               .product(name: "DashTypes", package: "DashTypes"),
-                .product(name: "CoreNetworking", package: "CoreNetworking")
-           ],
-           resources: [
-               .process("Resources")
-           ]
-       )
+        )
     ]
 )

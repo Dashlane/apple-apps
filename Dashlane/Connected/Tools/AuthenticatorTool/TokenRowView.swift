@@ -4,12 +4,12 @@ import Combine
 import UIDelight
 import AuthenticatorKit
 import VaultKit
+import IconLibrary
 
 enum TokenRowMode {
     case view
     case expanded
     case edition
-    case preview
 }
 
 enum TokenRowAction {
@@ -25,12 +25,15 @@ struct TokenRowView: View {
     let rowMode: TokenRowMode
 
     let performTrailingAction: (TokenRowAction) -> Void
+    let expandCollapseAction: () -> Void
 
     init(model: @autoclosure @escaping () -> TokenRowViewModel,
          rowMode: TokenRowMode,
+         expandCollapseAction: @escaping () -> Void,
          performTrailingAction: @escaping (TokenRowAction) -> Void) {
         self._model = .init(wrappedValue: model())
         self.rowMode = rowMode
+        self.expandCollapseAction = expandCollapseAction
         self.performTrailingAction = performTrailingAction
     }
 
@@ -41,7 +44,7 @@ struct TokenRowView: View {
     ]
 
     var showCode: Bool {
-        return rowMode == .expanded || rowMode == .edition || rowMode == .preview
+        return rowMode == .expanded || rowMode == .edition
     }
 
     var body: some View {
@@ -65,13 +68,18 @@ struct TokenRowView: View {
                         Text(model.subtitle)
                             .font(.caption)
                             .foregroundColor(.ds.text.neutral.quiet)
+                            .fiberAccessibilityHidden(rowMode == .view)
                     }
                 }
 
-            Image(systemName: "chevron.down")
-                .rotationEffect(rowMode == .expanded ? .degrees(-180) : .degrees(0))
-                .foregroundColor(.ds.text.neutral.standard)
-                .opacity(rowMode == .edition || rowMode == .preview ? 0 : 1)
+            Button(action: expandCollapseAction, label: {
+                Image(systemName: "chevron.down")
+                    .rotationEffect(rowMode == .expanded ? .degrees(-180) : .degrees(0))
+                    .foregroundColor(.ds.text.neutral.standard)
+                    .opacity(rowMode == .edition ? 0 : 1)
+                    .fiberAccessibilityHidden(rowMode == .edition)
+            })
+            .fiberAccessibilityLabel(Text(rowMode == .expanded ? L10n.Localizable.accessibilityCollapse : L10n.Localizable.accessibilityExpand))
 
             if showCode {
                 code
@@ -80,20 +88,41 @@ struct TokenRowView: View {
         .padding([.leading, .top], 16)
         .padding(.bottom, 16)
         .padding(.trailing, 20)
+        .fiberAccessibilityElement(children: .contain)
+        .fiberAccessibilityLabel(Text("\(model.title) \(rowMode.accessibilityDescription)"))
     }
 
     @ViewBuilder
     private var icon: some View {
-        DomainIconView(animate: false,
-                       model: model.makeDomainIconViewModel(),
-                       placeholderTitle: model.token.configuration.issuerOrTitle)
+        DomainIconView(
+            animate: false,
+            model: model.makeDomainIconViewModel(),
+            placeholderTitle: model.token.configuration.issuerOrTitle
+        )
+        .fiberAccessibilityHidden(true)
     }
 
     @ViewBuilder
     var code: some View {
-                  GeneratedOTPCodeRowView(model: model.makeGeneratedOTPCodeRowViewModel(),
-                                isEditing: rowMode == .edition,
-                                performAction: performTrailingAction)
+        GeneratedOTPCodeRowView(
+            model: model.makeGeneratedOTPCodeRowViewModel(),
+            isEditing: rowMode == .edition,
+            performAction: performTrailingAction
+        )
+        .accessibilityElement(children: .combine)
+    }
+}
+
+private extension TokenRowMode {
+    var accessibilityDescription: String {
+        switch self {
+        case .edition:
+            return ""
+        case .expanded:
+            return L10n.Localizable.accessibilityExpanded
+        case .view:
+            return L10n.Localizable.accessibilityCollapsed
+        }
     }
 }
 
@@ -101,9 +130,9 @@ struct TokenRowView_Previews: PreviewProvider {
     static var previews: some View {
         MultiContextPreview {
             Group {
-                TokenRowView(model: .mock(), rowMode: .view, performTrailingAction: { _ in })
-                TokenRowView(model: .mock(), rowMode: .expanded, performTrailingAction: { _ in })
-                TokenRowView(model: .mock(), rowMode: .edition, performTrailingAction: { _ in })
+                TokenRowView(model: .mock(), rowMode: .view, expandCollapseAction: {}, performTrailingAction: { _ in })
+                TokenRowView(model: .mock(), rowMode: .expanded, expandCollapseAction: {}, performTrailingAction: { _ in })
+                TokenRowView(model: .mock(), rowMode: .edition, expandCollapseAction: {}, performTrailingAction: { _ in })
 
             }.previewLayout(.sizeThatFits)
         }

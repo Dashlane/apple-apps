@@ -10,10 +10,8 @@ extension FeatureService {
                 for feature in refreshableFeaturesThatHaveBeenUpdated {
             if enabledFlips.contains(feature.rawValue) {
                                 features.insert(feature)
-                featureFlipUsageLogger.log(featureIdentifier: feature.rawValue, newValue: true)
             } else {
                                 features.remove(feature)
-                featureFlipUsageLogger.log(featureIdentifier: feature.rawValue, newValue: false)
             }
         }
     }

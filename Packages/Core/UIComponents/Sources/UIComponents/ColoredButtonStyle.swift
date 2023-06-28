@@ -16,3 +16,9 @@ public struct ColoredButtonStyle: ButtonStyle {
             .opacity(configuration.isPressed || !isEnabled ? 0.5 : 1)
     }
 }
+
+public extension ButtonStyle where Self == ColoredButtonStyle {
+    static func colored(_ color: Color) -> ColoredButtonStyle {
+        return ColoredButtonStyle(color: color)
+    }
+}

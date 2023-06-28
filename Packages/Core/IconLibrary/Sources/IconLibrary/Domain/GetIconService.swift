@@ -56,4 +56,3 @@ struct IconDescription: Decodable {
 private struct GetIconServiceResponse: Decodable {
     let content: [IconDescription]
 }
-

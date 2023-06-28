@@ -9,7 +9,7 @@ public class DeviceUnlinker {
     }
     public typealias  LimitCompletion = (Result<Int?, Error>) -> Void
     private(set) public var currentUserDevices: Set<DeviceListEntry> = []
-    private(set) public var accountDeviceLimit: Int? = nil
+    private(set) public var accountDeviceLimit: Int?
     public let login: Login
     private let deviceService: DeviceServiceProtocol
     private let currentDeviceId: String
@@ -88,9 +88,6 @@ public class DeviceUnlinker {
         }
     }
 }
-
-
-import Combine
 
 extension DeviceUnlinker {
     @available(OSX 10.15, *)

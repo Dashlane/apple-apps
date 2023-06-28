@@ -4,7 +4,8 @@ import LoginKit
 struct SplitViewPlaceholderView: View {
 
     var body: some View {
-        LoginLogo().backgroundColorIgnoringSafeArea(Color(asset: FiberAsset.appBackground))
+        LoginLogo()
+            .backgroundColorIgnoringSafeArea(.ds.background.default)
     }
 }
 

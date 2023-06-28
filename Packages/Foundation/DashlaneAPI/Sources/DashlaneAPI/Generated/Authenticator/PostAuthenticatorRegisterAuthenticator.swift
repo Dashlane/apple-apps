@@ -1,6 +1,6 @@
 import Foundation
 extension UserDeviceAPIClient.Authenticator {
-        public struct RegisterAuthenticator {
+        public struct RegisterAuthenticator: APIRequest {
         public static let endpoint: Endpoint = "/authenticator/RegisterAuthenticator"
 
         public let api: UserDeviceAPIClient
@@ -18,7 +18,11 @@ extension UserDeviceAPIClient.Authenticator {
 }
 
 extension UserDeviceAPIClient.Authenticator.RegisterAuthenticator {
-        struct Body: Encodable {
+        public struct Body: Encodable {
+
+        private enum CodingKeys: String, CodingKey {
+            case push = "push"
+        }
 
         public let push: Push?
     }
@@ -28,6 +32,11 @@ extension UserDeviceAPIClient.Authenticator.RegisterAuthenticator {
                 public enum Platform: String, Codable, Equatable, CaseIterable {
             case apn = "apn"
             case gcm = "gcm"
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case pushId = "pushId"
+            case platform = "platform"
         }
 
         public let pushId: String

@@ -11,7 +11,9 @@ import DashlaneAppKit
 import LoginKit
 import UIKit
 import SwiftUI
+import UIComponents
 
+@MainActor
 class LocalLoginMigrationCoordinator: Coordinator, SubcoordinatorOwner {
     enum Completion {
         case session(Session)
@@ -58,17 +60,17 @@ class LocalLoginMigrationCoordinator: Coordinator, SubcoordinatorOwner {
             .buildSessionServices(from: migrationInfos.session,
                                   appServices: self.appServices,
                                   logger: self.logger,
-                                  loadingContext: .remoteLogin) { [weak self] result in
+                                  loadingContext: .remoteLogin()) { [weak self] result in
                 guard let self = self else { return }
                 Task { @MainActor in
                     switch result {
                     case let .success(sessionServices):
                         switch migrationInfos.type {
-                        case .ssoUserToMasterPasswordUser, .ssoUserToMasterPasswordAdmin:
+                        case .ssoMemberToMpUser, .ssoMemberToAdmin:
                             self.startAccountMigration(for: .remoteKeyToMasterPassword(validator),
                                                        sessionServices: sessionServices,
                                                        authTicket: migrationInfos.authTicket)
-                        case .masterPasswordUserToSSOUser:
+                        case .mpUserToSsoMember:
                             self.startAccountMigration(for: .masterPasswordToRemoteKey(validator),
                                                        sessionServices: sessionServices,
                                                        authTicket: migrationInfos.authTicket)
@@ -131,14 +133,14 @@ class LocalLoginMigrationCoordinator: Coordinator, SubcoordinatorOwner {
             let masterKeyStatus = appServices.keychainService.masterKeyStatus(for: session.login)
             switch masterKeyStatus {
             case .available(accessMode: let accessMode):
-                try? appServices.keychainService.save(newSession.configuration.masterKey.keyChainMasterKey,
+                try? appServices.keychainService.save(newSession.authenticationMethod.sessionKey.keyChainMasterKey,
                                                       for: session.login,
                                                       expiresAfter: AuthenticationKeychainService.defaultPasswordValidityPeriod,
                                                       accessMode: accessMode)
             case .expired, .notAvailable:
                 break
             }
-            localLoginHandler.finish(with: newSession)
+            localLoginHandler.finish(with: newSession, isRecoveryLogin: false)
             Task { @MainActor in
                 self.completion(.success(.session(session)))
             }
@@ -151,15 +153,17 @@ class LocalLoginMigrationCoordinator: Coordinator, SubcoordinatorOwner {
 
     private func migrateAnalyticsId(for session: Session) {
         let userAPIClient = appServices.appAPIClient.makeUserClient(sessionConfiguration: session.configuration)
-        let client = AuthenticatedAccountAPIClient(apiClient: userAPIClient)
-        client.accountInfo { result in
-            Task { @MainActor in
-                if let ids = try? result.get().analyticsIds {
-                    let session = (try? self.appServices.sessionContainer.update(session, with: ids)) ?? session
-                    self.completion(.success(.session(session)))
-                } else {
-                    self.completion(.success(.session(session)))
+        Task {
+            do {
+                let result = try await userAPIClient.account.accountInfo()
+                guard let user = result.userAnalyticsId, let device = result.deviceAnalyticsId else {
+                    throw AccountError.malformed
                 }
+                let ids = AnalyticsIdentifiers(device: device, user: user)
+                let session = (try? self.appServices.sessionContainer.update(session, with: ids)) ?? session
+                self.completion(.success(.session(session)))
+            } catch {
+                self.completion(.success(.session(session)))
             }
         }
     }
@@ -168,12 +172,12 @@ class LocalLoginMigrationCoordinator: Coordinator, SubcoordinatorOwner {
 private extension LocalLoginMigrationCoordinator {
     func startAccountMigration(for type: MigrationType,
                                sessionServices: SessionServicesContainer,
-                               authTicket: String?) {
+                               authTicket: AuthTicket?) {
 
         self.startSubcoordinator(AccountMigrationCoordinator(type: type,
                                                              navigator: navigator,
                                                              sessionServices: sessionServices,
-                                                             authTicket: authTicket,
+                                                             authTicket: authTicket?.value,
                                                              logger: logger) { [weak self] result in
             guard let self = self else {
                 return

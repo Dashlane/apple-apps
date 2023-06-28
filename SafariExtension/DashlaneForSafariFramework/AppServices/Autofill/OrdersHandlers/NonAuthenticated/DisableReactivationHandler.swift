@@ -1,5 +1,6 @@
 import Foundation
 import DashlaneAppKit
+import CoreSettings
 
 struct DisableReactivationHandler: MaverickOrderHandleable {
 

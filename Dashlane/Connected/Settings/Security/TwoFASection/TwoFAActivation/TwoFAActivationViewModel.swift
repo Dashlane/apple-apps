@@ -31,22 +31,19 @@ class TwoFAActivationViewModel: ObservableObject, SessionServicesInjecting {
 
     var dismissPublisher = PassthroughSubject<Void, Never>()
 
-    let accountAPIClient: AccountAPIClientProtocol
-
     let twoFAPhoneNumberSetupViewModelFactory: TwoFAPhoneNumberSetupViewModel.Factory
     let makeTwoFACompletionViewModelFactory: TwoFACompletionViewModel.Factory
 
     init(authenticatedAPIClient: DeprecatedCustomAPIClient,
          twoFAPhoneNumberSetupViewModelFactory: TwoFAPhoneNumberSetupViewModel.Factory,
          makeTwoFACompletionViewModelFactory: TwoFACompletionViewModel.Factory) {
-        self.accountAPIClient = AccountAPIClient(apiClient: authenticatedAPIClient)
         self.twoFAPhoneNumberSetupViewModelFactory = twoFAPhoneNumberSetupViewModelFactory
         self.makeTwoFACompletionViewModelFactory = makeTwoFACompletionViewModelFactory
         self.steps = [.twoFAOption]
     }
 
     func makeTwoFAPhoneNumberSetupViewModel(option: TFAOption) -> TwoFAPhoneNumberSetupViewModel {
-        twoFAPhoneNumberSetupViewModelFactory.make(accountAPIClient: accountAPIClient, option: option) { [weak self] response in
+        twoFAPhoneNumberSetupViewModelFactory.make(option: option) { [weak self] response in
             guard let self = self, let response = response else {
                 self?.dismissPublisher.send()
                 return
@@ -56,7 +53,7 @@ class TwoFAActivationViewModel: ObservableObject, SessionServicesInjecting {
     }
 
     func makeTwoFACompletionViewModel(option: TFAOption, response: TOTPActivationResponse, completion: @escaping () -> Void) -> TwoFACompletionViewModel {
-        makeTwoFACompletionViewModelFactory.make(option: option, response: response, accountAPIClient: accountAPIClient, completion: completion)
+        makeTwoFACompletionViewModelFactory.make(option: option, response: response, completion: completion)
     }
 
     func makeRecoveryCodesViewModel(option: TFAOption, response: TOTPActivationResponse) -> RecoveryCodesViewModel {
@@ -74,7 +71,7 @@ class TwoFAActivationViewModel: ObservableObject, SessionServicesInjecting {
 extension TwoFAActivationViewModel {
     static var mock: TwoFAActivationViewModel {
         return TwoFAActivationViewModel(authenticatedAPIClient: .fake,
-                                        twoFAPhoneNumberSetupViewModelFactory: .init({ _, option, _ in .mock(option) }),
-                                        makeTwoFACompletionViewModelFactory: .init({ option, response, _, _ in .mock(option, response: response) }))
+                                        twoFAPhoneNumberSetupViewModelFactory: .init({ option, _ in .mock(option) }),
+                                        makeTwoFACompletionViewModelFactory: .init({ option, response, _ in .mock(option, response: response) }))
     }
 }

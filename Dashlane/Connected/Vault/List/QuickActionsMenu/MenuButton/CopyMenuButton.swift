@@ -5,13 +5,9 @@ import UIDelight
 struct CopyMenuButton: View {
     let label: String
     let copyAction: () -> Void
-    let icon: ImageAsset
 
-    init(_ label: String,
-         icon: ImageAsset = FiberAsset.copyItem,
-         copyAction: @escaping () -> Void) {
+    init(_ label: String, copyAction: @escaping () -> Void) {
         self.label = label
-        self.icon = icon
         self.copyAction = copyAction
     }
 
@@ -21,7 +17,7 @@ struct CopyMenuButton: View {
         } label: {
             HStack {
                 Text(label)
-                icon.swiftUIImage
+                Image.ds.action.copy.outlined
             }
         }
     }

@@ -1,9 +1,11 @@
 import SwiftUI
 import TOTPGenerator
+import VaultKit
+import CoreLocalization
 
 struct DetailsTOTPField: View {
     
-    let title: String = L10n.Localizable.KWAuthentifiantIOS.otp
+    let title: String = CoreLocalization.L10n.Core.KWAuthentifiantIOS.otp
     static let duration: TimeInterval = 30.0
     
     @Binding

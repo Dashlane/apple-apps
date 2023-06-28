@@ -39,7 +39,6 @@ public class PlanRecommandationAnnouncement: HomeModalAnnouncement, HomeAnnounce
     }
 }
 
-
 private class PlanRecommandationService {
     private let syncedSettings: SyncedSettingsService
     private let premiumService: PremiumServiceProtocol

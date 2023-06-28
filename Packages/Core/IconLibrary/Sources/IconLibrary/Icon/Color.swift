@@ -67,7 +67,7 @@ extension Color {
         guard let hex = hex else { return nil }
         var cString: String = hex.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
 
-        if (cString.hasPrefix("#")) {
+        if cString.hasPrefix("#") {
             cString = String(cString.dropFirst())
         }
 

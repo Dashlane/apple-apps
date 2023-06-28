@@ -3,11 +3,11 @@ import DashTypes
 
 struct AuthenticatorAPIClient {
     let apiClient: DeprecatedCustomAPIClient
-    
+
     init(apiClient: DeprecatedCustomAPIClient) {
         self.apiClient = apiClient
     }
-    
+
     func validateRequest(with info: ValidateRequestInfo) async throws {
         let _: Empty = try await apiClient.sendRequest(to: "v1/authenticator/ValidateRequest",
                                using: .post,
@@ -15,7 +15,7 @@ struct AuthenticatorAPIClient {
     }
 }
 
-fileprivate struct Empty: Codable {}
+private struct Empty: Codable {}
 
 struct ValidateRequestInfo: Encodable {
     let requestId: String
@@ -31,4 +31,3 @@ struct Approval: Encodable {
     let status: Status
     let isSuspicious: Bool?
 }
-

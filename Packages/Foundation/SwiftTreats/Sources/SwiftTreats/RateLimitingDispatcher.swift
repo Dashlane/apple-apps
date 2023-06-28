@@ -1,6 +1,5 @@
 import Foundation
 
-
 public class RateLimitingDispatcher {
     public typealias Completion = () -> Void
     let executionQueue: DispatchQueue
@@ -25,15 +24,12 @@ public class RateLimitingDispatcher {
         do {
             try executionLock.lock()
             performDispatch()
-        }
-        catch LockError.alreadyLocked(isCurrentInstanceOwner: true) {
+        } catch LockError.alreadyLocked(isCurrentInstanceOwner: true) {
             executionPending = true
-        }
-        catch LockError.alreadyLocked(isCurrentInstanceOwner: false) {
+        } catch LockError.alreadyLocked(isCurrentInstanceOwner: false) {
                         executionQueue.asyncAfter(deadline: .now() + self.delayBetweenExecutions, execute: dispatch)
-        }
-        catch {
-            
+        } catch {
+
         }
     }
 

@@ -1,6 +1,5 @@
 import Foundation
 
-
 public struct StyxDataAPIClient {
     public static let defaultServerURL: URL = URL(string: "_")!
 
@@ -14,6 +13,14 @@ public struct StyxDataAPIClient {
         self.engine = StyxDataAPIClientEngineImpl(apiURL: apiURL,
                                                   apiClientEngine: appAPIClient.engine,
                                                   additionalHeaders: appAPIClient.configuration.additionalHeaders)
+        self.signer = RequestSigner(appCredentials: credentials, userCredentials: nil)
+    }
+
+    internal init(apiURL: URL = Self.defaultServerURL,
+                  credentials: AppCredentials,
+                  engine: StyxDataAPIClientEngine) {
+        self.apiURL = apiURL
+        self.engine = engine
         self.signer = RequestSigner(appCredentials: credentials, userCredentials: nil)
     }
 }
@@ -30,9 +37,7 @@ extension StyxDataAPIClient {
         case anonymous
     }
 
-
                         public func sendEvents(_ data: Data, for logCategory: LogCategory, isTestEnvironment: Bool) async throws {
         try await engine.post("event/" + logCategory.rawValue, data: data, signer: signer, isTestEnvironment: isTestEnvironment)
     }
 }
-

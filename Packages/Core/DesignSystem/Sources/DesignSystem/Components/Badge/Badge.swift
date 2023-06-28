@@ -4,7 +4,6 @@ public struct Badge: View {
     @Environment(\.style) private var style
     @Environment(\.iconAlignment) private var iconAlignment
 
-    @ScaledMetric(relativeTo: .caption2) private var textSize = 10
     @ScaledMetric private var iconDimension = 12
     @ScaledMetric private var backgroundCornerRadius = 2
     @ScaledMetric private var textHorizontalPadding = 2
@@ -24,8 +23,7 @@ public struct Badge: View {
                 makeIconView(icon: icon)
             }
             Text(title)
-                .font(.system(size: textSize, weight: .medium))
-                .textCase(.uppercase)
+                .textStyle(.component.badge.standard)
                 .lineLimit(1)
                 .foregroundColor(.labelColor(for: style))
                 .padding(.horizontal, textHorizontalPadding)

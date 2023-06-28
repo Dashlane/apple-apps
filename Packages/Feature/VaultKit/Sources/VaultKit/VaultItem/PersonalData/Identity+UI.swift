@@ -31,7 +31,7 @@ extension Identity: VaultItem {
     public static var addTitle: String {
         L10n.Core.kwadddatakwIdentityIOS
     }
-    
+
     public static var nativeMenuAddTitle: String {
         L10n.Core.addName
     }

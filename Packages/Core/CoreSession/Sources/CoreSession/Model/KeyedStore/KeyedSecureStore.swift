@@ -9,11 +9,11 @@ public class KeyedSecureStore<Key: StoreKey>: KeyedStore {
         self.cryptoEngine = cryptoEngine
         self.persistenceEngine = persistenceEngine
     }
-    
+
     public func exists(for key: Key) -> Bool {
        return persistenceEngine.exists(for: key)
     }
-    
+
     public func store(_ data: Data?, for key: Key) throws {
         guard let data = data else {
             try persistenceEngine.write(nil, for: key)

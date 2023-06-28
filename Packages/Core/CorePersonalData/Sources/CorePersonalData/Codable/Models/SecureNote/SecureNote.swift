@@ -2,14 +2,13 @@ import Foundation
 import DashTypes
 import SwiftTreats
 
-public struct SecureNote: PersonalDataCodable, Equatable, Identifiable, Categorisable, DatedPersonalData {
+public struct SecureNote: PersonalDataCodable, Equatable, Identifiable, DatedPersonalData {
     public typealias CategoryType = SecureNoteCategory
     public static let contentType: PersonalDataContentType = .secureNote
     public static let searchCategory: SearchCategory = .secureNote
 
     enum CodingKeys: String, CodingKey {
         case id
-        case category
         case anonId
         case metadata
         case title
@@ -23,8 +22,6 @@ public struct SecureNote: PersonalDataCodable, Equatable, Identifiable, Categori
     }
 
     public let id: Identifier
-    @Linked
-    public var category: SecureNoteCategory?
     public var anonId: String
     public let metadata: RecordMetadata
     public var title: String
@@ -51,7 +48,6 @@ public struct SecureNote: PersonalDataCodable, Equatable, Identifiable, Categori
     }
 
     public init(id: Identifier = .init(),
-                category: Linked<SecureNoteCategory> = .init(nil),
                 anonId: String = "",
                 title: String,
                 content: String,
@@ -62,7 +58,6 @@ public struct SecureNote: PersonalDataCodable, Equatable, Identifiable, Categori
                 spaceId: String? = nil,
                 attachments: Set<Attachment>? = nil) {
         self.id = id
-        self._category = category
         self.anonId = anonId
         metadata = RecordMetadata(id: .temporary, contentType: Self.contentType)
         self.title = title
@@ -80,7 +75,7 @@ public struct SecureNote: PersonalDataCodable, Equatable, Identifiable, Categori
             throw ItemValidationError(invalidProperty: \SecureNote.title)
         }
     }
-    
+
     public var rawId: String {
         return id.rawValue
     }
@@ -92,6 +87,16 @@ extension SecureNote: Searchable {
             return []
         }
         return [\SecureNote.content]
+    }
+}
+
+extension SecureNote: Deduplicable {
+
+    public var deduplicationKeyPaths: [KeyPath<Self, String>] {
+        [
+            \SecureNote.title,
+             \SecureNote.content
+        ]
     }
 }
 

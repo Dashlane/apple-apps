@@ -17,7 +17,7 @@ public struct CompromisedFilterAlgorithm: FilterAlgorithm {
             self.credentials = credentials
             self.elements = elements
         }
-        
+
         public mutating func filter(bySpacedId spaceId: String?, sensitiveOnly: Bool) {
             elements = CompromisedFilterAlgorithm.filter(for: elements, bySpaceId: spaceId, sensitiveOnly: sensitiveOnly)
         }

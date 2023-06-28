@@ -1,6 +1,6 @@
 import Foundation
 extension UserDeviceAPIClient.Premium {
-        public struct IsUserAdvanced {
+        public struct IsUserAdvanced: APIRequest {
         public static let endpoint: Endpoint = "/premium/IsUserAdvanced"
 
         public let api: UserDeviceAPIClient
@@ -17,7 +17,7 @@ extension UserDeviceAPIClient.Premium {
 }
 
 extension UserDeviceAPIClient.Premium.IsUserAdvanced {
-        struct Body: Encodable {
+        public struct Body: Encodable {
     }
 }
 
@@ -25,6 +25,10 @@ extension UserDeviceAPIClient.Premium.IsUserAdvanced {
     public typealias Response = DataType
 
         public struct DataType: Codable, Equatable {
+
+        private enum CodingKeys: String, CodingKey {
+            case isUserAdvanced = "isUserAdvanced"
+        }
 
                 public let isUserAdvanced: Bool
 

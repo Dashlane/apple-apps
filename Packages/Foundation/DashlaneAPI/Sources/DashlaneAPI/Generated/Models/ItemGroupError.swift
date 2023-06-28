@@ -2,6 +2,11 @@ import Foundation
 
 public struct ItemGroupError: Codable, Equatable {
 
+    private enum CodingKeys: String, CodingKey {
+        case groupId = "groupId"
+        case message = "message"
+    }
+
     public let groupId: String
 
     public let message: String

@@ -22,7 +22,7 @@ struct GuidedOnboardingPlanView: View {
             swipeToRevealView()
         }
         .background(.ds.background.default)
-        .loginAppearance()
+        .loginAppearance(backgroundColor: .ds.background.default)
         .onAppear(perform: fakeLoading)
         .onTapGesture {
             self.transitionHandler?.dismiss()
@@ -72,14 +72,18 @@ struct GuidedOnboardingPlanView: View {
         VStack {
             Spacer()
             HStack(spacing: 24.0) {
-                Image(asset: FiberAsset.arrowUp)
+                Image.ds.caretUp.outlined
                     .colorMultiply(Color(asset: FiberAsset.pageControlSelected))
+                    .accessibilityHidden(true)
                 Text(L10n.Localizable.guidedOnboardingSwipeToReveal)
                     .font(.system(size: 17.0))
-                    .foregroundColor(Color(asset: FiberAsset.mainCopy))
-                Image(asset: FiberAsset.arrowUp)
+                    .foregroundColor(.ds.text.neutral.catchy)
+                Image.ds.caretUp.outlined
                     .colorMultiply(Color(asset: FiberAsset.pageControlSelected))
+                    .accessibilityHidden(true)
             }
+            .accessibilityElement(children: .combine)
+            .accessibilityAddTraits(.isButton)
         }
         .padding(48.0)
         .offset(y: showPlanReady ? 0.0 : 48.0)
@@ -102,7 +106,7 @@ struct GuidedOnboardingPlanView: View {
 }
 
 extension GuidedOnboardingPlanView: NavigationBarStyleProvider {
-    var navigationBarStyle: NavigationBarStyle {
+    var navigationBarStyle: UIComponents.NavigationBarStyle {
         return .hidden(statusBarStyle: .lightContent)
     }
 }

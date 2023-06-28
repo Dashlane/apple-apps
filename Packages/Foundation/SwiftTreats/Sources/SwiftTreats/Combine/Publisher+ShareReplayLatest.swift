@@ -1,7 +1,6 @@
 import Foundation
 import Combine
 
-
 public extension Publisher {
         func shareReplayLatest() -> AnyPublisher<Output, Failure> {
         return self

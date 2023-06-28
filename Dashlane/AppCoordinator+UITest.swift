@@ -37,7 +37,7 @@ extension AppCoordinator {
             sessionServicesSubscription = SessionServicesContainer.buildSessionServices(from: session,
                                                                                         appServices: self.appServices,
                                                                                         logger: appServices.rootLogger[.session],
-                                                                                        loadingContext: .remoteLogin) { result in
+                                                                                        loadingContext: .remoteLogin()) { result in
                 continuation.resume(with: result)
             }
         }

@@ -1,6 +1,6 @@
 import Foundation
 extension UserDeviceAPIClient.Authentication {
-        public struct Get2FAStatus {
+        public struct Get2FAStatus: APIRequest {
         public static let endpoint: Endpoint = "/authentication/Get2FAStatus"
 
         public let api: UserDeviceAPIClient
@@ -17,7 +17,7 @@ extension UserDeviceAPIClient.Authentication {
 }
 
 extension UserDeviceAPIClient.Authentication.Get2FAStatus {
-        struct Body: Encodable {
+        public struct Body: Encodable {
     }
 }
 
@@ -25,6 +25,15 @@ extension UserDeviceAPIClient.Authentication.Get2FAStatus {
     public typealias Response = DataType
 
         public struct DataType: Codable, Equatable {
+
+        private enum CodingKeys: String, CodingKey {
+            case type = "type"
+            case lastUpdateDateUnix = "lastUpdateDateUnix"
+            case recoveryPhone = "recoveryPhone"
+            case isDuoEnabled = "isDuoEnabled"
+            case hasU2FKeys = "hasU2FKeys"
+            case ssoInfo = "ssoInfo"
+        }
 
         public let type: AuthenticationGet2FAStatusType
 

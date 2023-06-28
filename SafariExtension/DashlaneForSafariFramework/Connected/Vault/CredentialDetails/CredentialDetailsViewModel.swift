@@ -56,7 +56,7 @@ extension CredentialDetailsViewModel {
     static func mock(credential: Credential = PersonalDataMock.Credentials.github) -> CredentialDetailsViewModel {
         return CredentialDetailsViewModel(credential: credential,
                                           iconViewModel: VaultItemIconViewModel.mock(item: credential),
-                                          pasteboardService: PasteboardService(userSettings: UserSettings(internalStore: InMemoryLocalSettingsStore())),
+                                          pasteboardService: PasteboardService(userSettings: UserSettings(internalStore: .mock())),
                                           sharingService: SharedVaultHandlerMock(), vaultItemService: MockServicesContainer().vaultItemsService as! VaultItemsService)
     }
 }

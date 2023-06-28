@@ -16,7 +16,7 @@ public protocol DatabaseReader {
     func fetchOneSnapshot(with id: Identifier) throws -> PersonalDataSnapshot?
     func fetchOne(withSharingId: String) throws -> PersonalDataRecord?
     func fetchOne(withParentId id: Identifier) throws -> PersonalDataRecord?
-    
+
     func fetchOneMetadata(with id: Identifier) throws -> RecordMetadata?
     func fetchOneMetadata(withSyncRequestId id: String) throws -> RecordMetadata?
 

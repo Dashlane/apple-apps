@@ -4,8 +4,11 @@ import CorePersonalData
 import CoreUserTracking
 import CorePremium
 import IconLibrary
+import AutofillKit
+import CoreActivityLogs
+import LoginKit
 
-final class CredentialLinkingViewModel: ObservableObject {
+final class CredentialLinkingViewModel: ObservableObject, SessionServicesInjecting {
 
     @Published
     var credential: Credential
@@ -16,6 +19,7 @@ final class CredentialLinkingViewModel: ObservableObject {
     private let domainLibrary: DomainIconLibrary
     private let teamSpacesService: TeamSpacesService
     private let sessionActivityReporter: ActivityReporterProtocol
+    private let activityLogsService: ActivityLogsServiceProtocol
     private let completion: () -> Void
 
     init(credential: Credential,
@@ -25,6 +29,7 @@ final class CredentialLinkingViewModel: ObservableObject {
          domainLibrary: DomainIconLibrary,
          teamSpacesService: TeamSpacesService,
          sessionActivityReporter: ActivityReporterProtocol,
+         activityLogsService: ActivityLogsServiceProtocol,
          completion: @escaping () -> Void) {
         self.credential = credential
         self.visitedWebsite = visitedWebsite
@@ -33,6 +38,7 @@ final class CredentialLinkingViewModel: ObservableObject {
         self.domainLibrary = domainLibrary
         self.teamSpacesService = teamSpacesService
         self.sessionActivityReporter = sessionActivityReporter
+        self.activityLogsService = activityLogsService
         self.completion = completion
     }
 
@@ -48,23 +54,25 @@ final class CredentialLinkingViewModel: ObservableObject {
         }
 
         _ = try? database.save(credential)
-
+        let logCredential = credential
         sessionActivityReporter.report(UserEvent.CallToAction(callToActionList: [.linkWebsite, .doNotLinkWebsite],
                                                               chosenAction: .linkWebsite,
                                                               hasChosenNoAction: false))
 
         sessionActivityReporter.report(UserEvent.UpdateVaultItem(action: .edit,
                                                                  fieldsEdited: [.associatedWebsitesList],
-                                                                 itemId: credential.userTrackingLogID,
+                                                                 itemId: logCredential.userTrackingLogID,
                                                                  itemType: .credential,
-                                                                 space: credential.userTrackingSpace))
+                                                                 space: logCredential.userTrackingSpace))
 
         sessionActivityReporter.report(AnonymousEvent.UpdateCredential(action: .edit,
-                                                                       associatedWebsitesAddedList: [self.visitedWebsite.hashedDomainForLogs.id ?? ""],
+                                                                       associatedWebsitesAddedList: [self.visitedWebsite.hashedDomainForLogs().id ?? ""],
                                                                        associatedWebsitesRemovedList: [],
-                                                                       domain: credential.hashedDomainForLogs,
-                                                                       space: credential.userTrackingSpace))
-
+                                                                       domain: logCredential.hashedDomainForLogs(),
+                                                                       space: logCredential.userTrackingSpace))
+        if let info = credential.reportableInfo() {
+            try? activityLogsService.report(.update, for: info)
+        }
         autofillService.saveNewCredentials([credential], completion: { _ in
             self.completion()
         })

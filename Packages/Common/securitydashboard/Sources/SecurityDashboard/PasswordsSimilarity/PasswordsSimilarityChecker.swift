@@ -21,7 +21,7 @@ struct PasswordsSimilarityChecker {
     init(localCache: [Int: Bool] = [:]) {
         self.localCache = localCache
     }
-    
+
         mutating func `is`(_ source: Password,
                        equivalentTo target: Password,
                        usingMaxLevenshteinDistance maxLevenshteinDistance: Int = Self.defaulMaxLevenshteinDistance,
@@ -35,7 +35,7 @@ struct PasswordsSimilarityChecker {
 			return false
 		}
 
-		let sourceTargetHash = Set([source,target]).hashValue
+		let sourceTargetHash = Set([source, target]).hashValue
 
         if let alreadyComputed = self.localCache[sourceTargetHash] {
             return alreadyComputed
@@ -48,24 +48,22 @@ struct PasswordsSimilarityChecker {
 
         return result
     }
-    
+
             mutating func groupByIndices(_ passwords: [Password],
                                  usingMaxLevenshteinDistance maxLevenshteinDistance: Int = Self.defaulMaxLevenshteinDistance) -> [IndicesGroup] {
-        
+
                 var groups = [Pair].init(repeating: (0, Bitset.init(size: passwords.count)), count: passwords.count)
-        
+
         for i in 0..<passwords.count {
 
 						groups[i].value = i
 			groups[i].bitset[i] = true
 
-			for j in (i + 1)..<passwords.count {
-								if self.is(passwords[i], equivalentTo: passwords[j], usingMaxLevenshteinDistance: maxLevenshteinDistance) {
-										groups[i].bitset[j] = true
-										groups[j].bitset[i] = true
-				}
-			}
-		}
+			for j in (i + 1)..<passwords.count where self.is(passwords[i], equivalentTo: passwords[j], usingMaxLevenshteinDistance: maxLevenshteinDistance) {
+                                                groups[i].bitset[j] = true
+                                groups[j].bitset[i] = true
+            }
+        }
 
 				groups = groups.sorted { $0.bitset.count > $1.bitset.count }
 
@@ -94,7 +92,7 @@ struct PasswordsSimilarityChecker {
 
         return result
     }
-    
+
         mutating func group(_ passwords: [Password],
                         usingMaxLevenshteinDistance maxLevenshteinDistance: Int = Self.defaulMaxLevenshteinDistance) -> [Group] {
 
@@ -104,14 +102,14 @@ struct PasswordsSimilarityChecker {
 
 		return groups
     }
-    
+
                         mutating func similarityCount(of password: Password,
                                   in dataSet: [Password],
                                   usingMaxLevenshteinDistance maxLevenshteinDistance: Int = Self.defaulMaxLevenshteinDistance,
                                   minimumPasswordSize minimumSize: Int = Self.defaultMinCharCount) -> Int {
-        
+
         var contained = 0
-        
+
         for matchingPassword in dataSet where self.is(password,
                                                       equivalentTo: matchingPassword,
                                                       usingMaxLevenshteinDistance: maxLevenshteinDistance,

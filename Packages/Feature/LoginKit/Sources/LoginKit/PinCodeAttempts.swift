@@ -54,7 +54,7 @@ public struct PinCodeAttempts {
 extension PinCodeAttempts {
 
     public static var mock: Self {
-        return .init(internalStore: InMemoryLocalSettingsStore())
+        return .init(internalStore: .mock())
     }
 
 }

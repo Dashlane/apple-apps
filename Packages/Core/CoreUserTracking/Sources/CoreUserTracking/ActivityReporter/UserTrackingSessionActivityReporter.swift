@@ -2,10 +2,10 @@ import Foundation
 import DashTypes
 
 public struct UserTrackingSessionActivityReporter: ActivityReporterProtocol {
-    
+
     let analyticsIdentifiers: AnalyticsIdentifiers?
     let logEngine: UserTrackingLogEngine
-    
+
     public init(appReporter: UserTrackingAppActivityReporter,
                 login: Login,
                 analyticsIdentifiers: AnalyticsIdentifiers?) {
@@ -14,24 +14,24 @@ public struct UserTrackingSessionActivityReporter: ActivityReporterProtocol {
         configureEnvironment(using: login)
     }
 
-    public func reportPageShown(_ page: Page) {
+    public func reportPageShown(_ page: @autoclosure @escaping @Sendable () -> Page) {
         Task.detached(priority: .utility) {
-            await self.logEngine.reportPageShown(page, using: self.analyticsIdentifiers)
+            await self.logEngine.reportPageShown(page(), using: self.analyticsIdentifiers)
         }
     }
-    
-    public func report<Event>(_ event: Event) where Event : UserEventProtocol {
+
+    public func report<Event>(_ event: @autoclosure @escaping @Sendable () -> Event) where Event: UserEventProtocol {
         Task.detached(priority: .utility) {
-            await self.logEngine.report(event, using: self.analyticsIdentifiers)
+            await self.logEngine.report(event(), using: self.analyticsIdentifiers)
         }
     }
-    
-    public func report<Event>(_ event: Event) where Event : AnonymousEventProtocol {
+
+    public func report<Event>(_ event: @autoclosure @escaping @Sendable () -> Event) where Event: AnonymousEventProtocol {
         Task.detached(priority: .utility) {
-            await self.logEngine.report(event)
+            await self.logEngine.report(event())
         }
     }
-    
+
     public func flush() {
         Task.detached(priority: .utility) {
             await self.logEngine.flush()

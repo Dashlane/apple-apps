@@ -6,7 +6,7 @@ public struct KeyedSettings<Key: LocalSettingsKey> {
     public let internalStore: LocalSettingsStore
     public let settingsChangePublisher = PassthroughSubject<Key, Never>()
     public let prefix: String?
-    
+
     public init(internalStore: LocalSettingsStore,
                 withPrefix prefix: String? = nil) {
         self.internalStore = internalStore
@@ -37,12 +37,12 @@ extension KeyedSettings {
             .prepend(self[key])
             .eraseToAnyPublisher()
     }
-    
+
     public nonmutating func deleteValue(for key: Key) {
         self.internalStore.delete(key.identifier.prefixed(with: self.prefix))
         settingsChangePublisher.send(key)
     }
-    
+
     public subscript<T: DataConvertible>(key: Key) -> T? {
         get {
             return internalStore.value(for: key.identifier.prefixed(with: self.prefix))
@@ -58,17 +58,14 @@ extension KeyedSettings {
     }
 }
 
-
 extension LocalSettingsStore {
     public func keyed<Key: LocalSettingsKey>(by key: Key.Type) -> KeyedSettings<Key> {
         return KeyedSettings(internalStore: self)
     }
 }
 
-
-
 extension LocalSettingsStore {
-    public func register<Key>(_ key: Key.Type, withPrefix prefix: String? = nil) where Key : LocalSettingsKey {
+    public func register<Key>(_ key: Key.Type, withPrefix prefix: String? = nil) where Key: LocalSettingsKey {
         registerIfneeded(Key.allCases.map { key -> SettingRegistration in
             SettingRegistration.init(identifier: key.identifier.prefixed(with: prefix),
                                      type: key.type,

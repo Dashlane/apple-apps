@@ -3,9 +3,9 @@ import Foundation
 enum KeychainItem {
     case masterKey
         case resetContainer
-    
+
     case serverKey
-    
+
     var keychainItemClass: CFString {
         switch self {
         case .masterKey:
@@ -16,7 +16,7 @@ enum KeychainItem {
             return kSecClassGenericPassword
         }
     }
-    
+
     var keychainItemService: CFString {
         switch self {
         case .serverKey:

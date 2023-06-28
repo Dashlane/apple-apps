@@ -7,22 +7,6 @@ internal enum StoryboardScene {
 
     internal static let initialScene = InitialSceneType<UIKit.UIViewController>(storyboard: LaunchScreen.self)
   }
-  internal enum PreAccountCreationOnboarding: StoryboardType {
-    internal static let storyboardName = "PreAccountCreationOnboarding"
-
-    internal static let preAccountCreationOnboardingController = SceneType<PreAccountCreationOnboardingController>(storyboard: PreAccountCreationOnboarding.self, identifier: "PreAccountCreationOnboardingController")
-
-    internal static let preAccountCreationOnboardingPage = SceneType<PreAccountCreationOnboardingPage>(storyboard: PreAccountCreationOnboarding.self, identifier: "PreAccountCreationOnboardingPage")
-
-    internal static let secureWifiOnboardingOne = SceneType<UIKit.UIViewController>(storyboard: PreAccountCreationOnboarding.self, identifier: "secureWifiOnboardingOne")
-  }
-  internal enum PreAccountCreationOnboardingiPad: StoryboardType {
-    internal static let storyboardName = "PreAccountCreationOnboardingiPad"
-
-    internal static let preAccountCreationOnboardingController = SceneType<PreAccountCreationOnboardingController>(storyboard: PreAccountCreationOnboardingiPad.self, identifier: "PreAccountCreationOnboardingController")
-
-    internal static let preAccountCreationOnboardingPage = SceneType<PreAccountCreationOnboardingPage>(storyboard: PreAccountCreationOnboardingiPad.self, identifier: "PreAccountCreationOnboardingPage")
-  }
 }
 internal protocol StoryboardType {
   static var storyboardName: String { get }

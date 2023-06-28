@@ -1,6 +1,6 @@
 import Foundation
 extension AppAPIClient.Authentication {
-        public struct PerformEmailTokenVerification {
+        public struct PerformEmailTokenVerification: APIRequest {
         public static let endpoint: Endpoint = "/authentication/PerformEmailTokenVerification"
 
         public let api: AppAPIClient
@@ -17,7 +17,12 @@ extension AppAPIClient.Authentication {
 }
 
 extension AppAPIClient.Authentication.PerformEmailTokenVerification {
-        struct Body: Encodable {
+        public struct Body: Encodable {
+
+        private enum CodingKeys: String, CodingKey {
+            case login = "login"
+            case token = "token"
+        }
 
                 public let login: String
 

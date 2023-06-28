@@ -1,6 +1,6 @@
 import Foundation
 extension UserDeviceAPIClient.SharingUserdevice {
-        public struct DeleteItemGroup {
+        public struct DeleteItemGroup: APIRequest {
         public static let endpoint: Endpoint = "/sharing-userdevice/DeleteItemGroup"
 
         public let api: UserDeviceAPIClient
@@ -17,7 +17,12 @@ extension UserDeviceAPIClient.SharingUserdevice {
 }
 
 extension UserDeviceAPIClient.SharingUserdevice.DeleteItemGroup {
-        struct Body: Encodable {
+        public struct Body: Encodable {
+
+        private enum CodingKeys: String, CodingKey {
+            case groupId = "groupId"
+            case revision = "revision"
+        }
 
                 public let groupId: String
 

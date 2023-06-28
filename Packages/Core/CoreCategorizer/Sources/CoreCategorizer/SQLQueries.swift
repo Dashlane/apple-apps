@@ -4,7 +4,7 @@ enum SQLQuery {
     case getAllCategories
     case getAllDomains
     case getCategoryId(forDomain: String)
-    
+
     private struct SQLKeys {
         struct Tables {
             static let categories = "CATEGORIES"

@@ -9,6 +9,7 @@ import CoreFeature
 import CoreKeychain
 import LoginKit
 import DashTypes
+import CorePremium
 
 class NotificationsListViewModel: ObservableObject, SessionServicesInjecting {
 
@@ -39,7 +40,6 @@ class NotificationsListViewModel: ObservableObject, SessionServicesInjecting {
          resetMasterPasswordService: ResetMasterPasswordServiceProtocol,
          premiumService: PremiumServiceProtocol,
          lockService: LockServiceProtocol,
-         usageLogService: UsageLogServiceProtocol,
          teamspaceService: TeamSpacesService,
          abtestService: ABTestingServiceProtocol,
          keychainService: AuthenticationKeychainServiceProtocol,
@@ -117,12 +117,11 @@ class NotificationsListViewModel: ObservableObject, SessionServicesInjecting {
 extension NotificationsListViewModel {
     static var mock: NotificationsListViewModel {
         NotificationsListViewModel(session: Session.mock,
-                                   settings: InMemoryLocalSettingsStore(),
+                                   settings: .mock(),
                                    userSettings: UserSettings.mock,
                                    resetMasterPasswordService: ResetMasterPasswordService.mock,
                                    premiumService: PremiumServiceMock(),
                                    lockService: LockServiceMock(),
-                                   usageLogService: UsageLogService.fakeService,
                                    teamspaceService: MockServicesContainer().teamSpacesService,
                                    abtestService: ABTestingServiceMock.mock,
                                    keychainService: .fake,

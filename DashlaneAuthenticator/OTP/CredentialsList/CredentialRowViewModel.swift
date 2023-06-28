@@ -14,13 +14,13 @@ protocol CredentialRowViewModelProtocol: ObservableObject, AuthenticatorServices
 class CredentialRowViewModel: CredentialRowViewModelProtocol, AuthenticatorServicesInjecting {
     let item: VaultItem
     let domainLibrary: DomainIconLibraryProtocol
-    
+
     init(item: VaultItem,
          domainLibrary: DomainIconLibraryProtocol) {
         self.item = item
         self.domainLibrary = domainLibrary
     }
-    
+
     func makeIconViewModel() -> VaultItemIconViewModel {
         VaultItemIconViewModel(item: item, iconLibrary: domainLibrary)
     }

@@ -8,8 +8,6 @@ import VaultKit
 
 class DomainsSectionModel: DetailViewModelProtocol, SessionServicesInjecting, MockVaultConnectedInjecting {
 
-    let logger: CredentialDetailUsageLogger
-
     var canAddDomain: Bool {
         !hasLimitedRights
     }
@@ -45,18 +43,18 @@ class DomainsSectionModel: DetailViewModelProtocol, SessionServicesInjecting, Mo
         linkedDomainsService: LinkedDomainService
     ) {
         self.service = service
-        self.logger = CredentialDetailUsageLogger(usageLogService: service.usageLogService, item: service.item)
         self.linkedDomainsService = linkedDomainsService
     }
 
     func logOpenUrl() {
+        let item = item
         activityReporter.report(UserEvent.OpenExternalVaultItemLink(
             domainType: .web,
             itemId: item.userTrackingLogID,
             itemType: .credential)
         )
         activityReporter.report(AnonymousEvent.OpenExternalVaultItemLink(
-            domain: item.hashedDomainForLogs,
+            domain: item.hashedDomainForLogs(),
             itemType: .credential)
         )
     }

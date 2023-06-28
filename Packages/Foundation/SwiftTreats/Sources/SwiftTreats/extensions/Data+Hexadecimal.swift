@@ -1,17 +1,17 @@
 import Foundation
 
 public extension Data {
-    
+
     var hexadecimalString: String {
         return map {
             String.init(format: "%02hhx", $0)
         }.joined()
     }
-    
+
     var bytes: [UInt8] {
         return [UInt8](self)
     }
-    
+
     init?(hexadecimalString: String) {
         guard hexadecimalString.lengthOfBytes(using: .utf8) % 2 == 0 else {
             return nil

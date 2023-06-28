@@ -3,7 +3,7 @@ import Combine
 import WidgetKit
 import CorePersonalData
 import SecurityDashboard
-import DashlaneAppKit
+import DashTypes
 
 class IdentityDashboardWidgetService {
     func refresh(withReport report: SecurityDashboard.PasswordHealthReport) {

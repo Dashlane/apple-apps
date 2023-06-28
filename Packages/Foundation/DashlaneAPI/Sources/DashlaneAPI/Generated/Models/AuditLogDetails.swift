@@ -7,15 +7,21 @@ public struct AuditLogDetails: Codable, Equatable {
         case securenote = "SECURENOTE"
     }
 
-        public let captureLog: Bool
+    private enum CodingKeys: String, CodingKey {
+        case type = "type"
+        case captureLog = "captureLog"
+        case domain = "domain"
+    }
 
         public let type: `Type`
 
+        public let captureLog: Bool?
+
         public let domain: String?
 
-    public init(captureLog: Bool, type: `Type`, domain: String? = nil) {
-        self.captureLog = captureLog
+    public init(type: `Type`, captureLog: Bool? = nil, domain: String? = nil) {
         self.type = type
+        self.captureLog = captureLog
         self.domain = domain
     }
 }

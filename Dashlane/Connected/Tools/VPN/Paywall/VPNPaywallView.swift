@@ -3,6 +3,7 @@ import UIDelight
 import SwiftTreats
 import UIComponents
 import DesignSystem
+import CoreLocalization
 
 struct VPNPaywallView: View {
 
@@ -27,12 +28,12 @@ struct VPNPaywallView: View {
                         .frame(minHeight: geo.frame(in: .global).height)
                 }
                 .background(Color.ds.background.default.edgesIgnoringSafeArea(.all))
-                .accentColor(FiberAsset.accentColor.swiftUIColor)
+                .accentColor(.ds.text.brand.standard)
                 .toolbar {
                     Button(action: { dismiss() },
                            label: {
-                        Text(L10n.Localizable.kwButtonClose)
-                            .foregroundColor(Color(asset: FiberAsset.accentColor))
+                        Text(CoreLocalization.L10n.Core.kwButtonClose)
+                            .foregroundColor(.ds.text.brand.standard)
                     })
                 }
             }
@@ -48,11 +49,11 @@ struct VPNPaywallView: View {
             VStack(alignment: .leading, spacing: 32) {
                 VPNPaywallHeaderView(title: reason.headerTitle, description: reason.headerDescription)
                 VStack(alignment: .leading, spacing: 24) {
-                    makeItemView(image: Image(asset: FiberAsset.paywallIconShield),
+                    makeItemView(image: Image.ds.healthPositive.outlined,
                                  title: L10n.Localizable.mobileVpnPaywallProtectionTitle,
                                  description: L10n.Localizable.mobileVpnPaywallProtectionDescription)
 
-                    makeItemView(image: Image(asset: FiberAsset.paywallIconWeb),
+                    makeItemView(image: Image.ds.web.outlined,
                                  title: L10n.Localizable.mobileVpnPaywallFullContentTitle,
                                  description: L10n.Localizable.mobileVpnPaywallFullContentDescription)
                 }
@@ -74,22 +75,22 @@ struct VPNPaywallView: View {
 
     @ViewBuilder
     private func makeItemView(image: Image, title: String, description: String) -> some View {
-        HStack(alignment: .iconHeaderAlignment, spacing: 4) {
+        HStack(alignment: .iconHeaderAlignment, spacing: 8) {
             image
                 .renderingMode(.template)
                 .resizable()
-                .foregroundColor(Color(asset: FiberAsset.accentColor))
-                .frame(width: 40, height: 40)
+                .foregroundColor(.ds.text.brand.quiet)
+                .frame(width: 32, height: 32)
                 .alignmentGuide(.iconHeaderAlignment, computeValue: { $0[VerticalAlignment.center] })
                 .fiberAccessibilityHidden(true)
 
             VStack(alignment: .leading, spacing: 8) {
                 Text(title)
-                    .foregroundColor(Color(asset: FiberAsset.dashGreen))
+                    .foregroundColor(.ds.text.brand.standard)
                     .font(.custom(GTWalsheimPro.medium.name, size: 20, relativeTo: .title3))
                     .alignmentGuide(.iconHeaderAlignment, computeValue: { $0[VerticalAlignment.center] })
                 Text(description)
-                    .foregroundColor(Color(asset: FiberAsset.neutralText))
+                    .foregroundColor(.ds.text.neutral.quiet)
                     .font(.body)
             }
             .fiberAccessibilityElement(children: .combine)

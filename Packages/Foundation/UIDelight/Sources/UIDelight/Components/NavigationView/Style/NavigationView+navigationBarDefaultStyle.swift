@@ -15,27 +15,25 @@ public extension NavigationView {
                 guard bar.currentStyle == style else {
                     return
                 }
-                
+
                 bar.apply(previousStyle)
             }
         }
     }
 }
 
-
-
 struct NavigationViewDefaultBarStyle_Previews: PreviewProvider {
     struct SecondScreen: View {
         @Environment(\.dismiss)
         private var dismiss
-        
+
         var body: some View {
             Button("Dismiss", action: dismiss.callAsFunction)
                 .navigationBarTitleDisplayMode(.inline)
                 .navigationTitle("Second")
         }
     }
-    
+
     static var previews: some View {
         NavigationView {
             NavigationLink("Push", destination: SecondScreen())

@@ -2,8 +2,7 @@ import Foundation
 
 extension PersonalDataValue {
                 func merging(withRemoteValue remoteValue: PersonalDataValue, snapshotValue: PersonalDataValue?) -> PersonalDataValue {
-   
-        
+
         switch (self, remoteValue) {
             case (_, .item):
                 guard snapshotValue != remoteValue else {
@@ -35,7 +34,7 @@ extension PersonalDataObject {
     }
 }
 
-extension PersonalDataCollection  {
+extension PersonalDataCollection {
                         func merging(withRemoteCollection remoteCollection: PersonalDataCollection, snapshotCollection: PersonalDataCollection) -> PersonalDataCollection {
         guard snapshotCollection != remoteCollection else {
             return self
@@ -43,7 +42,7 @@ extension PersonalDataCollection  {
         let keys = Set(remoteCollection.keys).union(self.keys)
         var mergedContent = PersonalDataCollection()
         for key in keys {
-                        if let local = self[key], let remote = remoteCollection[key]  {
+                        if let local = self[key], let remote = remoteCollection[key] {
                 mergedContent[key] = local.merging(withRemoteValue: remote, snapshotValue: snapshotCollection[key])
             }
                         else if let remote = remoteCollection[key], remote != snapshotCollection[key] {
@@ -57,15 +56,15 @@ extension PersonalDataCollection  {
     }
 }
 
-extension PersonalDataList  {
+extension PersonalDataList {
                     func merging(withRemoteList remoteList: PersonalDataList, snapshotList: PersonalDataList) -> PersonalDataList {
         guard remoteList != snapshotList else {
             return self
         }
-        
-        let remoteObjectsByIds = Dictionary(grouping: remoteList.compactMap(\.object), by:\.id).compactMapValues(\.first)
-        let snapshotContentByIds = Dictionary(grouping: (snapshotList).compactMap(\.object), by:\.id).compactMapValues(\.first)
-        let localObjectsIds = Dictionary(grouping: (self).compactMap(\.object), by:\.id).compactMapValues(\.first)
+
+        let remoteObjectsByIds = Dictionary(grouping: remoteList.compactMap(\.object), by: \.id).compactMapValues(\.first)
+        let snapshotContentByIds = Dictionary(grouping: (snapshotList).compactMap(\.object), by: \.id).compactMapValues(\.first)
+        let localObjectsIds = Dictionary(grouping: (self).compactMap(\.object), by: \.id).compactMapValues(\.first)
 
                 if remoteObjectsByIds.isEmpty && localObjectsIds.isEmpty {
             return remoteList
@@ -82,15 +81,15 @@ extension PersonalDataList  {
                         return value
                 }
             }
-            
+
             let localObjectsToInsert = localObjectsIds.filter {
                 remoteObjectsByIds[$0.key] == nil && snapshotContentByIds[$0.key] == nil
             }
             .map { PersonalDataValue.object($0.value) }
             newList.append(contentsOf: localObjectsToInsert)
-            
+
             return newList
         }
     }
-    
+
 }

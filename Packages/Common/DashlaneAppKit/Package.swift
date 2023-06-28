@@ -3,13 +3,13 @@ import PackageDescription
 let package = Package(
     name: "DashlaneAppKit",
     platforms: [
-        .iOS(.v15),
-        .macOS(.v12)
+        .iOS(.v16),
+        .macOS(.v13)
     ],
     products: [
                 .library(
             name: "DashlaneAppKit",
-            targets: ["DashlaneAppKit"]),
+            targets: ["DashlaneAppKit"])
     ],
     dependencies: [
                 .package(path: "../../Foundation/DashTypes"),
@@ -24,13 +24,11 @@ let package = Package(
         .package(name: "CoreNetworking", path: "../../Core/CoreNetworking"),
         .package(name: "CoreCategorizer", path: "../../Core/CoreCategorizer"),
         .package(name: "CorePremium", path: "../../Core/CorePremium"),
-        .package(name: "DashlaneReportKit", path: "../dashlanereportkit"),
         .package(name: "CorePersonalData", path: "../../Core/CorePersonalData"),
         .package(name: "IconLibrary", path: "../../Core/IconLibrary"),
         .package(path: "../../Core/Logger"),
         .package(url: "_", .branch("master")),
         .package(path: "../../Core/CoreRegion"),
-        .package(path: "../../Feature/LoginKit"),
         .package(path: "../../Feature/VaultKit")
     ],
     targets: [
@@ -50,17 +48,12 @@ let package = Package(
                 .product(name: "CoreNetworking", package: "CoreNetworking"),
                 .product(name: "CoreCategorizer", package: "CoreCategorizer"),
                 .product(name: "CorePremium", package: "CorePremium"),
-                .product(name: "DashlaneReportKit", package: "DashlaneReportKit"),
                 .product(name: "Logger", package: "Logger"),
                 .product(name: "DomainParser", package: "swiftdomainparser"),
                 .product(name: "CoreRegion", package: "CoreRegion"),
                 .product(name: "SwiftTreats", package: "SwiftTreats"),
-                .product(name: "LoginKit", package: "LoginKit"),
                 .product(name: "VaultKit", package: "VaultKit")
             ]
-        ),
-        .testTarget(
-            name: "DashlaneAppKitTests",
-            dependencies: ["DashlaneAppKit"]),
+        )
     ]
 )

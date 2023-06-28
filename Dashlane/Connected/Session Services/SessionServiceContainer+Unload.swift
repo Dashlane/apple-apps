@@ -1,7 +1,7 @@
 import Foundation
 import Combine
 import DashlaneAppKit
-import LoginKit
+import CoreSession
 
 extension SessionServicesContainer {
 
@@ -9,7 +9,6 @@ extension SessionServicesContainer {
         authenticatorAppCommunicator.unload()
         todayExtensionCommunicator.unload()
         watchAppCommunicator.unload()
-        autofillService.unload(reason: reason)
         premiumService.unload(reason: reason)
         documentStorageService.unload()
         activityReporter.unload(reason: reason)
@@ -18,6 +17,7 @@ extension SessionServicesContainer {
         appServices.deepLinkingService.unload()
         if reason == .userLogsOut {
             IdentityDashboardWidgetService.clear()
+            autofillService.unload()
         }
         #if targetEnvironment(macCatalyst)
         appServices.safariExtensionService.unload()

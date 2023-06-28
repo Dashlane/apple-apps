@@ -2,7 +2,6 @@ import Foundation
 import SwiftUI
 import DashTypes
 
-
 public extension View {
         func reportPageAppearance(_ page: Page) -> some View {
         return modifier(PageAppearanceReporterViewModifier(page: page))

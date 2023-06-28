@@ -4,9 +4,9 @@ import UIDelight
 import DesignSystem
 
 struct HelpView: View {
-    
+
     let addAction: (_ skipIntro: Bool) -> Void
-    
+
     enum HelpItem: String, Identifiable {
         var id: String {
             rawValue
@@ -15,35 +15,39 @@ struct HelpView: View {
         case tokensHelp
         case helpCenter
     }
-    
+
     @State
     var helpItem: HelpItem?
-    
+
     @State
     var showAdd = false
-    
+
     var body: some View {
         list
             .navigationBarStyle(.default)
             .navigationTitle(L10n.Localizable.addOtpFlowHelpCta)
             .backgroundColorIgnoringSafeArea(.ds.background.alternate)
-            .sheet(item: $helpItem, onDismiss: {
-                if showAdd {
-                    showAdd = false
-                    addAction(false)
+            .sheet(
+                item: $helpItem,
+                onDismiss: {
+                    if showAdd {
+                        showAdd = false
+                        addAction(false)
+                    }
+                },
+                content: {  item in
+                    switch item {
+                    case .dashlaneHelp:
+                        onboardingView
+                    case .tokensHelp:
+                        tokenHelpView
+                    case .helpCenter:
+                        InApplicationSafariView(url: UserSupportURL.helpCenter.url)
+                    }
                 }
-            }) {  item in
-                switch item {
-                case .dashlaneHelp:
-                   onboardingView
-                case .tokensHelp:
-                    tokenHelpView
-                case .helpCenter:
-                    InApplicationSafariView(url: UserSupportURL.helpCenter.url)
-                }
-            }
+            )
     }
-    
+
     var list: some View {
         VStack(alignment: .leading, spacing: 16) {
             helpButton(title: L10n.Localizable.helpDashlaneCta, action: {
@@ -61,7 +65,7 @@ struct HelpView: View {
             Spacer()
         }.padding(24)
     }
-    
+
     func helpButton(title: String, action: @escaping () -> Void) -> some View {
         Button(action: action, label: {
             HStack {
@@ -74,7 +78,7 @@ struct HelpView: View {
         .padding(16)
         .background(RoundedRectangle(cornerRadius: 8, style: .continuous).fill(Color.ds.container.agnostic.neutral.supershy))
     }
-    
+
     var tokenHelpView: some View {
         NavigationView {
             TokenHelpView(title: L10n.Localizable.helpTokenTitle,
@@ -93,10 +97,10 @@ struct HelpView: View {
             }
         }
     }
-    
+
     var onboardingView: some View {
         NavigationView {
-            OnboardingView() {
+            OnboardingView {
                 helpItem = nil
                 showAdd = true }
             .toolbar {
@@ -113,7 +117,7 @@ struct HelpView: View {
 struct HelpView_Previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
-            HelpView() { _ in }
+            HelpView { _ in }
         }
     }
 }

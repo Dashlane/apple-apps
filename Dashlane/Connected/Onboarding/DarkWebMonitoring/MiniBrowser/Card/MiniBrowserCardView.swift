@@ -4,6 +4,7 @@ import UIDelight
 import DashlaneAppKit
 import CoreSettings
 import VaultKit
+import CoreLocalization
 
 struct MiniBrowserCardView: View {
 
@@ -81,7 +82,7 @@ struct MiniBrowserCardView: View {
         withAnimation {
             collapsed = true
         }
-        staticHeaderMessage = L10n.Localizable.dwmOnboardingCardPWGTabEmailCopied
+        staticHeaderMessage = CoreLocalization.L10n.Core.dwmOnboardingCardPWGTabEmailCopied
         model.copyPassword(password: value)
     }
 
@@ -89,7 +90,7 @@ struct MiniBrowserCardView: View {
         withAnimation {
             collapsed = true
         }
-        staticHeaderMessage = L10n.Localizable.dwmOnboardingCardPWGTabEmailCopied
+        staticHeaderMessage = CoreLocalization.L10n.Core.dwmOnboardingCardPWGTabEmailCopied
         model.copyGeneratedPassword(password: value)
     }
 }
@@ -99,8 +100,7 @@ struct MiniBrowserCardView_Previews: PreviewProvider {
         MiniBrowserCardViewModel(email: "_",
                                  password: "test",
                                  domain: "test.com",
-                                 usageLogService: DWMLogService.fakeService,
-                                 userSettings: UserSettings(internalStore: InMemoryLocalSettingsStore())) {_ in}
+                                 userSettings: UserSettings(internalStore: .mock())) {_ in}
     }
 
     static var previews: some View {

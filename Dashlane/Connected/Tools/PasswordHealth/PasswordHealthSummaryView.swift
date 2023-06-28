@@ -1,6 +1,7 @@
 import DesignSystem
 import SwiftUI
 import UIComponents
+import CoreLocalization
 
 struct PasswordHealthSummaryView: View {
 
@@ -24,28 +25,9 @@ struct PasswordHealthSummaryView: View {
     }
 
     private var gauge: some View {
-        PasswordHealthGauge(
-            value: $viewModel.score,
-            label: {
-                Text(L10n.Localizable.widgetScoreSubtitle.uppercased())
-                    .font(.footnote)
-                    .foregroundColor(.ds.text.neutral.quiet)
-            }, currentValueLabel: {
-                gaugeTitle
-                    .font(DashlaneFont.custom(80, .bold).font)
-                    .foregroundColor(.ds.text.neutral.catchy)
-            }
-        )
-        .frame(width: 188, height: 188)
-        .padding(.top, 44)
-    }
-
-    private var gaugeTitle: Text {
-        if let score = viewModel.score {
-            return Text("\(score)")
-        } else {
-            return Text("--")
-        }
+        PasswordHealthGauge(score: viewModel.score)
+            .frame(width: 188, height: 188)
+            .padding(.top, 44)
     }
 
     private var addPasswordView: some View {
@@ -55,7 +37,7 @@ struct PasswordHealthSummaryView: View {
                 .foregroundColor(.ds.text.brand.quiet)
                 .multilineTextAlignment(.center)
 
-            RoundedButton(L10n.Localizable.addPassword, action: { action(.addPasswords) })
+            RoundedButton(CoreLocalization.L10n.Core.addPassword, action: { action(.addPasswords) })
                 .roundedButtonLayout(.fill)
         }
         .padding(.top, 32)

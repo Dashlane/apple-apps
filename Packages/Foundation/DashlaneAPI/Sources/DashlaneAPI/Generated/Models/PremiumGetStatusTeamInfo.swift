@@ -2,6 +2,20 @@ import Foundation
 
 public struct PremiumGetStatusTeamInfo: Codable, Equatable {
 
+    private enum CodingKeys: String, CodingKey {
+        case membersNumber = "membersNumber"
+        case planType = "planType"
+        case color = "color"
+        case forcedDomainsEnabled = "forcedDomainsEnabled"
+        case letter = "letter"
+        case recoveryEnabled = "recoveryEnabled"
+        case removeForcedContentEnabled = "removeForcedContentEnabled"
+        case ssoActivationType = "ssoActivationType"
+        case ssoEnabled = "ssoEnabled"
+        case ssoProvisioning = "ssoProvisioning"
+        case teamDomains = "teamDomains"
+    }
+
     public let membersNumber: Int
 
     public let planType: String

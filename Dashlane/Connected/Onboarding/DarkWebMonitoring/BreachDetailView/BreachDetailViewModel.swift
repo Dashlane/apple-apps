@@ -4,6 +4,7 @@ import CorePersonalData
 import DashlaneAppKit
 import CoreSettings
 import DashTypes
+import VaultKit
 
 enum BreachDetailViewConfiguration: Hashable {
     case passwordFound
@@ -24,7 +25,6 @@ protocol BreachDetailViewModelProtocol: ObservableObject {
     var canSave: Bool { get }
     var miniBrowserViewModel: MiniBrowserViewModel? { get }
 
-    func logDisplay()
     func cancel()
     func save()
     func changePassword()
@@ -68,27 +68,14 @@ class BreachDetailViewModel: BreachDetailViewModelProtocol, SessionServicesInjec
     var isPasswordFieldFocused: Bool = false
 
     @Published
-    var currentConfiguration: BreachDetailViewConfiguration {
-        didSet {
-            if oldValue != currentConfiguration {
-                switch currentConfiguration {
-                case .newPasswordToBeSaved:
-                    usageLogService.log(.savingNewPasswordDisplayed(domain: breach.url.displayDomain))
-                case .itemSaved:
-                    usageLogService.log(.securedItemSavedConfirmationDisplayed(domain: breach.url.displayDomain))
-                default:
-                    break
-                }
-            }
-        }
-    }
+    var currentConfiguration: BreachDetailViewConfiguration
 
     lazy var miniBrowserViewModel: MiniBrowserViewModel? = {
         guard let url = changePasswordURL else {
             return nil
         }
 
-        return MiniBrowserViewModel(email: email, password: password, displayableDomain: domain, url: url, domainParser: domainParser, usageLogService: usageLogService, userSettings: userSettings) { [weak self] result in
+        return MiniBrowserViewModel(email: email, password: password, displayableDomain: domain, url: url, domainParser: domainParser, userSettings: userSettings) { [weak self] result in
             switch result {
             case .back, .done:
                 self?.shouldShowMiniBrowser = false
@@ -103,7 +90,6 @@ class BreachDetailViewModel: BreachDetailViewModelProtocol, SessionServicesInjec
 
     private let breach: DWMSimplifiedBreach
     private let vaultItemsService: VaultItemsServiceProtocol
-    private let usageLogService: DWMLogService
     private let userSettings: UserSettings
     private var initialConfiguration: BreachDetailViewConfiguration
     private let dwmOnboardingService: DWMOnboardingService
@@ -113,7 +99,6 @@ class BreachDetailViewModel: BreachDetailViewModelProtocol, SessionServicesInjec
          domainParser: DomainParser,
          vaultItemsService: VaultItemsServiceProtocol,
          dwmOnboardingService: DWMOnboardingService,
-         usageLogService: UsageLogServiceProtocol,
          userSettings: UserSettings,
          completion: @escaping (BreachDetailViewModel.Completion) -> Void) {
         self.vaultItemsService = vaultItemsService
@@ -129,7 +114,6 @@ class BreachDetailViewModel: BreachDetailViewModelProtocol, SessionServicesInjec
         self.leakDate = breach.date
         self.domainParser = domainParser
         self.completion = completion
-        self.usageLogService = usageLogService.dwmLogService
         self.userSettings = userSettings
 
         let configuration: BreachDetailViewConfiguration = {
@@ -141,10 +125,6 @@ class BreachDetailViewModel: BreachDetailViewModelProtocol, SessionServicesInjec
 
         self.initialConfiguration = configuration
         self.currentConfiguration = configuration
-    }
-
-    func logDisplay() {
-        usageLogService.log(.breachDetailViewDisplayed(passwordFound: breach.leakedPassword != nil, domain: breach.url.displayDomain))
     }
 
     func cancel() {
@@ -164,11 +144,8 @@ class BreachDetailViewModel: BreachDetailViewModelProtocol, SessionServicesInjec
         }
 
         guard canSave else {
-            usageLogService.log(.securedItemSaveTapped(disabled: true))
             return
         }
-
-        usageLogService.log(.securedItemSaveTapped(disabled: false))
 
         var credential = Credential()
         credential.anonId = UUID().uuidString
@@ -187,24 +164,18 @@ class BreachDetailViewModel: BreachDetailViewModelProtocol, SessionServicesInjec
             dwmOnboardingService.itemSavedToVault(item, for: breach)
             itemSaved()
         } catch {
-            usageLogService.log(.itemCannotBeSavedError)
+
         }
     }
 
     func changePassword() {
-        usageLogService.log(.changePasswordTapped(domain: breach.url.displayDomain))
-
         guard changePasswordURL != nil else {
-            usageLogService.log(.miniBrowserCannotBeOpenedError)
             return
         }
-
         shouldShowMiniBrowser = true
-        usageLogService.log(.miniBrowserDisplayed(domain: breach.url.displayDomain))
     }
 
     func newPasswordToBeSaved() {
-        usageLogService.log(.manualChangeStarted(domain: breach.url.displayDomain))
         currentConfiguration = .newPasswordToBeSaved
         shouldRevealPassword = true
         isPasswordFieldFocused = true

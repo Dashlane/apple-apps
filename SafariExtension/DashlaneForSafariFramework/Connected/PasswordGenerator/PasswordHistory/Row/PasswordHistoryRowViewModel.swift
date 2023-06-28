@@ -2,6 +2,8 @@ import Foundation
 import Combine
 import CorePersonalData
 import DashTypes
+import VaultKit
+import CoreLocalization
 
 enum PasswordHistoryRowAction: MenuItem {
     case reveal
@@ -9,7 +11,7 @@ enum PasswordHistoryRowAction: MenuItem {
 
     var menuTitle: String {
         switch self {
-        case .reveal: return L10n.Localizable.kwReveal
+        case .reveal: return CoreLocalization.L10n.Core.kwReveal
         case .copy: return L10n.Localizable.kwCopyPasswordButton
         }
     }

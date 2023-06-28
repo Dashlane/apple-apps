@@ -6,10 +6,20 @@ extension Array where Element == VaultCollection {
         var collectionCopy = collection
         collectionCopy.remove(element)
 
-        if collectionCopy.items.isEmpty {
-            self.removeAll(where: { $0.id == collectionCopy.id })
-        } else if let index = firstIndex(where: { $0.id == collectionCopy.id }) {
+        if let index = firstIndex(where: { $0.id == collectionCopy.id }) {
             self[index] = collectionCopy
         }
+    }
+
+                        public func sortedByName() -> Self {
+        return sorted(by: { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending })
+    }
+
+                public mutating func sortByName() {
+        sort(by: { $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending })
+    }
+
+                                public func filter(spaceId: String?) -> Self {
+        filter { ($0.spaceId ?? "") == (spaceId ?? "") }
     }
 }

@@ -15,7 +15,7 @@ class DWMItemIconViewModel: DWMItemIconViewModelProtocol, SessionServicesInjecti
     let url: PersonalDataURL
     let iconService: IconServiceProtocol
 
-    init(url: PersonalDataURL, iconService: IconService) {
+    init(url: PersonalDataURL, iconService: IconServiceProtocol) {
         self.url = url
         self.iconService = iconService
     }

@@ -40,7 +40,6 @@ public struct DomainIconInfoProvider: IconInfoProvider {
     }
 }
 
-
 @available(macOS 10.15, *)
 public typealias DomainIconLibrary = IconLibrary<DomainIconInfoProvider>
 
@@ -52,10 +51,10 @@ public protocol DomainIconLibraryProtocol {
 
 extension DomainIconLibrary: DomainIconLibraryProtocol {
     public init(cacheDirectory: URL,
-                            cacheValidationInterval: TimeInterval = DomainIconLibrary.defaultCacheValidationInterval,
-                            cryptoEngine: CryptoEngine,
-                            webservice: LegacyWebService,
-                            logger: Logger) {
+                cacheValidationInterval: TimeInterval = DomainIconLibrary.defaultCacheValidationInterval,
+                cryptoEngine: CryptoEngine,
+                webservice: LegacyWebService,
+                logger: Logger) {
 
         self.init(cacheDirectory: cacheDirectory,
                   cacheValidationInterval: cacheValidationInterval,
@@ -66,7 +65,6 @@ extension DomainIconLibrary: DomainIconLibraryProtocol {
 
     }
 
-
             public func icon(for domain: Domain, format: DomainIconFormat) async throws -> Icon? {
         let request = DomainIconInfoProvider.Request(domain: domain, format: format)
         return try await icon(for: request)
@@ -75,15 +73,15 @@ extension DomainIconLibrary: DomainIconLibraryProtocol {
 
 public struct FakeDomainIconLibrary: DomainIconLibraryProtocol {
     public let icon: Icon?
-    
+
     public init(icon: Icon?) {
         self.icon = icon
     }
-    
+
     public func icon(for domain: Domain, format: DomainIconFormat) async throws -> Icon? {
         icon
     }
-    
+
     public func publisher(for request: DomainIconInfoProvider.Request, on queue: DispatchQueue) -> IconPublisher {
         Just(icon).eraseToAnyPublisher()
     }

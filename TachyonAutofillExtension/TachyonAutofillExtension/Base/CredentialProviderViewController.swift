@@ -1,4 +1,5 @@
 import AuthenticationServices
+import UIComponents
 
 class CredentialProviderViewController: ASCredentialProviderViewController {
     

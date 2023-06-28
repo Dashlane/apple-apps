@@ -24,8 +24,8 @@ private struct ActivityView: UIViewControllerRepresentable {
     private var completion: UIActivityViewController.CompletionWithItemsHandler?
 
     init(item: Binding<ActivityItem?>,
-                permittedArrowDirections: UIPopoverArrowDirection,
-                onComplete: UIActivityViewController.CompletionWithItemsHandler? = nil) {
+         permittedArrowDirections: UIPopoverArrowDirection,
+         onComplete: UIActivityViewController.CompletionWithItemsHandler? = nil) {
         _item = item
         self.permittedArrowDirections = permittedArrowDirections
         self.completion = onComplete

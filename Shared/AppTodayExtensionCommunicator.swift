@@ -4,6 +4,7 @@ import CorePersonalData
 import DashlaneAppKit
 import SwiftTreats
 import CoreSettings
+import VaultKit
 
 class AppTodayExtensionCommunicator {
     private let applicationContext = TodayApplicationContext()

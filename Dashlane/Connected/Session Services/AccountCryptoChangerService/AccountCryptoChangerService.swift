@@ -7,32 +7,39 @@ import CoreSession
 import CoreUserTracking
 import DashlaneAppKit
 import CorePersonalData
+import Combine
+import LoginKit
 
 enum AccountCryptoChangerError: Error {
     case encryptionError(AccountMigraterError)
     case syncFailed(Error)
 }
 
-protocol AccountCryptoChangerServiceDelegate: AnyObject {
-    func didProgress(_ progression: AccountCryptoChangerService.Progression)
-    func didFinish(with result: Result<Session, AccountCryptoChangerError>)
+enum AccountCryptoChangerState {
+    case inProgress(AccountCryptoChangerService.Progression)
+    case finished(Result<Session, AccountCryptoChangerError>)
 }
 
-class AccountCryptoChangerService {
+ protocol AccountCryptoChangerServiceProtocol: AnyObject {
+    func start()
+     var progressPublisher: PassthroughSubject<AccountCryptoChangerState, Never> { get }
+ }
+
+class AccountCryptoChangerService: AccountCryptoChangerServiceProtocol {
     typealias Progression = EncryptionMigrater<EncryptionMigrationFinalizer>.Progression
 
-    weak var delegate: AccountCryptoChangerServiceDelegate? {
-        get {
-            personalDataMigrationFinalizer.delegate
-        } set {
-            personalDataMigrationFinalizer.delegate = newValue
-        }
-    }
-
+    private var subscription: AnyCancellable?
+    let progressPublisher = PassthroughSubject<AccountCryptoChangerState, Never>()
     let syncService: SyncServiceProtocol?
     let sessionCryptoUpdater: SessionCryptoUpdater?
     private let personalDataMigrationFinalizer: EncryptionMigrationFinalizer
     private let personalDataEncryptionMigrater: EncryptionMigrater<EncryptionMigrationFinalizer>
+
+    var state: AccountCryptoChangerState = .inProgress(.downloading(.inProgress(completedFraction: 0))) {
+        didSet {
+            progressPublisher.send(state)
+        }
+    }
 
     init(mode: MigrationUploadMode = .masterKeyChange,
          reportedType: Definition.CryptoMigrationType,
@@ -44,7 +51,7 @@ class AccountCryptoChangerService {
          databaseDriver: DatabaseDriver,
          postCryptoChangeHandler: PostAccountCryptoChangeHandler,
          apiNetworkingEngine: DeprecatedCustomAPIClient,
-         authTicket: AuthTicket? = nil,
+         authTicket: CoreSync.AuthTicket? = nil,
          logger: Logger,
          cryptoSettings: CryptoRawConfig?) throws {
         self.syncService = syncService
@@ -68,7 +75,7 @@ class AccountCryptoChangerService {
             .map {
                 [RemoteKey(uuid: UUID().uuidString.lowercased(),
                            key: $0,
-                           type: migratingSession.target.configuration.info.isPartOfSSOCompany ? .sso : .masterPassword)]
+                           type: migratingSession.target.configuration.info.accountType == .sso ? .sso : .masterPassword)]
             }
 
         personalDataEncryptionMigrater = EncryptionMigrater(mode: mode,
@@ -81,6 +88,9 @@ class AccountCryptoChangerService {
                                                             remoteKeys: remoteKeys,
                                                             cryptoSettings: cryptoSettings,
                                                             logger: logger)
+        subscription = personalDataMigrationFinalizer.progressPublisher
+            .receive(on: DispatchQueue.main)
+            .assign(to: \.state, on: self)
     }
 
     func start() {
@@ -88,14 +98,13 @@ class AccountCryptoChangerService {
             self.personalDataEncryptionMigrater.start()
             return
         }
-        syncService.syncAndDisable { [weak self] result in
-            guard let self = self else { return }
-            switch result {
-            case let .failure(error):
-                self.delegate?.didFinish(with: .failure(.syncFailed(error)))
-            case .success:
+        Task {
+            do {
+                try await syncService.syncAndDisable()
                 self.sessionCryptoUpdater?.disable()
                 self.personalDataEncryptionMigrater.start()
+            } catch {
+                progressPublisher.send(.finished(.failure(.syncFailed(error))))
             }
         }
     }
@@ -109,6 +118,7 @@ final class EncryptionMigrationFinalizer: CoreSync.EncryptionMigraterDelegate {
     let postCryptoChangeHandler: PostAccountCryptoChangeHandler
     let activityReporter: AccountCryptoChangeActivityReporter
     let sessionCryptoUpdater: SessionCryptoUpdater?
+    public let progressPublisher = PassthroughSubject<AccountCryptoChangerState, Never>()
 
     public init(migratingSession: MigratingSession,
                 mode: MigrationUploadMode,
@@ -126,8 +136,6 @@ final class EncryptionMigrationFinalizer: CoreSync.EncryptionMigraterDelegate {
         self.activityReporter = activityReporter
     }
 
-    weak var delegate: AccountCryptoChangerServiceDelegate?
-
     func complete(with timestamp: Timestamp, completionHandler: @escaping (Result<Session, Error>) -> Void) {
         DispatchQueue.global().async {
             let result = Result<Session, Error> {
@@ -140,7 +148,7 @@ final class EncryptionMigrationFinalizer: CoreSync.EncryptionMigraterDelegate {
     }
 
     func didProgress(_ progression: EncryptionMigrater<EncryptionMigrationFinalizer>.Progression) {
-        delegate?.didProgress(progression)
+        progressPublisher.send(.inProgress(progression))
     }
 
     func didFinish(with result: AccountMigrationResult) {
@@ -149,9 +157,21 @@ final class EncryptionMigrationFinalizer: CoreSync.EncryptionMigraterDelegate {
             self.sessionCryptoUpdater?.enable()
         }
         activityReporter.report(result)
-        delegate?.didFinish(with: result.mapError { .encryptionError($0) })
+        progressPublisher.send(.finished(result.mapError { .encryptionError($0) }))
     }
 }
 
 typealias AccountMigraterError = EncryptionMigrater<EncryptionMigrationFinalizer>.MigraterError
 typealias AccountMigrationResult = Result<Session, AccountMigraterError>
+
+extension AccountCryptoChangerService {
+    class FakeAccountCryptoChangerService: AccountCryptoChangerServiceProtocol {
+        func start() {}
+
+        var progressPublisher = PassthroughSubject<AccountCryptoChangerState, Never>()
+    }
+
+    static var mock: AccountCryptoChangerServiceProtocol {
+        FakeAccountCryptoChangerService()
+    }
+}

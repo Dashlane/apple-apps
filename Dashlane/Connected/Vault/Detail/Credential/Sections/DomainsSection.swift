@@ -1,6 +1,9 @@
 import SwiftUI
 import UIDelight
 import DesignSystem
+import UIComponents
+import VaultKit
+import CoreLocalization
 
 struct DomainsSection: View {
 
@@ -15,29 +18,27 @@ struct DomainsSection: View {
 
     var body: some View {
         if model.item.url != nil || model.mode.isEditing {
-            Section(header: Text(L10n.Localizable.KWAuthentifiantIOS.urlStringForUI.uppercased())) {
+            Section(header: Text(CoreLocalization.L10n.Core.KWAuthentifiantIOS.urlStringForUI.uppercased())) {
                                 if model.mode == .viewing {
                                         model.item.url.map {
                         URLLinkDetailField(personalDataURL: $0,
                                            onOpenUrl: {
                             self.model.logOpenUrl()
-                            self.model.logger.logOpenUrl(credential: self.model.item)
                         })
                     }
                 } else {
-                    TextField(L10n.Localizable.KWAuthentifiantIOS.url, text: $model.item.editableURL)
+                    TextField(CoreLocalization.L10n.Core.KWAuthentifiantIOS.url, text: $model.item.editableURL)
                         .textInputAutocapitalization(.never)
-                        .disableAutocorrection(true)
+                        .autocorrectionDisabled()
                         .lineLimit(1)
                         .frame(maxWidth: .infinity)
                         .fiberAccessibilityElement(children: .combine)
-                        .fiberAccessibilityLabel(Text("\(L10n.Localizable.KWAuthentifiantIOS.url): \(model.item.editableURL)"))
+                        .fiberAccessibilityLabel(Text("\(CoreLocalization.L10n.Core.KWAuthentifiantIOS.url): \(model.item.editableURL)"))
                         .limitedRights(item: model.item)
                 }
 
                                 if model.linkedDomainsCount > 0 && !model.item.subdomainOnly {
                     LinkDetailField(title: L10n.Localizable.linkedDomainsDetailViewMessage(String(model.linkedDomainsCount))) {
-                        self.model.logger.logTapLinkedDomains()
                         self.showLinkedDomains = true
                     }
                 }

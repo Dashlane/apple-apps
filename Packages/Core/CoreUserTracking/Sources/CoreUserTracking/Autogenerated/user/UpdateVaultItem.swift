@@ -4,8 +4,9 @@ extension UserEvent {
 
 public struct `UpdateVaultItem`: Encodable, UserEventProtocol {
 public static let isPriority = false
-public init(`action`: Definition.Action, `credentialOriginalSecurityStatus`: Definition.CredentialSecurityStatus? = nil, `credentialSecurityStatus`: Definition.CredentialSecurityStatus? = nil, `fieldsEdited`: [Definition.Field]? = nil, `isCredentialCurrentlyEligibleToPasswordChanger`: Bool? = nil, `itemId`: String, `itemType`: Definition.ItemType, `multiSelectId`: LowercasedUUID? = nil, `space`: Definition.Space, `updateCredentialOrigin`: Definition.UpdateCredentialOrigin? = nil) {
+public init(`action`: Definition.Action, `collectionCount`: Int? = nil, `credentialOriginalSecurityStatus`: Definition.CredentialSecurityStatus? = nil, `credentialSecurityStatus`: Definition.CredentialSecurityStatus? = nil, `fieldsEdited`: [Definition.Field]? = nil, `isCredentialCurrentlyEligibleToPasswordChanger`: Bool? = nil, `itemId`: String, `itemType`: Definition.ItemType, `multiSelectId`: LowercasedUUID? = nil, `space`: Definition.Space, `updateCredentialOrigin`: Definition.UpdateCredentialOrigin? = nil) {
 self.action = action
+self.collectionCount = collectionCount
 self.credentialOriginalSecurityStatus = credentialOriginalSecurityStatus
 self.credentialSecurityStatus = credentialSecurityStatus
 self.fieldsEdited = fieldsEdited
@@ -17,6 +18,7 @@ self.space = space
 self.updateCredentialOrigin = updateCredentialOrigin
 }
 public let action: Definition.Action
+public let collectionCount: Int?
 public let credentialOriginalSecurityStatus: Definition.CredentialSecurityStatus?
 public let credentialSecurityStatus: Definition.CredentialSecurityStatus?
 public let fieldsEdited: [Definition.Field]?

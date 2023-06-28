@@ -9,15 +9,17 @@ import DashlaneAppKit
 import IconLibrary
 import CoreSettings
 import CorePasswords
+import CoreSession
 import AuthenticationServices
 import CorePremium
 import DomainParser
 import VaultKit
 import PremiumKit
+import AutofillKit
+import CoreActivityLogs
 
 @MainActor
-class CredentialListViewModel: ObservableObject {
-    typealias Completion = (CredentialSelection?) -> Void
+class CredentialListViewModel: ObservableObject, SessionServicesInjecting {
 
     enum Step {
         case list
@@ -56,49 +58,48 @@ class CredentialListViewModel: ObservableObject {
     var selection: CredentialSelection? = nil
 
     var visitedWebsite: String?
-    let completion: Completion
+    let completion: (CredentialSelection?) -> Void
     private let queue = DispatchQueue(label: "credentialsListView", qos: .utility)
     private var subscriptions = Set<AnyCancellable>()
     private let credentialsListService: CredentialListService
     private let syncService: SyncService
-    private let tachyonLogger: TachyonLogger?
     private let database: ApplicationDatabase
     private let autofillService: AutofillService
     private let logger: Logger
-    private let usageLogService: UsageLogServiceProtocol
+    private let session: Session
     private let sessionActivityReporter: ActivityReporterProtocol
     private var searchSubscription: AnyCancellable?
-    private let personalDataURLDecoder: DashlaneAppKit.PersonalDataURLDecoder
+    private let personalDataURLDecoder: PersonalDataURLDecoderProtocol
     private let passwordEvaluator: PasswordEvaluator
     private let userSettings: UserSettings
     private let associatedDomainsService: LinkedDomainProvider
     private let featureService: FeatureServiceProtocol
     private let teamSpacesService: TeamSpacesService
+    private let credentialLinkingViewModelFactory: CredentialLinkingViewModel.Factory
     private let domainParser: DomainParser
+    private let activityLogsService: ActivityLogsServiceProtocol
     private let openUrl: @MainActor (URL) -> Bool
 
-    @Published
-    private var sorting: VaultItemSorting = .sortedByName
-        
     init(syncService: SyncService,
          database: ApplicationDatabase,
          autofillService: AutofillService,
          domainIconLibrary: DomainIconLibrary,
-         tachyonLogger: TachyonLogger?,
          logger: Logger,
-         usageLogService: UsageLogServiceProtocol,
+         session: Session,
          sessionActivityReporter: ActivityReporterProtocol,
-         personalDataURLDecoder: DashlaneAppKit.PersonalDataURLDecoder,
+         personalDataURLDecoder: PersonalDataURLDecoderProtocol,
          passwordEvaluator: PasswordEvaluator,
          userSettings: UserSettings,
          serviceIdentifiers: [ASCredentialServiceIdentifier],
          teamSpacesService: TeamSpacesService,
+         credentialLinkingViewModelFactory: CredentialLinkingViewModel.Factory,
          domainParser: DomainParser,
          premiumStatus: PremiumStatus?,
          associatedDomainsService: LinkedDomainProvider,
          featureService: FeatureServiceProtocol,
+         activityLogsService: ActivityLogsServiceProtocol,
          openUrl: @escaping @MainActor (URL) -> Bool,
-         completion: @escaping Completion) {
+         completion: @escaping (CredentialSelection?) -> Void) {
         self.syncService = syncService
         self.database = database
         self.openUrl = openUrl
@@ -106,16 +107,17 @@ class CredentialListViewModel: ObservableObject {
         self.userSettings = userSettings
         self.personalDataURLDecoder = personalDataURLDecoder
         self.passwordEvaluator = passwordEvaluator
-        self.usageLogService = usageLogService
         self.sessionActivityReporter = sessionActivityReporter
-        self.tachyonLogger = tachyonLogger
         self.logger = logger
+        self.session = session
         self.domainIconLibrary = domainIconLibrary
         self.associatedDomainsService = associatedDomainsService
         self.completion = completion
         self.featureService = featureService
         self.teamSpacesService = teamSpacesService
+        self.credentialLinkingViewModelFactory = credentialLinkingViewModelFactory
         self.domainParser = domainParser
+        self.activityLogsService = activityLogsService
 
         credentialsListService = CredentialListService(syncStatusPublisher: syncService.$syncStatus.eraseToAnyPublisher(),
                                                   teamSpaceService: teamSpacesService,
@@ -124,7 +126,6 @@ class CredentialListViewModel: ObservableObject {
                                                   premiumStatus: premiumStatus,
                                                   serviceIdentifiers: serviceIdentifiers)
         self.searchViewModel = ExtensionSearchViewModel(credentialsListService: credentialsListService,
-                                                        usageLogService: usageLogService,
                                                         domainIconLibrary: domainIconLibrary)
 
         if let host = serviceIdentifiers.last?.host {
@@ -146,14 +147,16 @@ class CredentialListViewModel: ObservableObject {
                 return credentials
             }.compactMap { $0 }
             .receive(on: queue)
-            .sort(using: $sorting)
+            .map {
+                $0.alphabeticallyGrouped()
+            }
             .map { sections -> [DataSection] in
                 var allSections = sections
                                 if self.credentialsListService.allCredentials.count > 6 {
                     let matchingCredentials = self.credentialsListService.matchingCredentials(from: self.credentialsListService.allCredentials)
                     if !matchingCredentials.isEmpty {
                         let suggestedSection = DataSection(name: L10n.Localizable.suggested,
-                                                           isSuggestedItems: true,
+                                                           type: .suggestedItems,
                                                            items: matchingCredentials)
                         allSections = [suggestedSection] + allSections
                     }
@@ -179,6 +182,8 @@ class CredentialListViewModel: ObservableObject {
             .store(in: &subscriptions)
         
         $displayLinkingView
+            .receive(on: DispatchQueue.main)
+            .removeDuplicates()
             .sink(receiveValue: { [weak self] isDisplayed in
                 if isDisplayed {
                     self?.sessionActivityReporter.reportPageShown(.autofillNotificationLinkDomain)
@@ -206,10 +211,6 @@ class CredentialListViewModel: ObservableObject {
 
         searchSubscription?.cancel()
 
-        if origin == .searchResult {
-            searchViewModel.sendSearchUsageLogFromSelection()
-        }
-                
         let event = UserEvent.SelectVaultItem(highlight: origin.definitionHighlight, itemId: item.userTrackingLogID, itemType: item.vaultItemType)
         sessionActivityReporter.report(event)
 
@@ -234,34 +235,19 @@ class CredentialListViewModel: ObservableObject {
     }
     
     func cancel() {
-        tachyonLogger?.log(CredentialListEvent.cancel)
         let event = UserEvent.AutofillDismiss(dismissType: .closeCross)
         sessionActivityReporter.report(event)
-        let anonymousEvent = AnonymousEvent.AutofillDismiss(dismissType: .closeCross, domain: (visitedWebsite ?? "").hashedDomainForLogs, isNativeApp: true)
-        sessionActivityReporter.report(anonymousEvent)
-
+        let website = visitedWebsite ?? ""
+        sessionActivityReporter.report(AnonymousEvent.AutofillDismiss(dismissType: .closeCross,
+                                                                      domain: website.hashedDomainForLogs(),
+                                                                      isNativeApp: true))
         completion(nil)
     }
     
     func onAppear() {
-        credentialsListService.$isReady
-            .filter { $0 == true}
-            .sinkOnce { [weak self] _ in
-                guard let self = self else {
-                    return
-                }
-                let matchingCredentials = self.credentialsListService.matchingCredentials(from: self.credentialsListService.allCredentials)
-                let showMatchingCredentials = !matchingCredentials.isEmpty && matchingCredentials != self.credentialsListService.allCredentials
-                self.tachyonLogger?.log(CredentialListEvent.displayed(showAllOptionAvailable: showMatchingCredentials))
-            }
-        
         sessionActivityReporter.reportPageShown(.autofillExplorePasswords)
     }
-    
-    func didTapShowAll() {
-        tachyonLogger?.log(CredentialListEvent.showAllCredentials)
-    }
-    
+
     private func updateManualAssociatedDomains(for selection: CredentialSelection, completion: @escaping (Result<Void, Error>) -> Void) {        
         guard let visitedWebsite = selection.visitedWebsite,
               let domain = selection.credential.url?.domain?.name,
@@ -279,16 +265,10 @@ class CredentialListViewModel: ObservableObject {
         credential.manualAssociatedDomains.insert(visitedWebsite)
         _ = try? database.save(credential)
         autofillService.saveNewCredentials([credential], completion: completion)
+        guard let info = credential.reportableInfo() else { return }
+        try? activityLogsService.report(.update, for: info)
     }
     
-    func onSearchAppear() {
-        searchSubscription = self.searchViewModel
-            .searchUsageLogPublisher
-            .sink { [weak self] log in
-                self?.usageLogService.post(log)
-            }
-    }
-
     func addAction() {
         self.steps.append(.addCredential(makeAddCredentialViewModel()))
         sessionActivityReporter.report(UserEvent.AutofillClick(autofillButton: .createPasswordLabel))
@@ -298,13 +278,16 @@ class CredentialListViewModel: ObservableObject {
     private func makeAddCredentialViewModel() -> AddCredentialViewModel{
         return AddCredentialViewModel(database: database,
                                       logger: logger,
+                                      session: session,
+                                      businessTeamsInfo: teamSpacesService.businessInfo,
                                       personalDataURLDecoder: personalDataURLDecoder,
+                                      pasteboardService: PasteboardService(userSettings: userSettings),
                                       passwordEvaluator: passwordEvaluator,
-                                      usageLogService: usageLogService,
                                       activityReporter: sessionActivityReporter,
                                       domainLibrary: domainIconLibrary,
                                       visitedWebsite: visitedWebsite,
-                                      userSettings: userSettings) { [weak self] credential in
+                                      userSettings: userSettings,
+                                      activityLogsService: activityLogsService) { [weak self] credential in
             guard let self = self else { return }
             let selection = CredentialSelection(credential: credential,
                                                 selectionOrigin: .newCredential,
@@ -328,14 +311,10 @@ extension CredentialListViewModel {
         guard let selection = selection, let visitedWebsite = selection.visitedWebsite else {
                         return nil
         }
-        return CredentialLinkingViewModel(credential: selection.credential,
-                                          visitedWebsite: visitedWebsite,
-                                          database: database,
-                                          autofillService: autofillService,
-                                          domainLibrary: domainIconLibrary,
-                                          teamSpacesService: teamSpacesService,
-                                          sessionActivityReporter: sessionActivityReporter,
-                                          completion: {
+        
+        return credentialLinkingViewModelFactory.make(credential: selection.credential,
+                                                      visitedWebsite: visitedWebsite,
+                                                      completion: {
             self.displayLinkingView = false
         })
     }

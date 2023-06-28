@@ -82,7 +82,7 @@ extension ShareRecipientsSelectionView {
     var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .navigationBarLeading) {
             if isRoot {
-                Button(L10n.Localizable.cancel) {
+                Button(CoreLocalization.L10n.Core.cancel) {
                     dismiss()
                 }
             } else {
@@ -94,7 +94,7 @@ extension ShareRecipientsSelectionView {
 
         ToolbarItem(placement: .navigationBarTrailing) {
                         if !model.configuration.isEmpty && (isTextFieldFocused || !model.search.isEmpty) {
-                Button(L10n.Localizable.next  + "(\(model.configuration.count))") {
+                Button(CoreLocalization.L10n.Core.next  + "(\(model.configuration.count))") {
                     model.search = ""
                     isTextFieldFocused = false
                 }
@@ -162,7 +162,9 @@ extension ShareRecipientsSelectionView {
     @ViewBuilder
     var emptyView: some View {
         if model.hasNoRecipients {
-            Image(asset: FiberAsset.sharingPaywall)
+            Image.ds.group.outlined
+                .resizable()
+                .frame(width: 60, height: 60)
                 .foregroundColor(.ds.text.inverse.quiet.opacity(0.5))
                 .padding(.horizontal, 40)
         }

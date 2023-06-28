@@ -3,6 +3,7 @@ import UIKit
 import Combine
 import DashlaneAppKit
 import SwiftTreats
+import UIComponents
 
 enum ApplicationDefaultShortcutCommand: String, ShortcutCommand {
     case help

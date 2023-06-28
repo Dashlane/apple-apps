@@ -1,12 +1,16 @@
 import Foundation
 extension AppAPIClient.Account {
-        public struct CreateUserWithSSO {
+        public struct CreateUserWithSSO: APIRequest {
         public static let endpoint: Endpoint = "/account/CreateUserWithSSO"
 
         public let api: AppAPIClient
 
                 public func callAsFunction(login: String, contactEmail: String, appVersion: String, sdkVersion: String, platform: AccountCreateUserPlatform, settings: AccountCreateUserSettings, deviceName: String, country: String, osCountry: String, language: String, osLanguage: String, consents: [AccountCreateUserConsents], sharingKeys: AccountCreateUserSharingKeys, ssoToken: String, ssoServerKey: String, remoteKeys: [RemoteKeys], temporaryDevice: Bool? = nil, timeout: TimeInterval? = nil) async throws -> Response {
             let body = Body(login: login, contactEmail: contactEmail, appVersion: appVersion, sdkVersion: sdkVersion, platform: platform, settings: settings, deviceName: deviceName, country: country, osCountry: osCountry, language: language, osLanguage: osLanguage, consents: consents, sharingKeys: sharingKeys, ssoToken: ssoToken, ssoServerKey: ssoServerKey, remoteKeys: remoteKeys, temporaryDevice: temporaryDevice)
+            return try await api.post(Self.endpoint, body: body, timeout: timeout)
+        }
+
+        public func callAsFunction(_ body: Body, timeout: TimeInterval? = nil) async throws -> Response {
             return try await api.post(Self.endpoint, body: body, timeout: timeout)
         }
     }
@@ -17,7 +21,27 @@ extension AppAPIClient.Account {
 }
 
 extension AppAPIClient.Account.CreateUserWithSSO {
-        struct Body: Encodable {
+        public struct Body: Encodable {
+
+        private enum CodingKeys: String, CodingKey {
+            case login = "login"
+            case contactEmail = "contactEmail"
+            case appVersion = "appVersion"
+            case sdkVersion = "sdkVersion"
+            case platform = "platform"
+            case settings = "settings"
+            case deviceName = "deviceName"
+            case country = "country"
+            case osCountry = "osCountry"
+            case language = "language"
+            case osLanguage = "osLanguage"
+            case consents = "consents"
+            case sharingKeys = "sharingKeys"
+            case ssoToken = "ssoToken"
+            case ssoServerKey = "ssoServerKey"
+            case remoteKeys = "remoteKeys"
+            case temporaryDevice = "temporaryDevice"
+        }
 
                 public let login: String
 
@@ -60,6 +84,12 @@ extension AppAPIClient.Account.CreateUserWithSSO {
             case sso = "sso"
         }
 
+        private enum CodingKeys: String, CodingKey {
+            case uuid = "uuid"
+            case key = "key"
+            case type = "type"
+        }
+
                 public let uuid: String
 
                 public let key: String
@@ -78,6 +108,16 @@ extension AppAPIClient.Account.CreateUserWithSSO {
     public typealias Response = DataType
 
         public struct DataType: Codable, Equatable {
+
+        private enum CodingKeys: String, CodingKey {
+            case origin = "origin"
+            case accountReset = "accountReset"
+            case deviceAccessKey = "deviceAccessKey"
+            case deviceSecretKey = "deviceSecretKey"
+            case userAnalyticsId = "userAnalyticsId"
+            case deviceAnalyticsId = "deviceAnalyticsId"
+            case abTestingVersion = "abTestingVersion"
+        }
 
                 public let origin: String
 

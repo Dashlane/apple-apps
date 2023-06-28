@@ -9,7 +9,7 @@ public class KibanaLogger {
         case safari
         case authenticator
     }
-    
+
     private enum Key: String {
         case code
         case level
@@ -64,11 +64,11 @@ public class KibanaLogger {
         case warning = 1
         case error = 2
     }
-    
+
     struct ExceptionLogResponse: ResponseParserProtocol {
         public typealias ParsedResponse = Void
         public init() {
-            
+
         }
         public func parse(data: Data) throws { }
     }
@@ -77,7 +77,7 @@ public class KibanaLogger {
     private let subSection: String?
     private let outputLevel: Level
     private let origin: Origin
-    private var deviceId: String? = nil
+    private var deviceId: String?
     private let platform: Platform
 
     public init(webService: LegacyWebService,
@@ -110,7 +110,7 @@ public class KibanaLogger {
         let message = [message(), error?.logDescription]
             .compactMap { $0 }
             .joined(separator: ": ")
-        
+
         let appVersion = Bundle.main.appVersion() ?? "unknown"
         let osVersion =  System.version
         let osName: String = System.systemName
@@ -152,24 +152,24 @@ extension KibanaLogger: Logger {
     public func fatal(_ message: @escaping () -> String, location: Location) {
         send(message, level: .fatal, location: location)
     }
-    
+
     public func fatal(_ message: @escaping () -> String, error: Error, location: Location) {
         send(message, error: error, level: .fatal, location: location)
     }
-    
+
     public func error(_ message: @escaping () -> String, location: Location) {
         send(message, level: .error, location: location)
     }
-    
-    public func error(_ message: @escaping () -> String,  error: Error, location: Location) {
+
+    public func error(_ message: @escaping () -> String, error: Error, location: Location) {
         send(message, error: error, level: .error, location: location)
     }
 
     public func warning(_ message: @escaping () -> String, location: Location) {
         send(message, level: .warning, location: location)
     }
-    
-    public func warning(_ message: @escaping () -> String,  error: Error, location: Location) {
+
+    public func warning(_ message: @escaping () -> String, error: Error, location: Location) {
         send(message, error: error, level: .warning, location: location)
     }
 
@@ -195,14 +195,14 @@ public extension KibanaLogger {
         let action: String
         let type: String = "safari_extension" 
         let code: ExceptionCriticality
-        
+
         let message: String?
         let stack: String?
         let exceptiontype: String?
         let line: Int?
         let file: String?
         let legacy: Bool?
-        
+
         public init(action: String, code: KibanaLogger.ExceptionCriticality, message: String?, stack: String?, exceptiontype: String?, line: Int?, file: String?, legacy: Bool?) {
             self.action = action
             self.code = code
@@ -274,7 +274,7 @@ private extension URLError {
                 return true
             default:
                 return false
-                
+
         }
     }
 }
@@ -288,7 +288,7 @@ private extension NSError {
                 return true
             default:
                 return false
-                
+
         }
     }
 }
@@ -302,7 +302,7 @@ private extension Error {
                 return false
         }
     }
-    
+
     var logDescription: String? {
         switch self {
                         case let nsError as NSError where !nsError.userInfo.isEmpty && nsError.shouldStripUserInfo:

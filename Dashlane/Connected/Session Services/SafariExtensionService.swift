@@ -6,6 +6,7 @@ import SafariServices
 import DashlaneCrypto
 import DashTypes
 import CoreIPC
+import DashlaneAppKit
 
 final class SafariExtensionService {
 
@@ -24,7 +25,7 @@ final class SafariExtensionService {
     }
 
     init(appKitBridge: AppKitBridgeProtocol, logger: Logger) {
-        let coder = IPCMessageCoder(logger: logger, engine: IPCCryptoEngine(encryptionKeyId: "safari-encryption-key"))
+        let coder = IPCMessageCoder(logger: logger, engine: KeychainBasedCryptoEngine.safariIPC(encryptionKeyId: "safari-encryption-key"))
         safariMessagesListener = IPCMessageListener<SafariExtensionToMainApplicationMessage>(urlToObserve: SafariExtensionToMainApplicationMessage.messageFileURL,
                                                                                              coder: coder, logger: logger)
         messageProducer = IPCMessageSender<MainApplicationToSafariExtensionMessage>(coder: coder,
@@ -76,4 +77,14 @@ final class SafariExtensionService {
         messageProducer.send(message: .sync)
     }
 }
+
+private extension KeychainBasedCryptoEngine {
+    static func safariIPC(encryptionKeyId: String) -> KeychainBasedCryptoEngine {
+        KeychainBasedCryptoEngine(encryptionKeyId: encryptionKeyId,
+                                  accessGroup: ApplicationGroup.keychainAccessGroup,
+                                  allowKeyRegenerationIfFailure: true,
+                                  shouldAccessAfterFirstUnlock: true)
+    }
+}
+
 #endif

@@ -5,7 +5,7 @@ import Combine
 public struct DeltaUpdateBreaches {
     public let inserted: Set<StoredBreach>
     public let updated: Set<StoredBreach>
-    
+
     public var isEmpty: Bool {
         return inserted.isEmpty && updated.isEmpty
     }
@@ -35,13 +35,12 @@ public actor BreachesService: Cancelable {
     private let log: Logger
     internal nonisolated let cachedBreaches = CurrentValueSubject<Set<StoredBreach>, Never>([])
     private let cachedBreachCredentialsPublisher: AnyPublisher<CredentialsService.CredentialsByBreachId, Never>
-    
+
         @Published
     var breachesByPasswords: BreachesByPasswords = [:]
-    
+
     private var subscriptions = Set<AnyCancellable>()
 
-    
         init(breachesStore: BreachesStore,
          cachedBreachCredentialsPublisher: AnyPublisher<CredentialsService.CredentialsByBreachId, Never>,
          webservice: LegacyWebService,
@@ -55,9 +54,11 @@ public actor BreachesService: Cancelable {
         self.localization = localization
         self.alertsInformationProvider = alertsInformationProvider
         self.fetcher = BreachesFetcher(webservice: webservice, logger: logger)
-        self.setupPublisher()
+        Task {
+            await self.setupPublisher()
+        }
     }
-    
+
     private func setupPublisher() {
         breachesStore
             .breachesPublisher()
@@ -65,37 +66,37 @@ public actor BreachesService: Cancelable {
                 self.cachedBreaches.send(value)
             })
             .store(in: &subscriptions)
-        
+
         cachedBreaches
             .map { $0.breachesByPasswords() }
             .assign(to: &$breachesByPasswords)
     }
-    
+
     nonisolated func cancel() {
             }
-    
+
         func fetchBreaches(for credentials: [SecurityDashboardCredential],
                        using decryptor: DataLeakInformationDataDecryptor?) async throws {
         await self.fetchRemotePublicBreachesAndUpdateStore(for: credentials)
         try await fetchRemoteDataLeaksAndUpdateStore(for: credentials, using: decryptor)
     }
-    
+
         func fetchPublicBreaches(for credentials: [SecurityDashboardCredential]) async {
         await fetchRemotePublicBreachesAndUpdateStore(for: credentials)
     }
-    
+
                 func fetchDataLeaks(for credentials: [SecurityDashboardCredential],
                         using decryptor: DataLeakInformationDataDecryptor?) async throws {
         try await fetchRemoteDataLeaksAndUpdateStore(for: credentials, using: decryptor)
     }
-    
+
         private func fetchRemotePublicBreachesAndUpdateStore(for credentials: [SecurityDashboardCredential]) async {
         let latestRevision = self.breachesStore.lastRevisionForPublicBreaches
         let result = await self.fetcher.fetchBreaches(existingBreaches: self.cachedBreaches.value, userCredentials: credentials, latestRevision: latestRevision)
         self.breachesStore.lastRevisionForPublicBreaches = result.revision
         self.updateStoreAndCache(with: result.delta)
     }
-    
+
         private func fetchRemoteDataLeaksAndUpdateStore(for credentials: [SecurityDashboardCredential],
                                                     using decryptor: DataLeakInformationDataDecryptor?) async throws {
         let lastUpdateDate = self.breachesStore.lastUpdateDateForDataLeakBreaches
@@ -112,11 +113,11 @@ public actor BreachesService: Cancelable {
             throw error
         }
     }
-    
+
         static func treat(_ newBreaches: Set<StoredBreach>, comparingAgainst existingBreaches: Set<StoredBreach>, using credentials: [SecurityDashboardCredential]) -> DeltaUpdateBreaches {
         return BreachesFilter.delta(forOnlineBreaches: newBreaches, existingBreaches: existingBreaches, storedCredentials: credentials)
     }
-    
+
         private func updateStoreAndCache(with delta: DeltaUpdateBreaches) {
 
         if !delta.inserted.isEmpty {
@@ -133,7 +134,7 @@ public actor BreachesService: Cancelable {
         private func pendingBreaches() -> Set<StoredBreach> {
         return Set(self.cachedBreaches.value.filter({ $0.status == .pending }).filter({ $0.breach.status != .deleted }))
     }
-    
+
     private func pendingAndViewedBreaches() -> Set<StoredBreach> {
         return Set(self.cachedBreaches.value.filter({ $0.status == .pending || $0.status == .viewed }).filter({ $0.breach.status != .deleted }))
     }
@@ -167,7 +168,7 @@ public actor BreachesService: Cancelable {
             }
             .eraseToAnyPublisher()
     }
-    
+
         public nonisolated func popupAlertPublisher() -> AnyPublisher<[PopupAlertProtocol], Never> {
         self.cachedBreaches
             .combineLatest(cachedBreachCredentialsPublisher)
@@ -189,13 +190,13 @@ public actor BreachesService: Cancelable {
 
                             public func mark(breachIDs: [BreachesService.Identifier], as status: StoredBreach.Status) {
         self.log.debug("Marking \(breachIDs) as \(status)")
-        
+
         let breachesToUpdate = self.cachedBreaches.value
             .filter({ breachIDs.contains($0.breachID) })
             .map({ StoredBreach(storedBreach: $0, status: status) })
-        
+
         let delta = DeltaUpdateBreaches(inserted: [], updated: Set(breachesToUpdate))
-        
+
         self.updateStoreAndCache(with: delta)
     }
 }
@@ -210,7 +211,6 @@ private extension Sequence where Element == StoredBreach {
         }
     }
 }
-
 
 private extension StoredBreach.Status {
     var isDisplayable: Bool {

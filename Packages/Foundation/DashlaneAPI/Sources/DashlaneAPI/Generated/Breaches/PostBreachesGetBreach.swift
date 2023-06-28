@@ -1,6 +1,6 @@
 import Foundation
 extension UserDeviceAPIClient.Breaches {
-        public struct GetBreach {
+        public struct GetBreach: APIRequest {
         public static let endpoint: Endpoint = "/breaches/GetBreach"
 
         public let api: UserDeviceAPIClient
@@ -17,7 +17,11 @@ extension UserDeviceAPIClient.Breaches {
 }
 
 extension UserDeviceAPIClient.Breaches.GetBreach {
-        struct Body: Encodable {
+        public struct Body: Encodable {
+
+        private enum CodingKeys: String, CodingKey {
+            case revision = "revision"
+        }
 
                 public let revision: Int
     }
@@ -27,6 +31,12 @@ extension UserDeviceAPIClient.Breaches.GetBreach {
     public typealias Response = DataType
 
         public struct DataType: Codable, Equatable {
+
+        private enum CodingKeys: String, CodingKey {
+            case revision = "revision"
+            case latestBreaches = "latestBreaches"
+            case filesToDownload = "filesToDownload"
+        }
 
                 public let revision: Int
 
@@ -40,6 +50,25 @@ extension UserDeviceAPIClient.Breaches.GetBreach {
                 case _1 = 1
                 case _2 = 2
                 case _3 = 3
+            }
+
+            private enum CodingKeys: String, CodingKey {
+                case announcedDate = "announcedDate"
+                case breachCreationDate = "breachCreationDate"
+                case breachModelVersion = "breachModelVersion"
+                case criticality = "criticality"
+                case description = "description"
+                case domains = "domains"
+                case eventDate = "eventDate"
+                case id = "id"
+                case lastModificationRevision = "lastModificationRevision"
+                case leakedData = "leakedData"
+                case name = "name"
+                case relatedLinks = "relatedLinks"
+                case restrictedArea = "restrictedArea"
+                case sensitiveDomain = "sensitiveDomain"
+                case status = "status"
+                case template = "template"
             }
 
                         public let announcedDate: DateDay?
@@ -75,6 +104,10 @@ extension UserDeviceAPIClient.Breaches.GetBreach {
                         public let template: String?
 
                         public struct Description: Codable, Equatable {
+
+                private enum CodingKeys: String, CodingKey {
+                    case en = "en"
+                }
 
                                 public let en: String?
 

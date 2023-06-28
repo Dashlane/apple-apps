@@ -1,7 +1,6 @@
 import Foundation
 import DashTypes
 
-
 public enum SessionsContainerError: Error, Equatable {
     case cannotDecypherLocalKey
     case invalidURL(_ reason: String)
@@ -33,32 +32,32 @@ public struct SessionsContainer<StoreProvider: SessionStoreProviderProtocol>: Se
         public func saveCurrentLogin(_ login: Login?) throws {
         try sessionStoreProvider.currentLoginStore(forContainerURL: baseURL).save(login)
     }
-    
+
             private func writeSession(with configuration: SessionConfiguration, localKey: Data, cryptoConfig: CryptoRawConfig) throws -> Session {
         let login = configuration.login
         let cryptoEngine = try cryptoEngineProvider.sessionCryptoEngine(for: cryptoConfig, masterKey: configuration.masterKey)
         let encryptedLocalKey = try localKey.encrypt(using: cryptoEngine)
-        
+
         let localCryptoEngine = try cryptoEngineProvider.cryptoEngine(for: localKey)
         let remoteCryptoEngine = try configuration.keys.remoteKey.map(cryptoEngineProvider.cryptoEngine) ?? cryptoEngine
-        
+
         var directory = try SessionDirectory(baseURL: baseURL, login: login)
         if !directory.exists {
             try directory.create()
         }
-        
+
         let session = Session(configuration: configuration,
                               localKey: localKey,
                               directory: directory,
                               cryptoEngine: cryptoEngine,
                               localCryptoEngine: localCryptoEngine,
                               remoteCryptoEngine: remoteCryptoEngine)
-        
+
         try sessionStoreProvider.encryptedLocalKeyStore(for: login, info: configuration.info, directory: directory).save(encryptedLocalKey)
         try sessionStoreProvider.infoStore(for: login, directory: directory)
             .save(configuration.info)
         try sessionStoreProvider.keysStore(for: login, directory: directory, using: .init(session: cryptoEngine, local: localCryptoEngine), info: configuration.info).save(configuration.keys)
-        
+
         return session
     }
 
@@ -87,16 +86,16 @@ public struct SessionsContainer<StoreProvider: SessionStoreProviderProtocol>: Se
 
         let encryptedLocalKey = try sessionStoreProvider.encryptedLocalKeyStore(for: login, info: info, directory: directory).load()
         let cryptoEngine = try cryptoEngineProvider.sessionCryptoEngine(forEncryptedPayload: encryptedLocalKey, masterKey: loadInfo.masterKey)
-        
+
         guard let localKey = try? encryptedLocalKey.decrypt(using: cryptoEngine) else {
             throw SessionsContainerError.cannotDecypherLocalKey
         }
-        
+
         let localCryptoEngine = try cryptoEngineProvider.cryptoEngine(for: localKey)
         let keys = try sessionStoreProvider.keysStore(for: login, directory: directory, using: .init(session: cryptoEngine, local: localCryptoEngine), info: info).load()
-        
+
         let remoteCryptoEngine = try keys.remoteKey.map(cryptoEngineProvider.cryptoEngine) ?? cryptoEngine
-        
+
         let configuration = SessionConfiguration(login: login,
                                                  masterKey: loadInfo.masterKey,
                                                  keys: keys,
@@ -131,43 +130,43 @@ extension SessionsContainer {
                                                     keys: newKeys, 
                                                     info: SessionInfo(deviceAccessKey: currentSession.configuration.info.deviceAccessKey,
                                                                       loginOTPOption: loginOTPOption,
-                                                                      isPartOfSSOCompany: accountMigrationType == .masterPasswordToSSO))
+                                                                      accountType: accountMigrationType == .masterPasswordToSSO ? .sso : .masterPassword))
         return try prepareMigration(of: currentSession, to: newConfiguration, cryptoConfig: cryptoConfig)
     }
-    
+
     public func prepareMigration(of currentSession: Session,
                                  to newConfiguration: SessionConfiguration,
                                  cryptoConfig: CryptoRawConfig) throws -> MigratingSession {
         let cryptoEngine = try cryptoEngineProvider.sessionCryptoEngine(for: cryptoConfig, masterKey: newConfiguration.masterKey)
         let remoteCryptoEngine = try newConfiguration.keys.remoteKey.map(cryptoEngineProvider.cryptoEngine) ?? cryptoEngine
-        
+
         return MigratingSession(source: currentSession,
                                 target: .init(configuration: newConfiguration,
                                               cryptoConfig: cryptoConfig,
                                               sessionCryptoEngine: cryptoEngine,
                                               remoteCryptoEngine: remoteCryptoEngine))
     }
-    
+
     public func finalizeMigration(using migrationSession: MigratingSession) throws -> Session {
         let newSession = try writeSession(with: migrationSession.target.configuration, localKey: migrationSession.source.localKey, cryptoConfig: migrationSession.target.cryptoConfig)
 
         if migrationSession.source.configuration == newSession.configuration { 
             try migrationSession.source.cryptoEngine.update(to: migrationSession.target.cryptoConfig)
         }
-        
+
         return newSession
     }
-    
+
     public func localMigration(of session: Session, ssoKey: Data, remoteKey: Data, config: CryptoRawConfig) throws -> Session {
         let keys = SessionSecureKeys(serverAuthentication: session.configuration.keys.serverAuthentication,
                                      remoteKey: remoteKey,
                                      analyticsIds: session.configuration.keys.analyticsIds)
 
         let sessionConfiguration = SessionConfiguration(login: session.login, masterKey: .ssoKey(ssoKey), keys: keys, info: session.configuration.info)
-        
+
         return try writeSession(with: sessionConfiguration, localKey: session.localKey, cryptoConfig: config)
     }
-    
+
     public func update(_ session: Session, with analyticsId: AnalyticsIdentifiers) throws -> Session {
         var configuration = session.configuration
         configuration.keys.analyticsIds = analyticsId
@@ -205,7 +204,6 @@ extension SessionsContainer {
         return localAccounts
     }
 }
-
 
 extension SessionsContainer {
         public func sessionDirectory(for login: Login) throws -> SessionDirectory {

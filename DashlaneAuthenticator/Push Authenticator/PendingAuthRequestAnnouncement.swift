@@ -3,7 +3,7 @@ import UIDelight
 import DesignSystem
 
 struct PendingAuthRequestAnnouncement: View {
-    
+
     enum Action {
         case ignore
         case show
@@ -12,7 +12,7 @@ struct PendingAuthRequestAnnouncement: View {
     let completion: (Action) -> Void
 
     let timer = Timer.publish(every: 1, tolerance: 0.1, on: .main, in: .default).autoconnect()
-    
+
     var body: some View {
         Infobox(title: L10n.Localizable.pendingAuthRequestAnnouncementTitleDashlane) {
             Button(action: { completion(.show) },
@@ -32,7 +32,7 @@ struct PendingAuthRequestAnnouncement_Previews: PreviewProvider {
     static var previews: some View {
         MultiContextPreview {
             PendingAuthRequestAnnouncement(expiryDate: Date(timeIntervalSinceNow: 10)) {_ in}
-            
+
             .previewLayout(.sizeThatFits)
         }
     }

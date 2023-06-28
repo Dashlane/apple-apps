@@ -1,8 +1,11 @@
+import DesignSystem
 import Foundation
 import SwiftUI
 import UIDelight
 import CoreUserTracking
 import NotificationKit
+import VaultKit
+import CoreLocalization
 
 struct OnboardingChecklistView: View {
 
@@ -30,22 +33,21 @@ struct OnboardingChecklistView: View {
                 if model.actions.contains(.activateAutofill) {
                     activateAutofill
                 }
-                if model.actions.contains(.m2d) {
+                if model.actions.contains(.mobileToDesktop) {
                     m2w
                 }
                 dismissButton
             }
             .padding(16)
             .animation(.spring(), value: model.selectedAction)
-                                    .homeModalAnnouncements(model: model.modalAnnouncementsViewModel)
         }
         .background(backgroundColor.edgesIgnoringSafeArea(.bottom))
         .toolbar(content: {
             ToolbarItem(placement: .navigationBarLeading) {
                 if displayMode == .modal {
                     Button(action: dismiss, label: {
-                        Text(L10n.Localizable.kwButtonClose)
-                            .foregroundColor(Color(asset: FiberAsset.accentColor))
+                        Text(CoreLocalization.L10n.Core.kwButtonClose)
+                            .foregroundColor(.ds.text.brand.standard)
                             .fontWeight(.regular)
                     })
                 }
@@ -58,13 +60,13 @@ struct OnboardingChecklistView: View {
             }
         })
         .navigationBarBackButtonHidden(displayMode != .modal)
-        .navigationTitle(displayMode == .modal ? L10n.Localizable.onboardingChecklistTitle : L10n.Localizable.mainMenuHomePage)
+        .navigationTitle(displayMode == .modal ? L10n.Localizable.onboardingChecklistTitle : CoreLocalization.L10n.Core.mainMenuHomePage)
         .onAppear(perform: model.updateOnAppear)
         .reportPageAppearance(userTrackingPage)
     }
 
     var backgroundColor: Color {
-        return Color(asset: FiberAsset.appBackground)
+        .ds.background.alternate
     }
 
     @ViewBuilder
@@ -99,10 +101,10 @@ struct OnboardingChecklistView: View {
     }
 
     var m2w: some View {
-        OnboardingChecklistItemView(showDetails: model.selectedAction == .m2d,
+        OnboardingChecklistItemView(showDetails: model.selectedAction == .mobileToDesktop,
                                     completed: model.hasFinishedM2WAtLeastOnce,
-                                    action: .m2d,
-                                    ctaAction: { self.model.start(.m2d) }).onTapGesture { self.model.showDetails(.m2d) }
+                                    action: .mobileToDesktop,
+                                    ctaAction: { self.model.start(.mobileToDesktop) }).onTapGesture { self.model.showDetails(.mobileToDesktop) }
     }
 
     var fixBreachedAccounts: some View {
@@ -125,7 +127,7 @@ struct OnboardingChecklistView: View {
             UIAccessibility.fiberPost(.screenChanged, argument: L10n.Localizable.accessibilityOnboardingChecklistDismissed)
         }, label: {
             Text(model.dismissButtonCTA ?? "")
-                .foregroundColor(Color(asset: FiberAsset.midGreen))
+                .foregroundColor(.ds.text.brand.standard)
                 .bold()
         })
         .padding(10)

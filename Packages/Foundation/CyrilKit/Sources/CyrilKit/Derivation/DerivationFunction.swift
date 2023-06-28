@@ -14,7 +14,7 @@ public extension DerivationFunction {
         guard var passwordBytes = password.data(using: .utf8) else {
             throw KeyDerivaterError.stringToCStringFailed
         }
-        
+
                 passwordBytes.removeLast()
         return try derivateKey(from: passwordBytes, salt: salt)
     }

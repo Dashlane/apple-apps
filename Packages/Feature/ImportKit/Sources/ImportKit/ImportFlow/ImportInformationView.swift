@@ -14,7 +14,8 @@ public struct ImportInformationView: View {
     }
 
     let model: ImportInformationViewModel
-    let action: ((Action) -> Void)?
+    let action: (@MainActor (Action) -> Void)?
+    @Binding var isLoading: Bool
 
     @State
     private var showDocumentPicker = false
@@ -31,26 +32,24 @@ public struct ImportInformationView: View {
     }
 
     public var body: some View {
-        ScrollViewIfNeeded {
-            VStack {
-                Spacer()
-
-                VStack(spacing: 0) {
-                    if let image = kind.image(for: step) {
-                        image
-                            .padding(.bottom, 73)
+        VStack {
+            GeometryReader { proxy in
+                ScrollView {
+                    VStack(spacing: 0) {
+                        if let image = kind.image(for: step) {
+                            image
+                                .padding(.bottom, 73)
+                        }
+                        information
                     }
-
-                    information
+                    .frame(width: proxy.size.width, height: proxy.size.height)
+                    .fiberAccessibilityElement(children: .combine)
                 }
-                .fiberAccessibilityElement(children: .combine)
-
-                Spacer()
-
-                ctaButtons
-                    .padding(.bottom, 30)
             }
+            ctaButtons
+                .padding(.bottom, 30)
         }
+        .frame(maxHeight: .infinity)
         .backgroundColorIgnoringSafeArea(.ds.background.alternate)
         .navigationBarStyle(.transparent(tintColor: .ds.text.brand.standard, titleColor: nil))
         .toolbar {
@@ -85,7 +84,9 @@ private extension ImportInformationView {
         Alert(
             title: Text(L10n.Core.m2WImportFromChromeConfirmationPopupTitle),
             primaryButton: .default(Text(L10n.Core.m2WImportFromChromeConfirmationPopupYes)) {
-                self.action?(.done)
+                Task { @MainActor in
+                    self.action?(.done)
+                }
             },
             secondaryButton: .cancel(Text(L10n.Core.m2WImportFromChromeConfirmationPopupNo))
         )
@@ -146,6 +147,8 @@ private extension ImportInformationView {
             ctaButtonsForKeychain
         case .chrome:
             ctaButtonsForChrome
+        case .lastpass:
+            ctaButtonsForLastpass
         }
     }
 
@@ -154,9 +157,26 @@ private extension ImportInformationView {
         if case .intro = step {
             Button(L10n.Core.m2WImportFromDashIntroScreenBrowse) {
                 self.showDocumentPicker = true
+                model.reportImportStarted()
             }
             .roundedButtonLayout(.fill)
             .padding(.horizontal, 16)
+        }
+    }
+
+    @ViewBuilder
+    var ctaButtonsForLastpass: some View {
+        if case .intro = step {
+            VStack {
+                RoundedButton(L10n.Core.m2WImportFromKeychainIntroScreenBrowse) {
+                    self.showDocumentPicker = true
+                    model.reportImportStarted()
+                }
+                .roundedButtonLayout(.fill)
+                .roundedButtonDisplayProgressIndicator(isLoading)
+                .disabled(isLoading)
+                .padding(.horizontal, 16)
+            }
         }
     }
 
@@ -166,12 +186,15 @@ private extension ImportInformationView {
             VStack {
                 RoundedButton(L10n.Core.m2WImportFromKeychainIntroScreenBrowse) {
                     self.showDocumentPicker = true
+                    model.reportImportStarted()
                 }
                 .roundedButtonLayout(.fill)
                 .padding(.horizontal, 16)
 
                 Button(L10n.Core.m2WImportFromKeychainIntroScreenNotExported) {
-                    self.action?(.nextInfo)
+                    Task { @MainActor in
+                        self.action?(.nextInfo)
+                    }
                 }
                 .buttonStyle(BorderlessActionButtonStyle())
                 .foregroundColor(.ds.text.brand.standard)
@@ -180,12 +203,15 @@ private extension ImportInformationView {
             VStack {
                 RoundedButton(L10n.Core.m2WImportFromKeychainURLScreenBrowse) {
                     self.showDocumentPicker = true
+                    model.reportImportStarted()
                 }
                 .roundedButtonLayout(.fill)
                 .padding(.horizontal, 16)
 
                 Button(L10n.Core.m2WImportFromKeychainURLScreenClose) {
-                    self.action?(.close)
+                    Task { @MainActor in
+                        self.action?(.close)
+                    }
                 }
                 .buttonStyle(BorderlessActionButtonStyle())
                 .foregroundColor(.ds.text.brand.standard)
@@ -197,13 +223,17 @@ private extension ImportInformationView {
     var ctaButtonsForChrome: some View {
         if case .intro = step {
             RoundedButton(L10n.Core.m2WImportFromChromeIntoScreenCTA) {
-                self.action?(.nextInfo)
+                Task { @MainActor in
+                    self.action?(.nextInfo)
+                }
             }
             .roundedButtonLayout(.fill)
             .padding(.horizontal, 16)
         } else if case .instructions = step {
             RoundedButton(L10n.Core.m2WImportFromChromeURLScreenCTA) {
-                self.action?(.nextInfo)
+                Task { @MainActor in
+                    self.action?(.nextInfo)
+                }
             }
             .roundedButtonLayout(.fill)
             .padding(.horizontal, 16)
@@ -221,6 +251,8 @@ fileprivate extension ImportFlowKind {
             return Image(asset: Asset.keychainImport)
         case (.keychain, .instructions):
             return Image(asset: Asset.keychainInstructions)
+        case (.lastpass, .intro):
+            return Image(asset: Asset.lastpassImport)
         case (.chrome, .intro):
             return Image(asset: Asset.chromeImport)
         case (.chrome, .instructions):
@@ -238,6 +270,8 @@ fileprivate extension ImportFlowKind {
             return L10n.Core.m2WImportFromDashIntroScreenPrimaryTitle
         case (.keychain, .intro):
             return L10n.Core.m2WImportFromKeychainIntroScreenPrimaryTitle
+        case (.lastpass, .intro):
+            return L10n.Core.importFromLastpassIntroTitle
         case (.keychain, .instructions):
             return L10n.Core.m2WImportFromKeychainURLScreenPrimaryTitle
         case (.chrome, .intro):
@@ -257,6 +291,8 @@ fileprivate extension ImportFlowKind {
             return L10n.Core.m2WImportFromDashIntroScreenSecondaryTitle
         case (.keychain, .intro):
             return L10n.Core.m2WImportFromKeychainIntroScreenSecondaryTitle
+        case (.lastpass, .intro):
+            return L10n.Core.importFromLastpassIntroDescription
         case (.keychain, _):
             return L10n.Core.m2WImportFromKeychainURLScreenSecondaryTitle
         case (.chrome, .intro):
@@ -273,12 +309,12 @@ fileprivate extension ImportFlowKind {
 struct ImportInformationView_Previews: PreviewProvider {
     static var previews: some View {
         MultiContextPreview(deviceRange: .some([.iPhone8, .iPhone11, .iPadPro])) {
-            ImportInformationView(model: .dashMock, action: nil)
-            ImportInformationView(model: .keychainIntroMock, action: nil)
-            ImportInformationView(model: .keychainInstructionsMock, action: nil)
-            ImportInformationView(model: .chromeIntroMock, action: nil)
-            ImportInformationView(model: .chromeInstrutionsMock, action: nil)
-            ImportInformationView(model: .chromeExtensionMock, action: nil)
+            ImportInformationView(model: .dashMock, action: nil, isLoading: .constant(false))
+            ImportInformationView(model: .keychainIntroMock, action: nil, isLoading: .constant(false))
+            ImportInformationView(model: .keychainInstructionsMock, action: nil, isLoading: .constant(false))
+            ImportInformationView(model: .chromeIntroMock, action: nil, isLoading: .constant(false))
+            ImportInformationView(model: .chromeInstrutionsMock, action: nil, isLoading: .constant(false))
+            ImportInformationView(model: .chromeExtensionMock, action: nil, isLoading: .constant(false))
         }
     }
 }

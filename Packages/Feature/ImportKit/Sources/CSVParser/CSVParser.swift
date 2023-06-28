@@ -21,43 +21,16 @@ public struct CSVParser {
         self.expectedHeaders = headers
     }
 
-    private func values(for line: Substring, with headers: [Substring]) throws -> [String: String] {
-        var results: [String: String] = [:]
-        var builder: String = ""
-        var enclosed = false
-        var columnIndex = 0
-
-        func addResult() throws {
-            let header = expectedHeaders.first(where: { headers[columnIndex] == $0.rawValue })!
-            results[header.rawValue] = try builder.unquote()
-            builder.removeAll()
-            columnIndex += 1
+    private func values(for line: [String], with headers: [String]) -> [String: String]? {
+        guard line.count == headers.count else {
+                        return nil
         }
 
-        for character in line {
-            if !enclosed, character == "\n" {
-                break
-            }
-
-            if !enclosed, character == "\r" {
-                continue
-            }
-
-            if !enclosed, character == delimiter {
-                try addResult()
-                continue
-            }
-
-            builder.append(character)
-
-            if character == quote {
-                enclosed.toggle()
-            }
+        var result: [String: String] = [:]
+        line.enumerated().forEach { indexValue, columnValue in
+            result[headers[indexValue]] =  columnValue
         }
-
-        try addResult()
-
-        return results
+        return result
     }
 
                             public func parse(fileContent: Data, encoding: String.Encoding = .utf8) throws -> [[String: String]] {
@@ -65,13 +38,13 @@ public struct CSVParser {
             throw Error.fileDecodingFailed
         }
 
-        var lines = fileContent.split(whereSeparator: \.isNewline)
+        var lines = parseCSV(contents: fileContent)
 
                 guard !lines.isEmpty else {
             return []
         }
 
-        let headers = lines.removeFirst().split(separator: delimiter)
+        let headers = lines.removeFirst()
 
                 guard expectedHeaders.allSatisfy({ header in
             header.isOptional ? true : headers.contains(where: { header.rawValue == $0 })
@@ -79,28 +52,74 @@ public struct CSVParser {
             throw Error.headerMismatch
         }
 
-        return try lines.map { try values(for: $0, with: headers) }
+        return lines.compactMap { values(for: $0, with: headers) }
     }
 
+    func parseCSV(contents: String) -> [[String]] {
+        var result: [[String]] = []
+        var currentRow: [String] = []
+        var currentColumn = ""
+        var isInQuote = false
+        var skipNextIteration = false
+
+        for (index, character) in contents.enumerated() {
+            guard !skipNextIteration else {
+                skipNextIteration = false
+                continue
+            }
+            switch character {
+            case "\"":
+                if isInQuote {
+                    if contents[index + 1] == "," {
+                        isInQuote = false
+                        skipNextIteration = true
+                        currentRow.append(currentColumn)
+                        currentColumn = ""
+                    } else {
+                        currentColumn.append(character)
+                    }
+                } else {
+                    isInQuote = true
+                }
+            case ",":
+                if isInQuote {
+                    currentColumn.append(character)
+                } else {
+                    currentRow.append(currentColumn)
+                    currentColumn = ""
+                }
+            case "\n":
+                if isInQuote {
+                    currentColumn.append(character)
+                } else {
+                    currentRow.append(currentColumn)
+                    result.append(currentRow)
+                    currentRow = []
+                    currentColumn = ""
+                }
+            default:
+                currentColumn.append(character)
+            }
+        }
+
+        if !currentRow.isEmpty || !currentColumn.isEmpty {
+            currentRow.append(currentColumn)
+            result.append(currentRow)
+        }
+        return result
+    }
 }
 
-private extension String {
-
-    func unquote() throws -> String {
-        let quote = "\""
-        let trimmed = trimmingCharacters(in: .whitespaces)
-
-        if trimmed.starts(with: quote) {
-            guard trimmed.hasSuffix(quote) else {
-                throw CSVParser.Error.missingClosingQuote
-            }
-
-            return trimmed
-                .trimmingCharacters(in: CharacterSet(charactersIn: quote))
-                .replacingOccurrences(of: "\(quote)\(quote)", with: quote)
-        } else {
-            return self
-        }
+extension String {
+    subscript (index: Int) -> String {
+        return self[index ..< index + 1]
     }
 
+    subscript (range: Range<Int>) -> String {
+        let localRange = Range(uncheckedBounds: (lower: max(0, min(count, range.lowerBound)),
+                                            upper: min(count, max(0, range.upperBound))))
+        let start = index(startIndex, offsetBy: localRange.lowerBound)
+        let end = index(start, offsetBy: localRange.upperBound - localRange.lowerBound)
+        return String(self[start ..< end])
+    }
 }

@@ -3,10 +3,10 @@ import DashTypes
 
 public extension LegacyWebServiceImpl {
     struct Configuration {
-        
+
         let platform: Platform
         let environment: Environment
-        
+
         public init(platform: Platform, environment: LegacyWebServiceImpl.Configuration.Environment = .default) {
             self.platform = platform
             self.environment = environment
@@ -20,7 +20,7 @@ extension LegacyWebServiceImpl.Configuration {
 #if DEBUG
                 case staging(StagingInformation)
 #endif
-    
+
         var apiLegacyURL: URL {
             switch self {
             case .production:
@@ -39,8 +39,8 @@ extension LegacyWebServiceImpl.Configuration {
 #if DEBUG
             case let .staging(info):
                 return [
-                    "CF-Access-Client-Id": info.cloudfareIdentifier,
-                    "CF-Access-Client-Secret": info.cloudfareSecret
+                    "CF-Access-Client-Id": info.cloudflareIdentifier,
+                    "CF-Access-Client-Secret": info.cloudflareSecret
                 ]
 #endif
             }
@@ -51,13 +51,13 @@ extension LegacyWebServiceImpl.Configuration {
 extension LegacyWebServiceImpl.Configuration.Environment {
     public struct StagingInformation {
                 let apiLegacyURL: URL
-                let cloudfareIdentifier: String
-                let cloudfareSecret: String
-        
-        public init(apiLegacyURL: URL, cloudfareIdentifier: String, cloudfareSecret: String) {
+                let cloudflareIdentifier: String
+                let cloudflareSecret: String
+
+        public init(apiLegacyURL: URL, cloudflareIdentifier: String, cloudflareSecret: String) {
             self.apiLegacyURL = apiLegacyURL
-            self.cloudfareIdentifier = cloudfareIdentifier
-            self.cloudfareSecret = cloudfareSecret
+            self.cloudflareIdentifier = cloudflareIdentifier
+            self.cloudflareSecret = cloudflareSecret
         }
 
     }

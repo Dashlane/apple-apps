@@ -1,5 +1,9 @@
+import DesignSystem
 import SwiftUI
 import UIDelight
+import UIComponents
+import VaultKit
+import CoreLocalization
 
 struct SuggestableFieldModifier: ViewModifier {
     var value: Binding<String>
@@ -18,12 +22,11 @@ struct SuggestableFieldModifier: ViewModifier {
                 .frame(maxWidth: .infinity)
             if detailMode.isEditing && !suggestions.isEmpty {
                 Button(action: showSelector) {
-                    Image(asset: FiberAsset.detailDisclosureButton)
-                        .foregroundColor(Color(asset: FiberAsset.accentColor))
+                    Image.ds.action.more.outlined
+                        .foregroundColor(.ds.text.brand.quiet)
                 }
                 .frame(width: 30, height: 30)
-                .fiberAccessibilityLabel(Text(L10n.Localizable.detailItemViewAccessibilitySelectEmail))
-
+                .fiberAccessibilityLabel(Text(CoreLocalization.L10n.Core.detailItemViewAccessibilitySelectEmail))
             }
         }
     }

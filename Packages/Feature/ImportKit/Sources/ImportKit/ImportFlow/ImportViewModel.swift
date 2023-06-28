@@ -4,6 +4,7 @@ import CorePersonalData
 import CoreUserTracking
 import UniformTypeIdentifiers
 import VaultKit
+import CorePremium
 
 public enum ImportStep {
     case extract
@@ -13,7 +14,7 @@ public enum ImportStep {
 public class ImportItem: ObservableObject, Identifiable, Equatable {
 
     public var id: String {
-        return vaultItem.anonId
+        return vaultItem.id.rawValue
     }
 
     private(set) var vaultItem: VaultItem
@@ -21,26 +22,9 @@ public class ImportItem: ObservableObject, Identifiable, Equatable {
     @Published
     var isSelected: Bool
 
-    private let personalDataURLDecoder: CorePersonalData.PersonalDataURLDecoder?
-
-    init(vaultItem: VaultItem, isSelected: Bool = true, personalDataURLDecoder: CorePersonalData.PersonalDataURLDecoder? = nil) {
+    init(vaultItem: VaultItem, isSelected: Bool = true) {
         self.vaultItem = vaultItem
         self.isSelected = isSelected
-        self.personalDataURLDecoder = personalDataURLDecoder
-
-        decodeDomain()
-    }
-
-                private func decodeDomain() {
-        guard let personalDataURLDecoder = personalDataURLDecoder,
-              var credential = vaultItem as? Credential,
-              let url = credential.url?.rawValue
-        else {
-            return
-        }
-
-        credential.url = try? personalDataURLDecoder.decodeURL(url)
-        vaultItem = credential
     }
 
     public static func == (lhs: ImportItem, rhs: ImportItem) -> Bool {
@@ -48,35 +32,59 @@ public class ImportItem: ObservableObject, Identifiable, Equatable {
     }
 }
 
-public protocol ImportViewModel {
+enum ImportViewModelError: Error {
+    case needsB2BSpace
+}
+
+@MainActor public protocol ImportViewModel {
 
     var kind: ImportFlowKind { get }
     var step: ImportStep { get set }
-    var items: [ImportItem] { get set }
+        var items: [ImportItem] { get set }
     var inProgress: Bool { get set }
     var isAnyItemSelected: Bool { get set }
 
     var importService: ImportServiceProtocol { get }
     var iconService: IconServiceProtocol { get }
-    var personalDataURLDecoder: CorePersonalData.PersonalDataURLDecoder? { get }
-    var activityReporter: ActivityReporterProtocol? { get }
+    var personalDataURLDecoder: PersonalDataURLDecoderProtocol { get }
+    var activityReporter: ActivityReporterProtocol { get }
+    var teamSpacesService: CorePremium.TeamSpacesServiceProtocol { get }
 
     func extract() async throws
-    func save() async throws
+
+    func save(in userSpace: UserSpace?) async throws
 
 }
 
 extension ImportViewModel {
+    var availableSpaces: [UserSpace] {
+        return teamSpacesService.availableSpaces.filter {
+            $0 != .both
+        }
+    }
+}
 
-    func report(_ importDataStatus: Definition.ImportDataStatus) {
-        guard let backupFileType = kind.backupFileType else { return }
-        activityReporter?.report(UserEvent.ImportData(backupFileType: backupFileType, importDataStatus: importDataStatus, importSource: kind.importSource))
+extension ImportViewModel {
+
+    func report(_ importDataStatus: Definition.ImportDataStatus,
+                importDataStep: Definition.ImportDataStep) {
+        let kind = kind
+        activityReporter.report(UserEvent.ImportData(backupFileType: kind.backupFileType,
+                                                     importDataStatus: importDataStatus,
+                                                     importDataStep: importDataStep,
+                                                     importSource: kind.importSource,
+                                                     isDirectImport: false))
     }
 
-    func reportSave(of vaultItems: [VaultItem]) {
+    func reportSave(of vaultItems: [VaultItem], preFilterItemsCount: Int) {
         guard let updateCredentialOrigin = kind.updateCredentialOrigin else { return }
         vaultItems.forEach {
-            activityReporter?.report(UserEvent.UpdateVaultItem(
+
+            activityReporter.report(AnonymousEvent.UpdateCredential(action: .add,
+                                            domain: $0.hashedDomainForLogs(),
+                                            space: $0.userTrackingSpace))
+
+            activityReporter.report(UserEvent.UpdateVaultItem(
                 action: .add,
                 itemId: $0.userTrackingLogID,
                 itemType: $0.vaultItemType,
@@ -84,21 +92,28 @@ extension ImportViewModel {
                 updateCredentialOrigin: updateCredentialOrigin)
             )
         }
-        report(.success)
+        let kind = kind
+        activityReporter.report(UserEvent.ImportData(backupFileType: kind.backupFileType,
+                                                     importDataStatus: .success,
+                                                     importDataStep: .success,
+                                                     importSource: kind.importSource,
+                                                     importedItemsCount: vaultItems.count,
+                                                     isDirectImport: false,
+                                                     itemsToImportCount: preFilterItemsCount))
     }
 
 }
 
-private extension ImportFlowKind {
+extension ImportFlowKind {
 
-    var backupFileType: Definition.BackupFileType? {
+    var backupFileType: Definition.BackupFileType {
         switch self {
-        case .chrome:
-            return nil
         case .dash:
             return .secureVault
-        case .keychain:
+        case .keychain, .lastpass:
             return .csv
+        default:
+            return .unknown
         }
     }
 
@@ -108,7 +123,7 @@ private extension ImportFlowKind {
             return nil
         case .dash:
             return .secureVaultImport
-        case .keychain:
+        case .keychain, .lastpass:
             return .csvImport
         }
     }
@@ -121,6 +136,8 @@ private extension ImportFlowKind {
             return .sourceDash
         case .keychain:
             return .sourceKeychain
+        case .lastpass:
+            return .sourceLastpass
         }
     }
 }

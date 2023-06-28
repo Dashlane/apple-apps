@@ -2,18 +2,20 @@ import SwiftUI
 import DesignSystem
 
 struct FirstTokenSuccessView: View {
-    
+
     let tokenTitle: String
     let completion: () -> Void
-    
+
     @State
     var showTokenHelp = false
-    
+
     var body: some View {
         ZStack {
             VStack {
                 Spacer()
-                Image(asset: AuthenticatorAsset.successCheckmark)
+                Image.ds.feedback.success.outlined
+                    .resizable()
+                    .frame(width: 60, height: 60)
                     .foregroundColor(.ds.text.brand.quiet)
                 Spacer()
             }
@@ -29,7 +31,7 @@ struct FirstTokenSuccessView: View {
         }.animation(.easeInOut, value: showTokenHelp)
             .navigationBarBackButtonHidden(true)
     }
-    
+
     var overLayButton: some View {
         VStack(spacing: 24) {
             Spacer()

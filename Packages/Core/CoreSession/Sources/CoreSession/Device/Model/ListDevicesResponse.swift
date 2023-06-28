@@ -10,7 +10,6 @@ public struct ListDevicesResponse: Decodable {
     }
 }
 
-
 extension ListDevicesResponse {
         public func groupedByPairingGroup() -> Set<DeviceListEntry> {
         var devices = self.devices.filter { !$0.isTemporary }

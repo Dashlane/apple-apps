@@ -13,10 +13,10 @@ struct SaveGeneratedPasswordHandler: MaverickOrderHandleable, SessionServicesInj
     typealias Response = MaverickEmptyResponse
 
     let maverickOrderMessage: MaverickOrderMessage
-    let personalDataURLDecoder: DashlaneAppKit.PersonalDataURLDecoder
+    let personalDataURLDecoder: PersonalDataURLDecoderProtocol
     let database: ApplicationDatabase
 
-    init(maverickOrderMessage: MaverickOrderMessage, personalDataURLDecoder: DashlaneAppKit.PersonalDataURLDecoder, database: ApplicationDatabase) {
+    init(maverickOrderMessage: MaverickOrderMessage, personalDataURLDecoder: PersonalDataURLDecoderProtocol, database: ApplicationDatabase) {
         self.maverickOrderMessage = maverickOrderMessage
         self.personalDataURLDecoder = personalDataURLDecoder
         self.database = database

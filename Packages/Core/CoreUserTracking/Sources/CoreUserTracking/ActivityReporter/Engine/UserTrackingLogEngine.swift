@@ -1,11 +1,10 @@
 import Foundation
 import DashTypes
 import SwiftTreats
-import DashTypes
 import DashlaneAPI
 
 actor UserTrackingLogEngine {
-    
+
         let installationId: LowercasedUUID
         let styxAPIClient: StyxDataAPIClient
     let logger: Logger
@@ -20,7 +19,7 @@ actor UserTrackingLogEngine {
         encoder.dateEncodingStrategy = .iso8601
         return encoder
     }()
-    
+
         lazy var anonymousEventsEncoder: JSONEncoder = {
         let encoder = JSONEncoder()
         encoder.keyEncodingStrategy = .convertToSnakeCase
@@ -42,18 +41,38 @@ actor UserTrackingLogEngine {
                 isTesting: Bool,
                 cryptoEngine: CryptoEngine,
                 platform: Definition.Platform) {
+        let styxAPIClient = appAPIClient.makeStyxDataClient(credentials: .init(accessKey: ApplicationSecrets.Analytics.apiKey, secretKey: ApplicationSecrets.Analytics.apiSecret))
+        self.init(installationId: installationId,
+                  styxAPIClient: styxAPIClient,
+                  logger: logger,
+                  component: component,
+                  localStorageURL: localStorageURL,
+                  isTesting: isTesting,
+                  cryptoEngine: cryptoEngine,
+                  platform: platform)
+    }
+
+    internal init(installationId: LowercasedUUID,
+                  styxAPIClient: StyxDataAPIClient,
+                  logger: Logger,
+                  component: Definition.BrowseComponent,
+                  localStorageURL: URL,
+                  isTesting: Bool,
+                  cryptoEngine: CryptoEngine,
+                  platform: Definition.Platform) {
         self.isTestEnvironment = isTesting
         self.installationId = installationId
-        self.styxAPIClient = appAPIClient.makeStyxDataClient(credentials: .init(accessKey: ApplicationSecrets.Analytics.apiKey, secretKey: ApplicationSecrets.Analytics.apiSecret))
+        self.styxAPIClient = styxAPIClient
         self.logger = logger
         self.component = component
         self.userTrackingLocalStore = ActivityReportsLocalStore(workingDirectory: localStorageURL,
-                                                                cryptoEngine: cryptoEngine)
+                                                                cryptoEngine: cryptoEngine,
+                                                                batchLogs: true)
         self.platform = platform
 
         logger.info("User Tracking Installation Id: \(installationId)")
     }
-    
+
     public func reportPageShown(_ newPage: Page, using analyticsIds: AnalyticsIdentifiers?) async {
 
         guard lastPageShown != newPage else { return }
@@ -61,7 +80,7 @@ actor UserTrackingLogEngine {
 
         let browse = Definition.Browse(component: self.component,
                                        originComponent: nil,
-                                       originPage:  self.lastPageShown,
+                                       originPage: self.lastPageShown,
                                        page: newPage)
         lastPageShown = newPage
 
@@ -78,7 +97,7 @@ actor UserTrackingLogEngine {
                          shouldFlush: newPage.isPriority)
         logger.info("User Tracking: Page View: \(newPage)")
     }
-    
+
     public func report<Event: UserEventProtocol>(_ event: Event, using analyticsIds: AnalyticsIdentifiers?) async {
 
         let browse = Definition.Browse(originComponent: component, originPage: lastPageShown)
@@ -95,7 +114,7 @@ actor UserTrackingLogEngine {
                     encodingWith: userEventsEncoder,
                     shouldFlush: Event.isPriority)
     }
-    
+
     public func report<Event: AnonymousEventProtocol>(_ event: Event) async {
         let anonymousReport = Report.Anonymous(event: event,
                                                platform: platform)
@@ -104,12 +123,12 @@ actor UserTrackingLogEngine {
                     encodingWith: anonymousEventsEncoder,
                     shouldFlush: Event.isPriority)
     }
-    
+
     private func store<Report: Encodable>(report: Report, category: LogCategory, encodingWith encoder: JSONEncoder, shouldFlush: Bool) async {
-        
+
         do {
             let data = try encoder.encode(report)
-            try userTrackingLocalStore.store(data: data, category: category)
+            try await userTrackingLocalStore.store(data, category: category)
         } catch {
             logger.fatal("can't encode User Tracking report", error: error)
         }
@@ -130,57 +149,57 @@ actor UserTrackingLogEngine {
     }
 
         private func flushLogs(for category: LogCategory) async {
-        let storedLogEntries = userTrackingLocalStore.fetchEntries(max: 100, of: category)
-
-        guard !storedLogEntries.isEmpty else {
-            return
-        }
         do {
-            let encodedData = try JSONLinesEncoder().encode(Array(storedLogEntries.map { $0.data }))
+            let storedLogEntries = try await userTrackingLocalStore.fetchEntries(max: 100, of: category)
+            guard !storedLogEntries.isEmpty else {
+                return
+            }
+            let entries = storedLogEntries.map({ $0.data })
+            guard !entries.isEmpty else { return }
+            let encodedData = try JSONLinesEncoder().encode(entries)
             try await styxAPIClient.sendEvents(encodedData, for: category, isTestEnvironment: isTestEnvironment)
-            userTrackingLocalStore.delete(entries: storedLogEntries)
+            await userTrackingLocalStore.delete(storedLogEntries)
         } catch {
             logger.error("Flush failed", error: error)
         }
     }
 }
 
-
 private extension Report.Anonymous {
-    
+
     init(event: Event, platform: Definition.Platform) {
         let context = Definition.ContextAnonymous(app: .init(buildType: BuildEnvironment.current.buildType,
                                                   platform: platform, version: Application.version()),
                                        browser: nil,
                                        os: .init(locale: System.languageCountry,
-                                                 type: .iphone,
+                                                 type: .current,
                                                  version: System.version))
         self.init(context: context,
                   date: Date(),
                   dateOrigin: .local,
                   id: LowercasedUUID(),
                   properties: event)
-        
+
     }
-    
+
 }
 
 private extension Report.User {
-    
+
     init(event: Event,
          installationId: LowercasedUUID,
          analyticsId: AnalyticsIdentifiers?,
          navigationState: Definition.Browse,
          session: Definition.Session?,
          platform: Definition.Platform) {
-        
+
         let context = Definition.Context(app: .init(buildType: BuildEnvironment.current.buildType,
                                                     platform: platform,
                                                     version: Application.version()),
                                          browser: nil,
                                          device: .init(installationId: installationId, analyticsId: analyticsId),
                                          user: .init(analyticsId: analyticsId))
-        
+
         self.init(browse: navigationState,
                   context: context,
                   date: Date(),
@@ -201,16 +220,15 @@ private extension Definition.User {
     }
 }
 
-
 private extension Definition.Device {
     init(installationId: LowercasedUUID, analyticsId: AnalyticsIdentifiers?) {
         let analyticsDeviceId: LowercasedUUID? = analyticsId.flatMap { LowercasedUUID(uuidString: $0.device) }
-        
+
         self.init(id: analyticsDeviceId,
                   installationId: installationId,
                   os: .init(locale: System.languageCountry,
-                            type: .iphone,
+                            type: .current,
                             version: System.version))
-        
+
     }
 }

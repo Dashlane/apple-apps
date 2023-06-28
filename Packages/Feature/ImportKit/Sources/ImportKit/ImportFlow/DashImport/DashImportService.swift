@@ -93,7 +93,7 @@ class DashImportService: ImportServiceProtocol {
         }
     }
 
-    func save(vaultItems: [VaultItem]) async throws {
+    func save(_ vaultItems: [VaultItem]) async throws {
         guard case .extracted(let personalDataRecords, let password) = step else {
             fatalError("The file should have been extracted before calling \(#function), \(step)")
         }

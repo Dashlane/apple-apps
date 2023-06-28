@@ -41,7 +41,6 @@ struct SharingActivityReporter {
                                                    updateStatus: success ? .updated : .error))
     }
 
-
     public func reportRevoke(of item: VaultItem, success: Bool) {
         guard let type = item.metadata.contentType.sharingType else {
             return
@@ -74,7 +73,7 @@ struct SharingActivityReporter {
 
 }
 
-private extension Definition.Rights  {
+private extension Definition.Rights {
     init(permission: SharingPermission) {
         switch permission {
         case .admin:

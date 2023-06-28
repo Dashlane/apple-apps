@@ -3,6 +3,7 @@ import Combine
 import CoreSession
 import DashlaneAppKit
 import CoreFeature
+import DashTypes
 
 #if targetEnvironment(macCatalyst)
 class BrowsersExtensionsOnboardingViewModel: ObservableObject {
@@ -13,9 +14,9 @@ class BrowsersExtensionsOnboardingViewModel: ObservableObject {
         case browsersList
         case safariDisabled
 
-        init(macBrowser: MacBrowser, featureService: FeatureServiceProtocol? = nil) {
+        init(macBrowser: MacBrowser, isAutofillSafariDisabled: Bool = false) {
             if case .safari = macBrowser {
-                self = featureService?.isEnabled(.autofillSafariIsDisabled) == true ? .safariDisabled : .enableSafari
+                self = isAutofillSafariDisabled ? .safariDisabled : .enableSafari
             } else {
                 self = .getOtherBrowser
             }
@@ -44,7 +45,7 @@ class BrowsersExtensionsOnboardingViewModel: ObservableObject {
         self.isLegacyApplicationInstalled = appKitBridge.installedApplication.hasDashlaneLegacy()
         self.isExtensionInstalled = isExtensionInstalled
         self.completion = completion
-        state = State(macBrowser: defaultBrowser, featureService: featureService)
+        state = State(macBrowser: defaultBrowser, isAutofillSafariDisabled: featureService.isEnabled(.autofillSafariIsDisabled))
     }
 
     convenience init(appKitBridge: AppKitBridgeProtocol,
@@ -69,7 +70,7 @@ class BrowsersExtensionsOnboardingViewModel: ObservableObject {
         self.applicationOpener = applicationOpener
         self.isExtensionInstalled = isExtensionInstalled
         self.completion = completion
-        state = State(macBrowser: defaultBrowser, featureService: .mock)
+        state = State(macBrowser: defaultBrowser)
     }
 
     func openSafari() {

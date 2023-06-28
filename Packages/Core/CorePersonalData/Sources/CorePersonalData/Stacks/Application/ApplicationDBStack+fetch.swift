@@ -10,29 +10,29 @@ extension ApplicationDBStack {
 
         return try decode(type, from: records, ignoreDecodingErrors: ignoreDecodingErrors)
     }
- 
-        public func fetch<Output>(with id: Identifier, type: Output.Type) throws -> Output? where Output : PersonalDataCodable {
+
+        public func fetch<Output>(with id: Identifier, type: Output.Type) throws -> Output? where Output: PersonalDataCodable {
         let item = try driver.read {
             try $0.fetchOne(with: id)
         }.map {
            try decode(Output.self, from: $0)
         }
-        
+
         guard item?.metadata.syncStatus != .pendingRemove else {
             return nil
         }
-        
+
         return item
     }
-    
-        public func fetchAll<Output>(with ids: [Identifier], type: Output.Type, ignoreDecodingErrors: Bool) throws -> [Output] where Output : PersonalDataCodable {
+
+        public func fetchAll<Output>(with ids: [Identifier], type: Output.Type, ignoreDecodingErrors: Bool) throws -> [Output] where Output: PersonalDataCodable {
         let records = try driver.read {
             try $0.fetchAll(with: ids)
         }.filter { $0.metadata.syncStatus != .pendingRemove }
 
         return try decode(Output.self, from: records, ignoreDecodingErrors: ignoreDecodingErrors)
     }
-    
+
         public func count<Item: PersonalDataCodable>(for item: Item.Type) throws -> Int {
         return try driver.read {
             try $0.count(for: item.contentType)
@@ -42,11 +42,11 @@ extension ApplicationDBStack {
         public func itemsPublisher<Output: PersonalDataCodable>(for output: Output.Type) -> PersonalDataPublisher<Output> {
         return PersonalDataPublisher(output: output, stack: self)
     }
-    
+
         public func fetchedPersonalData<Output: PersonalDataCodable>(for output: Output.Type) -> FetchedPersonalData<Output> {
         return FetchedPersonalData(stack: self)
     }
-    
+
         public func itemPublisher<Output: PersonalDataCodable>(for id: Identifier, type: Output.Type) -> AnyPublisher<Output, Error> {
         return driver
             .publisher(with: id)
@@ -64,7 +64,6 @@ extension ApplicationDBStack {
             .eraseToAnyPublisher()
     }
 
-
         public func metadataPublisher(for id: Identifier) -> AnyPublisher<RecordMetadata, Error> {
         return driver
             .metadataPublisher(with: id)
@@ -77,7 +76,7 @@ extension ApplicationDBStack {
             }
             .eraseToAnyPublisher()
     }
-    
+
     public func sharedItem(for id: Identifier) throws -> PersonalDataCodable? {
         return try driver.read { db -> (PersonalDataRecord, SharingType)? in
             guard let record = try db.fetchOne(with: id),
@@ -85,11 +84,10 @@ extension ApplicationDBStack {
                   record.metadata.syncStatus != .pendingRemove else {
                 return nil
             }
-            
+
             return (record, sharingType)
         }.map { (record, sharingType) in
             try decoder.decode(sharingType, from: record, using: makeLinkedFetcher())
         }
     }
 }
-

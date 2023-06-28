@@ -6,7 +6,7 @@ let package = Package(
     products: [
                 .library(
             name: "CoreLocalization",
-            targets: ["CoreLocalization"]),
+            targets: ["CoreLocalization"])
     ],
     dependencies: [
         .package(path: "../../Plugins/swiftgen-plugin")

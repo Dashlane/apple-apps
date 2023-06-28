@@ -1,4 +1,9 @@
 import Foundation
+import DashlaneAPI
+import SwiftTreats
+import DashTypes
+
+public typealias DeviceInfo = AppAPIClient.Authentication.CompleteDeviceRegistrationWithAuthTicket.Device
 
 public struct CompleteDeviceRegistrationRequest: Encodable {
     let device: DeviceInfo
@@ -6,20 +11,17 @@ public struct CompleteDeviceRegistrationRequest: Encodable {
     let authTicket: String
 }
 
-public struct DeviceInfo: Encodable {
-    public  let deviceName: String
-    public  let appVersion: String
-    public  let platform: String
-    public  let osCountry: String
-    public  let osLanguage: String
-    public  let temporary: Bool
-
-    public init(deviceName: String, appVersion: String, platform: String, osCountry: String, osLanguage: String, temporary: Bool = false) {
-        self.deviceName = deviceName
-        self.appVersion = appVersion
-        self.platform = platform
-        self.osCountry = osCountry
-        self.osLanguage = osLanguage
-        self.temporary = temporary
+extension DeviceInfo {
+    public static var mock: DeviceInfo {
+        self.init(deviceName: "", appVersion: "", platform: .serverIphone, osCountry: "", osLanguage: "", temporary: true, sdkVersion: nil)
     }
+}
+
+public extension DeviceInfo {
+    static let `default` = DeviceInfo(deviceName: Device.localizedName(),
+                                      appVersion: Application.version(),
+                                      platform: Platform(rawValue: DashTypes.Platform.passwordManager.rawValue) ?? .serverIphone,
+                                      osCountry: System.country,
+                                      osLanguage: System.language,
+                                      temporary: false)
 }

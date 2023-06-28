@@ -4,32 +4,32 @@ import DashTypes
 enum GroupIdentifier {
     case itemGroup(Identifier)
     case userGroup(Identifier)
-    
+
     var id: Identifier {
         switch self {
             case .itemGroup(let id):
                 return id
-                
+
             case .userGroup(let id):
                 return id
         }
     }
-    
+
     var itemGroupId: Identifier? {
         switch self {
             case .itemGroup(let id):
                 return id
-                
+
             case .userGroup:
                 return nil
         }
     }
-    
+
     var userGroupId: Identifier? {
         switch self {
             case .itemGroup:
                 return nil
-                
+
             case .userGroup(let id):
                 return id
         }
@@ -51,4 +51,3 @@ extension ItemGroup: GroupIdentifiable {
         return .itemGroup(id)
     }
 }
-

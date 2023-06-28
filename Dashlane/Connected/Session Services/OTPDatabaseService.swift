@@ -6,6 +6,7 @@ import Combine
 import DashTypes
 import AuthenticatorKit
 import CoreUserTracking
+import VaultKit
 
 class OTPDatabaseService: AuthenticatorDatabaseServiceProtocol {
     let login: String?
@@ -35,15 +36,14 @@ class OTPDatabaseService: AuthenticatorDatabaseServiceProtocol {
     }
 
     func delete(_ item: OTPInfo) throws {
-        let credential = vaultItemsService.credentials.first { $0.id == item.id }
-
-        guard var credential = credential else {
+        guard var credential = vaultItemsService.credentials.first(where: { $0.id == item.id }) else {
             return
         }
         credential.otpURL = nil
         try _ = vaultItemsService.save(credential)
-        activityReporter.report(AnonymousEvent.RemoveTwoFactorAuthenticationFromCredential(authenticatorIssuerId: item.authenticatorIssuerId, domain: credential.hashedDomainForLogs, space: credential.userTrackingSpace))
-        activityReporter.report(AnonymousEvent.UpdateCredential.init(action: .edit, domain: credential.hashedDomainForLogs, fieldList: [.otpSecret], space: credential.userTrackingSpace))
+        let logCredential = credential
+        activityReporter.report(AnonymousEvent.RemoveTwoFactorAuthenticationFromCredential(authenticatorIssuerId: item.authenticatorIssuerId, domain: logCredential.hashedDomainForLogs(), space: logCredential.userTrackingSpace))
+        activityReporter.report(AnonymousEvent.UpdateCredential(action: .edit, domain: logCredential.hashedDomainForLogs(), fieldList: [.otpSecret], space: logCredential.userTrackingSpace))
     }
 
     func add(_ items: [OTPInfo]) throws {
@@ -70,4 +70,11 @@ class OTPDatabaseService: AuthenticatorDatabaseServiceProtocol {
         }.assign(to: &$codes)
     }
 
+}
+
+extension OTPDatabaseService {
+    static var mock: OTPDatabaseService {
+        .init(vaultItemsService: MockServicesContainer().vaultItemsService,
+              activityReporter: .fake)
+    }
 }

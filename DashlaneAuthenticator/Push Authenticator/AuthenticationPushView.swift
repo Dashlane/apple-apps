@@ -1,25 +1,27 @@
 import SwiftUI
 import UIDelight
 import DesignSystem
+import UIComponents
+import LoginKit
 
 struct AuthenticationPushView: View {
-   
+
     @Binding
     var pendingRequest: Set<AuthenticationRequest>
-    
+
     @StateObject
     var model: AuthenticationPushViewModel
-    
+
     @Environment(\.dismiss)
     private var dismiss
-   
+
     let timer = Timer.publish(every: 1, tolerance: 0.1, on: .main, in: .default).autoconnect()
-    
+
     init(pendingRequest: Binding<Set<AuthenticationRequest>>, model: @autoclosure @escaping () -> AuthenticationPushViewModel) {
         self._pendingRequest = pendingRequest
         self._model = .init(wrappedValue: model())
     }
-    
+
     var body: some View {
         NavigationView {
             FullScreenScrollView {
@@ -51,7 +53,7 @@ struct AuthenticationPushView: View {
             }
         }
     }
-    
+
     var mainView: some View {
         VStack {
             VStack(spacing: 28) {
@@ -65,14 +67,14 @@ struct AuthenticationPushView: View {
                         .font(.body)
                         .foregroundColor(.ds.text.neutral.standard)
                         .multilineTextAlignment(.center)
-                    
+
                 }
             }.padding(.bottom, 28)
             Spacer()
         }.padding(.horizontal, 24)
             .padding(.bottom, 24)
     }
-    
+
     var bottomButtons: some View {
         AdaptiveHStack {
             VStack(spacing: 8) {
@@ -86,7 +88,7 @@ struct AuthenticationPushView: View {
                 Text(L10n.Localizable.pushRejectButtonTitle)
                     .font(.subheadline)
             }
-            
+
             Spacer()
             VStack(spacing: 8) {
                 Button(action: accept, label: {
@@ -99,22 +101,22 @@ struct AuthenticationPushView: View {
                 Text(L10n.Localizable.pushAcceptButtonTitle)
                     .font(.subheadline)
             }
-           
+
         }.padding(.horizontal, 64)
             .padding(.bottom, 24)
     }
-    
+
     func accept() {
         model.accept()
         pendingRequest = []
     }
-    
+
     func reject() {
         model.reject()
         pendingRequest = []
     }
-    
-    func errorView(for error: AuthenticationPushViewModel.PushError) -> FeedbackView {
+
+    func errorView(for error: AuthenticationPushViewModel.PushError) -> some View {
         FeedbackView(title: error == .unknown ? L10n.Localizable.pushErrorTitle : L10n.Localizable.pushErrorExpiredTitle,
                      message: error == .unknown ? L10n.Localizable.pushErrorSubtitle : L10n.Localizable.pushErrorExpiredSubtitle,
                      primaryButton: (L10n.Localizable.pushErrorButtonTitle, {

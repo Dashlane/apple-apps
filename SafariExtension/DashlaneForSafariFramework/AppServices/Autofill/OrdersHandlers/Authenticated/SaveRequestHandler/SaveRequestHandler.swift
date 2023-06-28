@@ -3,6 +3,7 @@ import CorePersonalData
 import DomainParser
 import DashTypes
 import DashlaneAppKit
+import VaultKit
 
 struct SaveRequestHandler: MaverickOrderHandleable, SessionServicesInjecting {
 
@@ -12,14 +13,14 @@ struct SaveRequestHandler: MaverickOrderHandleable, SessionServicesInjecting {
     let maverickOrderMessage: MaverickOrderMessage
     let database: ApplicationDatabase
     let vaultItemsService: VaultItemsServiceProtocol
-    let personalDataURLDecoder: DashlaneAppKit.PersonalDataURLDecoder
+    let personalDataURLDecoder: PersonalDataURLDecoderProtocol
     let regionInformationService: RegionInformationService
     let logger: Logger
     
     init(maverickOrderMessage: MaverickOrderMessage,
          database: ApplicationDatabase,
          vaultItemsService: VaultItemsServiceProtocol,
-         personalDataURLDecoder: DashlaneAppKit.PersonalDataURLDecoder,
+         personalDataURLDecoder: PersonalDataURLDecoderProtocol,
          regionInformationService: RegionInformationService,
          logger: Logger) {
         self.maverickOrderMessage = maverickOrderMessage

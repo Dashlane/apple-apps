@@ -14,7 +14,7 @@ extension DomainIconLibrary {
                   webservice: webService,
                   logger: logger)
     }
-    
+
         init(webService: LegacyWebService, session: Session, logger: Logger) {
         let cacheDirectory: URL
         do {
@@ -28,7 +28,7 @@ extension DomainIconLibrary {
                   webservice: webService,
                   logger: logger)
     }
-    
+
 }
 
 struct DomainIconCryptoEngine: CryptoEngine {

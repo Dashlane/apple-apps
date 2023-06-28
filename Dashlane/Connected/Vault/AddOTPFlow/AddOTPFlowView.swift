@@ -6,7 +6,10 @@ import TOTPGenerator
 import CoreSync
 import CorePersonalData
 import VaultKit
+import AuthenticatorKit
 import DesignSystem
+import LoginKit
+import CoreLocalization
 
 struct AddOTPFlowView: View {
 
@@ -31,8 +34,6 @@ struct AddOTPFlowView: View {
             case .intro:
                 AddOTPIntroView(credential: viewModel.credential,
                                 completion: viewModel.introViewCompletionHandler)
-            case let .enterToken(viewModel):
-                AddOTPSecretKeyView(viewModel: viewModel)
             case .scanQRCode:
                 ScanQRCodeView(resultHandler: qrCodeScanned)
             case let .chooseCredential(viewModel):
@@ -42,21 +43,23 @@ struct AddOTPFlowView: View {
                     viewModel.handleSuccessCompletion(for: mode)
                 })
             case .failure(.dashlaneSecretDetected):
-                FeedbackView(title: L10n.Localizable.kwErrorTitle,
-                             message: L10n.Localizable.kwOtpDashlaneSecretRead,
-                             primaryButton: (L10n.Localizable.modalTryAgain, { viewModel.handleFailureViewCompletion(.tryAgain) }),
-                             secondaryButton: (L10n.Localizable.cancel, { viewModel.handleFailureViewCompletion(.cancel) }))
+                FeedbackView(title: CoreLocalization.L10n.Core.kwErrorTitle,
+                             message: CoreLocalization.L10n.Core.kwOtpDashlaneSecretRead,
+                             primaryButton: (CoreLocalization.L10n.Core.modalTryAgain, { viewModel.handleFailureViewCompletion(.tryAgain) }),
+                             secondaryButton: (CoreLocalization.L10n.Core.cancel, { viewModel.handleFailureViewCompletion(.cancel) }))
             case let .failure(.badSecretKey(domain)):
                 FeedbackView(title: L10n.Localizable._2faSetupFailureFor(domain),
                              message: "",
-                             primaryButton: (L10n.Localizable.modalTryAgain, { viewModel.handleFailureViewCompletion(.tryAgain) }),
-                             secondaryButton: (L10n.Localizable.cancel, { viewModel.handleFailureViewCompletion(.cancel) }))
+                             primaryButton: (CoreLocalization.L10n.Core.modalTryAgain, { viewModel.handleFailureViewCompletion(.tryAgain) }),
+                             secondaryButton: (CoreLocalization.L10n.Core.cancel, { viewModel.handleFailureViewCompletion(.cancel) }))
             case  let .failure(.multipleMatchingCredentials(domain)):
                 FeedbackView(title: L10n.Localizable._2faSetupFailureFor(domain),
                              message: L10n.Localizable.otpToolAddOtpErrorMultiloginTitle(domain),
-                             primaryButton: (L10n.Localizable.cancel, { viewModel.handleFailureViewCompletion(.cancel) }))
+                             primaryButton: (CoreLocalization.L10n.Core.cancel, { viewModel.handleFailureViewCompletion(.cancel) }))
             case let .addCredential(viewModel):
                 CredentialDetailView(model: viewModel).navigationBarHidden(true)
+            case let .addOTPManually(viewModel):
+                AddOTPManuallyFlowView(viewModel: viewModel)
             }
         }
         .accentColor(.ds.text.brand.standard)

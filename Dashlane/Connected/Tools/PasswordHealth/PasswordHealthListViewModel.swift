@@ -1,6 +1,5 @@
 import Combine
 import CorePersonalData
-import DashlaneReportKit
 import Foundation
 import SecurityDashboard
 import UIKit
@@ -23,7 +22,6 @@ final class PasswordHealthListViewModel: ObservableObject, SessionServicesInject
 
     let passwordHealthService: IdentityDashboardServiceProtocol
     let origin: PasswordHealthFlowViewModel.Origin
-    let usageLogService: UsageLogServiceProtocol
     let vaultItemsService: VaultItemsServiceProtocol
     let teamSpaceService: TeamSpacesService
 
@@ -50,7 +48,6 @@ final class PasswordHealthListViewModel: ObservableObject, SessionServicesInject
         maximumCredentialsCount: Int? = nil,
         passwordHealthService: IdentityDashboardServiceProtocol,
         origin: PasswordHealthFlowViewModel.Origin,
-        usageLogService: UsageLogServiceProtocol,
         vaultItemsService: VaultItemsServiceProtocol,
         teamSpaceService: TeamSpacesService,
         vaultItemRowModelFactory: VaultItemRowModel.Factory
@@ -60,7 +57,6 @@ final class PasswordHealthListViewModel: ObservableObject, SessionServicesInject
         self.showSectionHeader = maximumCredentialsCount != nil
         self.passwordHealthService = passwordHealthService
         self.origin = origin
-        self.usageLogService = usageLogService
         self.vaultItemsService = vaultItemsService
         self.teamSpaceService = teamSpaceService
         self.vaultItemRowModelFactory = vaultItemRowModelFactory
@@ -145,11 +141,6 @@ final class PasswordHealthListViewModel: ObservableObject, SessionServicesInject
 
         func exclude(credential: Credential) {
         var credential = credential
-        if credential.disabledForPasswordAnalysis {
-            usageLogger.logInclude(credential)
-        } else {
-            usageLogger.logExclude(credential)
-        }
         credential.disabledForPasswordAnalysis.toggle()
         _ = try? vaultItemsService.save(credential)
     }
@@ -157,41 +148,6 @@ final class PasswordHealthListViewModel: ObservableObject, SessionServicesInject
     func replace(credential: Credential) {
         guard let url = credential.url?.openableURL else { return }
         UIApplication.shared.open(url)
-        usageLogger.logReplace(credential)
-    }
-}
-
-extension PasswordHealthListViewModel {
-    private var usageLogger: SecurityDashboardLogger {
-        return SecurityDashboardLogger(
-            usageLogService: usageLogService,
-            type: logSubType,
-            spaceId: teamSpaceService.currentIdentityDashboardSpaceId
-        )
-    }
-
-    private var logSubType: UsageLogCode125PasswordHealthDashboard.Type_subType {
-        switch kind {
-        case .compromised:
-            return .compromiseAll
-        case .weak:
-            return .weakAll
-        case .reused:
-            return .reusedAll
-        case .excluded:
-            return .excludedAll
-        case .total:
-            return .manageAccount
-        }
-    }
-
-    func logDetailedList() {
-        guard let score else { return }
-        usageLogger.logShow(forScore: score, origin: origin.rawValue)
-    }
-
-    func logOpenDetails(for credential: Credential) {
-        usageLogger.logOpenDetails(of: credential)
     }
 }
 
@@ -200,6 +156,7 @@ private extension Array where Element == SecurityDashboardCredential {
         return self
             .compactMap { $0 as? SecurityDashboardCredentialImplementation }
             .map(\.credential)
+            .alphabeticallySorted()
     }
 }
 
@@ -216,10 +173,9 @@ extension PasswordHealthListViewModel {
             maximumCredentialsCount: maximumCredentialsCount,
             passwordHealthService: IdentityDashboardService.mock,
             origin: .identityDashboard,
-            usageLogService: UsageLogService.fakeService,
             vaultItemsService: MockServicesContainer().vaultItemsService,
             teamSpaceService: .mock(),
-            vaultItemRowModelFactory: .init { .mock(configuration: $0, additionialConfiguration: $1) }
+            vaultItemRowModelFactory: .init { .mock(configuration: $0, additionalConfiguration: $1) }
         )
     }
 }

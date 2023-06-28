@@ -1,4 +1,4 @@
- #if canImport(UIKit)
+#if canImport(UIKit)
 
 import Foundation
 import SwiftUI
@@ -8,31 +8,30 @@ public struct StepBasedNavigationView<Step, Content>: View where Content: View {
     var steps: [Step]
 
     let content: (Step) -> Content
-    
+
     public init(steps: Binding<[Step]>, @ViewBuilder content: @escaping (Step) -> Content) {
         _steps = steps
         self.content = content
     }
-    
+
     public var body: some View {
         NavigationView {
             StepBasedContentNavigationView(steps: $steps, content: content)
-        }.navigationViewStyle(StackNavigationViewStyle())
+        }.navigationViewStyle(.stack)
     }
 }
-
 
 public struct StepBasedContentNavigationView<Step, Content>: View where Content: View {
     @Binding
     var steps: [Step]
-    
+
     let content: (Step) -> Content
-    
+
     public init(steps: Binding<[Step]>, @ViewBuilder content: @escaping (Step) -> Content) {
         _steps = steps
         self.content = content
     }
-    
+
     public var body: some View {
         if !steps.isEmpty {
             NavigationStepContentView(content: content, stepIndex: 0, steps: $steps)
@@ -45,7 +44,7 @@ private struct NavigationStepContentView<Step, Content>: View where Content: Vie
     let stepIndex: Int
     @Binding
     var steps: [Step]
-    
+
     var nextViewBinding: Binding<Bool> {
         let nextIndex = stepIndex + 1
         return Binding<Bool>(get: {
@@ -56,7 +55,7 @@ private struct NavigationStepContentView<Step, Content>: View where Content: Vie
             }
         })
     }
-    
+
     var body: some View {
         if steps.count > stepIndex {
             content(steps[stepIndex])
@@ -67,7 +66,7 @@ private struct NavigationStepContentView<Step, Content>: View where Content: Vie
                 }
         }
     }
-    
+
 }
 
 struct StepBasedNavigationView_Previews: PreviewProvider {
@@ -75,11 +74,11 @@ struct StepBasedNavigationView_Previews: PreviewProvider {
         case stepA
         case stepB
     }
-    
+
     struct BaseTestView: View {
         @State
         var steps: [Step] = [.stepA]
-        
+
         var body: some View {
             StepBasedNavigationView(steps: $steps) { step in
                 VStack {
@@ -91,11 +90,11 @@ struct StepBasedNavigationView_Previews: PreviewProvider {
             }
         }
     }
-    
+
     struct EmbeddedFlowTestView: View {
         @State
         var steps: [Step] = [.stepA]
-        
+
         var body: some View {
             StepBasedNavigationView(steps: $steps) { step in
                 VStack {
@@ -115,30 +114,30 @@ struct StepBasedNavigationView_Previews: PreviewProvider {
                 }
             }
         }
-        
-        struct SubFlowView: View {
-            enum SubFlowStep: String, CaseIterable {
-                case step1
-                case step2
-            }
-            
-            @State
-            var subSteps: [SubFlowStep] = [.step1]
-            
-            var body: some View {
-                StepBasedContentNavigationView(steps: $subSteps) { step in
-                    VStack {
-                        Text("SubFlow \(step.rawValue)")
-                        Button("Next Random") {
-                            subSteps.append(.allCases.randomElement() ?? .step1)
-                        }.navigationTitle(.init(step.rawValue))
-                        
-                    }
+    }
+
+    private struct SubFlowView: View {
+        enum SubFlowStep: String, CaseIterable {
+            case step1
+            case step2
+        }
+
+        @State
+        var subSteps: [SubFlowStep] = [.step1]
+
+        var body: some View {
+            StepBasedContentNavigationView(steps: $subSteps) { step in
+                VStack {
+                    Text("SubFlow \(step.rawValue)")
+                    Button("Next Random") {
+                        subSteps.append(.allCases.randomElement() ?? .step1)
+                    }.navigationTitle(.init(step.rawValue))
+
                 }
             }
         }
     }
-    
+
     static var previews: some View {
         BaseTestView()
         EmbeddedFlowTestView()

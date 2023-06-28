@@ -24,7 +24,6 @@ public struct RateAppViewModel: HomeAnnouncementsServicesInjecting {
         self.userSettings = userSettings
     }
 
-
     func rateApp() {
         guard let url = URL(string: "itms-apps://itunes.apple.com/app/id517914548?action=write-review") else {
             return

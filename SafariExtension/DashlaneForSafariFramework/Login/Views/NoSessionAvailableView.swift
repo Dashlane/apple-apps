@@ -16,6 +16,7 @@ struct LoginView: View {
                     .foregroundColor(Color(asset: Asset.dashGreenCopy))
                     .frame(alignment: .leading)
                     .padding(.leading, 32)
+                    .fiberAccessibilityHidden(true)
                 Spacer()
             }
             .frame(alignment: .top)

@@ -48,10 +48,12 @@ class PlansListViewModel: ObservableObject {
     }
 
     func select(_ plan: PlanTier) {
+        let planTiers = planTiers
         activityReporter.report(UserEvent.CallToAction(callToActionList: planTiers.compactMap { $0.userTrackingCallToAction }, chosenAction: plan.userTrackingCallToAction, hasChosenNoAction: false))
     }
 
     func cancel() {
+        let planTiers = planTiers
         activityReporter.report(UserEvent.CallToAction(callToActionList: planTiers.compactMap { $0.userTrackingCallToAction }, hasChosenNoAction: true))
     }
 }

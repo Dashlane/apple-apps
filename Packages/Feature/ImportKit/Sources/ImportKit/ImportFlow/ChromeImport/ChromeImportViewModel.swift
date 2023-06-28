@@ -4,8 +4,9 @@ import CorePersonalData
 import CoreUserTracking
 import UniformTypeIdentifiers
 import VaultKit
+import CorePremium
 
-public class ChromeImportViewModel: ImportViewModel, ObservableObject {
+public class ChromeImportViewModel: ImportViewModel, ObservableObject, ImportKitServicesInjecting {
 
     public let kind: ImportFlowKind = .chrome
     public var step: ImportStep = .extract
@@ -17,23 +18,29 @@ public class ChromeImportViewModel: ImportViewModel, ObservableObject {
 
     public let importService: ImportServiceProtocol
     public let iconService: IconServiceProtocol
-    public let personalDataURLDecoder: CorePersonalData.PersonalDataURLDecoder? = nil
-    public let activityReporter: ActivityReporterProtocol?
+    public let personalDataURLDecoder: PersonalDataURLDecoderProtocol
+    public let activityReporter: ActivityReporterProtocol
+    public let teamSpacesService: CorePremium.TeamSpacesServiceProtocol
 
-    init(activityReporter: ActivityReporterProtocol) {
+    @MainActor
+    init(activityReporter: ActivityReporterProtocol,
+         teamSpacesService: CorePremium.TeamSpacesServiceProtocol,
+         personalDataURLDecoder: PersonalDataURLDecoderProtocol) {
         self.importService = ChromeImportService()
         self.iconService = IconServiceMock()
         self.activityReporter = activityReporter
+        self.teamSpacesService = teamSpacesService
+        self.personalDataURLDecoder = personalDataURLDecoder
     }
 
     public func extract() async throws {
         _ = try await importService.extract()
     }
 
-    public func save() async throws {
-        try await importService.save(vaultItems: items.filter { $0.isSelected }.map { $0.vaultItem })
+    public func save(in userSpace: CorePremium.UserSpace?) async throws {
+        let vaultItems = items.selectedItemsWithSpace(userSpace, businessTeam: teamSpacesService.businessTeamsInfo.availableBusinessTeam)
+        try await importService.save(items: .init(items: vaultItems))
     }
-
 }
 
 class ChromeImportService: ImportServiceProtocol {
@@ -45,7 +52,7 @@ class ChromeImportService: ImportServiceProtocol {
         return []
     }
 
-    func save(vaultItems: [VaultItem]) async throws {
+    func save(_ vaultItems: [VaultItem]) async throws {
         assertionFailure("Inadmissible action for this kind of import flow")
     }
 

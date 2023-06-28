@@ -5,7 +5,6 @@ import UIKit
 import Lottie
 
 public struct LottieView: UIViewRepresentable {
-
     public enum State: Equatable {
         public static func == (lhs: LottieView.State, rhs: LottieView.State) -> Bool {
             switch (lhs, rhs) {
@@ -37,12 +36,12 @@ public struct LottieView: UIViewRepresentable {
             self.keypath = AnimationKeypath(keypath: keypath)
         }
     }
-    
-        public let asset: LottieAsset
 
-            public let aspectRatio: CGFloat
+    @Environment(\.colorScheme)
+    var colorScheme: ColorScheme
 
-    private let animation: LottieAnimation?
+    public let asset: LottieAsset
+
     private let loopMode: LottieLoopMode
     private let contentMode: UIView.ContentMode
     private let animated: Bool
@@ -56,19 +55,16 @@ public struct LottieView: UIViewRepresentable {
                 dynamicAnimationProperties: [DynamicAnimationProperty]? = nil,
                 state: State = .regular) {
         self.asset = asset
-                self.animation = asset.animation(for: UITraitCollection.current.userInterfaceStyle, cache: DefaultAnimationCache.sharedCache)
-
         self.loopMode = loopMode
         self.state = state
         self.contentMode = contentMode
         self.animated = animated
-        self.aspectRatio = (animation?.bounds.width ?? .zero) / (animation?.bounds.height ?? .zero)
         self.dynamicAnimationProperties = dynamicAnimationProperties
     }
 
     public func makeUIView(context: Context) -> UIView {
         let animationView = LottieAnimationView()
-        animationView.animation = animation
+        animationView.animation = asset.animation(for: colorScheme)
         animationView.contentMode = contentMode
         animationView.loopMode = loopMode
         animationView.translatesAutoresizingMaskIntoConstraints = false
@@ -87,6 +83,8 @@ public struct LottieView: UIViewRepresentable {
 
         configure(animationView)
 
+        view.accessibilityElementsHidden = true
+
         return view
     }
 
@@ -97,7 +95,12 @@ public struct LottieView: UIViewRepresentable {
     }
 
     public func configure(_ animationView: LottieAnimationView) {
-        if animated && animationView.shouldBePlaying && !animationView.isAnimationPlaying {
+                let animation = asset.animation(for: colorScheme)
+        if animation !== animationView.animation {
+            animationView.animation = animation
+        }
+
+                if animated && animationView.shouldBePlaying && !animationView.isAnimationPlaying {
             if case let .progress(fromProgress, toProgress) = state {
                 animationView.play(fromProgress: fromProgress, toProgress: toProgress)
             } else if case let .marker(toMarker) = state {

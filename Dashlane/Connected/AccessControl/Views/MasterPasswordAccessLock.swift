@@ -1,6 +1,8 @@
 import SwiftUI
 import UIDelight
 import UIComponents
+import CoreLocalization
+import DesignSystem
 
 struct MasterPasswordAccessLockView: View {
     let title: String
@@ -21,17 +23,19 @@ struct MasterPasswordAccessLockView: View {
             Text(title)
                 .font(.headline)
                 .padding()
-
-            SecureField(L10n.Localizable.kwEnterYourMasterPassword, text: $enteredPassword)
+            DS.PasswordField(
+                CoreLocalization.L10n.Core.kwEnterYourMasterPassword,
+                text: $enteredPassword
+            )
                 .focused($isTextFieldFocused)
                 .onSubmit(validate)
                 .submitLabel(.go)
                 .textInputAutocapitalization(.never)
                 .textContentType(.oneTimeCode) 
-                .disableAutocorrection(true)
+                .autocorrectionDisabled()
                 .padding()
             Divider()
-            Button(L10n.Localizable.cancel, action: self.dismiss)
+            Button(CoreLocalization.L10n.Core.cancel, action: self.dismiss)
                 .buttonStyle(AlertButtonStyle())
 
         }

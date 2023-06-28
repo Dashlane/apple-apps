@@ -16,7 +16,7 @@ struct AutoFillDemoModal: View {
             VStack(alignment: .center) {
                 VStack(alignment: .leading) {
                     HStack {
-                        Image(asset: FiberAsset.checklistCheckmark)
+                        Image.ds.feedback.success.outlined
                             .resizable()
                             .frame(width: 20, height: 20)
                             .fiberAccessibilityHidden(true)

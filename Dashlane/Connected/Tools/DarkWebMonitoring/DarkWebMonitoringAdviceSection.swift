@@ -99,7 +99,7 @@ struct DarkWebMonitoringAdviceSection: View {
         if let sectionTitle = advice.sectionTitle {
             HStack {
                 Text(sectionTitle.uppercased())
-                    .foregroundColor(Color(asset: FiberAsset.grey01))
+                    .foregroundColor(.ds.text.neutral.quiet)
                     .font(.footnote)
                     .padding([.top, .horizontal], 16)
                 Spacer()
@@ -110,9 +110,10 @@ struct DarkWebMonitoringAdviceSection: View {
     @ViewBuilder
     private var content: some View {
         HStack(alignment: .top, spacing: 10) {
-            Image(asset: FiberAsset.infoButton)
+            Image.ds.feedback.info.outlined
                 .resizable()
                 .frame(width: 20, height: 20)
+                .foregroundColor(.ds.text.brand.quiet)
 
             VStack(alignment: .leading, spacing: 4) {
                 if let title = advice.title {

@@ -12,7 +12,7 @@ public struct PasswordHealthReport {
         self.allCredentialsReport = allCredentialsReport
         self.importantCredentialsReport = importantCredentialsReport
     }
-    
+
         public struct ComputeReport {
         public let totalCount: Int
         public let corruptedCount: Int
@@ -103,9 +103,9 @@ extension PasswordHealthReport {
         }
         return counts
     }
-    
-    private static func credentialsByFilter(for requests: [PasswordHealthAnalyzer.Request], in results: [PasswordHealthAnalyzer.Request: PasswordHealthResult]) ->  CredentialsByFilter {
-        
+
+    private static func credentialsByFilter(for requests: [PasswordHealthAnalyzer.Request], in results: [PasswordHealthAnalyzer.Request: PasswordHealthResult]) -> CredentialsByFilter {
+
         return requests.reduce(into: CredentialsByFilter()) { credentialsByFilter, request in
             guard let result = results[request] else {
                 return

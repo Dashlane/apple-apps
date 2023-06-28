@@ -18,7 +18,7 @@ public struct FiscalInformation: PersonalDataCodable, Equatable, Identifiable, D
         case spaceId
         case attachments
     }
-    
+
     public let id: Identifier
     public var anonId: String
     public let metadata: RecordMetadata
@@ -35,14 +35,14 @@ public struct FiscalInformation: PersonalDataCodable, Equatable, Identifiable, D
         case franceAndBelgium
         case other
     }
-    
+
     public var mode: Mode {
         guard let country = self.country ?? CountryCodeNamePair.systemCountryCode else {
             return .other
         }
         return country.fiscalMode
     }
-    
+
     public init() {
         id = Identifier()
         anonId = UUID().uuidString
@@ -53,7 +53,7 @@ public struct FiscalInformation: PersonalDataCodable, Equatable, Identifiable, D
         country = CountryCodeNamePair.systemCountryCode
         _attachments = .init(nil)
     }
-    
+
     init(id: Identifier, anonId: String, fiscalNumber: String, teledeclarationNumber: String, creationDatetime: Date? = nil, userModificationDatetime: Date? = nil, country: CountryCodeNamePair? = nil, spaceId: String? = nil) {
         self.id = id
         self.anonId = anonId
@@ -66,7 +66,7 @@ public struct FiscalInformation: PersonalDataCodable, Equatable, Identifiable, D
         self.spaceId = spaceId
         _attachments = .init(nil)
     }
-    
+
 }
 
 extension FiscalInformation {

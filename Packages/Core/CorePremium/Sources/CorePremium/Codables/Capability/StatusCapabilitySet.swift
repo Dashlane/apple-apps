@@ -42,7 +42,7 @@ public struct StatusCapabilitySet: Decodable, CapabilitySet {
         self.sync = sync
         self.yubikey = yubikey
     }
-    
+
         public init(from decoder: Decoder) throws {
         var arrayContainer = try decoder.unkeyedContainer()
 

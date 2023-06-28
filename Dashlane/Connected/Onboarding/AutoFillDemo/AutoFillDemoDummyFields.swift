@@ -4,6 +4,7 @@ import Lottie
 import UIDelight
 import UIComponents
 import DesignSystem
+import CoreLocalization
 
 struct AutoFillDemoDummyFields: View {
 
@@ -56,7 +57,7 @@ struct AutoFillDemoDummyFields: View {
                         contentView.frame(maxWidth: 550, maxHeight: 890)
 
                         Spacer()
-                        RoundedButton(L10n.Localizable.autofillDemoFieldsAction,
+                        RoundedButton(CoreLocalization.L10n.Core.autofillDemoFieldsAction,
                                       action: { self.completion?(.setupAutofill) })
                         .roundedButtonLayout(.fill)
                         .hidden(!shouldShowSetupButton)
@@ -98,13 +99,13 @@ struct AutoFillDemoDummyFields: View {
             dismiss()
             completion?(.back)
         }, label: {
-            Text(L10n.Localizable.kwBack).font(.body)
+            Text(CoreLocalization.L10n.Core.kwBack).font(.body)
         }).foregroundColor(.ds.text.neutral.standard)
     }
 
     @ViewBuilder
     private var emailTextField: some View {
-        TextField(L10n.Localizable.kwEmailIOS, text: $email)
+        TextField(CoreLocalization.L10n.Core.kwEmailIOS, text: $email)
             .focused($isEmailFieldEditing)
             .keyboardType(.emailAddress)
             .textContentType(.emailAddress)
@@ -143,12 +144,12 @@ struct AutoFillDemoDummyFields: View {
             Button(action: {
                 self.shouldReveal.toggle()
             }, label: {
-                Image(asset: shouldReveal ? FiberAsset.revealButtonSelected : FiberAsset.revealButton)
-                    .foregroundColor(Color(asset: FiberAsset.accentColor))
-            }).hidden(self.password.isEmpty)
-                .fiberAccessibilityLabel(Text(shouldReveal ? L10n.Localizable.kwHide : L10n.Localizable.kwReveal))
+                (shouldReveal ? Image.ds.action.hide.outlined : Image.ds.action.reveal.outlined)
+                    .foregroundColor(.ds.text.brand.quiet)
+            })
+            .hidden(password.isEmpty)
+            .fiberAccessibilityLabel(Text(shouldReveal ? CoreLocalization.L10n.Core.kwHide : CoreLocalization.L10n.Core.kwReveal))
             .padding(16)
-
         }
         .frame(height: 48)
         .overlay(RoundedRectangle(cornerRadius: 4).stroke(Color(asset: FiberAsset.grey04), lineWidth: 1))
@@ -160,7 +161,7 @@ struct AutoFillDemoDummyFields: View {
 }
 
 extension AutoFillDemoDummyFields: NavigationBarStyleProvider {
-    var navigationBarStyle: NavigationBarStyle {
+    var navigationBarStyle: UIComponents.NavigationBarStyle {
         return .hidden(statusBarStyle: .default)
     }
 }

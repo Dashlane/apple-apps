@@ -1,5 +1,5 @@
 import Foundation
-import DashlaneAppKit
+import DashTypes
 
 public struct SafariExtensionExternalCommunications {
     
@@ -47,7 +47,7 @@ extension SafariExtensionExternalCommunications.SafariExtensionToMainApplication
         default:
             throw DecodingError.dataCorrupted(DecodingError.Context(
                 codingPath: container.codingPath,
-                debugDescription: "Unabled to decode SafariExtensionToMainApplicationMessage enum."
+                debugDescription: "Unable to decode SafariExtensionToMainApplicationMessage enum."
             ))
         }
     }
@@ -80,7 +80,7 @@ extension SafariExtensionExternalCommunications.MainApplicationToSafariExtension
         default:
             throw DecodingError.dataCorrupted(DecodingError.Context(
                 codingPath: container.codingPath,
-                debugDescription: "Unabled to decode MainApplicationToSafariExtensionMessage enum."
+                debugDescription: "Unable to decode MainApplicationToSafariExtensionMessage enum."
             ))
         }
     }
@@ -97,7 +97,7 @@ extension SafariExtensionExternalCommunications.MainApplicationToSafariExtension
 }
 
 extension SafariExtensionExternalCommunications.SafariExtensionToMainApplicationMessage: Equatable {
-    public static func ==(lhs: Self, rhs: Self) -> Bool {
+    public static func == (lhs: Self, rhs: Self) -> Bool {
         switch (lhs, rhs) {
         case let (.askForSession(silentlyLhs), askForSession(silentlyRhs)):
             return silentlyLhs == silentlyRhs
@@ -106,7 +106,7 @@ extension SafariExtensionExternalCommunications.SafariExtensionToMainApplication
 }
 
 extension SafariExtensionExternalCommunications.MainApplicationToSafariExtensionMessage: Equatable {
-    public static func ==(lhs: Self, rhs: Self) -> Bool {
+    public static func == (lhs: Self, rhs: Self) -> Bool {
         switch (lhs, rhs) {
         case let (.currentUserSession(sessionLhs), .currentUserSession(sessionRhs)):
             return sessionLhs == sessionRhs

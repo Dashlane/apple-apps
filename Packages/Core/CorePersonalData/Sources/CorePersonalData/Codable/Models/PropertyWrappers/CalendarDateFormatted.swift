@@ -7,7 +7,7 @@ public struct CalendarDateFormatted: Codable, Equatable {
         formatter.dateFormat = "yyyy-MM-dd"
         return formatter
     }()
-    
+
     public var wrappedValue: Date?
 
     public var projectedValue: DateComponents? {
@@ -16,11 +16,11 @@ public struct CalendarDateFormatted: Codable, Equatable {
         }
         return Calendar.current.dateComponents(in: TimeZone.current, from: date)
     }
-    
+
     public init() {
-        
+
     }
-    
+
     public init(rawValue: String?) {
         guard let rawValue = rawValue,
               !rawValue.isEmpty,
@@ -31,7 +31,7 @@ public struct CalendarDateFormatted: Codable, Equatable {
 
         self.wrappedValue = date
     }
-    
+
         public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         let rawDate = try container.decode(String.self)
@@ -40,7 +40,7 @@ public struct CalendarDateFormatted: Codable, Equatable {
             self.wrappedValue = nil
             return
         }
-        
+
         self.wrappedValue = date
     }
 
@@ -58,5 +58,3 @@ public struct CalendarDateFormatted: Codable, Equatable {
         try container.encode( Self.formatter.string(from: date))
     }
 }
-
-

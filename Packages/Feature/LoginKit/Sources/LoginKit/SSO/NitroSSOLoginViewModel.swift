@@ -5,14 +5,14 @@ import CoreCrypto
 import CoreNetworking
 
 @MainActor
-public class NitroSSOLoginViewModel: ObservableObject {
-    
+public class NitroSSOLoginViewModel: ObservableObject, LoginKitServicesInjecting {
+
     @Published
     var loginService: NitroSSOLoginHandler?
     let login: String
     let webservice: NitroAPIClient
     let completion: Completion<SSOCallbackInfos>
-    
+
     public init(login: String,
                 nitroWebService: NitroAPIClient,
                 completion: @escaping Completion<SSOCallbackInfos>) {
@@ -27,7 +27,7 @@ public class NitroSSOLoginViewModel: ObservableObject {
             }
         }
     }
-   
+
     func didReceiveSAML(_ result: Result<String, Error>) {
         switch result {
         case let .success(saml):
@@ -38,7 +38,7 @@ public class NitroSSOLoginViewModel: ObservableObject {
             self.completion(.failure(error))
         }
     }
-    
+
     func completeLogin(withSAML saml: String) async {
         do {
             guard let loginService = loginService else {
@@ -54,5 +54,9 @@ public class NitroSSOLoginViewModel: ObservableObject {
                 completion(.failure(error))
             }
         }
+    }
+
+    func cancel() {
+        self.completion(.failure(SSOAccountError.failedLoginOnSSOPage))
     }
 }

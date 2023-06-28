@@ -1,8 +1,9 @@
 import SwiftUI
 import LoginKit
+import UIComponents
 
 extension LoginFlow: NavigationBarStyleProvider {
-    var navigationBarStyle: NavigationBarStyle {
+    public var navigationBarStyle: UIComponents.NavigationBarStyle {
         return .transparent()
     }
 }

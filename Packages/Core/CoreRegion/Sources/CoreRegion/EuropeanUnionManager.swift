@@ -12,7 +12,7 @@ public struct EuropeanUnionManager {
             fatalError("Impossible to load Countries: \(error)")
         }
     }
-    
+
     public func contains(countryCode: String) -> Bool {
         return countries.contains(Country(code: countryCode))
     }

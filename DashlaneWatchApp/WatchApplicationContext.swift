@@ -1,17 +1,28 @@
 import Foundation
 
+extension URL {
+    static func contextUrl() -> URL {
+        let documentsPath = NSSearchPathForDirectoriesInDomains(.documentDirectory, .userDomainMask, true)[0]
+        let path = documentsPath + "/applicationContext.json"
+        return URL(fileURLWithPath: path)
+    }
+}
 
 final class WatchApplicationContext: Codable {
     
-    struct Token: Codable {
+    struct Token: Codable, Identifiable {
         var url: URL
         var title: String
+        
+        var id: String {
+            "\(title)-\(url)"
+        }
     }
     
     var tokens: [Token]
     
-    init() {
-        tokens = [Token]()
+    init(tokens: [Token] = []) {
+        self.tokens = tokens
     }
     
     func toDict() throws -> [String: Any]  {

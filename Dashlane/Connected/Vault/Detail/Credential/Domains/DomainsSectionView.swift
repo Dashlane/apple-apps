@@ -1,5 +1,7 @@
 import SwiftUI
 import SwiftTreats
+import VaultKit
+import CoreLocalization
 
 struct DomainsSectionView: View {
     let sectionTitle: String
@@ -11,7 +13,7 @@ struct DomainsSectionView: View {
             Section(header: Text(sectionTitle.uppercased())) {
                 ForEach(domains, id: \.self) { item in
                     Text(item)
-                        .action(L10n.Localizable.kwGoToUrl, isHidden: (!isOpenable || item.openableURL == nil)) {
+                        .action(CoreLocalization.L10n.Core.kwGoToUrl, isHidden: (!isOpenable || item.openableURL == nil)) {
                             guard let url = item.openableURL else {
                                 return
                             }

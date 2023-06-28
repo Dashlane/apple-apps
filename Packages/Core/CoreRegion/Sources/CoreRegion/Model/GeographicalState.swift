@@ -5,7 +5,6 @@ public struct GeographicalState: Decodable {
     public let localizedString: String
 }
 
-
 extension GeographicalState: RegionInformationProtocol {
     public static var resourceType: ResourceType {
         return .geographicalStates

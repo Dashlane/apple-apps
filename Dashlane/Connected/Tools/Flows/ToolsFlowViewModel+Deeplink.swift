@@ -34,7 +34,6 @@ extension ToolsFlowViewModel {
             case .tools:
                 break
             case .generator, .history:
-                assertionFailure("Should not land here, the viewModel needs to be called directly by the Sessions Coordinator")
                 self.didSelect(item: .passwordGenerator)
             case .vpn:
                 self.didSelect(item: .secureWifi)

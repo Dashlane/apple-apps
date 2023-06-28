@@ -2,6 +2,15 @@ import Foundation
 
 public struct PremiumGetStatusTeamMembership: Codable, Equatable {
 
+    private enum CodingKeys: String, CodingKey {
+        case teamAdmins = "teamAdmins"
+        case billingAdmins = "billingAdmins"
+        case isTeamAdmin = "isTeamAdmin"
+        case isBillingAdmin = "isBillingAdmin"
+        case isSSOUser = "isSSOUser"
+        case isGroupManager = "isGroupManager"
+    }
+
     public let teamAdmins: [String]
 
     public let billingAdmins: [String]

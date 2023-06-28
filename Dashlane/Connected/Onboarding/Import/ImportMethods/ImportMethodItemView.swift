@@ -1,3 +1,4 @@
+import DesignSystem
 import SwiftUI
 import UIDelight
 
@@ -12,7 +13,7 @@ struct ImportMethodItemView: View {
                 .fiberAccessibilityHidden(true)
 
             Text(importMethod.title)
-                .foregroundColor(Color(asset: FiberAsset.mainCopy))
+                .foregroundColor(.ds.text.neutral.catchy)
                 .font(.body)
         }
         .frame(maxWidth: .infinity, alignment: .leading)

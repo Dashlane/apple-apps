@@ -16,7 +16,7 @@ extension DomainIconLibraryProtocol {
 
         return try await icon(for: domain, format: .iOS(large: usingLargeImage))
     }
-    
+
     public func icon(for url: PersonalDataURL?) async throws -> Icon? {
         return try await icon(for: url, usingLargeImage: false)
     }

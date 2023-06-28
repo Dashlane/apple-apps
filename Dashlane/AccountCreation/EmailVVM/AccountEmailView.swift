@@ -10,19 +10,21 @@ import LoginKit
 import UIComponents
 import DesignSystem
 
-struct AccountEmailView<Model: EmailViewModelProtocol>: View {
-    @FocusState
-    var isEmailFieldFocused: Bool
-
-    @ObservedObject
-    var model: Model
+struct AccountEmailView: View {
+    @FocusState private var isEmailFieldFocused: Bool
+    @StateObject
+    private var model: AccountEmailViewModel
 
     private var emailIsValid: Bool {
         let login = Email(self.model.email)
         return login.isValid
     }
 
-    var body: some View {
+        init(model: @autoclosure @escaping () -> AccountEmailViewModel) {
+        _model = .init(wrappedValue: model())
+    }
+
+        var body: some View {
         VStack(alignment: .leading, spacing: 0) {
             self.descriptionView
             self.emailField
@@ -31,29 +33,39 @@ struct AccountEmailView<Model: EmailViewModelProtocol>: View {
         .reportPageAppearance(.accountCreationEmail)
         .loginAppearance()
         .navigationBarBackButtonHidden(true)
-        .toolbar(content: { toolbarContent })
-        .didAppear { 
+        .toolbar { toolbarContent }
+        .onAppear {
             isEmailFieldFocused = true
-            model.logger.log(.email(action: .shown))
         }
     }
 
-    @ToolbarContentBuilder
+        @ToolbarContentBuilder
     private var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .navigationBarLeading) {
-            NavigationBarButton(action: self.model.cancel, title: L10n.Localizable.minimalisticOnboardingEmailFirstBack)
+            NavigationBarButton(L10n.Localizable.minimalisticOnboardingEmailFirstBack) {
+                model.cancel()
+            }
         }
         ToolbarItem(placement: .navigationBarTrailing) {
-            NavigationBarButton(action: self.validate) {
-                Text(L10n.Localizable.minimalisticOnboardingEmailFirstNext)
-                    .bold(self.emailIsValid)
-                    .opacity(self.emailIsValid ? 1 : 0.5)
+            if model.shouldDisplayProgress {
+                IndeterminateCircularProgress()
+                    .frame(width: 20, height: 20)
+                    .padding(.horizontal, 4)
+            } else {
+                NavigationBarButton(action: {
+                    Task {
+                        await validate()
+                    }
+                }, label: {
+                    Text(L10n.Localizable.minimalisticOnboardingEmailFirstNext)
+                        .bold(emailIsValid)
+                        .opacity(emailIsValid ? 1 : 0.5)
+                })
             }
-            .disabled(self.model.shouldDisplayProgress)
         }
     }
 
-    var descriptionView: some View {
+        var descriptionView: some View {
         VStack(alignment: .leading, spacing: 0) {
             Text(L10n.Localizable.minimalisticOnboardingEmailFirstTitle)
                 .font(DashlaneFont.custom(24, .medium).font)
@@ -73,83 +85,48 @@ struct AccountEmailView<Model: EmailViewModelProtocol>: View {
     }
 
     var emailField: some View {
-        ZStack {
-            LoginFieldBox {
-                TextInput(L10n.Localizable.minimalisticOnboardingEmailFirstPlaceholder,
-                          text: $model.email)
-                .style(intensity: .supershy)
-                .focused($isEmailFieldFocused)
-                .onSubmit {
-                    self.validate()
+        DS.TextField(
+            L10n.Localizable.minimalisticOnboardingEmailFirstPlaceholder,
+            text: $model.email,
+            actions: {
+                if !model.email.isEmpty {
+                    TextFieldAction.ClearContent(text: $model.email)
                 }
-                .disabled(model.shouldDisplayProgress)
-                .textInputAutocapitalization(.never)
-                .disableAutocorrection(true)
-                .textContentType(.emailAddress)
-                .keyboardType(.emailAddress)
-                .submitLabel(.next)
-                .bubbleErrorMessage(text: $model.bubbleErrorMessage)
-                IndeterminateCircularProgress()
-                    .frame(width: 20, height: 20)
-                    .padding()
-                    .hidden(!model.shouldDisplayProgress)
             }
-            .alert(presenting: $model.currentAlert)
-        }.padding(.top, 24)
+        )
+        .focused($isEmailFieldFocused)
+        .onSubmit {
+            Task {
+                await validate()
+            }
+        }
+        .disabled(model.shouldDisplayProgress)
+        .textInputAutocapitalization(.never)
+        .autocorrectionDisabled()
+        .textContentType(.emailAddress)
+        .keyboardType(.emailAddress)
+        .submitLabel(.next)
+        .bubbleErrorMessage(text: $model.bubbleErrorMessage)
+        .padding(.horizontal, 20)
+        .padding(.top, 24)
+        .alert(presenting: $model.currentAlert)
     }
 
-     private func emailUnavailableAlert() -> Alert {
-        Alert(title: Text(L10n.Localizable.kwAccountCreationExistingAccount),
-              primaryButton:
-            .default(Text(L10n.Localizable.kwLoginNow), action: model.showLoginView),
-              secondaryButton: .cancel(Text(L10n.Localizable.noAccountCreatedAlertAction)))
-    }
-
-    private func validate() {
+        private func validate() async {
         UIApplication.shared.endEditing()
-        model.validate()
+        await model.validate()
     }
 }
 
 extension AccountEmailView: NavigationBarStyleProvider {
-    var navigationBarStyle: NavigationBarStyle {
-        return .transparent(tintColor: .ds.text.neutral.standard, statusBarStyle: .default)
+    var navigationBarStyle: UIComponents.NavigationBarStyle {
+        .transparent(tintColor: .ds.text.neutral.standard, statusBarStyle: .default)
     }
 }
 
 struct EmailView_Previews: PreviewProvider {
 
-    class FakeModel: EmailViewModelProtocol {
-        var currentAlert: AlertContent?
-        var bubbleErrorMessage: String?
-        var shouldDisplayProgress = true
-        var email: String = ""
-        var confirmationEmail: String = ""
-        var shouldDisplayBiometricAuthToggle: Bool = true
-        var availableBiometryDisplayableName: String = "Face ID"
-        var isBiometricAuthenticationEnabled: Bool = true
-        var shouldDisplayBiometricAuthenticationInfoAlert: Bool = false
-        var availableBiometry: Biometry? = .faceId
-        var logger: AccountCreationInstallerLogger
-
-        func validate() {}
-        func validateFirstEmail() {}
-        func cancel() {}
-        func showLoginView() {}
-        func showBiometricAuthenticationInfo() {
-            shouldDisplayBiometricAuthenticationInfoAlert = true
-        }
-
-        init(logger: AccountCreationInstallerLogger) {
-            self.logger = logger
-        }
-    }
-
-    static let logger = AccountCreationInstallerLogger(installerLogService: InstallerLogService.mock)
-
     static var previews: some View {
-        MultiContextPreview {
-            AccountEmailView(model: FakeModel(logger: logger))
-        }.accentColor(.ds.text.neutral.standard)
+        AccountEmailView(model: AccountEmailViewModel(appAPIClient: .fake, activityReporter: .fake, completion: { _ in }))
     }
 }

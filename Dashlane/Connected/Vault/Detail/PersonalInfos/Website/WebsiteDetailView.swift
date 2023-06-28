@@ -2,6 +2,8 @@ import Foundation
 import SwiftUI
 import CorePersonalData
 import UIDelight
+import VaultKit
+import CoreLocalization
 
 struct WebsiteDetailView: View {
     @ObservedObject
@@ -15,12 +17,12 @@ struct WebsiteDetailView: View {
         DetailContainerView(service: model.service) {
             Section {
                 if model.mode.isEditing {
-                    TextDetailField(title: L10n.Localizable.KWPersonalWebsiteIOS.name, text: $model.item.name)
+                    TextDetailField(title: CoreLocalization.L10n.Core.KWPersonalWebsiteIOS.name, text: $model.item.name)
                         .textInputAutocapitalization(.words)
                 }
-                TextDetailField(title: L10n.Localizable.KWPersonalWebsiteIOS.website,
+                TextDetailField(title: CoreLocalization.L10n.Core.KWPersonalWebsiteIOS.website,
                                 text: $model.item.website)
-                    .openAction { self.model.logger.logVisitWebsite(item: self.model.item) }
+                    .openAction()
                     .keyboardType(.URL)
             }
         }

@@ -1,6 +1,6 @@
 import Foundation
 extension UserDeviceAPIClient.Account {
-        public struct AccountInfo {
+        public struct AccountInfo: APIRequest {
         public static let endpoint: Endpoint = "/account/AccountInfo"
 
         public let api: UserDeviceAPIClient
@@ -17,7 +17,7 @@ extension UserDeviceAPIClient.Account {
 }
 
 extension UserDeviceAPIClient.Account.AccountInfo {
-        struct Body: Encodable {
+        public struct Body: Encodable {
     }
 }
 
@@ -25,6 +25,13 @@ extension UserDeviceAPIClient.Account.AccountInfo {
     public typealias Response = DataType
 
         public struct DataType: Codable, Equatable {
+
+        private enum CodingKeys: String, CodingKey {
+            case creationDateUnix = "creationDateUnix"
+            case publicUserId = "publicUserId"
+            case deviceAnalyticsId = "deviceAnalyticsId"
+            case userAnalyticsId = "userAnalyticsId"
+        }
 
                 public let creationDateUnix: Int
 

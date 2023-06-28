@@ -42,8 +42,4 @@ class GuidedOnboardingSettingsProvider: GuidedOnboardingDataProvider {
     func removeStoredAnswers() {
         userSettings.deleteValue(for: .guidedOnboardingData)
     }
-
-    func markGuidedOnboardingAsSkipped() {
-        userSettings[.hasSkippedGuidedOnboarding] = true
-    }
 }

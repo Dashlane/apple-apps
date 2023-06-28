@@ -19,10 +19,10 @@ public struct AlertGenerator {
     }
 
     public static func popup(for breach: Breach,
-               compromising impactedCredentials: [SecurityDashboardCredential],
-               leaking: Set<BreachesService.Password>,
-               requestInformation: RequestInformation,
-               localizationProvider: LocalizationProvider) throws -> PopupAlertProtocol {
+                             compromising impactedCredentials: [SecurityDashboardCredential],
+                             leaking: Set<BreachesService.Password>,
+                             requestInformation: RequestInformation,
+                             localizationProvider: LocalizationProvider) throws -> PopupAlertProtocol {
 
         let alertData = try AlertData(with: breach, compromising: impactedCredentials, leaking: leaking, requestInformation: requestInformation)
 
@@ -52,10 +52,10 @@ public struct AlertGenerator {
     }
 
     public static func tray(for breach: Breach,
-               compromising impactedCredentials: [SecurityDashboardCredential],
-               leaking: Set<BreachesService.Password>,
-               requestInformation: RequestInformation,
-               localizationProvider: LocalizationProvider) throws -> TrayAlertProtocol {
+                            compromising impactedCredentials: [SecurityDashboardCredential],
+                            leaking: Set<BreachesService.Password>,
+                            requestInformation: RequestInformation,
+                            localizationProvider: LocalizationProvider) throws -> TrayAlertProtocol {
 
         let alertData = try AlertData(with: breach, compromising: impactedCredentials, leaking: leaking, requestInformation: requestInformation)
 
@@ -98,10 +98,10 @@ extension AlertGenerator {
     }
 
                                 static func alertType(isDataLeak: Bool,
-                   hasCredentialsCompromised: Bool,
-                   hasPIIsCompromised: Bool,
-                   leakedPlaintextData: Bool,
-                   requestInformation: RequestInformation) throws -> AlertType {
+                          hasCredentialsCompromised: Bool,
+                          hasPIIsCompromised: Bool,
+                          leakedPlaintextData: Bool,
+                          requestInformation: RequestInformation) throws -> AlertType {
 
         switch (isDataLeak,
                 hasCredentialsCompromised,

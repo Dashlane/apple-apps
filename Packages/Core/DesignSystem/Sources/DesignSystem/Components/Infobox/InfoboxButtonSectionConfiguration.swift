@@ -16,7 +16,7 @@ public extension Infobox {
     enum InfoboxButtonSectionStyle {
         case standaloneSecondaryButton
     }
-    
+
     func infoboxButtonStyle(_ style: InfoboxButtonSectionStyle) -> some View {
         switch style {
         case .standaloneSecondaryButton:

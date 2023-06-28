@@ -39,6 +39,6 @@ struct BrazeAnnouncementLoggerMock: BrazeAnnouncementLogger {
     }
 
     func discard() {
-        
+
     }
 }

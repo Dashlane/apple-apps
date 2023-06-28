@@ -1,3 +1,4 @@
+import DesignSystem
 import SwiftUI
 import UIDelight
 import SwiftTreats
@@ -31,13 +32,13 @@ struct FAQItemView: View {
 
                 Spacer()
 
-                Image(asset: FiberAsset.arrowUp)
+                Image.ds.caretUp.outlined
                     .foregroundColor(Color(asset: FiberAsset.grey01))
                     .rotationEffect(.degrees(isCollapsed ? 0 : 180), anchor: .center)
                     .fiberAccessibilityHidden(true)
             }
             .fiberAccessibilityElement()
-            .fiberAccessibilityLabel(Text(item.title))
+            .fiberAccessibilityLabel(Text(item.title) + Text(isCollapsed ? L10n.Localizable.accessibilityCollapse  : L10n.Localizable.accessibilityExpand))
             .fiberAccessibilityAddTraits(.isButton)
             .fiberAccessibilityAction {
                 toggleCollapse()
@@ -51,6 +52,7 @@ struct FAQItemView: View {
                             .fixedSize(horizontal: false, vertical: true)
                         if let link = description.link {
                             Button(action: { openURL(link.url) }, title: link.label)
+                                .accessibilityAddTraits(.isLink)
                         }
                     }
                 }

@@ -19,12 +19,12 @@ public final class StreamEditor: StreamTransfer {
         var accumulatedBytes = [UInt8]()
 
     public override init(source: URL,
-                  destination: URL,
-                  chunkSize: Int = 2048,
-                  queue: DispatchQueue = DispatchQueue.global(),
-                  completionHandler: StreamTransferCompletionHandler?) throws {
+                         destination: URL,
+                         chunkSize: Int = 2048,
+                         queue: DispatchQueue = DispatchQueue.global(),
+                         completionHandler: StreamTransferCompletionHandler?) throws {
         try super.init(source: source,
-                   destination: destination,
+                       destination: destination,
                    chunkSize: chunkSize,
                    queue: queue,
                    completionHandler: completionHandler)

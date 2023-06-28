@@ -3,11 +3,11 @@ import PackageDescription
 let package = Package(
     name: "DashTypes",
     platforms: [
-        .iOS(.v15),
-        .macOS(.v12)
+        .iOS(.v16),
+        .macOS(.v13)
     ],
     products: [
-        .library(name: "DashTypes", targets: ["DashTypes"]),
+        .library(name: "DashTypes", targets: ["DashTypes"])
     ],
     dependencies: [
         .package(path: "../../Foundation/SwiftTreats")
@@ -21,6 +21,6 @@ let package = Package(
         ),
         .testTarget(name: "DashTypesTests",
                     dependencies: ["DashTypes"],
-                    path: "DashTypesUnitTests"),
+                    path: "DashTypesUnitTests")
     ]
 )

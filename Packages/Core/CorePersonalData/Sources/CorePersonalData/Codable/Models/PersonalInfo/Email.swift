@@ -26,11 +26,11 @@ public struct Email: PersonalDataCodable, Equatable, Identifiable, DatedPersonal
         public var id: String {
             return self.rawValue
         }
-        
+
         case personal = "PERSO"
         case work = "PRO"
     }
-    
+
     public let id: Identifier
     public var anonId: String
     public let metadata: RecordMetadata
@@ -57,7 +57,7 @@ public struct Email: PersonalDataCodable, Equatable, Identifiable, DatedPersonal
         spaceId = nil
         _attachments = .init(nil)
     }
-    
+
     public init(id: Identifier = .init(), anonId: String = UUID().uuidString, value: String, name: String, creationDatetime: Date? = .init(), userModificationDatetime: Date? = .init(), type: Email.EmailType? = nil, localeFormat: String = "", spaceId: String? = nil) {
         self.id = id
         self.anonId = anonId

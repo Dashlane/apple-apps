@@ -9,10 +9,10 @@ public protocol AuthenticatorDatabaseServiceProtocol {
     var codes: Set<OTPInfo> { get }
     var codesPublisher: AnyPublisher<Set<OTPInfo>, Never> { get }
     var isLoadedPublisher: AnyPublisher<Bool, Never> { get }
-    func delete(_ item: OTPInfo) throws -> Void
-    func add(_ items: [OTPInfo]) throws -> Void
+    func delete(_ item: OTPInfo) throws
+    func add(_ items: [OTPInfo]) throws
     func update(_ item: OTPInfo) throws
-    func load()  -> Void
+    func load()
 }
 
 public class AuthenticatorDatabaseService: AuthenticatorDatabaseServiceProtocol, ObservableObject {
@@ -26,23 +26,21 @@ public class AuthenticatorDatabaseService: AuthenticatorDatabaseServiceProtocol,
     @Published
     public var isLoaded = false
     public var isLoadedPublisher: AnyPublisher<Bool, Never> { $isLoaded.eraseToAnyPublisher() }
-    
+
     var subscriptions = Set<AnyCancellable>()
-    private let logger: Logger
-    
+
             public init(logger: Logger,
                 storeURL: URL,
-                makeCryptoEngine: (_ encryptionKeyId: String) -> IPCCryptoEngine,
+                makeCryptoEngine: (_ encryptionKeyId: String) -> CryptoEngine,
                 shouldLoadDatabase: Bool = true) {
-        self.logger = logger
         let engine = makeCryptoEngine("dashlaneAuthenticatorDBKey")
         self.persistor = OnDiskPersistor(persistedURL: storeURL,
-                                         coder: IPCMessageCoder(logger: logger, engine: engine))
+                                         coder: JSONMessageCoder(logger: logger, engine: engine))
         if shouldLoadDatabase {
             load()
         }
     }
-    
+
     public func delete(_ item: OTPInfo) {
         let filteredCodes = codes.filter { $0 != item }
         self.codes = filteredCodes
@@ -55,7 +53,7 @@ public class AuthenticatorDatabaseService: AuthenticatorDatabaseServiceProtocol,
         let otpList = codes.map(PersistedOTPInformation.init)
         try persistor.save(PersistedItems(items: otpList))
     }
-    
+
     public func update(_ item: OTPInfo) throws {
                 self.codes = codes.filter({ $0.id != item.id }).union([item])
         let otpList = codes.map(PersistedOTPInformation.init)
@@ -63,7 +61,7 @@ public class AuthenticatorDatabaseService: AuthenticatorDatabaseServiceProtocol,
     }
 
     public func load() {
-        persistor.load() { (items: PersistedItems<PersistedOTPInformation>?) in
+        persistor.load { (items: PersistedItems<PersistedOTPInformation>?) in
             defer { isLoaded = true }
             guard let items = items else {
                 return
@@ -96,22 +94,22 @@ public extension PersistedOTPInformation {
 
 public class AuthenticatorDatabaseServiceMock: ObservableObject, AuthenticatorDatabaseServiceProtocol {
     public let login: String? = nil
-    
+
     public var codesPublisher: AnyPublisher<Set<OTPInfo>, Never> {
         $codes.eraseToAnyPublisher()
     }
-    
+
     @Published
     public var codes: Set<OTPInfo> = [
         OTPInfo.mock,
         OTPInfo.mock,
         OTPInfo.mock
     ]
-    
+
     @Published
     public var isLoaded = false
     public var isLoadedPublisher: AnyPublisher<Bool, Never> { $isLoaded.eraseToAnyPublisher() }
-    
+
     public func delete(_ item: OTPInfo) {
         codes = codes.filter { $0 != item }
     }
@@ -119,7 +117,7 @@ public class AuthenticatorDatabaseServiceMock: ObservableObject, AuthenticatorDa
     public func add(_ items: [OTPInfo]) {
         codes.formUnion( items)
     }
-    
+
     public func update(_ item: OTPInfo) throws {
         self.codes = codes.filter({ $0.id != item.id }).union([item])
     }
@@ -129,6 +127,6 @@ public class AuthenticatorDatabaseServiceMock: ObservableObject, AuthenticatorDa
     }
 
     public init() {
-        
+
     }
 }

@@ -29,7 +29,7 @@ extension ItemContentCache {
               let encryptedContent = Data(base64Encoded: encryptedContentBase64) else {
             throw SharingGroupError.missingKey(.itemKey)
         }
-        
+
         return try encryptedContent.decrypt(using: engine)
     }
 }

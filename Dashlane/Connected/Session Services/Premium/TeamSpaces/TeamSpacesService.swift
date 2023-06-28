@@ -10,24 +10,16 @@ import VaultKit
 public final class TeamSpacesService {
 
             @Published
-    var selectedSpace: UserSpace = .both {
-        didSet {
-            usageLogService.teamSpaceLogger.logTeamSpaceSwitched(anonymousId: selectedSpace.anonymousIdForUsageLogs)
-        }
-    }
+    public var selectedSpace: UserSpace = .both
 
                 @Published
-    var availableSpaces: [UserSpace] = [] {
-        didSet {
-            usageLogService.teamSpaceLogger.logPolicySettings(spaces: availableSpaces)
-        }
-    }
+    public var availableSpaces: [UserSpace] = []
 
     var hasBusinessSpace: Bool {
         return availableSpaces.count > 1
     }
 
-    var availableBusinessTeam: BusinessTeam? {
+    public var availableBusinessTeam: BusinessTeam? {
         return businessTeamsInfo.availableBusinessTeam
     }
 
@@ -39,20 +31,15 @@ public final class TeamSpacesService {
         private init(selectedSpace: UserSpace, availableSpaces: [UserSpace], businessTeamsInfo: BusinessTeamsInfo = BusinessTeamsInfo(businessTeams: [])) {
         self.selectedSpace = selectedSpace
         self.availableSpaces = availableSpaces
-        self.usageLogService = UsageLogService.fakeService
         self.businessTeamsInfo = businessTeamsInfo
     }
 
-    let usageLogService: UsageLogServiceProtocol
-
     init(database: ApplicationDatabase,
-         usageLogService: UsageLogServiceProtocol,
          premiumService: PremiumService,
          syncedSettings: SyncedSettingsService,
          networkEngine: LegacyWebService,
          sharingService: SharedVaultHandling,
          logger: Logger) {
-        self.usageLogService = usageLogService
 
         configureBusinessInfo(using: premiumService, syncedSettings: syncedSettings)
 
@@ -100,7 +87,7 @@ public final class TeamSpacesService {
             .sink(receiveCompletion: { completion in
                 switch completion {
                     case let .failure(error):
-                        logger.error("Revoke business team errror", error: error)
+                        logger.error("Revoke business team error", error: error)
                     case .finished: break
                 }
             }, receiveValue: { businessTeam in
@@ -147,12 +134,16 @@ extension TeamSpacesService {
     }
 }
 
-extension TeamSpacesService {
-        func userSpace(for item: VaultItem) -> UserSpace? {
+extension TeamSpacesService: VaultKit.TeamSpacesServiceProtocol {
+        public func userSpace(for item: VaultItem) -> UserSpace? {
         return businessTeamsInfo.userSpace(forSpaceId: item.spaceId)
     }
 
-            func displayedUserSpace(for item: VaultItem) -> UserSpace? {
+        public func userSpace(for collection: VaultCollection) -> UserSpace? {
+        return businessTeamsInfo.userSpace(forSpaceId: collection.spaceId)
+    }
+
+            public func displayedUserSpace(for item: VaultItem) -> UserSpace? {
         if hasBusinessSpace {
             let itemSpace = userSpace(for: item)
             return selectedSpace != itemSpace ? itemSpace : nil
@@ -161,18 +152,24 @@ extension TeamSpacesService {
         }
     }
 
-    func businessTeam(for item: VaultItem) -> BusinessTeam? {
+            public func displayedUserSpace(for collection: VaultCollection) -> UserSpace? {
+        guard hasBusinessSpace else { return nil }
+        let collectionSpace = userSpace(for: collection)
+        return selectedSpace != collectionSpace ? collectionSpace : nil
+    }
+
+    public func businessTeam(for item: VaultItem) -> BusinessTeam? {
         guard let userspace = userSpace(for: item), case let UserSpace.business(businessTeam) = userspace else {
             return nil
         }
         return businessTeam
     }
 
-        func userSpace(withId teamId: String) -> UserSpace? {
+        public func userSpace(withId teamId: String) -> UserSpace? {
         return businessTeamsInfo.userSpace(forSpaceId: teamId)
     }
 
-    func businessTeam(withId teamId: String) -> BusinessTeam? {
+    public func businessTeam(withId teamId: String) -> BusinessTeam? {
         guard let userspace = userSpace(withId: teamId), case let UserSpace.business(businessTeam) = userspace else {
             return nil
         }
@@ -197,4 +194,5 @@ private extension SyncedSettingsService {
 extension TeamSpacesService: CorePremium.TeamSpacesServiceProtocol {
     public var availableSpacesPublisher: Published<[UserSpace]>.Publisher { $availableSpaces }
     public var businessTeamsInfoPublisher: Published<BusinessTeamsInfo>.Publisher { $businessTeamsInfo }
+    public var selectedSpacePublisher: Published<CorePremium.UserSpace>.Publisher { $selectedSpace }
 }

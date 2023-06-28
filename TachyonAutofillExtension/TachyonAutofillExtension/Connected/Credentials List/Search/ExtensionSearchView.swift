@@ -2,6 +2,7 @@ import SwiftUI
 import DashlaneAppKit
 import UIComponents
 import VaultKit
+import CoreLocalization
 
 struct ExtensionSearchView<InactiveView: View, Model: ExtensionSearchViewModelProtocol>: View {
 
@@ -13,20 +14,17 @@ struct ExtensionSearchView<InactiveView: View, Model: ExtensionSearchViewModelPr
 
     let addAction: () -> Void
     let closeAction: () -> Void
-    let onSearchAppear: () -> Void
-    
+
     init(model: Model,
          addAction: @escaping () -> Void,
          closeAction: @escaping () -> Void,
          select: @escaping (VaultItem, VaultSelectionOrigin) -> Void,
-         onSearchAppear: @escaping () -> Void,
          @ViewBuilder inactiveSearchView: () -> InactiveView) {
         self.model = model
         self.closeAction = closeAction
         self.addAction = addAction
         self.select = select
         self.inactiveSearchView = inactiveSearchView()
-        self.onSearchAppear = onSearchAppear
     }
     
     var body: some View {
@@ -34,18 +32,18 @@ struct ExtensionSearchView<InactiveView: View, Model: ExtensionSearchViewModelPr
                    select: select,
                    inactiveSearchView: inactiveSearchView,
                    addAction: addAction,
-                   closeAction: closeAction,
-                   onSearchAppear: onSearchAppear)
+                   closeAction: closeAction)
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
-                NavigationBarButton(action: closeAction, title: L10n.Localizable.cancel)
+                NavigationBarButton(action: closeAction, title: CoreLocalization.L10n.Core.cancel)
             }
             ToolbarItem(placement: .navigationBarTrailing) {
                 AddBarButton(style: .circle, action: addAction)
             }
         }
         .searchable(text: $model.searchCriteria, prompt: L10n.Localizable.tachyonCredentialsListSearchPlaceholder)
+        .autocorrectionDisabled()
         .background(Color(asset: FiberAsset.systemBackground))
         .edgesIgnoringSafeArea(.bottom)
     }
@@ -71,14 +69,12 @@ private struct SearchView<InactiveView: View, Model: ExtensionSearchViewModelPro
 
     let addAction: () -> Void
     let closeAction: () -> Void
-    let onSearchAppear: () -> Void
 
     var body: some View {
         Group {
             if isSearching {
                 list
                     .navigationBarBackButtonHidden(true)
-                    .onAppear(perform: onSearchAppear)
             } else {
                 inactiveSearchView
             }
@@ -92,7 +88,7 @@ private struct SearchView<InactiveView: View, Model: ExtensionSearchViewModelPro
     private var list: some View {
         ZStack {
             if !model.result.searchCriteria.isEmpty {
-                if !model.result.hasResult {
+                if !model.result.hasResult() {
                     ListPlaceholder(icon: Image(asset: FiberAsset.emptySearch),
                                     text: L10n.Localizable.emptySearchResultsText,
                                     accessory: placeholderAddButton)

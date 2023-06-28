@@ -1,12 +1,13 @@
 import Foundation
 import DashTypes
+import DashlaneAPI
 
 public struct SSOAccountCreationInfos: Encodable {
     public let login: String
     public let contactEmail: String
     public let appVersion: String
     public let sdkVersion: String
-    public let platform: String
+    public let platform: AccountCreateUserPlatform
     public let settings: CoreSessionSettings
     public let consents: [Consent]
     public let deviceName: String
@@ -17,14 +18,14 @@ public struct SSOAccountCreationInfos: Encodable {
     public let sharingKeys: SharingKeys
     public let ssoToken: String
     public let ssoServerKey: String
-    public let remoteKeys: [RemoteKey]
+    public let remoteKeys: [AppAPIClient.Account.CreateUserWithSSO.RemoteKeys]
 
     public init(login: String,
                 contactEmail: String,
                 contactPhone: String? = nil,
                 appVersion: String,
                 sdkVersion: String = "1.0.0.0",
-                platform: String,
+                platform: AccountCreateUserPlatform,
                 settings: CoreSessionSettings,
                 deviceName: String,
                 country: String,
@@ -33,7 +34,7 @@ public struct SSOAccountCreationInfos: Encodable {
                 consents: [Consent],
                 ssoToken: String,
                 ssoServerKey: String,
-                remoteKeys: [RemoteKey]) {
+                remoteKeys: [AppAPIClient.Account.CreateUserWithSSO.RemoteKeys]) {
         self.login = login.lowercased()
         self.contactEmail = contactEmail.lowercased()
         self.appVersion = appVersion

@@ -26,7 +26,7 @@ public struct MultiContextPreview<Content: View>: View {
         private let isDynamicTypePreviewEnabled: Bool
 
         private let addDefaultBackground: Bool
-    
+
     private let content: Content
 
     public init(deviceRange: DeviceRange = .none,
@@ -73,7 +73,6 @@ public struct MultiContextPreview<Content: View>: View {
             .previewDevice(device)
             .addDefaultBackgroundIfNeeded(addDefaultBackground, colorScheme: colorScheme)
 
-        
         return Group {
             if withDynamicTypePreviews {
                 content.environment(\.sizeCategory, .extraSmall).previewDisplayName("\(device?.rawValue ?? "") \(colorScheme.name), XS")

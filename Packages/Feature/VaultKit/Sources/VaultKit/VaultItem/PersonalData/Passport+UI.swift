@@ -24,7 +24,7 @@ extension Passport: VaultItem {
     public static var addTitle: String {
         L10n.Core.kwadddatakwPassportIOS
     }
-    
+
     public static var nativeMenuAddTitle: String {
         L10n.Core.addPassport
     }

@@ -40,7 +40,7 @@ final class ExportSecureArchiveViewModel: ObservableObject, SessionServicesInjec
     }
 
         private var isPasswordValid: Bool {
-        guard let currentPassword = session.configuration.masterKey.masterPassword else {
+        guard let currentPassword = session.authenticationMethod.userMasterPassword else {
             return true 
         }
         return currentPassword == passwordInput

@@ -7,7 +7,7 @@ public enum CreditCardColor: String, Equatable, Codable, Defaultable, CaseIterab
     public var id: String {
         return rawValue
     }
-    
+
     case black = "BLACK"
     case silver = "SILVER"
     case white = "WHITE"
@@ -19,4 +19,3 @@ public enum CreditCardColor: String, Equatable, Codable, Defaultable, CaseIterab
     case blue = "BLUE_1"
     case darkBlue = "BLUE_2"
 }
-

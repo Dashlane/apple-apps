@@ -4,6 +4,7 @@ import SwiftTreats
 import Combine
 import SwiftUI
 import CoreSettings
+import DesignSystem
 
 class SecureLockNotificationProvider: NotificationProvider {
     private let settingsPrefix: String = "secure-lock-action-item-identifier"
@@ -11,12 +12,10 @@ class SecureLockNotificationProvider: NotificationProvider {
     private let settings: NotificationSettings
 
     init(lockService: LockServiceProtocol,
-         settingsStore: LocalSettingsStore,
-         logger: NotificationCenterLogger) {
+         settingsStore: LocalSettingsStore) {
         self.lockService = lockService
         self.settings = NotificationSettings(prefix: settingsPrefix,
-                                             settings: settingsStore,
-                                             logger: logger)
+                                             settings: settingsStore)
     }
 
         public func notificationPublisher() -> AnyPublisher<[DashlaneNotification], Never> {
@@ -56,11 +55,11 @@ struct SecureLockNotification: DashlaneNotification {
         case .touchId:
             title = L10n.Localizable.announceBiometryTypeCta(Device.currentBiometryDisplayableName)
             description = L10n.Localizable.actionItemSecureLockDetailTouchid
-            icon = Image(asset: FiberAsset.touchIDActionItemIcon)
+            icon = Image.ds.fingerprint.outlined
         case .faceId:
             title = L10n.Localizable.announceBiometryTypeCta(Device.currentBiometryDisplayableName)
             description = L10n.Localizable.actionItemSecureLockDetailFaceid
-            icon = Image(asset: FiberAsset.faceIDActionItemIcon)
+            icon = Image.ds.faceId.outlined
         default:
             title = L10n.Localizable.announcePinCta
             description = L10n.Localizable.actionItemSecureLockDetailPin

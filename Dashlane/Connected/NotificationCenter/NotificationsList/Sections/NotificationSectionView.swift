@@ -67,9 +67,12 @@ struct NotificationSectionView: View {
         if model.isTruncated && model.dataSection.notifications.count > 2 {
             NavigationLink(destination: NotificationsCategoryListView(model: model.categoryListViewModel())) {
                 Text(L10n.Localizable.notificationCenterSeeAll(model.dataSection.notifications.count))
-                    .foregroundColor(Color(asset: FiberAsset.accentColor))
+                    .foregroundColor(.ds.text.brand.standard)
                     .font(.subheadline)
             }
+            .fiberAccessibilityLabel(Text(
+                L10n.Localizable.notificationCenterSeeAll(model.dataSection.notifications.count) + " \(model.dataSection.category.sectionTitle) \(L10n.Localizable.tabNotificationsTitle)"
+            ))
         }
     }
 
@@ -77,7 +80,7 @@ struct NotificationSectionView: View {
         if notification.state == .unseen {
             return Color(asset: FiberAsset.tableViewCellUnread)
         } else {
-            return Color(asset: FiberAsset.cellBackground)
+            return .ds.container.agnostic.neutral.supershy
         }
     }
 

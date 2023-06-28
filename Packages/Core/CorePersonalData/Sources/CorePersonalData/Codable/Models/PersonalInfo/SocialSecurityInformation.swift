@@ -28,8 +28,7 @@ public struct SocialSecurityInformation: PersonalDataCodable, Equatable, Identif
           case uk
           case other
       }
-      
-    
+
     public let id: Identifier
     public var anonId: String
     public let metadata: RecordMetadata
@@ -53,7 +52,7 @@ public struct SocialSecurityInformation: PersonalDataCodable, Equatable, Identif
          }
          return country.socialSecurityCardMode
      }
-    
+
     public init() {
         id = Identifier()
         anonId = UUID().uuidString
@@ -66,12 +65,12 @@ public struct SocialSecurityInformation: PersonalDataCodable, Equatable, Identif
         userModificationDatetime = nil
         _attachments = .init(nil)
     }
-    
+
     init(id: Identifier,
          anonId: String,
          number: String,
          country: CountryCodeNamePair? = nil,
-         dateOfBirth: String?, 
+         dateOfBirth: String?,
          linkedIdentity: Identifier?,
          fullname: String, sex: Gender? = nil,
          creationDatetime: Date? = nil,

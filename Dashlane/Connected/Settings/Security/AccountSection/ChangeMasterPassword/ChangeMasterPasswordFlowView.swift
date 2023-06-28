@@ -1,6 +1,9 @@
 import SwiftUI
 import UIDelight
 import CoreUserTracking
+import CorePremium
+import DesignSystem
+import LoginKit
 
 struct ChangeMasterPasswordFlowView: View {
 
@@ -26,7 +29,7 @@ struct ChangeMasterPasswordFlowView: View {
                     .navigationBarBackButtonHidden(true)
             }
         }
-        .accentColor(Color(asset: FiberAsset.dashGreen))
+        .accentColor(.ds.text.brand.standard)
         .onReceive(viewModel.dismissPublisher) { _ in
             dismiss()
         }
@@ -35,7 +38,7 @@ struct ChangeMasterPasswordFlowView: View {
 
     @ViewBuilder
     private var passwordChangerView: some View {
-        let isSyncEnabled = viewModel.premiumService.capability(for: \.sync).enabled
+        let isSyncEnabled = viewModel.isSyncEnabled
         let title = isSyncEnabled ? L10n.Localizable.changeMasterPasswordWarningPremiumTitle : L10n.Localizable.changeMasterPasswordWarningFreeDescription
         let subtitle = isSyncEnabled ? L10n.Localizable.changeMasterPasswordWarningPremiumDescription : L10n.Localizable.changeMasterPasswordWarningFreeTitle
 

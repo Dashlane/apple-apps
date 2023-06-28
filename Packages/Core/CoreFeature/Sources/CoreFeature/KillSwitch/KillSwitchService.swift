@@ -19,13 +19,13 @@ public extension KillSwitchServiceProtocol {
 public class KillSwitchService: KillSwitchServiceProtocol {
 
     public let killedFeatures = CurrentValueSubject<[KilledFeature], Never>([])
-    
+
         private var nextCallTimer: Timer?
     private let callInterval: TimeInterval
-    
+
     private let apiClient: DeprecatedCustomAPIClient
     private let logger: Logger
-    
+
     public init(callInterval: TimeInterval = .oneHour,
                 apiClient: DeprecatedCustomAPIClient,
                 logger: Logger) {
@@ -34,7 +34,7 @@ public class KillSwitchService: KillSwitchServiceProtocol {
         self.logger = logger
         refreshKilledFeatures()
     }
-    
+
     func refreshKilledFeatures() {
         let features = KilledFeature.allCases.map({ $0.rawValue })
         apiClient.sendRequest(to: "/v1/killswitch/GetKillSwitches",
@@ -52,9 +52,9 @@ public class KillSwitchService: KillSwitchServiceProtocol {
             DispatchQueue.main.async {
                 self.scheduleNextCall()
             }
-        }   
+        }
     }
-    
+
     private func scheduleNextCall() {
         self.nextCallTimer = Timer.scheduledTimer(withTimeInterval: callInterval, repeats: false, block: { _ in
             self.refreshKilledFeatures()
@@ -78,17 +78,17 @@ struct KillSwitchResponse: Decodable {
         init?(stringValue: String) {
             self.stringValue = stringValue
         }
-        
+
         var intValue: Int?
         init?(intValue: Int) {
             return nil
         }
     }
-    
+
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: DynamicCodingKeys.self)
         var killedFeaturesStatus = [KilledFeature: Bool]()
-        
+
         for key in container.allKeys {
             guard let dynamicKey = DynamicCodingKeys(stringValue: key.stringValue) else { break }
             guard let feature = KilledFeature(rawValue: key.stringValue) else { break }

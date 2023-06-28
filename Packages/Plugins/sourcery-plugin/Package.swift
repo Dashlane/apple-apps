@@ -3,7 +3,7 @@ import PackageDescription
 let package = Package(
   name: "sourcery-plugin",
   products: [
-    .plugin(name: "Sourcery - Generate", targets: ["Sourcery - Generate"]),
+    .plugin(name: "Sourcery - Generate", targets: ["Sourcery - Generate"])
   ],
   targets: [
     .plugin(

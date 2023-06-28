@@ -19,6 +19,14 @@ extension AppAPIClient {
         Account(api: self)
     }
 
+        public struct Accountrecovery {
+        let api: AppAPIClient
+    }
+
+        public var accountrecovery: Accountrecovery {
+        Accountrecovery(api: self)
+    }
+
         public struct Analytics {
         let api: AppAPIClient
     }
@@ -129,6 +137,14 @@ extension UserDeviceAPIClient {
         Account(api: self)
     }
 
+        public struct Accountrecovery {
+        let api: UserDeviceAPIClient
+    }
+
+        public var accountrecovery: Accountrecovery {
+        Accountrecovery(api: self)
+    }
+
         public struct Authentication {
         let api: UserDeviceAPIClient
     }
@@ -231,6 +247,22 @@ extension UserDeviceAPIClient {
 
         public var sync: Sync {
         Sync(api: self)
+    }
+
+        public struct Teams {
+        let api: UserDeviceAPIClient
+    }
+
+        public var teams: Teams {
+        Teams(api: self)
+    }
+
+        public struct Useractivity {
+        let api: UserDeviceAPIClient
+    }
+
+        public var useractivity: Useractivity {
+        Useractivity(api: self)
     }
 
         public struct Vpn {

@@ -1,3 +1,4 @@
+import DesignSystem
 import SwiftUI
 import CorePersonalData
 import UIDelight
@@ -21,13 +22,13 @@ struct BreachView<Model: BreachViewModel>: View {
     private var website: some View {
         Text(model.url.displayDomain.capitalizingFirstLetter())
             .font(.body)
-            .foregroundColor(Color(asset: FiberAsset.mainCopy))
+            .foregroundColor(.ds.text.neutral.catchy)
     }
 
     private var info: some View {
         Text(model.label)
             .font(.footnote)
-            .foregroundColor(Color(asset: model.hasBeenAddressed ? FiberAsset.validatorGreen : FiberAsset.dashlaneOrange))
+            .foregroundColor(model.hasBeenAddressed ? .ds.text.positive.standard : .ds.text.warning.standard)
     }
 }
 
@@ -51,7 +52,7 @@ struct BreachView_Previews: PreviewProvider {
                 BreachView(model: BreachViewModel.mock(for: breachWithPassword))
                 BreachView(model: BreachViewModel.mock(for: breachWithoutPassword))
                 BreachView(model: BreachViewModel.mock(for: securedItem))
-            }.background(Color(asset: FiberAsset.neutralBackground))
+            }
         }.previewLayout(.sizeThatFits)
     }
 }

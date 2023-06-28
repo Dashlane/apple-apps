@@ -35,13 +35,13 @@ struct BadgesView: View {
 
     private var contentView: some View {
         VStack(spacing: 0) {
-            ForEach(Array(Mood.allCases.enumerated()), id: \.offset) { y, mood in
+            ForEach(Array(Mood.allCases.enumerated()), id: \.offset) { yIndex, mood in
                 VStack(spacing: 0) {
-                    ForEach(Array(Intensity.allCases.enumerated()), id: \.offset) { x, intensity in
+                    ForEach(Array(Intensity.allCases.enumerated()), id: \.offset) { xIndex, intensity in
                         HStack(spacing: 0) {
-                            Badge("Label \((y * numberOfAppearancePerMood) + (x * 3))")
-                            Badge("Label \((y * numberOfAppearancePerMood + 1) + (x * 3))", icon: .ds.lock.outlined)
-                            Badge("Label \((y * numberOfAppearancePerMood + 2) + (x * 3))", icon: .ds.lock.outlined)
+                            Badge("Label \((yIndex * numberOfAppearancePerMood) + (xIndex * 3))")
+                            Badge("Label \((yIndex * numberOfAppearancePerMood + 1) + (xIndex * 3))", icon: .ds.lock.outlined)
+                            Badge("Label \((yIndex * numberOfAppearancePerMood + 2) + (xIndex * 3))", icon: .ds.lock.outlined)
                                 .iconAlignment(.trailing)
                         }
                         .style(mood: mood, intensity: intensity)

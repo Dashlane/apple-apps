@@ -18,7 +18,7 @@ private struct HiddenNavigationTitleStyle: UIViewControllerRepresentable {
     }
 
     func updateUIViewController(_ uiViewController: CustomNavigationTitleStyleViewController, context: Context) {
-        
+
     }
 }
 
@@ -58,7 +58,7 @@ struct HiddenNavigationTitleStyleStyle_Previews: PreviewProvider {
                 .hiddenNavigationTitle()
                 .navigationTitle("Home")
         }.navigationViewStyle(StackNavigationViewStyle())
-            
+
     }
 }
 

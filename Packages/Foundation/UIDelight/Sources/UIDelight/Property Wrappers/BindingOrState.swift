@@ -6,7 +6,7 @@ public struct BindingOrState<T>: DynamicProperty {
     private var valueBinding: Binding<T>?
     @State
     private var valueState: T
-    
+
     public var projectedValue: Binding<T> {
         if let valueBinding = valueBinding {
             return valueBinding
@@ -14,7 +14,7 @@ public struct BindingOrState<T>: DynamicProperty {
             return $valueState
         }
     }
-    
+
     public var wrappedValue: T {
         get {
             if let valueBinding = valueBinding {
@@ -31,11 +31,11 @@ public struct BindingOrState<T>: DynamicProperty {
             }
         }
     }
-    
+
     public init(wrappedValue: T) {
         _valueState = .init(initialValue: wrappedValue)
     }
-    
+
     public init(_ binding: Binding<T>) {
         _valueState = .init(initialValue: binding.wrappedValue)
         valueBinding = binding

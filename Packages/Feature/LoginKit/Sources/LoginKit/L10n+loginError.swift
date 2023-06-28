@@ -2,9 +2,10 @@ import Foundation
 import DashTypes
 import CoreLocalization
 import CoreSession
+import SwiftTreats
 
 extension L10n {
-        public static func errorMessage(for error: Error, login: Login) -> String {
+        public static func errorMessage(for error: Error) -> String {
         switch error {
         case let urlError as URLError where urlError.code == .notConnectedToInternet:
             return L10n.Core.kwNoInternet
@@ -13,8 +14,7 @@ extension L10n {
         case ThirdPartyOTPError.wrongOTP,
              AccountError.verificationDenied,
              AccountError.invalidOtpAlreadyUsed,
-             AccountError.verificationRequiresRequest,
-             TokenDeviceRegistrationValidator.Error.wrongToken:
+             AccountError.verificationRequiresRequest:
             return L10n.Core.badToken
         case ThirdPartyOTPError.duoChallengeFailed:
             return L10n.Core.duoChallengeFailedMessage
@@ -40,7 +40,11 @@ extension L10n {
         case AccountError.invalidRecoveryPhoneNumber:
             return L10n.Core.invalidRecoveryPhoneNumberErrorMessage
         default:
-            return L10n.Core.kwExtSomethingWentWrong
+            if DiagnosticMode.isEnabled {
+                return error.debugDescription
+            } else {
+                return L10n.Core.kwExtSomethingWentWrong
+            }
         }
     }
 }

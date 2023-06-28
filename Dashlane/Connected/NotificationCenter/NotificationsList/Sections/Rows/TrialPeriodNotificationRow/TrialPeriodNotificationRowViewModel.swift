@@ -30,7 +30,7 @@ extension TrialPeriodNotificationRowViewModel {
         .init(notification: TrialPeriodNotification(state: .seen,
                                                     creationDate: Date(),
                                                     notificationActionHandler: NotificationSettings.mock),
-              capabilityService: CapabilityService.mock,
+              capabilityService: .mock(),
               deepLinkingService: NotificationKitDeepLinkingServiceMock(),
               activityReporter: .fake)
     }

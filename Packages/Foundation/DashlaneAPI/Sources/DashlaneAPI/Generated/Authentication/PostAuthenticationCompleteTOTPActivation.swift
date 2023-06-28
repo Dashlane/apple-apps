@@ -1,6 +1,6 @@
 import Foundation
 extension UserDeviceAPIClient.Authentication {
-        public struct CompleteTOTPActivation {
+        public struct CompleteTOTPActivation: APIRequest {
         public static let endpoint: Endpoint = "/authentication/CompleteTOTPActivation"
 
         public let api: UserDeviceAPIClient
@@ -18,7 +18,11 @@ extension UserDeviceAPIClient.Authentication {
 }
 
 extension UserDeviceAPIClient.Authentication.CompleteTOTPActivation {
-        struct Body: Encodable {
+        public struct Body: Encodable {
+
+        private enum CodingKeys: String, CodingKey {
+            case authTicket = "authTicket"
+        }
 
                 public let authTicket: String
     }

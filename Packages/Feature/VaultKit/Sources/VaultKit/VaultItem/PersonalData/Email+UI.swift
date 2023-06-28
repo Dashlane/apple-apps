@@ -28,7 +28,7 @@ extension Email: VaultItem {
     public static var addTitle: String {
         L10n.Core.kwadddatakwEmailIOS
     }
-    
+
     public static var nativeMenuAddTitle: String {
         L10n.Core.addEmail
     }

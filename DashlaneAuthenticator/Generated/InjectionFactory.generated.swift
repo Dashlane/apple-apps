@@ -65,7 +65,7 @@ import VaultKit
 public protocol AppServicesInjecting { }
 
  
-internal protocol AuthenticatorMockInjecting { }
+public protocol AuthenticatorMockInjecting { }
 
  
 extension AuthenticatorMockContainer {
@@ -125,10 +125,11 @@ extension AuthenticatorMockContainer {
 
 extension AuthenticatorMockContainer {
         
-        internal func makeAddLoginDetailsViewModel(website: String, credential: Credential?, completion: @escaping (OTPInfo) -> Void) -> AddLoginDetailsViewModel {
+        public func makeAddLoginDetailsViewModel(website: String, credential: Credential?, supportDashlane2FA: Bool, completion: @escaping (OTPInfo) -> Void) -> AddLoginDetailsViewModel {
             return AddLoginDetailsViewModel(
                             website: website,
                             credential: credential,
+                            supportDashlane2FA: supportDashlane2FA,
                             completion: completion
             )
         }
@@ -137,7 +138,7 @@ extension AuthenticatorMockContainer {
 
 extension AuthenticatorMockContainer {
         
-        internal func makeChooseWebsiteViewModel(completion: @escaping (String) -> Void) -> ChooseWebsiteViewModel {
+        public func makeChooseWebsiteViewModel(completion: @escaping (String) -> Void) -> ChooseWebsiteViewModel {
             return ChooseWebsiteViewModel(
                             categorizer: categorizer,
                             activityReporter: activityReporter,
@@ -174,7 +175,7 @@ extension AuthenticatorMockContainer {
 
 extension AuthenticatorMockContainer {
         
-        internal func makePlaceholderWebsiteViewModel(website: String) -> PlaceholderWebsiteViewModel {
+        public func makePlaceholderWebsiteViewModel(website: String) -> PlaceholderWebsiteViewModel {
             return PlaceholderWebsiteViewModel(
                             website: website,
                             domainIconLibrary: domainIconLibrary
@@ -209,7 +210,7 @@ extension AuthenticatorMockContainer {
         
 }
 
-internal protocol AuthenticatorServicesInjecting { }
+public protocol AuthenticatorServicesInjecting { }
 
  
 extension AuthenticatorServicesContainer {
@@ -219,9 +220,9 @@ extension AuthenticatorServicesContainer {
                             databaseService: databaseService,
                             hasAtLeastOneTokenStoredInVault: hasAtLeastOneTokenStoredInVault,
                             mode: mode,
-                            legacyWebService: appServices.nonAuthenticatedUKIBasedWebService,
-                            logger: appServices.rootLogger,
-                            activityReporter: appServices.activityReporter,
+                            legacyWebService: legacyWebservice,
+                            logger: logger,
+                            activityReporter: authenticatorActivityReporter,
                             addItemViewModelFactory: InjectedFactory(makeAddItemManuallyFlowViewModel),
                             scanCodeViewModelFactory: InjectedFactory(makeAddItemScanCodeFlowViewModel),
                             skipIntro: skipIntro,
@@ -259,7 +260,7 @@ extension AuthenticatorServicesContainer {
                             matchingCredentialListViewModelFactory: InjectedFactory(makeMatchingCredentialListViewModel),
                             addManuallyViewModelFactory: InjectedFactory(makeAddItemManuallyFlowViewModel),
                             mode: mode,
-                            logger: appServices.rootLogger,
+                            logger: logger,
                             isFirstToken: isFirstToken,
                             didCreate: didCreate
             )
@@ -269,10 +270,11 @@ extension AuthenticatorServicesContainer {
 
 extension AuthenticatorServicesContainer {
         
-        internal func makeAddLoginDetailsViewModel(website: String, credential: Credential?, completion: @escaping (OTPInfo) -> Void) -> AddLoginDetailsViewModel {
+        public func makeAddLoginDetailsViewModel(website: String, credential: Credential?, supportDashlane2FA: Bool, completion: @escaping (OTPInfo) -> Void) -> AddLoginDetailsViewModel {
             return AddLoginDetailsViewModel(
                             website: website,
                             credential: credential,
+                            supportDashlane2FA: supportDashlane2FA,
                             completion: completion
             )
         }
@@ -281,10 +283,10 @@ extension AuthenticatorServicesContainer {
 
 extension AuthenticatorServicesContainer {
         
-        internal func makeChooseWebsiteViewModel(completion: @escaping (String) -> Void) -> ChooseWebsiteViewModel {
+        public func makeChooseWebsiteViewModel(completion: @escaping (String) -> Void) -> ChooseWebsiteViewModel {
             return ChooseWebsiteViewModel(
-                            categorizer: appServices.categorizer,
-                            activityReporter: appServices.activityReporter,
+                            categorizer: authenticatorCategorizer,
+                            activityReporter: authenticatorActivityReporter,
                             placeholderViewModelFactory: InjectedFactory(makePlaceholderWebsiteViewModel),
                             completion: completion
             )
@@ -307,7 +309,7 @@ extension AuthenticatorServicesContainer {
         
         internal func makeDownloadDashlaneViewModel(showAppStorePage: @escaping (AppStoreProductViewer) -> Void) -> DownloadDashlaneViewModel {
             return DownloadDashlaneViewModel(
-                            activityReporter: appServices.activityReporter,
+                            activityReporter: authenticatorActivityReporter,
                             showAppStorePage: showAppStorePage
             )
         }
@@ -329,7 +331,7 @@ extension AuthenticatorServicesContainer {
 
 extension AuthenticatorServicesContainer {
         
-        internal func makePlaceholderWebsiteViewModel(website: String) -> PlaceholderWebsiteViewModel {
+        public func makePlaceholderWebsiteViewModel(website: String) -> PlaceholderWebsiteViewModel {
             return PlaceholderWebsiteViewModel(
                             website: website,
                             domainIconLibrary: domainIconLibrary
@@ -358,7 +360,7 @@ extension AuthenticatorServicesContainer {
                             dashlaneTokenCaption: dashlaneTokenCaption,
                             domainIconLibrary: domainIconLibrary,
                             databaseService: databaseService,
-                            domainParser: appServices.domainParser
+                            domainParser: domainParser
             )
         }
         
@@ -371,9 +373,8 @@ extension AuthenticatorServicesContainer {
                             login: login,
                             authenticationMode: authenticationMode,
                             loginOTPOption: loginOTPOption,
-                            keychainService: appServices.keychainService,
-                            sessionContainer: appServices.sessionsContainer,
-                            appServices: appServices,
+                            keychainService: keychainService,
+                            sessionContainer: sessionsContainer,
                             validateMasterKey: validateMasterKey,
                             completion: completion
             )
@@ -458,33 +459,35 @@ extension AddItemScanCodeFlowViewModel {
 }
 
 
-internal typealias _AddLoginDetailsViewModelFactory =  (
+public typealias _AddLoginDetailsViewModelFactory =  (
     _ website: String,
     _ credential: Credential?,
+    _ supportDashlane2FA: Bool,
     _ completion: @escaping (OTPInfo) -> Void
 ) -> AddLoginDetailsViewModel
 
-internal extension InjectedFactory where T == _AddLoginDetailsViewModelFactory {
+public extension InjectedFactory where T == _AddLoginDetailsViewModelFactory {
     
-    func make(website: String, credential: Credential?, completion: @escaping (OTPInfo) -> Void) -> AddLoginDetailsViewModel {
+    func make(website: String, credential: Credential?, supportDashlane2FA: Bool, completion: @escaping (OTPInfo) -> Void) -> AddLoginDetailsViewModel {
        return factory(
               website,
               credential,
+              supportDashlane2FA,
               completion
        )
     }
 }
 
 extension AddLoginDetailsViewModel {
-        internal typealias Factory = InjectedFactory<_AddLoginDetailsViewModelFactory>
+        public typealias Factory = InjectedFactory<_AddLoginDetailsViewModelFactory>
 }
 
 
-internal typealias _ChooseWebsiteViewModelFactory =  (
+public typealias _ChooseWebsiteViewModelFactory =  (
     _ completion: @escaping (String) -> Void
 ) -> ChooseWebsiteViewModel
 
-internal extension InjectedFactory where T == _ChooseWebsiteViewModelFactory {
+public extension InjectedFactory where T == _ChooseWebsiteViewModelFactory {
     
     func make(completion: @escaping (String) -> Void) -> ChooseWebsiteViewModel {
        return factory(
@@ -494,7 +497,7 @@ internal extension InjectedFactory where T == _ChooseWebsiteViewModelFactory {
 }
 
 extension ChooseWebsiteViewModel {
-        internal typealias Factory = InjectedFactory<_ChooseWebsiteViewModelFactory>
+        public typealias Factory = InjectedFactory<_ChooseWebsiteViewModelFactory>
 }
 
 
@@ -556,11 +559,11 @@ extension MatchingCredentialListViewModel {
 }
 
 
-internal typealias _PlaceholderWebsiteViewModelFactory =  (
+public typealias _PlaceholderWebsiteViewModelFactory =  (
     _ website: String
 ) -> PlaceholderWebsiteViewModel
 
-internal extension InjectedFactory where T == _PlaceholderWebsiteViewModelFactory {
+public extension InjectedFactory where T == _PlaceholderWebsiteViewModelFactory {
     
     func make(website: String) -> PlaceholderWebsiteViewModel {
        return factory(
@@ -570,7 +573,7 @@ internal extension InjectedFactory where T == _PlaceholderWebsiteViewModelFactor
 }
 
 extension PlaceholderWebsiteViewModel {
-        internal typealias Factory = InjectedFactory<_PlaceholderWebsiteViewModelFactory>
+        public typealias Factory = InjectedFactory<_PlaceholderWebsiteViewModelFactory>
 }
 
 

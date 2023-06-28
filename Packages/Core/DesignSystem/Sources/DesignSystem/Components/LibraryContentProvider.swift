@@ -1,7 +1,7 @@
 import SwiftUI
 
-struct Library: LibraryContentProvider {
-    var views: [LibraryItem] {
+public struct Library: LibraryContentProvider {
+    public var views: [LibraryItem] {
         [
             LibraryItem(RoundedButton("Title", action: {}), title: "Rounded Button", category: .control),
             LibraryItem(
@@ -17,7 +17,7 @@ struct Library: LibraryContentProvider {
     }
 
     @LibraryContentBuilder
-    func modifiers(base: Infobox) -> [LibraryItem] {
+    public func modifiers(base: Infobox) -> [LibraryItem] {
         LibraryItem(
             base.infoboxButtonStyle(.standaloneSecondaryButton),
             title: "Infobox Button Style",
@@ -26,7 +26,7 @@ struct Library: LibraryContentProvider {
     }
 
     @LibraryContentBuilder
-    func modifiers(base: some View) -> [LibraryItem] {
+    public func modifiers(base: some View) -> [LibraryItem] {
         [
             LibraryItem(
                 base.style(mood: .positive, intensity: .quiet),
@@ -43,9 +43,71 @@ struct Library: LibraryContentProvider {
 }
 
 #if canImport(UIKit)
-struct ContrainedLibrary: LibraryContentProvider {
-    var views: [LibraryItem] {
-        LibraryItem(TextInput("Placeholder", text: .constant("")), title: "TextInput", category: .control)
+public struct ContrainedLibrary: LibraryContentProvider {
+    public var views: [LibraryItem] {
+        [
+            LibraryItem(
+                DS.TextField(
+                    "Label",
+                    placeholder: "Placeholder",
+                    text: .constant(""),
+                    actions: {
+                        TextFieldAction.Button("Copy", image: .ds.action.copy.outlined) {
+                                                    }
+                    }, feedback: {
+                        TextFieldTextualFeedback("An important information.")
+                    }
+                ),
+                title: "TextField",
+                category: .control
+            ),
+            LibraryItem(
+                DS.PasswordField(
+                    "Label",
+                    placeholder: "Placeholder",
+                    text: .constant(""),
+                    actions: {
+                        TextFieldAction.Button("Copy", image: .ds.action.copy.outlined) {
+                                                    }
+                    }, feedback: {
+                        TextFieldTextualFeedback("An important information.")
+                    }
+                ),
+                title: "PasswordField",
+                category: .control
+            )
+        ]
+    }
+
+    @LibraryContentBuilder
+    public func modifiers(base: some View) -> [LibraryItem] {
+        [
+            LibraryItem(
+                base.textFieldDisableLabelPersistency(),
+                title: "Disable TextField Label Persistency",
+                category: .effect
+            ),
+            LibraryItem(
+                base.textFieldAppearance(.grouped),
+                title: "TextField Appearance",
+                category: .effect
+            ),
+            LibraryItem(
+                base.textFieldFeedbackAppearance(.error),
+                title: "TextField Feedback Appearance",
+                category: .effect
+            ),
+            LibraryItem(
+                base.textFieldColorHighlightingMode(.url),
+                title: "TextField Color Highlighting Mode",
+                category: .effect
+            ),
+            LibraryItem(
+                base.onRevealSecureValue({ }),
+                title: "TextField onRevealSecureValue callback",
+                category: .other
+            )
+        ]
     }
 }
 #endif

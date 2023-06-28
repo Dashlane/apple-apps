@@ -4,7 +4,7 @@ public struct BusinessTeam: Equatable, Hashable {
         public let space: Space
 
         public let anonymousTeamId: String
-    
+
     public init(space: Space, anonymousTeamId: String) {
         self.space = space
         self.anonymousTeamId = anonymousTeamId

@@ -12,7 +12,7 @@ public struct LargeHeaderSection<Content: View>: View {
     }
 
     public init(title: String,
-         @ViewBuilder content: @escaping () -> Content) {
+                @ViewBuilder content: @escaping () -> Content) {
         self.title = title
         self.content = content
     }
@@ -34,7 +34,6 @@ public struct LargeHeaderSection<Content: View>: View {
             .transition(.opacity)
     }
 
-    
 }
 
 struct LargeHeaderSection_Previews: PreviewProvider {

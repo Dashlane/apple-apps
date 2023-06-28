@@ -11,12 +11,12 @@ struct InfoboxView: View {
         case standardDynamicTypeClass
         case largestDynamicTypeClass
     }
-    
+
     var viewConfiguration: ViewConfiguration? {
         guard let configuration = ProcessInfo.processInfo.environment["infoboxConfiguration"] else { return nil }
         return ViewConfiguration(rawValue: configuration)
     }
-    
+
     var body: some View {
         ScrollView {
             switch viewConfiguration {
@@ -88,7 +88,7 @@ struct InfoboxView: View {
                         description: "Description \(mood)") {
                     Button(action: {}, title: "Primary \(mood)")
                     Button(action: {}, title: "Secondary \(mood)")
-                    
+
                 }
                         .style(mood: mood)
             }
@@ -114,4 +114,3 @@ struct InfoboxView_Previews: PreviewProvider {
         InfoboxView()
     }
 }
-

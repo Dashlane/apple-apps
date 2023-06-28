@@ -12,7 +12,7 @@ public struct SpecializedCryptoEngine: CryptoEngine {
     }
     public let secret: EncryptionSecret
     public let cache: MemoryDerivationKeyCache?
-    
+
     public init(config: CryptoRawConfig,
                 secret: EncryptionSecret,
                 cache: MemoryDerivationKeyCache) throws {
@@ -24,7 +24,7 @@ public struct SpecializedCryptoEngine: CryptoEngine {
             cache.saveFixedSalt(fixedSalt)
         }
     }
-    
+
     public init(cryptoCenter: CryptoCenter,
                 secret: EncryptionSecret,
                 cache: MemoryDerivationKeyCache? = nil) {
@@ -33,11 +33,11 @@ public struct SpecializedCryptoEngine: CryptoEngine {
         self.cache = cache
         self.cryptoCenter.derivationKeyCacheDelegate = cache
     }
-    
+
     public func encrypt(data: Data) -> Data? {
         return try? cryptoCenter.encrypt(data: data, with: secret)
     }
-    
+
     public func decrypt(data: Data) -> Data? {
         guard var decryptionCryptoCenter = CryptoCenter(from: data) else {
             return nil

@@ -6,11 +6,11 @@ import DashTypes
 public struct FetchedPersonalData<T: PersonalDataCodable> {
     public typealias Values = Dictionary<Identifier, T>.Values
     let fetcher: PersonalDataAutoFetcher<T>
-    
+
     public init(stack: ApplicationDBStack) {
         fetcher = PersonalDataAutoFetcher(stack: stack)
     }
-    
+
     public init(stack: ApplicationDatabase,
                 logger: Logger,
                 databaseEventPublisher: PassthroughSubject<DatabaseEvent, Never>) {
@@ -18,15 +18,15 @@ public struct FetchedPersonalData<T: PersonalDataCodable> {
                                           logger: logger,
                                           databaseEventPublisher: databaseEventPublisher)
     }
-    
+
     init(fetcher: PersonalDataAutoFetcher<T>) throws {
         self.fetcher = fetcher
     }
-    
+
     public var wrappedValue: Values {
         return fetcher.items
     }
-    
+
     public var projectedValue: some Publisher {
         fetcher.itemsPublisher
     }

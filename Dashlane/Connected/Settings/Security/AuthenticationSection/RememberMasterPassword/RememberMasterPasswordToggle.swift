@@ -1,5 +1,7 @@
 import SwiftUI
 import SwiftTreats
+import DesignSystem
+import CoreLocalization
 
 struct RememberMasterPasswordToggle: View {
     typealias Confirmed = Bool
@@ -8,8 +10,7 @@ struct RememberMasterPasswordToggle: View {
     var viewModel: RememberMasterPasswordToggleViewModel
 
     var body: some View {
-        Toggle(L10n.Localizable.rememberMpSettings, isOn: $viewModel.isToggleOn)
-            .toggleStyle(SwitchToggleStyle(tint: .green))
+        DS.Toggle(L10n.Localizable.rememberMpSettings, isOn: $viewModel.isToggleOn)
             .alert(using: $viewModel.activeAlert) { alert in
                 switch alert {
                 case .keychainStoredMasterPassword(let completion):
@@ -24,7 +25,7 @@ struct RememberMasterPasswordToggle: View {
         return Alert(title: Text(title),
                            message: nil,
                            primaryButton: .cancel({ completion(false) }),
-                           secondaryButton: .default(Text(L10n.Localizable.kwButtonOk)) { completion(true) })
+                           secondaryButton: .default(Text(CoreLocalization.L10n.Core.kwButtonOk)) { completion(true) })
     }
 }
 

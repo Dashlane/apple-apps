@@ -10,13 +10,13 @@ public struct PremiumStatus: Decodable {
         public let card_exp_month: Int?
         public let card_exp_year: Int?
     }
-    
+
     public struct FamilyInformation: Decodable {
         public let familyId: Int
         public let name: String
         public let isAdmin: Bool
     }
-    
+
     public enum StatusCode: Int, Decodable {
         case free
         case premium
@@ -28,53 +28,53 @@ public struct PremiumStatus: Decodable {
 
     public enum PlanFeature: String, Codable, Defaultable {
         public static var defaultValue: PremiumStatus.PlanFeature = .none
-        
+
         case sync
         case premiumPlus = "premiumplus"
         case advanced
         case essentials
         case none
     }
-    
+
         public let statusCode: StatusCode
-    
+
         public let success: Bool
-    
+
         public let planName: String?
-    
+
         public let planType: String?
-    
+
         @Defaulted
     public var planFeature: PlanFeature
-    
+
         public let endDate: Date?
-    
+
         internal let previousPlan: PreviousPlanType?
-    
+
         public let billingInformation: BillingInformation?
-    
+
         public let currentTimestamp: Date?
-    
+
         public let abtesting: ABTesting?
-    
+
         public let autoRenewal: Bool?
 
         public let autoRenewalFailed: Bool?
 
         public let autoRenewInfo: AutoRenewInfo?
-    
+
         public let hasInvoices: Bool?
-    
+
         public let teamMembership: TeamMembership?
 
         public let familyMembership: [FamilyInformation]?
-    
+
         public let recoveryHash: String?
-    
+
         public let spaces: [Space]?
-    
+
         public let capabilities: StatusCapabilitySet
-    
+
     init(statusCode: PremiumStatus.StatusCode,
          success: Bool = true,
          planName: String? = nil,

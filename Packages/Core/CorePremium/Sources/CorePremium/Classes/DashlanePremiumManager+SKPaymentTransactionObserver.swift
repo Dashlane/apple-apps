@@ -2,7 +2,7 @@ import Foundation
 import StoreKit
 
 extension DashlanePremiumManager: SKPaymentTransactionObserver {
-    
+
     public func paymentQueue(_ queue: SKPaymentQueue, updatedTransactions transactions: [SKPaymentTransaction]) {
         transactions.forEach { transaction in
             switch transaction.transactionState {
@@ -38,9 +38,8 @@ extension DashlanePremiumManager: SKPaymentTransactionObserver {
             }
         }
     }
-    
-        
-    #if os(iOS)
+
+        #if os(iOS)
     public func paymentQueue(_ queue: SKPaymentQueue, shouldAddStorePayment payment: SKPayment, for product: SKProduct) -> Bool {
         self.pendingPurchase = DirectStorePayment(product: product, payment: payment)
                         return false

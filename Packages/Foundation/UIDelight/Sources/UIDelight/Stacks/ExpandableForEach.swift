@@ -1,7 +1,6 @@
 import Foundation
 import SwiftUI
 
-
 public struct ExpandableForEach<Data, ID, Content, Label>: View where Data: RandomAccessCollection, ID: Hashable, Content: View, Label: View {
 
     let threshold: Int
@@ -51,19 +50,21 @@ public struct ExpandableForEach<Data, ID, Content, Label>: View where Data: Rand
     }
 }
 
-
-
 struct ExpandableForEach_Previews: PreviewProvider {
-
 
     static var previews: some View {
         VStack {
-            ExpandableForEach(["1", "2", "3", "4", "5", "6"],
-                              id: \.self,
-                              expanded: .constant(true),
-                              label: { Text("Show Less") }) { element in
-                Text(element)
-            }
+            ExpandableForEach(
+                ["1", "2", "3", "4", "5", "6"],
+                id: \.self,
+                expanded: .constant(true),
+                label: {
+                    Text("Show Less")
+                },
+                content: { element in
+                    Text(element)
+                }
+            )
         }
 
     }

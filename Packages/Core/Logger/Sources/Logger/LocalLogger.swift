@@ -5,7 +5,6 @@ import os
 public typealias Logger = DashTypes.Logger
 typealias OSLogger = os.Logger
 
-
 public struct LocalLogger: Logger {
     let backend: OSLogger
     let category: String?
@@ -18,7 +17,7 @@ public struct LocalLogger: Logger {
         }
         self.category = category
     }
-    
+
     private var shouldDisplayDebugAndInfo: Bool {
         guard let category = category else {
             #if DEBUG
@@ -27,7 +26,7 @@ public struct LocalLogger: Logger {
             return false
             #endif
         }
-        
+
         return Self.activeLogs.contains(category)
     }
 
@@ -47,7 +46,7 @@ public struct LocalLogger: Logger {
         guard shouldDisplayDebugAndInfo else {
             return
         }
-        
+
         backend.info("ℹ️ \(location)\n\t\(message())")
     }
 
@@ -55,7 +54,7 @@ public struct LocalLogger: Logger {
         guard shouldDisplayDebugAndInfo else {
             return
         }
-        
+
         backend.debug("🔍 \(location)\n\t\(message())")
     }
 
@@ -73,7 +72,7 @@ extension Logger.Location: CustomStringConvertible {
 
 extension LocalLogger {
             static let debugLogPrefix = "DEBUG_LOG_"
-    
+
             static let activeLogs: [String] = {
         #if DEBUG
         let debugKeys = ProcessInfo().environment.keys.filter { $0.hasPrefix(debugLogPrefix) }
@@ -83,4 +82,3 @@ extension LocalLogger {
         #endif
     }()
 }
-

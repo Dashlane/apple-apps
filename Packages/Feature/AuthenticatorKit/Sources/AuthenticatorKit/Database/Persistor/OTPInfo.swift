@@ -8,7 +8,7 @@ public struct OTPInfo: Equatable, Hashable, Identifiable, Codable {
     public var configuration: OTPConfiguration
     public var recoveryCodes: [String]
     public var isFavorite: Bool
-    
+
     public init(id: Identifier = .init(),
                 configuration: OTPConfiguration,
                 isFavorite: Bool = false,
@@ -18,7 +18,7 @@ public struct OTPInfo: Equatable, Hashable, Identifiable, Codable {
         self.recoveryCodes = recoveryCodes
         self.isFavorite = isFavorite
     }
-    
+
     public var isDashlaneOTP: Bool {
         return configuration.issuer?.caseInsensitiveCompare("dashlane") == .orderedSame
         || configuration.issuer?.caseInsensitiveCompare("dashlane.com") == .orderedSame
@@ -29,7 +29,7 @@ public extension OTPInfo {
     static var mock: OTPInfo {
         return OTPInfo(configuration: try! OTPConfiguration(otpURL: URL(string: "otpauth://totp/Test%20Issuer:test%40test.com?secret=yzg6fpgoazbjlhyb3fcilky3dj2oz3ad27dlbtrbf2vqfajazo7albwj&algorithm=SHA256&digits=6&period=30&lock=false")!), isFavorite: false)
     }
-    
+
     static var mockWithRecoveryCodes: OTPInfo {
         var token = OTPInfo(configuration: try! OTPConfiguration(otpURL: URL(string: "otpauth://totp/Test%20Issuer:test%40test.com?secret=yzg6fpgoazbjlhyb3fcilky3dj2oz3ad27dlbtrbf2vqfajazo7albwj&algorithm=SHA256&digits=6&period=30&lock=false")!), isFavorite: false)
         token.recoveryCodes = ["FF46LLAAJ6N4KBHW",

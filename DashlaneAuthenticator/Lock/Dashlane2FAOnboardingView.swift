@@ -4,7 +4,7 @@ import DesignSystem
 
 struct Dashlane2FAOnboardingView: View {
     let completion: () -> Void
-    
+
     var body: some View {
         ScrollView {
             mainView
@@ -19,7 +19,7 @@ struct Dashlane2FAOnboardingView: View {
             }
         }
     }
-    
+
     var mainView: some View {
         VStack {
             VStack(alignment: .center, spacing: 40) {
@@ -35,18 +35,18 @@ struct Dashlane2FAOnboardingView: View {
                 }
             }
             Spacer()
-           
+
         }
         .padding(.horizontal, 24)
     }
-    
+
     var label: some View {
         Text(L10n.Localizable.dashlane2FaOnboardingSubtitle)
         .multilineTextAlignment(.center)
         .font(.body)
         .foregroundColor(.ds.text.neutral.standard)
     }
-    
+
     var overlayButton: some View {
         VStack {
             Spacer()
@@ -61,7 +61,7 @@ struct Dashlane2FAOnboardingView_Previews: PreviewProvider {
     static var previews: some View {
         MultiContextPreview(dynamicTypePreview: true) {
             NavigationView {
-                Dashlane2FAOnboardingView() {}
+                Dashlane2FAOnboardingView {}
             }
         }
     }

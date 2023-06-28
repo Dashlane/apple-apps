@@ -3,7 +3,10 @@ import SwiftUI
 
 public extension View {
         func didAppear(_ perform: @escaping () -> Void) -> some View {
-        self.background(DidAppearView(perform: perform))
+        self.background(
+            DidAppearView(perform: perform)
+                .frame(width: 0, height: 0)
+        )
     }
 }
 

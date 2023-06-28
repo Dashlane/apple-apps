@@ -4,7 +4,6 @@ import DashTypes
 
 public struct PersonalWebsite: PersonalDataCodable, Equatable, Identifiable, DatedPersonalData {
 
-    
     public static let contentType: PersonalDataContentType = .website
     public static let searchCategory: SearchCategory = .personalInfo
 
@@ -19,7 +18,7 @@ public struct PersonalWebsite: PersonalDataCodable, Equatable, Identifiable, Dat
         case spaceId
         case attachments
     }
-    
+
     public let id: Identifier
     public var anonId: String
     public let metadata: RecordMetadata
@@ -41,7 +40,7 @@ public struct PersonalWebsite: PersonalDataCodable, Equatable, Identifiable, Dat
         userModificationDatetime = nil
         _attachments = .init(nil)
     }
-    
+
     init(id: Identifier, anonId: String, name: String, website: String, creationDatetime: Date? = nil, userModificationDatetime: Date? = nil, spaceId: String? = nil) {
         self.id = id
         self.anonId = anonId
@@ -53,7 +52,7 @@ public struct PersonalWebsite: PersonalDataCodable, Equatable, Identifiable, Dat
         self.spaceId = spaceId
         _attachments = .init(nil)
     }
-    
+
     public func validate() throws {
         if name.isEmptyOrWhitespaces() {
             throw ItemValidationError(invalidProperty: \PersonalWebsite.name)
@@ -62,7 +61,7 @@ public struct PersonalWebsite: PersonalDataCodable, Equatable, Identifiable, Dat
 }
 
 extension PersonalWebsite: Searchable {
-    
+
     public var searchableKeyPaths: [KeyPath<PersonalWebsite, String>] {
         let keyPathsList: [KeyPath<PersonalWebsite, String>] = [
             \PersonalWebsite.name,

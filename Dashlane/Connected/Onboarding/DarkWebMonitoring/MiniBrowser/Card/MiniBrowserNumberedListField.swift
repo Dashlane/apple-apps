@@ -1,3 +1,4 @@
+import DesignSystem
 import SwiftUI
 import UIDelight
 import UIComponents
@@ -31,7 +32,7 @@ struct MiniBrowserNumberedListField: View {
                 }
             }
             .font(.footnote)
-            .foregroundColor(Color(asset: FiberAsset.mainCopyList))
+            .foregroundColor(.ds.text.inverse.quiet)
             .padding(.leading, 12.0)
             .fixedSize(horizontal: false, vertical: true)
         }.padding(.bottom, 24.0)
@@ -47,7 +48,7 @@ struct MiniBrowserNumberedListField_Previews: PreviewProvider {
                 MiniBrowserNumberedListField(number: 3, content: "Go back to Dashlane and save your new password. Next time we’ll log you in!")
             }
             .padding()
-            .background(Color(asset: FiberAsset.mainGreen))
+            .background(Color.ds.container.expressive.brand.catchy.idle)
         }.previewLayout(.sizeThatFits)
     }
 }

@@ -1,3 +1,4 @@
+import DesignSystem
 import SwiftUI
 
 enum ImportMethod: String, Identifiable {
@@ -35,7 +36,7 @@ enum ImportMethod: String, Identifiable {
         case .keychain, .keychainCSV:
             return Image(asset: FiberAsset.importMethodSafari)
         case .manual:
-            return Image(asset: FiberAsset.importMethodManual)
+            return Image.ds.action.add.outlined
         }
     }
 }

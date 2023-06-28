@@ -10,6 +10,7 @@ import CorePersonalData
 import CoreNetworking
 import LoginKit
 import CoreKeychain
+import CorePremium
 
 final class ChangeMasterPasswordFlowViewModel: ObservableObject, SessionServicesInjecting {
 
@@ -38,13 +39,18 @@ final class ChangeMasterPasswordFlowViewModel: ObservableObject, SessionServices
     @Published
     var steps: [Step] = [.intro]
 
+    var isSyncEnabled: Bool {
+       return premiumService.capability(for: \.sync).enabled
+    }
+
     let dismissPublisher = PassthroughSubject<Void, Never>()
+    let migrationProgressViewModelFactory: MigrationProgressViewModel.Factory
 
     init(session: Session, sessionsContainer: SessionsContainerProtocol, premiumService: PremiumServiceProtocol,
          passwordEvaluator: PasswordEvaluatorProtocol, logger: Logger, activityReporter: ActivityReporterProtocol, syncService: SyncServiceProtocol,
          apiClient: DeprecatedCustomAPIClient, resetMasterPasswordService: ResetMasterPasswordServiceProtocol,
          keychainService: AuthenticationKeychainServiceProtocol, sessionCryptoUpdater: SessionCryptoUpdater,
-         databaseDriver: DatabaseDriver, sessionLifeCycleHandler: SessionLifeCycleHandler?) {
+         databaseDriver: DatabaseDriver, sessionLifeCycleHandler: SessionLifeCycleHandler?, migrationProgressViewModelFactory: MigrationProgressViewModel.Factory) {
         self.session = session
         self.sessionsContainer = sessionsContainer
         self.premiumService = premiumService
@@ -58,12 +64,12 @@ final class ChangeMasterPasswordFlowViewModel: ObservableObject, SessionServices
         self.sessionCryptoUpdater = sessionCryptoUpdater
         self.databaseDriver = databaseDriver
         self.sessionLifeCycleHandler = sessionLifeCycleHandler
+        self.migrationProgressViewModelFactory = migrationProgressViewModelFactory
     }
 
     func updateMasterPassword() {
         let viewModel = NewMasterPasswordViewModel(mode: .masterPasswordChange,
                                                    evaluator: passwordEvaluator,
-                                                   logger: nil,
                                                    keychainService: keychainService,
                                                    login: session.login,
                                                    activityReporter: activityReporter) { [weak self] result in
@@ -80,20 +86,19 @@ final class ChangeMasterPasswordFlowViewModel: ObservableObject, SessionServices
     }
 
     private func startChangingMasterPassword(with masterPassword: String) {
-        let viewModel = MigrationProgressViewModel(type: .masterPasswordToMasterPassword,
-                                                   activityReporter: activityReporter) { [weak self] result in
-            if case .success(let session) = result {
-                self?.sessionLifeCycleHandler?.logoutAndPerform(action: .startNewSession(session, reason: .masterPasswordChanged))
-            } else {
-                self?.dismissPublisher.send()
-            }
-        }
-
-        steps.append(.passwordMigrationProgression(viewModel))
 
         do {
             accountCryptoChangerService = try createMasterPasswordChangerService(withNewMasterPassword: masterPassword)
-            accountCryptoChangerService!.delegate = viewModel
+            let viewModel = migrationProgressViewModelFactory.make(type: .masterPasswordToMasterPassword,
+                                                                   accountCryptoChangerService: accountCryptoChangerService!,
+                                                                   context: .changeMP) { [weak self] result in
+                if case .success(let session) = result {
+                    self?.sessionLifeCycleHandler?.logoutAndPerform(action: .startNewSession(session, reason: .masterPasswordChanged))
+                } else {
+                    self?.dismissPublisher.send()
+                }
+            }
+            steps.append(.passwordMigrationProgression(viewModel))
             accountCryptoChangerService!.start()
         } catch {
             dismissPublisher.send()
@@ -102,7 +107,7 @@ final class ChangeMasterPasswordFlowViewModel: ObservableObject, SessionServices
 
     private func createMasterPasswordChangerService(withNewMasterPassword newMasterPassword: String) throws -> AccountCryptoChangerService {
         let cryptoConfig = CryptoRawConfig.masterPasswordBasedDefault
-        let currentMasterKey = session.configuration.masterKey
+        let currentMasterKey = session.authenticationMethod.sessionKey
 
         let migratingSession = try sessionsContainer.prepareMigration(of: session,
                                                                       to: .masterPassword(newMasterPassword, serverKey: currentMasterKey.serverKey),
@@ -115,7 +120,7 @@ final class ChangeMasterPasswordFlowViewModel: ObservableObject, SessionServices
                                                                   resetMasterPasswordService: resetMasterPasswordService,
                                                                   syncService: syncService)
 
-        let reportedType: Definition.CryptoMigrationType = migratingSession.source.configuration.info.isPartOfSSOCompany ? .ssoToMasterPassword : .masterPasswordChange
+        let reportedType: Definition.CryptoMigrationType = migratingSession.source.configuration.info.accountType == .sso ? .ssoToMasterPassword : .masterPasswordChange
         return try AccountCryptoChangerService(reportedType: reportedType,
                                                migratingSession: migratingSession,
                                                syncService: syncService,
@@ -136,7 +141,7 @@ extension ChangeMasterPasswordFlowViewModel {
         ChangeMasterPasswordFlowViewModel(session: .mock,
                                           sessionsContainer: SessionsContainer<InMemorySessionStoreProvider>.mock,
                                           premiumService: PremiumServiceMock(),
-                                          passwordEvaluator: PasswordEvaluatorMock(),
+                                          passwordEvaluator: .mock(),
                                           logger: LoggerMock(),
                                           activityReporter: .fake,
                                           syncService: SyncServiceMock(),
@@ -145,6 +150,7 @@ extension ChangeMasterPasswordFlowViewModel {
                                           keychainService: .fake,
                                           sessionCryptoUpdater: SessionCryptoUpdater.mock,
                                           databaseDriver: InMemoryDatabaseDriver(),
-                                          sessionLifeCycleHandler: nil)
+                                          sessionLifeCycleHandler: nil,
+                                          migrationProgressViewModelFactory: .init({ _, _, _, _, _, _ in .mock() }))
     }
 }

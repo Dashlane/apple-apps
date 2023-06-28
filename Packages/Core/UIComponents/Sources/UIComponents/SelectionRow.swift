@@ -35,6 +35,7 @@ public struct SelectionRow<Content: View>: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .animation(.easeInOut, value: isSelected)
+        .accessibilityAddTraits(isSelected ? .isSelected : .isButton)
     }
 
     @ViewBuilder

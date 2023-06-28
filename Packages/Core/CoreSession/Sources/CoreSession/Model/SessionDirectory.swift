@@ -37,12 +37,12 @@ public extension SessionDirectory {
     var exists: Bool {
         return fileManager.fileExists(atPath: url.path)
     }
-    
+
     mutating func create() throws {
         guard !exists else {
             return
         }
-       
+
         try fileManager.createDirectory(at: url, withIntermediateDirectories: true, attributes: [:])
         var values = URLResourceValues()
         values.isExcludedFromBackup = true
@@ -62,7 +62,7 @@ extension SessionDirectory: StorePersistenceEngine {
 
         return fileManager.fileExists(atPath: fullUrl.path)
     }
-    
+
         private func makeURL(key: StoreKey) throws -> URL {
         let keyString = key.keyString
         guard !keyString.isEmpty else {
@@ -82,7 +82,7 @@ extension SessionDirectory: StorePersistenceEngine {
 
         return fullUrl
     }
-    
+
     public func write(_ data: Data?, for key: StoreKey) throws {
         let fullUrl = try makeURL(key: key)
 
@@ -114,7 +114,7 @@ extension SessionDirectory {
             .appendingPathComponent(identifier)
         return try createDirectoryIfNeeded(from: storeURL)
     }
-    
+
                 public func storeURLForData(inExtensionNamed extensionName: String, identifiedBy identifier: String) throws -> URL {
         let folderURL = url
             .appendingPathComponent(extensionFolderKey)
@@ -123,14 +123,14 @@ extension SessionDirectory {
             .appendingPathComponent(identifier)
         return try createDirectoryIfNeeded(from: folderURL)
     }
-    
+
             public func legacyExtensionStoreURLForData(identifiedBy identifier: String) -> URL {
         return url
             .appendingPathComponent(extensionFolderKey)
             .appendingPathComponent(reservedStoresFolderKey)
             .appendingPathComponent(identifier)
     }
-    
+
                 private func createDirectoryIfNeeded(from url: URL) throws -> URL {
 
         var isDirectory = ObjCBool(false)

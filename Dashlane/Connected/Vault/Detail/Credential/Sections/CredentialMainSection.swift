@@ -1,6 +1,9 @@
+import DesignSystem
 import SwiftTreats
 import SwiftUI
 import UIDelight
+import VaultKit
+import CoreLocalization
 
 struct CredentialMainSection: View {
 
@@ -41,38 +44,40 @@ struct CredentialMainSection: View {
 
     private var titleField: some View {
         TextDetailField(
-            title: L10n.Localizable.KWAuthentifiantIOS.title,
+            title: CoreLocalization.L10n.Core.KWAuthentifiantIOS.title,
             text: $model.item.title,
-            placeholder: L10n.Localizable.KWAuthentifiantIOS.Title.placeholder,
-            placeholderColor: FiberAsset.alternativePlaceholder.color
+            placeholder: CoreLocalization.L10n.Core.KWAuthentifiantIOS.Title.placeholder
         )
         .textInputAutocapitalization(.words)
     }
 
     private var emailField: some View {
         TextDetailField(
-            title: L10n.Localizable.KWAuthentifiantIOS.email,
+            title: CoreLocalization.L10n.Core.KWAuthentifiantIOS.email,
             text: $model.item.email,
-            placeholder: L10n.Localizable.kwEmailPlaceholder,
-            placeholderColor: FiberAsset.alternativePlaceholder.color
+            placeholder: CoreLocalization.L10n.Core.kwEmailPlaceholder,
+            actions: [
+                .copy(model.copy),
+                model.emailsSuggestions.isEmpty || !model.mode.isEditing ? nil :
+                        .other(
+                            title: CoreLocalization.L10n.Core.detailItemViewAccessibilitySelectEmail,
+                            image: .ds.action.more.outlined,
+                            action: { showEmailSuggestions = true }
+                        )
+            ].compactMap { $0 }
         )
         .actions([.copy(model.copy)])
         .textContentType(.emailAddress)
         .fiberFieldType(.email)
-        .suggestion(
-            value: $model.item.email,
-            suggestions: model.emailsSuggestions,
-            showSuggestions: $showEmailSuggestions
-        )
         .limitedRights(item: model.item)
     }
 
     private var loginField: some View {
         TextDetailField(
-            title: L10n.Localizable.KWAuthentifiantIOS.login,
+            title: CoreLocalization.L10n.Core.KWAuthentifiantIOS.login,
             text: $model.item.login,
-            placeholder: L10n.Localizable.KWAuthentifiantIOS.login,
-            placeholderColor: FiberAsset.alternativePlaceholder.color
+            placeholder: CoreLocalization.L10n.Core.KWAuthentifiantIOS.login,
+            actions: [.copy(model.copy)]
         )
         .actions([.copy(model.copy)])
         .fiberFieldType(.login)
@@ -81,8 +86,9 @@ struct CredentialMainSection: View {
 
     private var secondaryLoginField: some View {
         TextDetailField(
-            title: shouldShowLogin ? L10n.Localizable.KWAuthentifiantIOS.secondaryLogin : L10n.Localizable.KWAuthentifiantIOS.login,
-            text: $model.item.secondaryLogin
+            title: shouldShowLogin ? CoreLocalization.L10n.Core.KWAuthentifiantIOS.secondaryLogin : CoreLocalization.L10n.Core.KWAuthentifiantIOS.login,
+            text: $model.item.secondaryLogin,
+            actions: [.copy(model.copy)]
         )
         .actions([.copy(model.copy)])
         .limitedRights(item: model.item)
@@ -92,35 +98,43 @@ struct CredentialMainSection: View {
     private var passwordField: some View {
         VStack(spacing: 4) {
                         SecureDetailField(
-                title: L10n.Localizable.KWAuthentifiantIOS.password,
-                placeholderColor: FiberAsset.alternativePlaceholder.color,
+                title: CoreLocalization.L10n.Core.KWAuthentifiantIOS.password,
                 text: $model.item.password,
                 shouldReveal: $model.shouldReveal,
-                action: model.reveal,
-                isColored: true
+                onRevealAction: model.reveal,
+                isColored: true,
+                actions: [
+                    model.sharingPermission?.canCopy != false ? .copy(model.copy) : nil,
+                    model.mode != .limitedViewing && model.item.password.isEmpty ? .other(
+                        title: CoreLocalization.L10n.Core.kwGenerate,
+                        image: .ds.feature.passwordGenerator.outlined,
+                        action: { showPasswordGenerator = true }
+                    ) : nil
+                ].compactMap { $0 },
+                feedback: passwordHealthAccessory
             )
             .actions(model.sharingPermission?.canCopy != false ? [.copy(model.copy), .largeDisplay] : [])
             .limitedRights(allowViewing: false, item: model.item)
             .fiberFieldType(.password)
-
-                        if model.mode.isEditing && shouldShowPasswordAccessory {
-                passwordHealthAccessory
-            }
         }
     }
 
+    @ViewBuilder
     private var passwordHealthAccessory: some View {
-        PasswordAccessorySection(
-            model: model.passwordAccessorySectionModelFactory.make(service: model.service),
-            showPasswordGenerator: $showPasswordGenerator
-        )
+        if model.mode.isEditing && shouldShowPasswordAccessory {
+            PasswordAccessorySection(
+                model: model.passwordAccessorySectionModelFactory.make(service: model.service),
+                showPasswordGenerator: $showPasswordGenerator
+            )
+        }
     }
 
     private var totpField: some View {
         TOTPDetailField(
             otpURL: $model.item.otpURL,
             code: $model.code,
-            shouldPresent2FASetupFlow: $model.isAdd2FAFlowPresented
+            shouldPresent2FASetupFlow: $model.isAdd2FAFlowPresented,
+            actions: [.copy(model.copy)]
         ) {
             model.save()
         }

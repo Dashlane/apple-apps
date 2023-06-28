@@ -4,6 +4,7 @@ import DashlaneCrypto
 import DashTypes
 import DashlaneAppKit
 import LoginKit
+import SwiftTreats
 
 final public class TodayApplicationContext: Codable, Equatable {
     
@@ -90,7 +91,8 @@ struct TodayCryptoEngine: DashTypes.CryptoEngine {
     
     init() {
         _communicationCryptoKey = KeychainItemAccessor(identifier: "today-widget-extension",
-                                                       accessGroup: ApplicationGroup.keychainAccessGroup)
+                                                       accessGroup: ApplicationGroup.keychainAccessGroup,
+                                                       shouldAccessAfterFirstUnlock: false)
         self.cryptoCenter = CryptoCenter(from: CryptoRawConfig.keyBasedDefault.parametersHeader)!
     }
     

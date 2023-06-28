@@ -11,7 +11,7 @@ protocol EmbeddedCoordinator {
 struct EmbeddedCoordinatorView<Coordinator: EmbeddedCoordinator>: View {
     @StateObject
     private var store = CoordinatorStore<Coordinator>()
-    
+
     let coordinator: (NavigationViewProxy) -> Coordinator
 
     var body: some View {

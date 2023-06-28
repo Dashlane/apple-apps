@@ -88,11 +88,11 @@ extension NotificationService {
         }.store(in: &cancellables)
 
         remoteNotificationPublisher.sink { [weak self] notification in
-            if let subcription = self?.remoteNotificationSubcriptions.first(for: notification) {
+            if let subscription = self?.remoteNotificationSubcriptions.first(for: notification) {
                 self?.logger.debug("Receive notification \(notification)")
-                subcription.publisher.send(notification)
+                subscription.publisher.send(notification)
             } else {
-                self?.logger.debug("No subcription for notification \(notification)")
+                self?.logger.debug("No subscription for notification \(notification)")
                 notification.completionHandler(.noData)
             }
         }.store(in: &cancellables)
@@ -124,11 +124,11 @@ extension NotificationService {
             for notification in notifications {
                 self.logger.debug("readDelivered​Notifications userInfo: \(notification.request.content.userInfo)")
 
-                guard let subcription = self.userNotificationSubcriptions.first(for: notification) else {
+                guard let subscription = self.userNotificationSubcriptions.first(for: notification) else {
                     return
                 }
 
-                subcription.publisher.send(.readDelivered(notification: notification, completionHandler: { [weak self] strategy in
+                subscription.publisher.send(.readDelivered(notification: notification, completionHandler: { [weak self] strategy in
                     if strategy == .delete {
                         self?.notificationCenter.removeDeliveredNotifications(withIdentifiers: [notification.request.identifier])
                     }

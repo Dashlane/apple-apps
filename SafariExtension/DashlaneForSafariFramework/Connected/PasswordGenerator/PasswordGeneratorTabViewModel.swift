@@ -35,7 +35,9 @@ class PasswordGeneratorTabViewModel: TabActivable, SessionServicesInjecting {
         self.activityReporter = activityReporter
         self.iconService = iconService
         self.pasteboardService = pasteboardService
-        self.passwordGeneratorViewModel = passwordGeneratorViewModelFactory.make(mode: mode, savePreferencesOnChange: false)
+        self.passwordGeneratorViewModel = passwordGeneratorViewModelFactory.make(mode: mode, savePreferencesOnChange: false, copyAction: { password in
+            pasteboardService.set(password)
+        })
         popoverOpeningService.publisher.sink { [weak self] opening in
             guard let self = self else { return }
             if opening == .afterTimeLimit {
@@ -66,13 +68,13 @@ extension PasswordGeneratorTabViewModel {
                                              pasteboardService: PasteboardService.mock())
     }
     
-    private static func makeViewModel(_ mode: PasswordGeneratorMode, _ savePreferencesOnChange: Bool) -> PasswordGeneratorViewModel {
+    private static func makeViewModel(_ mode: PasswordGeneratorMode, _ savePreferencesOnChange: Bool, copyAction: @escaping ((String) -> Void)) -> PasswordGeneratorViewModel {
         let container = MockServicesContainer()
         return PasswordGeneratorViewModel(mode: mode,
                                           database: container.database,
-                                          passwordEvaluator: PasswordEvaluatorMock(),
-                                          usageLogService: UsageLogService.fakeService,
+                                          passwordEvaluator: .mock(),
                                           sessionActivityReporter: .fake,
-                                          userSettings: UserSettings(internalStore: InMemoryLocalSettingsStore()))
+                                          userSettings: UserSettings(internalStore: .mock()),
+                                          copyAction: copyAction)
     }
 }

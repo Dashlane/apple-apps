@@ -1,6 +1,8 @@
 import SwiftUI
 import CorePersonalData
 import UIDelight
+import VaultKit
+import CoreLocalization
 
 struct IDCardDetailView: View {
 
@@ -11,7 +13,7 @@ struct IDCardDetailView: View {
         DetailContainerView(service: model.service) {
             Section {
                                 if model.mode.isEditing {
-                    PickerDetailField(title: L10n.Localizable.KWIDCardIOS.localeFormat,
+                    PickerDetailField(title: CoreLocalization.L10n.Core.KWIDCardIOS.localeFormat,
                                       selection: $model.item.nationality,
                                       elements: CountryCodeNamePair.countries,
                                       content: { country in
@@ -19,11 +21,11 @@ struct IDCardDetailView: View {
                                       })
                 } else {
                     Text(model.item.nationality?.name ?? CountryCodeNamePair.defaultCountry.name)
-                        .labeled(L10n.Localizable.KWIDCardIOS.localeFormat)
+                        .labeled(CoreLocalization.L10n.Core.KWIDCardIOS.localeFormat)
                 }
 
                                 if model.mode.isEditing {
-                    PickerDetailField(title: L10n.Localizable.KWIDCardIOS.linkedIdentity,
+                    PickerDetailField(title: CoreLocalization.L10n.Core.KWIDCardIOS.linkedIdentity,
                                       selection: $model.item.linkedIdentity,
                                       elements: model.identities,
                                       allowEmptySelection: true,
@@ -33,41 +35,43 @@ struct IDCardDetailView: View {
                 }
 
                                 if !model.mode.isEditing {
-                    Text(model.displayFullName).labeled(L10n.Localizable.KWIDCardIOS.fullname)
+                    Text(model.displayFullName).labeled(CoreLocalization.L10n.Core.KWIDCardIOS.fullname)
                 }
 
                 if model.item.linkedIdentity == nil {
                                         if model.mode.isEditing {
-                                                TextDetailField(title: L10n.Localizable.KWIDCardIOS.fullname,
+                                                TextDetailField(title: CoreLocalization.L10n.Core.KWIDCardIOS.fullname,
                                         text: $model.item.fullName)
 
-                        PickerDetailField(title: L10n.Localizable.KWIDCardIOS.sex,
+                        PickerDetailField(title: CoreLocalization.L10n.Core.KWIDCardIOS.sex,
                                           selection: $model.item.sex,
                                           elements: Gender.allCases,
                                           content: { gender in
                                             Text(gender?.localized ?? "")
                         })
                     } else if model.item.sex != nil {
-                        Text(model.item.genderString).labeled(L10n.Localizable.KWIDCardIOS.sex)
+                        Text(model.item.genderString).labeled(CoreLocalization.L10n.Core.KWIDCardIOS.sex)
                     }
 
-                                        DateDetailField(title: L10n.Localizable.KWIDCardIOS.dateOfBirth,
+                                        DateDetailField(title: CoreLocalization.L10n.Core.KWIDCardIOS.dateOfBirth,
                                     date: $model.item.dateOfBirth,
                                     range: .past)
                 }
 
                                 if model.mode.isEditing || !model.item.number.isEmpty {
-                    TextDetailField(title: L10n.Localizable.KWIDCardIOS.number,
-                                    text: $model.item.number)
-                        .actions([.copy(model.copy)])
-                        .fiberFieldType(.number)
+                    TextDetailField(title: CoreLocalization.L10n.Core.KWIDCardIOS.number,
+                                    text: $model.item.number,
+                                    actions: [.copy(model.copy)]
+                    )
+                    .actions([.copy(model.copy)])
+                    .fiberFieldType(.number)
                 }
 
-                                DateDetailField(title: L10n.Localizable.KWIDCardIOS.deliveryDate,
+                                DateDetailField(title: CoreLocalization.L10n.Core.KWIDCardIOS.deliveryDate,
                                 date: $model.item.deliveryDate,
                                 range: .past)
 
-                                DateDetailField(title: L10n.Localizable.KWIDCardIOS.expireDate,
+                                DateDetailField(title: CoreLocalization.L10n.Core.KWIDCardIOS.expireDate,
                                 date: $model.item.expireDate,
                                 range: .future)
             }

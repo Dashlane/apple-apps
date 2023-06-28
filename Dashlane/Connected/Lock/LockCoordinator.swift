@@ -3,6 +3,7 @@ import Combine
 import SwiftUI
 import CoreSession
 import DashTypes
+import UIComponents
 
 class LockCoordinator: NSObject, SubcoordinatorOwner {
         struct ModalLockSession {

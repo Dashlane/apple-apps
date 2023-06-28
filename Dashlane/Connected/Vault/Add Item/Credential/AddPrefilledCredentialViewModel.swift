@@ -3,7 +3,6 @@ import CoreSession
 import CorePersonalData
 import DashTypes
 import DomainParser
-import DashlaneReportKit
 import DashlaneAppKit
 import VaultKit
 import CoreCategorizer
@@ -21,25 +20,20 @@ class AddPrefilledCredentialViewModel: ObservableObject, SessionServicesInjectin
     let didChooseCredential: (Credential, Bool) -> Void
     let session: Session
     let vaultItemsService: VaultItemsServiceProtocol
-    let usageLogService: UsageLogServiceProtocol
-    let personalDataURLDecoder: DashlaneAppKit.PersonalDataURLDecoder
-    let logger: AddPrefilledCredentialUsageLogger
+    let personalDataURLDecoder: PersonalDataURLDecoderProtocol
     let allDomains: [String]
 
     init(iconViewModelProvider: @escaping (VaultItem) -> VaultItemIconViewModel,
          session: Session,
          categorizer: CategorizerProtocol,
-         personalDataURLDecoder: DashlaneAppKit.PersonalDataURLDecoder,
+         personalDataURLDecoder: PersonalDataURLDecoderProtocol,
          vaultItemsService: VaultItemsServiceProtocol,
-         usageLogService: UsageLogServiceProtocol,
          didChooseCredential: @escaping (Credential, Bool) -> Void) {
         self.iconViewModelProvider = iconViewModelProvider
         self.session = session
         self.personalDataURLDecoder = personalDataURLDecoder
         self.vaultItemsService = vaultItemsService
-        self.usageLogService = usageLogService
         self.didChooseCredential = didChooseCredential
-        self.logger = AddPrefilledCredentialUsageLogger(usageLogService: usageLogService)
         self.onboardingItems = vaultItemsService.prefilledCredentials.map({ $0.recreate() })
         allDomains = (try? categorizer.getAllDomains()) ?? []
         setupSearch()
@@ -50,12 +44,10 @@ class AddPrefilledCredentialViewModel: ObservableObject, SessionServicesInjectin
     }
 
     func validate() {
-        logger.selectedWebsiteUsageLog(website: searchCriteria)
         didChooseCredential(makeCredential(from: searchCriteria), false)
     }
 
     func select(website: String) {
-        logger.selectedWebsiteUsageLog(website: website)
         didChooseCredential(makeCredential(from: website), false)
     }
 
@@ -78,7 +70,7 @@ class AddPrefilledCredentialViewModel: ObservableObject, SessionServicesInjectin
             .throttle(for: .milliseconds(200), scheduler: RunLoop.main, latest: true)
             .map { [allDomains] searchCriteria in
                 Array(allDomains
-                    .filter { $0.starts(with: searchCriteria) }
+                    .filter { $0.hasPrefix(searchCriteria) }
                     .prefix(10))
             }
             .assign(to: &$websites)
@@ -90,9 +82,8 @@ extension AddPrefilledCredentialViewModel {
         .init(iconViewModelProvider: { item in .mock(item: item) },
               session: .mock,
               categorizer: CategorizerMock(),
-              personalDataURLDecoder: DashlaneAppKit.PersonalDataURLDecoder(domainParser: DomainParserMock(), linkedDomainService: LinkedDomainService()),
+              personalDataURLDecoder: PersonalDataURLDecoder(domainParser: FakeDomainParser(), linkedDomainService: LinkedDomainService()),
               vaultItemsService: MockServicesContainer().vaultItemsService,
-              usageLogService: UsageLogService.fakeService,
               didChooseCredential: { _, _ in })
     }
 }
@@ -103,7 +94,6 @@ private extension Credential {
         newCredential.email = self.email
         newCredential.title = self.title
         newCredential.url = self.url
-        newCredential.category = self.category
         return newCredential
     }
 }

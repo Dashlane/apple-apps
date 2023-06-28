@@ -16,6 +16,7 @@ public struct LoginLogo: View {
             VStack(spacing: 17.0) {
                 Image(asset: Asset.logomark)
                     .foregroundColor(.ds.oddity.brand)
+                    .fiberAccessibilityHidden(true)
 
                 login.map { login in
                     Text(login.email)
@@ -25,8 +26,8 @@ public struct LoginLogo: View {
                         .lineLimit(1)
                         .padding(.horizontal)
                 }
-            }.frame(maxHeight: .infinity)
-                .frame(alignment: .center)
+            }
+            .frame(maxHeight: .infinity, alignment: .center)
         }
     }
 }
@@ -43,7 +44,5 @@ struct Logo_Previews: PreviewProvider {
             .frame(maxWidth: .infinity, maxHeight: .infinity)
             .background(.ds.background.default)
         }
-
     }
-
 }

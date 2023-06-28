@@ -1,6 +1,7 @@
 import Foundation
 import AppKit
 import SwiftTreats
+import VaultKit
 
 struct OpenApplicationRequest: Decodable {
 

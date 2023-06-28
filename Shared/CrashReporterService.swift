@@ -1,7 +1,6 @@
 import Foundation
 import DashTypes
 import CoreSession
-import DashlaneReportKit
 import Sentry
 import Combine
 import SwiftUI
@@ -55,12 +54,13 @@ class CrashReporterService: NSObject {
             options.enableNetworkTracking = false
             options.enableNetworkBreadcrumbs = false
             #if os(iOS)
-            options.enableUIViewControllerTracking = false
+            options.enableUIViewControllerTracing = false
             options.enableUserInteractionTracing = false
             #endif
+            options.enableAppHangTracking = false
             options.enableAutoBreadcrumbTracking = false
-            options.enableAutoPerformanceTracking = false
-            options.enableOutOfMemoryTracking = false 
+            options.enableAutoPerformanceTracing = false
+            options.enableWatchdogTerminationTracking = false
 
             options.environment = Application.environment.rawValue
             options.beforeSend = { [weak self] event in

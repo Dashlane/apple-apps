@@ -2,7 +2,7 @@ import Foundation
 import DashTypes
 import SwiftTreats
 
-fileprivate struct Tools {
+private struct Tools {
         static func pretty(data: Data?) -> String? {
         guard let data = data else { return nil }
         guard let object = try? JSONSerialization.jsonObject(with: data, options: .allowFragments) else { return nil }
@@ -71,7 +71,7 @@ public final class LegacyWebServiceImpl {
         self.serverConfiguration = serverConfiguration
         self.logger = logger
     }
-    
+
     public convenience init(serverConfiguration: LegacyWebServiceImpl.Configuration, logger: Logger? = nil) {
 
                 let configuration = URLSessionConfiguration.ephemeral
@@ -96,11 +96,11 @@ public final class LegacyWebServiceImpl {
 
         let queue = Thread.isMainThread ? DispatchQueue.main : DispatchQueue.global()
 
-        let _request = self.request(for: resource)
-        self.logger?.info(_request.infoDescription)
-        self.logger?.debug(_request.debugDescription)
+        let localRequest = self.request(for: resource)
+        self.logger?.info(localRequest.infoDescription)
+        self.logger?.debug(localRequest.debugDescription)
 
-        let task = self.session.dataTask(with: _request) { data, response, error in
+        let task = self.session.dataTask(with: localRequest) { data, response, error in
             self.logResponse(data, response, error)
 
             let result = LegacyWebServiceImpl.processResponse(resource, data, response, error)
@@ -112,16 +112,16 @@ public final class LegacyWebServiceImpl {
         task.resume()
         return task
     }
-    
+
     public func load<A>(_ resource: Resource<A>) async throws -> A {
         self.probes.loadStart?()
 
-        let _request = self.request(for: resource)
-        self.logger?.info(_request.infoDescription)
-        self.logger?.debug(_request.debugDescription)
-        
+        let localRequest = self.request(for: resource)
+        self.logger?.info(localRequest.infoDescription)
+        self.logger?.debug(localRequest.debugDescription)
+
         do {
-            let (data, response) = try await self.session.data(for: _request)
+            let (data, response) = try await self.session.data(for: localRequest)
             self.logResponse(data, response, nil)
             let result = LegacyWebServiceImpl.processResponse(resource, data, response, nil)
             self.probes.loadCompletion?(true)
@@ -133,7 +133,7 @@ public final class LegacyWebServiceImpl {
     }
 
     func request<A>( for resource: Resource<A> ) -> URLRequest {
-        
+
         var request = resource.request
         if request.needsAuthentication,
             let authentication {
@@ -144,27 +144,27 @@ public final class LegacyWebServiceImpl {
 
         return request.urlRequest
     }
-    
+
     static func processResponse<A>( _ resource: Resource<A>, _ data: Data?, _ response: URLResponse?, _ error: Error? ) -> Result<A, Error> {
-        
+
         let result: Result<A, Error>
-        
+
         if let response = response as? HTTPURLResponse {
             if 200 ..< 300 ~= response.statusCode {
                 if let data = data {
                                         result = resource.parse(data)
-                    
+
                 } else {
                     result = .failure(WebServiceError.noData)
                 }
-                
+
             } else {
                 result = .failure(WebServiceError.httpError(statusCode: response.statusCode, data: data))
             }
-            
+
         } else if let error = error {
             result = .failure(error)
-            
+
         } else {
             result = .failure(WebServiceError.other)
         }
@@ -212,7 +212,7 @@ extension URLRequest {
         description += debugRepresentation(of: body)
         if let bodyRepresentation = Tools.pretty(data: body) {
             description += bodyRepresentation.prefix(2048)
-        } else if let body = httpBody, let bodyRepresentation = String(data: body, encoding: .utf8)  {
+        } else if let body = httpBody, let bodyRepresentation = String(data: body, encoding: .utf8) {
             description += bodyRepresentation.prefix(2048)
         } else {
             description += "(non-utf8 compliant)"
@@ -242,7 +242,7 @@ private func debugRepresentation(of payload: Data?) -> String {
     if let data = payload {
         if let bodyRepresentation = Tools.pretty(data: data) {
             representation = String(bodyRepresentation.prefix(2048))
-        } else if let bodyRepresentation = String(data: data, encoding: .utf8)  {
+        } else if let bodyRepresentation = String(data: data, encoding: .utf8) {
             representation = String(bodyRepresentation.prefix(2048))
         } else {
             representation = "(non-utf8 compliant)"

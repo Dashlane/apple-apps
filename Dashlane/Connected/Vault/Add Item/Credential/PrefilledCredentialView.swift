@@ -2,6 +2,7 @@ import SwiftUI
 import CorePersonalData
 import DashlaneAppKit
 import VaultKit
+import IconLibrary
 
 struct PrefilledCredentialView: View {
     let title: String

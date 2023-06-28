@@ -4,27 +4,27 @@ public struct SpaceLogin: Codable, Hashable {
     public init(login: String) {
         self.login = login
     }
-    
+
     public let login: String
 }
 
 public struct SpaceInfo: Codable, Hashable {
-    
+
     public enum TwoFAEnforcement: String, Codable {
                 case login
                 case newDevice
                 case disabled
     }
-    
+
     public init(forcedDomainsEnabled: Bool? = nil,
                 removeForcedContentEnabled: Bool? = nil,
                 teamDomains: [String]? = nil,
                 removalGracePeriodPlan: String? = nil,
                 fullSeatCountRenewal: Bool? = nil,
                 mailVersion: String? = nil,
-                teamCaptains: [String : Bool]? = nil,
+                teamCaptains: [String: Bool]? = nil,
                 name: String? = nil,
-                features: [String : Bool]? = nil,
+                features: [String: Bool]? = nil,
                 activeDirectoryToken: String? = nil,
                 activeDirectorySyncType: String? = nil,
                 idpCertificate: String? = nil,
@@ -36,7 +36,8 @@ public struct SpaceInfo: Codable, Hashable {
                 recoveryEnabled: Bool? = nil,
                 cryptoForcedPayload: String? = nil,
                 forceAutomaticLogout: Int? = nil,
-                twoFaEnforcement: TwoFAEnforcement? = nil) {
+                twoFaEnforcement: TwoFAEnforcement? = nil,
+                collectSensitiveDataAuditLogsEnabled: Bool? = nil) {
         self.forcedDomainsEnabled = forcedDomainsEnabled
         self.removeForcedContentEnabled = removeForcedContentEnabled
         self.teamDomains = teamDomains
@@ -58,8 +59,9 @@ public struct SpaceInfo: Codable, Hashable {
         self.cryptoForcedPayload = cryptoForcedPayload
         self.forceAutomaticLogout = forceAutomaticLogout
         self.twoFAEnforced = twoFaEnforcement
+        self.collectSensitiveDataAuditLogsEnabled = collectSensitiveDataAuditLogsEnabled
     }
-    
+
     public let forcedDomainsEnabled: Bool?
     public let removeForcedContentEnabled: Bool?
     public let teamDomains: [String]?
@@ -81,6 +83,7 @@ public struct SpaceInfo: Codable, Hashable {
     public let cryptoForcedPayload: String?
     public let forceAutomaticLogout: Int?
     public let twoFAEnforced: TwoFAEnforcement?
+    public let collectSensitiveDataAuditLogsEnabled: Bool?
 }
 
 public struct Space: Codable, Hashable {
@@ -123,7 +126,7 @@ public struct Space: Codable, Hashable {
         self.info = info
         self.shouldDelete = shouldDelete
     }
-    
+
     public enum MembershipStatus: String, Codable, Hashable {
         case accepted
         case proposed

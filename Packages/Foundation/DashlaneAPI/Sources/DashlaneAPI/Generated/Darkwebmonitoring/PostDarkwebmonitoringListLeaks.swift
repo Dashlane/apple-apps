@@ -1,6 +1,6 @@
 import Foundation
 extension UserDeviceAPIClient.Darkwebmonitoring {
-        public struct ListLeaks {
+        public struct ListLeaks: APIRequest {
         public static let endpoint: Endpoint = "/darkwebmonitoring/ListLeaks"
 
         public let api: UserDeviceAPIClient
@@ -17,7 +17,12 @@ extension UserDeviceAPIClient.Darkwebmonitoring {
 }
 
 extension UserDeviceAPIClient.Darkwebmonitoring.ListLeaks {
-        struct Body: Encodable {
+        public struct Body: Encodable {
+
+        private enum CodingKeys: String, CodingKey {
+            case includeDisabled = "includeDisabled"
+            case lastUpdateDate = "lastUpdateDate"
+        }
 
                 public let includeDisabled: Bool?
 
@@ -30,6 +35,13 @@ extension UserDeviceAPIClient.Darkwebmonitoring.ListLeaks {
 
         public struct DataType: Codable, Equatable {
 
+        private enum CodingKeys: String, CodingKey {
+            case lastUpdateDate = "lastUpdateDate"
+            case details = "details"
+            case emails = "emails"
+            case leaks = "leaks"
+        }
+
                 public let lastUpdateDate: Int
 
         public let details: Details?
@@ -39,6 +51,11 @@ extension UserDeviceAPIClient.Darkwebmonitoring.ListLeaks {
         public let leaks: [Leaks]?
 
                 public struct Details: Codable, Equatable {
+
+            private enum CodingKeys: String, CodingKey {
+                case cipheredKey = "cipheredKey"
+                case cipheredInfo = "cipheredInfo"
+            }
 
             public let cipheredKey: String
 
@@ -51,6 +68,20 @@ extension UserDeviceAPIClient.Darkwebmonitoring.ListLeaks {
         }
 
                 public struct Leaks: Codable, Equatable {
+
+            private enum CodingKeys: String, CodingKey {
+                case id = "id"
+                case breachModelVersion = "breachModelVersion"
+                case domains = "domains"
+                case impactedEmails = "impactedEmails"
+                case leakedData = "leakedData"
+                case status = "status"
+                case breachCreationDate = "breachCreationDate"
+                case lastModificationRevision = "lastModificationRevision"
+                case announcedDate = "announcedDate"
+                case breachUpdateDate = "breachUpdateDate"
+                case eventDate = "eventDate"
+            }
 
             public let id: String
 

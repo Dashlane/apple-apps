@@ -131,7 +131,7 @@ public class PurchaseFlowViewModel: ObservableObject {
 extension PurchaseFlowViewModel {
 
     private func makePurchaseView() -> PurchaseViewModel {
-        return PurchaseViewModel(manager: DashlanePremiumManager.shared, logger: planPurchaseServices.premiumStatusLogger)
+        return PurchaseViewModel(manager: DashlanePremiumManager.shared)
     }
 
     func makePaywallViewModel(key: CapabilityKey, purchasePlanGroup: PlanTier? = nil) -> PaywallViewModel? {
@@ -172,28 +172,5 @@ private extension PurchaseFlowViewModel {
         alert = .failure(error)
     }
 
-}
-
-extension PurchaseFlowViewModel {
-
-    func logPremium(type: LogPremiumType) {
-        planPurchaseServices.premiumStatusLogger.logPremium(type: type)
-    }
-
-    func logPremium(key: CapabilityKey?) {
-        if let logType = key?.logType {
-            logPremium(type: logType)
-        }
-    }
-}
-
-private extension CapabilityKey {
-    var logType: LogPremiumType? {
-        switch self {
-        case .secureNotes:      return .paywallDisplayedSecureNotes
-        case .securityBreach:   return .paywallDisplayedDarkWebMonitoring
-        default:    return nil
-        }
-    }
 }
 #endif

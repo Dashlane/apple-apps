@@ -1,7 +1,6 @@
 import SwiftUI
 import CorePersonalData
 import CorePasswords
-import DashlaneReportKit
 import DashTypes
 import UIDelight
 import DashlaneAppKit
@@ -9,6 +8,8 @@ import SwiftTreats
 import IconLibrary
 import UIComponents
 import CoreFeature
+import VaultKit
+import AutofillKit
 
 struct CredentialDetailView: View, DismissibleDetailView {
 
@@ -27,7 +28,7 @@ struct CredentialDetailView: View, DismissibleDetailView {
     @Environment(\.detailContainerViewSpecificDismiss)
     var dismissView
 
-    @FeatureState(.collections)
+    @FeatureState(.collectionsLabelling)
     private var areCollectionsEnabled: Bool
 
     @State
@@ -41,6 +42,9 @@ struct CredentialDetailView: View, DismissibleDetailView {
 
     @State
     var showEmailSuggestions: Bool = false
+
+    @State
+    var showCollectionAddition: Bool = false
 
     init(model: CredentialDetailViewModel) {
         self.model = model
@@ -83,14 +87,12 @@ struct CredentialDetailView: View, DismissibleDetailView {
             NavigationView { addedDomainsList(isAdditionMode: true) }
         }
         .navigation(isActive: $showLinkedDomains, destination: { addedDomainsList() })
+        .sheet(isPresented: $showCollectionAddition) {
+            collectionAdditionView
+        }
         .modifier(AutofillDemoModifier.init(isPresented: $model.isAutoFillDemoModalShown,
                                             showAutofillDemo: self.model.showAutoFillDemo,
                                             dismiss: self.dismiss))
-        .onAppear {
-            if self.model.mode.isAdding {
-                self.model.logger.logAddCredential(credential: self.model.item)
-            }
-        }
         .makeShortcuts(model: model)
         .detailContainerViewSpecificSave(.init(model.save))
     }
@@ -124,7 +126,25 @@ struct CredentialDetailView: View, DismissibleDetailView {
         @ViewBuilder
     var collectionsSection: some View {
         if areCollectionsEnabled {
-            CollectionsSection(model: .init(service: model.service))
+            CollectionsSection(
+                model: .init(service: model.service),
+                showCollectionAddition: $showCollectionAddition
+            )
+        }
+    }
+
+    private var collectionAdditionView: some View {
+        CollectionAdditionView(
+            allCollections: model.allVaultCollections.filter(spaceId: model.item.spaceId),
+            collections: model.unusedCollections
+        ) { completion in
+            switch completion {
+            case .done(let collectionName):
+                model.addItemToCollection(named: collectionName)
+            default:
+                break
+            }
+            showCollectionAddition = false
         }
     }
 

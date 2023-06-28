@@ -1,6 +1,6 @@
 import Foundation
 extension UserDeviceAPIClient.Devices {
-        public struct ListDevices {
+        public struct ListDevices: APIRequest {
         public static let endpoint: Endpoint = "/devices/ListDevices"
 
         public let api: UserDeviceAPIClient
@@ -17,7 +17,7 @@ extension UserDeviceAPIClient.Devices {
 }
 
 extension UserDeviceAPIClient.Devices.ListDevices {
-        struct Body: Encodable {
+        public struct Body: Encodable {
     }
 }
 
@@ -26,11 +26,24 @@ extension UserDeviceAPIClient.Devices.ListDevices {
 
         public struct DataType: Codable, Equatable {
 
+        private enum CodingKeys: String, CodingKey {
+            case pairingGroups = "pairingGroups"
+            case devices = "devices"
+        }
+
         public let pairingGroups: [PairingGroups]
 
         public let devices: [Devices]
 
                 public struct PairingGroups: Codable, Equatable {
+
+            private enum CodingKeys: String, CodingKey {
+                case pairingGroupUUID = "pairingGroupUUID"
+                case devices = "devices"
+                case name = "name"
+                case platform = "platform"
+                case isBucketOwner = "isBucketOwner"
+            }
 
             public let pairingGroupUUID: String
 
@@ -52,6 +65,17 @@ extension UserDeviceAPIClient.Devices.ListDevices {
         }
 
                 public struct Devices: Codable, Equatable {
+
+            private enum CodingKeys: String, CodingKey {
+                case deviceId = "deviceId"
+                case deviceName = "deviceName"
+                case devicePlatform = "devicePlatform"
+                case creationDateUnix = "creationDateUnix"
+                case lastUpdateDateUnix = "lastUpdateDateUnix"
+                case lastActivityDateUnix = "lastActivityDateUnix"
+                case temporary = "temporary"
+                case isBucketOwner = "isBucketOwner"
+            }
 
             public let deviceId: String
 

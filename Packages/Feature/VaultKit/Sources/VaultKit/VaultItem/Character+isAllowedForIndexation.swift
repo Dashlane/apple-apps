@@ -10,4 +10,3 @@ extension Character {
         return true
     }
 }
-

@@ -36,13 +36,4 @@ extension SecureNote: VaultItem, SecureItem {
     public static var nativeMenuAddTitle: String {
         L10n.Core.addSecureNote
     }
-
-
-        public var logData: VaultItemUsageLogData {
-        return VaultItemUsageLogData(color: color.rawValue,
-                                            secure: secured,
-                                            size: content.count,
-                                            category: category?.name,
-                                            attachmentCount: attachments?.count ?? 0)
-    }
 }

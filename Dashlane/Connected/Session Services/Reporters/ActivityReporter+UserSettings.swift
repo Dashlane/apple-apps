@@ -4,6 +4,7 @@ import DashlaneAppKit
 import Combine
 import LoginKit
 import CoreSettings
+import AutofillKit
 
 extension ActivityReporterProtocol {
 

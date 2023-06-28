@@ -1,16 +1,11 @@
 import NotificationKit
 
 extension VaultFlowViewModel {
-    func makeAddItemFlowViewModel() -> AddItemFlowViewModel? {
-        guard let addItemFlowDisplayMode else {
-            showAddItemFlow = false
-            return nil
-        }
-        return addItemFlowViewModelFactory.make(displayMode: addItemFlowDisplayMode) { [weak self] completion in
+    func makeAddItemFlowViewModel() -> AddItemFlowViewModel {
+        addItemFlowViewModelFactory.make(displayMode: addItemFlowDisplayMode) { [weak self] completion in
             switch completion {
             case .dismiss:
                 self?.showAddItemFlow = false
-                self?.addItemFlowDisplayMode = nil
             }
             self?.reportAddItemFlowDismissed()
         }

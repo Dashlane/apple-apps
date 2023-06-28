@@ -1,6 +1,5 @@
 import Foundation
 
-
 extension PersonalDataValue: ExpressibleByStringLiteral {
     public init(stringLiteral value: StringLiteralType) {
         self = .item(value)
@@ -40,7 +39,7 @@ extension PersonalDataValue {
                 return nil
         }
     }
-    
+
     var collection: [String: PersonalDataValue] {
         switch self {
             case let .collection(value):
@@ -49,7 +48,7 @@ extension PersonalDataValue {
                 return [:]
         }
     }
-    
+
     var list: [PersonalDataValue] {
         switch self {
             case let .list(value):
@@ -58,7 +57,7 @@ extension PersonalDataValue {
                 return []
         }
     }
-    
+
     var object: PersonalDataObject? {
         switch self {
             case let .object(value):

@@ -7,7 +7,7 @@ public enum NitroEnvironment {
 #if DEBUG
         case staging(StagingInformation)
 #endif
-    
+
     var apiURL: URL {
         switch self {
         case .production:
@@ -21,17 +21,17 @@ public enum NitroEnvironment {
 }
 
 extension URLRequest {
-    
+
     init(endpoint: String,
          timeoutInterval: TimeInterval? = nil,
          environment: NitroEnvironment,
-         additionalHeaders: [String : String]) {
+         additionalHeaders: [String: String]) {
         let url = environment.apiURL.appendingPathComponent(endpoint)
-        
+
         self.init(url: url,
                   cachePolicy: .reloadIgnoringCacheData,
                   timeoutInterval: timeoutInterval ?? 60)
-        
+
         setValue(url.hostWithPort, forHTTPHeaderField: "Host")
         setHeaders(additionalHeaders)
     }

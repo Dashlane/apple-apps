@@ -1,20 +1,21 @@
 import SwiftUI
 import UIDelight
 import DesignSystem
+import CoreLocalization
 
 struct AddItemIntroView: View {
-    
+
     @Environment(\.dismiss)
     private var dismiss
-    
+
     enum Action {
         case addToken
         case showHelp
     }
-    
+
         let hasAtLeastOneTokenStoredInVault: Bool
     let completion: (Action) -> Void
-    
+
     var body: some View {
         VStack(alignment: .leading) {
             ScrollView {
@@ -31,35 +32,34 @@ struct AddItemIntroView: View {
         }
         .toolbar(content: {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button(L10n.Localizable.cancel, action: dismiss.callAsFunction)
+                    Button(CoreLocalization.L10n.Core.cancel, action: dismiss.callAsFunction)
                         .foregroundColor(.ds.text.neutral.standard)
                 }
         })
         .padding(.horizontal, 24)
         .backgroundColorIgnoringSafeArea(.ds.background.alternate)
-        .hiddenNavigationTitle()
         .navigationTitle(L10n.Localizable.addOtpFlowSetupLabel)
     }
-    
+
     var title: some View {
         Text(hasAtLeastOneTokenStoredInVault ? L10n.Localizable.addOtpFlowSetupLabel : L10n.Localizable.addOtpFlowFirstSetupLabel)
             .font(.authenticator(.largeTitle))
             .foregroundColor(.ds.text.neutral.catchy)
     }
-    
+
     var buttons: some View {
         VStack(spacing: 24) {
             RoundedButton(L10n.Localizable.introButtonTitle) {
                 self.completion(.addToken)
             }
-            .roundedButtonLayout(.fill)
-            
+
             Button(L10n.Localizable.tokenListHelpLabel) {
                 self.completion(.showHelp)
             }
             .font(.body.weight(.medium))
             .foregroundColor(.ds.text.brand.standard)
         }
+        .roundedButtonLayout(.fill)
     }
 }
 

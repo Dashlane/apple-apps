@@ -14,14 +14,14 @@ enum BiometryAndPinCompletion {
 }
 
 struct BiometryAndPinUnlockView: View {
-    
+
     @StateObject
     var model: BiometryAndPinUnlockViewModel
-    
+
     init(model: @autoclosure @escaping () -> BiometryAndPinUnlockViewModel) {
         _model = .init(wrappedValue: model())
     }
-    
+
     var body: some View {
         mainView
             .backgroundColorIgnoringSafeArea(.ds.background.alternate)
@@ -37,7 +37,7 @@ struct BiometryAndPinUnlockView: View {
                 }))
             }
     }
-    
+
     var mainView: some View {
         VStack {
             topView
@@ -50,11 +50,11 @@ struct BiometryAndPinUnlockView: View {
         }.padding(.horizontal, 24)
             .padding(.bottom, 24)
     }
-    
+
     var topView: some View {
         VStack {
             Image(asset: AuthenticatorAsset.logoLockUp)
-                .foregroundColor(Color(asset: AuthenticatorAsset.oddityBrand))
+                .foregroundColor(.ds.text.brand.quiet)
             Text(model.login.email)
                 .multilineTextAlignment(.center)
                 .lineLimit(nil)
@@ -71,14 +71,17 @@ struct BiometryAndPinUnlockView: View {
             VStack {
                 Text(model.showRetry ? L10n.Localizable.biometryUnlockRetryTitle(model.biometryType.displayableName) : L10n.Localizable.biometryUnlockTitle(model.biometryType.displayableName))
                     .font(.body)
-                Button(action: {
-                    Task {
-                        await model.validateBiometry()
+                Button(
+                    action: {
+                        Task {
+                            await model.validateBiometry()
+                        }
+                    },
+                    label: {
+                        (model.biometryType == .touchId ? Image.ds.fingerprint.outlined : Image.ds.faceId.outlined)
+                            .foregroundColor(.ds.text.neutral.standard)
                     }
-                }) {
-                    Image(asset: model.biometryType == .touchId ? AuthenticatorAsset.fingerprint : AuthenticatorAsset.faceId)
-                        .foregroundColor(Color(asset: AuthenticatorAsset.accentColor))
-                }.disabled(model.inProgress)
+                ).disabled(model.inProgress)
             }
             .onAppear {
                 if !model.inProgress {
@@ -93,7 +96,7 @@ struct BiometryAndPinUnlockView: View {
                         hideCancel: true, cancelAction: {}).padding()
         }
     }
-    
+
     var bottomView: some View {
         VStack(spacing: 8) {
             RoundedButton(L10n.Localizable.biometryUnlockErrorRetryButtonTitle) {
@@ -113,13 +116,13 @@ struct BiometryAndPinUnlockView: View {
 
 struct BiometryAndPinUnlockView_Preview: PreviewProvider {
     static var previews: some View {
-        
+
         MultiContextPreview(dynamicTypePreview: true) {
             NavigationView {
                 BiometryAndPinUnlockView(model: BiometryAndPinUnlockViewModel(login: Login("_"), pin: "1234", pinCodeAttempts: .mock, masterKey: .masterPassword("Azerty12"), biometryType: .faceId, validateMasterKey: { _ in throw AccountError.unknown }, completion: {_ in }))
                     .hiddenNavigationTitle()
             }
-            
+
             NavigationView {
                 BiometryAndPinUnlockView(model: BiometryAndPinUnlockViewModel(login: Login("_"), pin: "1234", pinCodeAttempts: .mock, masterKey: .masterPassword("Azerty12"), biometryType: .touchId, validateMasterKey: { _ in throw AccountError.unknown }, completion: {_ in }))
                     .hiddenNavigationTitle()

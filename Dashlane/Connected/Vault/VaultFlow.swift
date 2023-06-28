@@ -4,14 +4,32 @@ import SwiftTreats
 import SwiftUI
 import UIDelight
 import NotificationKit
+import Combine
 
-struct VaultFlow: View {
+struct VaultFlow: TabFlow {
 
-    @StateObject
+    let tag: Int = 0
+    let id: UUID = .init()
+    var title: String {
+        viewModel.mode.title
+    }
+
+    var tabBarImage: NavigationImageSet {
+        viewModel.mode.tabBarSet
+    }
+
+    var sidebarImage: NavigationImageSet {
+        viewModel.mode.sidebarImage
+    }
+
+    let badgeValue: CurrentValueSubject<String?, Never>?
+
+    @ObservedObject
     var viewModel: VaultFlowViewModel
 
-    init(viewModel: @autoclosure @escaping () -> VaultFlowViewModel) {
-        self._viewModel = .init(wrappedValue: viewModel())
+    init(viewModel: VaultFlowViewModel) {
+        self.viewModel = viewModel
+        self.badgeValue = viewModel.badgeValues
     }
 
     var body: some View {
@@ -30,8 +48,12 @@ struct VaultFlow: View {
         .navigationBarStyle(.init(tintColor: .ds.text.neutral.catchy, backgroundColor: .ds.background.default))
         .fullScreenCoverOrSheet(isPresented: $viewModel.showAddItemFlow) {
             NavigationView {
-                viewModel.makeAddItemFlowViewModel().map { AddItemFlow(viewModel: $0) }
+                AddItemFlow(viewModel: viewModel.makeAddItemFlowViewModel())
             }
+        }
+        .onReceive(viewModel.deeplinkPublisher) { deeplink in
+            guard Device.isIpadOrMac, self.viewModel.canHandle(deepLink: deeplink) else { return }
+            self.viewModel.handle(deeplink)
         }
         .sheet(isPresented: $viewModel.showAutofillFlow) {
             AutofillOnboardingFlowView(model: viewModel.makeAutofillOnboardingFlowViewModel())
@@ -72,6 +94,38 @@ private extension View {
             sheet(isPresented: isPresented, content: content)
         } else {
             fullScreenCover(isPresented: isPresented, content: content)
+        }
+    }
+}
+
+private extension VaultFlowViewModel.Mode {
+    var title: String {
+        switch self {
+        case .allItems:
+            return L10n.Localizable.recentTitle
+        case .category(let category):
+            return category.title
+        }
+    }
+
+    var tabBarSet: NavigationImageSet {
+        switch self {
+        case .allItems:
+            return NavigationImageSet(
+                image: .ds.home.outlined,
+                selectedImage: .ds.home.filled
+            )
+        case .category(let category):
+            return category.tabBarImage
+        }
+    }
+
+    var sidebarImage: NavigationImageSet {
+        switch self {
+        case .allItems:
+            return tabBarSet
+        case .category(let category):
+            return category.sidebarImage
         }
     }
 }

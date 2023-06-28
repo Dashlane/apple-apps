@@ -14,14 +14,9 @@ extension Collection where Element: FetchableRecord & TableRecord & Identifiable
                 try newValue.insert(db)
             }
         }
-        
-        for value in values {
-            if !newIds.contains(value.id) {
-                try value.delete(db)
-            }
+
+        for value in values where !newIds.contains(value.id) {
+            try value.delete(db)
         }
     }
 }
-
-
-

@@ -4,6 +4,7 @@ import CorePersonalData
 import TOTPGenerator
 import UIComponents
 import DesignSystem
+import VaultKit
 
 struct AddOTPSuccessView: View {
 
@@ -22,6 +23,7 @@ struct AddOTPSuccessView: View {
                 .foregroundColor(.ds.text.brand.standard)
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 62)
+                .fiberAccessibilityHidden(true)
 
             VStack(alignment: .center, spacing: 16) {
 

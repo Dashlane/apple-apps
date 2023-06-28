@@ -26,7 +26,7 @@ extension Company: VaultItem {
     public static var addTitle: String {
         L10n.Core.kwadddatakwCompanyIOS
     }
-    
+
     public static var nativeMenuAddTitle: String {
         L10n.Core.addCompany
     }

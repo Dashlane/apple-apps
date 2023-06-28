@@ -1,21 +1,21 @@
 import SwiftUI
 
 private struct DeleteRowViewModifier: ViewModifier {
-    
+
     let deleteImage: Image
     let action: () -> Void
     let isInProgress: (Bool) -> Void
-    
+
         @State private var offset: CGSize = .zero
         @State private var initialOffset: CGSize = .zero
-    
+
     @State private var willDeleteIfReleased = false
-  
+
     @GestureState private var dragGestureActive: Bool = false
-    
+
         let automaticDeletionDistance = CGFloat(200)
         let tappableDeletionWidth = CGFloat(100)
-    
+
     func body(content: Content) -> some View {
         ZStack {
             content
@@ -38,10 +38,10 @@ private struct DeleteRowViewModifier: ViewModifier {
                             .foregroundColor(.white)
                             .font(.title2.bold())
                             .layoutPriority(-1)
-                            .onAppear() {
+                            .onAppear {
                                 isInProgress(true)
                             }
-                            .onDisappear() {
+                            .onDisappear {
                                 isInProgress(false)
                             }
                     }
@@ -62,13 +62,13 @@ private struct DeleteRowViewModifier: ViewModifier {
             }
         )
         .offset(x: offset.width, y: 0)
-        .gesture (dragGesture())
+        .gesture(dragGesture())
         .animation(.default, value: offset)
     }
-    
+
     private func dragGesture() -> some Gesture {
         DragGesture()
-                            .updating($dragGestureActive) { value, state, transaction in
+                            .updating($dragGestureActive) { _, state, _ in
                 state = true
             }
             .onChanged { gesture in
@@ -84,7 +84,7 @@ private struct DeleteRowViewModifier: ViewModifier {
                 }
             }
     }
-    
+
     private func dragGestureEnded() {
                 if offset.width < -automaticDeletionDistance {
             delete()
@@ -98,20 +98,20 @@ private struct DeleteRowViewModifier: ViewModifier {
             initialOffset = .zero
         }
     }
-    
+
     private func delete() {
         action()
                 offset = .zero
         initialOffset = .zero
     }
-    
+
     private func hapticFeedback() {
         UserFeedbackGenerator.makeImpactGenerator()?.impactOccurred()
     }
 }
 
 public extension View {
-    
+
         @ViewBuilder
     func deletableRow(isEnabled: Bool = true,
                       deleteImage: Image = Image(systemName: "trash"),
@@ -125,7 +125,7 @@ public extension View {
             self
         }
     }
-    
+
 }
 
 struct DeleteRowViewModifier_Previews: PreviewProvider {
@@ -134,9 +134,12 @@ struct DeleteRowViewModifier_Previews: PreviewProvider {
             Text("1")
                 .frame(maxWidth: .infinity)
                 .background(Color.green)
-                .deletableRow(isInProgress: { _ in }) {
-                    print("Delete")
-                }
+                .deletableRow(
+                    isInProgress: { _ in },
+                    perform: {
+                        print("Delete")
+                    }
+                )
         }
     }
 }

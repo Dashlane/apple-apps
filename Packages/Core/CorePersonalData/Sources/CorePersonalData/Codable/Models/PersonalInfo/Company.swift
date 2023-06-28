@@ -39,7 +39,7 @@ public struct Company: PersonalDataCodable, Equatable, Identifiable, DatedPerson
         userModificationDatetime = nil
         _attachments = .init(nil)
     }
-    
+
     init(id: Identifier, anonId: String, name: String, jobTitle: String, creationDatetime: Date? = nil, userModificationDatetime: Date? = nil, spaceId: String? = nil) {
         self.id = id
         self.anonId = anonId
@@ -60,7 +60,7 @@ public struct Company: PersonalDataCodable, Equatable, Identifiable, DatedPerson
 }
 
 extension Company: Searchable {
-    
+
     public var searchableKeyPaths: [KeyPath<Company, String>] {
         return [
             \Company.name,

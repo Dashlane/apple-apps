@@ -4,14 +4,15 @@ import CoreSession
 import DashlaneAppKit
 import SwiftTreats
 import LoginKit
+import CoreLocalization
 
 extension UIAlertController {
     static func makeReactivationRequestAlert(forSetup setup: BiometricSetUpdatesService.Setup, lockService: LockService, resetMasterPasswordService: ResetMasterPasswordService) -> UIAlertController {
         switch setup {
         case .biometry:
             return makeReenableBiometricsPrompt(lockService: lockService)
-        case .biometryAndMasterPasswordReset:
-            return makeReenableBiometricsAndResetMasterPasswordPrompt(lockService: lockService, resetMasterPasswordService: resetMasterPasswordService)
+        case let .biometryAndMasterPasswordReset(masterPassword):
+            return makeReenableBiometricsAndResetMasterPasswordPrompt(masterPassword: masterPassword, lockService: lockService, resetMasterPasswordService: resetMasterPasswordService)
         }
     }
 
@@ -40,7 +41,7 @@ extension UIAlertController {
         return alertController
     }
 
-    static private func makeReenableBiometricsAndResetMasterPasswordPrompt(lockService: LockService, resetMasterPasswordService: ResetMasterPasswordService) -> UIAlertController {
+    static private func makeReenableBiometricsAndResetMasterPasswordPrompt(masterPassword: String, lockService: LockService, resetMasterPasswordService: ResetMasterPasswordService) -> UIAlertController {
         let title = Device.localizedStringWithCurrentBiometry(key: "ResetMasterPassword_ReactivationDialog_Title")
         let message = Device.localizedStringWithCurrentBiometry(key: "ResetMasterPassword_ReactivationDialog_Description")
         let reenableTitle = NSLocalizedString("ResetMasterPassword_ReactivationDialog_CTA", comment: "")
@@ -58,9 +59,6 @@ extension UIAlertController {
         alertController.addAction(disableAction)
 
         let reenable = UIAlertAction(title: reenableTitle, style: .default) { action in
-            guard let masterPassword = lockService.session.configuration.masterKey.masterPassword else {
-                return
-            }
             commonAction(action)
             try? lockService.secureLockConfigurator.enableBiometry()
             try? resetMasterPasswordService.activate(using: masterPassword)
@@ -75,10 +73,10 @@ extension UIAlertController {
         let alert = UIAlertController(title: nil,
                                       message: message,
                                       preferredStyle: .alert)
-        alert.addAction(.init(title: L10n.Localizable.cancel,
+        alert.addAction(.init(title: CoreLocalization.L10n.Core.cancel,
                               style: .cancel,
                               handler: { _ in completion(false) }))
-        alert.addAction(UIAlertAction(title: L10n.Localizable.kwButtonOk, style: .default, handler: { _ in
+        alert.addAction(UIAlertAction(title: CoreLocalization.L10n.Core.kwButtonOk, style: .default, handler: { _ in
             completion(true)
         }))
 

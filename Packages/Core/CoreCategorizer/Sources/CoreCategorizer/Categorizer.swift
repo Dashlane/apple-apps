@@ -1,11 +1,11 @@
 import Foundation
 
-fileprivate struct DBKeys {
-    
+private struct DBKeys {
+
     struct Categories {
         static let tableName = "CATEGORIES"
     }
-    
+
     struct Domain {
         static let tableName = "DOMAIN_CATEGORIES"
 
@@ -35,22 +35,22 @@ public struct Categorizer: CategorizerProtocol {
     let db: SqliteDBWrapper
     public let categories: [Category]
     public let defaultCategory: Category
-    
+
     let dbPath: String! = Bundle.module.path(forResource: "categories", ofType: "db")
-    
+
     public init() throws {
-        
+
         db = try SqliteDBWrapper(dbPath: dbPath)
         categories = try db.query(statement: SQLQuery.getAllCategories.buildQuery()).rows.compactMap(Category.init)
 
         guard categories.count != 0 else { throw CategorizerError.categoriesNotFound }
-        guard let defaultCat = categories.first(where:{ $0.code == DBKeys.otherCategoryCode }) else { 
+        guard let defaultCat = categories.first(where: { $0.code == DBKeys.otherCategoryCode }) else { 
             throw CategorizerError.defaultCategoryNotFound
         }
         defaultCategory = defaultCat
-        
+
     }
-    
+
     func category(forId id: String) -> Category? {
         return categories.first { $0.id == id }
     }

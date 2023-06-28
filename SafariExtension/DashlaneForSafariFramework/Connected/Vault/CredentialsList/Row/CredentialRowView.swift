@@ -1,6 +1,8 @@
 import SwiftUI
 import CorePersonalData
 import UIDelight
+import VaultKit
+import CoreLocalization
 
 enum ButtonHovered {
     case copy
@@ -15,7 +17,7 @@ enum ButtonHovered {
         case .copyPassword: return L10n.Localizable.kwCopyPasswordButton
         case .goToWebsite: return L10n.Localizable.kwGotoWebsite
         case .reveal: return L10n.Localizable.kwRevealButton
-        case .hide: return L10n.Localizable.kwHide
+        case .hide: return CoreLocalization.L10n.Core.kwHide
         }
     }
 }

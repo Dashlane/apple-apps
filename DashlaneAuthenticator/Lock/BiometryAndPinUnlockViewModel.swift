@@ -15,19 +15,19 @@ class BiometryAndPinUnlockViewModel: ObservableObject {
         case biometry
         case pin
     }
-    
+
     @Published
     var state: State = .biometry
-    
+
     @Published
     var showError = false
-    
+
     @Published
     var errorMessage = ""
-    
+
     @Published
     var showRetry = false
-    
+
     @Published
     var enteredPincode: String = "" {
         didSet {
@@ -39,13 +39,13 @@ class BiometryAndPinUnlockViewModel: ObservableObject {
             }
         }
     }
-    
+
     @Published
     var attempts: Int = 1
-    
+
     @Published
     var inProgress = false
-    
+
     let login: Login
     let biometryType: Biometry
     let pin: String
@@ -83,7 +83,7 @@ class BiometryAndPinUnlockViewModel: ObservableObject {
         showError = pinCodeAttempts.tooManyAttempts
         errorMessage = pinCodeAttempts.count == 1 ? L10n.Localizable.pincodeError : L10n.Localizable.pincodeAttemptsLeftError(3 - attempts)
     }
-    
+
     func validateBiometry() async {
         showRetry = false
         inProgress = true
@@ -121,7 +121,7 @@ class BiometryAndPinUnlockViewModel: ObservableObject {
         }
         inProgress = false
     }
-    
+
     func showPin() {
         showRetry = false
         state = .pin

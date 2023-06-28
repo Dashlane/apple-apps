@@ -3,13 +3,11 @@ import DashTypes
 import CoreNetworking
 import CoreSession
 import Combine
-import DashlaneReportKit
 import SwiftTreats
 import DashlaneAPI
 
 public class FeatureService: FeatureServiceProtocol {
     private let refreshInterval: TimeInterval
-    public let featureFlipUsageLogger: FeatureFlipUsageLogger = FeatureFlipUsageLogger()
     internal let apiClient: UserDeviceAPIClient.Features
     internal let login: String
     internal let logger: Logger
@@ -53,7 +51,7 @@ public class FeatureService: FeatureServiceProtocol {
     }
 
         public func isEnabled(_ feature: ControlledFeature) -> Bool {
-        return features.contains(feature)
+        return enabledFeatures().contains(feature)
     }
 
     public func enabledFeatures() -> Set<ControlledFeature> {
@@ -101,24 +99,6 @@ public class FeatureService: FeatureServiceProtocol {
 
     deinit {
         refreshTask?.cancel()
-    }
-}
-
-public class FeatureFlipUsageLogger {
-    
-    @Published
-    var logs: [LogCodeProtocol] = []
-
-    public func logsPublisher() -> AnyPublisher<LogCodeProtocol, Never> {
-        logs
-            .dropLast()
-            .publisher
-            .merge(with: $logs.compactMap { $0.last })
-            .eraseToAnyPublisher()
-    }
-    
-    public func log(featureIdentifier: String, newValue: Bool) {
-        logs.append(UsageLogCode111FeatureFlipping(type: featureIdentifier, status: "\(newValue)"))
     }
 }
 

@@ -5,7 +5,7 @@ public extension String {
         guard let url = URL(string: self) else {
             return nil
         }
-        
+
         if url.scheme != nil {
             return url
         } else {

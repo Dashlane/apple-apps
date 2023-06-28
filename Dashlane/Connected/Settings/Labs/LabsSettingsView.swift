@@ -22,7 +22,8 @@ struct LabsSettingsView: View {
                             .lineLimit(1)
                         if flip.isOn {
                             Spacer()
-                            Image(asset: FiberAsset.checkmark)
+                            Image.ds.checkmark.outlined
+                                .foregroundColor(.ds.text.brand.standard)
                         }
                     }
                 }

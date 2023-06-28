@@ -24,7 +24,7 @@ extension DrivingLicence: VaultItem {
     public static var addTitle: String {
         L10n.Core.kwadddatakwDriverLicenceIOS
     }
-    
+
     public static var nativeMenuAddTitle: String {
         L10n.Core.addDriverLicense
     }
@@ -43,10 +43,5 @@ extension DrivingLicence: CopiablePersonalData {
 public extension DrivingLicence {
     var genderString: String {
         return sex?.localized ?? ""
-    }
-
-    var hasExpireDate: Bool {
-        guard let country = country else { return false }
-        return country.code.lowercased() != "fr"
     }
 }

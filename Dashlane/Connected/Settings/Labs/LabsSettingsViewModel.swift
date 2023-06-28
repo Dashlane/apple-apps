@@ -1,5 +1,4 @@
 import UIKit
-import DashlaneReportKit
 import DashTypes
 import CoreFeature
 import DashlaneAppKit
@@ -15,15 +14,12 @@ final class LabsSettingsViewModel: ObservableObject, SessionServicesInjecting {
         }
     }
 
-    let usageLogService: UsageLogServiceProtocol
     let featureFlipService: FeatureServiceProtocol
     let labsService: LabsService
     let featureFlips: [FeatureFlip]
 
-    init(usageLogService: UsageLogServiceProtocol,
-         featureFlipService: FeatureServiceProtocol,
+    init(featureFlipService: FeatureServiceProtocol,
          labsService: LabsService) {
-        self.usageLogService = usageLogService
         self.featureFlipService = featureFlipService
         self.labsService = labsService
         self.featureFlips = labsService.eligibleFeatures
@@ -44,8 +40,7 @@ final class LabsSettingsViewModel: ObservableObject, SessionServicesInjecting {
 extension LabsSettingsViewModel {
 
     static var mock: LabsSettingsViewModel {
-        LabsSettingsViewModel(usageLogService: UsageLogService.fakeService,
-                              featureFlipService: .mock(),
+        LabsSettingsViewModel(featureFlipService: .mock(),
                               labsService: LabsService())
     }
 }

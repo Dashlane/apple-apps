@@ -2,6 +2,7 @@ import SwiftUI
 import UIDelight
 import VaultKit
 import CoreSharing
+import CoreLocalization
 
 struct ShareFlowView: View {
     @StateObject
@@ -36,7 +37,7 @@ struct ShareFlowView: View {
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     if model.state == .success {
-                        Button(L10n.Localizable.kwButtonClose) {
+                        Button(CoreLocalization.L10n.Core.kwButtonClose) {
                             dismiss()
                         }
                     }

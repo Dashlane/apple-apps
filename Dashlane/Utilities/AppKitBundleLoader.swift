@@ -4,7 +4,6 @@ import Foundation
 struct AppKitBundleLoader {
 
     static func load() -> AppKitBridgeProtocol {
-
         let bundleFileName = "AppKitBridgeBundle.bundle"
         guard let bundleURL = Bundle.main.builtInPlugInsURL?.appendingPathComponent(bundleFileName) else {
             preconditionFailure()

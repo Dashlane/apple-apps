@@ -32,11 +32,11 @@ struct DarkWebMonitoringPremiumListView: View {
                     premiumBenefitItem(title: L10n.Localizable.dataleakmonitoringNoEmailBenefitsSurveillanceTitle,
                                        content: L10n.Localizable.dataleakmonitoringNoEmailBenefitsSurveillanceDescription,
                                        icon: Image(asset: FiberAsset.dwmMonitor))
-                    separator
+                    Divider()
                     premiumBenefitItem(title: L10n.Localizable.dataleakmonitoringNoEmailBenefitsFirstTitle,
                                        content: L10n.Localizable.dataleakmonitoringNoEmailBenefitsFirstDescription,
                                        icon: Image(asset: FiberAsset.dwmAlert))
-                    separator
+                    Divider()
                     premiumBenefitItem(title: L10n.Localizable.dataleakmonitoringNoEmailBenefitsExpertTitle,
                                        content: L10n.Localizable.dataleakmonitoringNoEmailBenefitsExpertDescription,
                                        icon: Image(asset: FiberAsset.dwmExpert))
@@ -67,18 +67,22 @@ struct DarkWebMonitoringPremiumListView: View {
     private func premiumBenefitItem(title: String, content: String, icon: Image) -> some View {
         HStack(alignment: .top, spacing: 0) {
             icon
-                .foregroundColor(Color(asset: FiberAsset.accentColor))
+                .foregroundColor(.ds.text.brand.quiet)
                 .fiberAccessibilityHidden(true)
             VStack(alignment: .leading) {
-                Text(title).font(.body).foregroundColor(Color(asset: FiberAsset.mainCopy)).bold().padding(.bottom, 8).minimumScaleFactor(1)
-                Text(content).font(.callout).minimumScaleFactor(1).foregroundColor(Color(asset: FiberAsset.tertiaryCopyList))
-            }.padding(.leading, 20)
+                Text(title)
+                    .font(.body)
+                    .foregroundColor(.ds.text.neutral.standard)
+                    .bold()
+                    .padding(.bottom, 4)
+                    .minimumScaleFactor(1)
+                Text(content)
+                    .font(.callout)
+                    .minimumScaleFactor(1)
+                    .foregroundColor(.ds.text.neutral.quiet)
+            }
+            .padding(.leading, 20)
         }
-    }
-
-    @ViewBuilder
-    private var separator: some View {
-        Divider().foregroundColor(Color(asset: FiberAsset.grey05)).frame(height: 1)
     }
 
     @ViewBuilder

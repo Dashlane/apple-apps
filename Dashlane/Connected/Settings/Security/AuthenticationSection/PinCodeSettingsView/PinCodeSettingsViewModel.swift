@@ -3,12 +3,14 @@ import SwiftUI
 import Combine
 import CryptoKit
 import DashTypes
+import CoreSession
+import LoginKit
 
 final class PinCodeSettingsViewModel: ObservableObject, SessionServicesInjecting {
     typealias Confirmed = Bool
 
     enum Action {
-        case deactivateMasterPasswordReset
+        case deactivateMasterPasswordReset(_ masterPassword: String)
         case disableBiometry
         case disableRememberMasterPassword
     }
@@ -21,7 +23,6 @@ final class PinCodeSettingsViewModel: ObservableObject, SessionServicesInjecting
 
     let lockService: LockServiceProtocol
     let teamSpaceService: TeamSpacesService
-    let usageLogService: UsageLogServiceProtocol
 
     @Published
     var isToggleOn: Bool
@@ -35,15 +36,22 @@ final class PinCodeSettingsViewModel: ObservableObject, SessionServicesInjecting
     @Published
     var activeAlert: Alert?
 
-    private let actionHandler: (Action) -> Void
+    var canShowPin: Bool {
+        return session.configuration.info.accountType != .invisibleMasterPassword
+    }
 
-    init(lockService: LockServiceProtocol,
+    private let actionHandler: (Action) -> Void
+    private let authenticationMethod: AuthenticationMethod
+    private let session: Session
+
+    init(session: Session,
+         lockService: LockServiceProtocol,
          teamSpaceService: TeamSpacesService,
-         usageLogService: UsageLogServiceProtocol,
          actionHandler: @escaping (PinCodeSettingsViewModel.Action) -> Void) {
+        self.session = session
+        self.authenticationMethod = session.authenticationMethod
         self.lockService = lockService
         self.teamSpaceService = teamSpaceService
-        self.usageLogService = usageLogService
         self.actionHandler = actionHandler
 
         isToggleOn = lockService.secureLockConfigurator.isPincodeActivated
@@ -100,7 +108,7 @@ final class PinCodeSettingsViewModel: ObservableObject, SessionServicesInjecting
                 return
             }
 
-                        if self.teamSpaceService.isSSOUser || self.lockService.secureLockConfigurator.isBiometricActivated {
+                        if self.authenticationMethod.userMasterPassword == nil  || self.lockService.secureLockConfigurator.isBiometricActivated {
                 do {
                     try self.enablePinCode(newPinCode)
                     withAnimation { self.canChangePinCode = true }
@@ -129,12 +137,10 @@ final class PinCodeSettingsViewModel: ObservableObject, SessionServicesInjecting
 
     private func enablePinCode(_ code: String) throws {
         try lockService.secureLockConfigurator.enablePinCode(code)
-        usageLogService.securitySettings.logPinStatus(isEnabled: true, origin: SecuritySettingsLogger.Origin.securitySettings)
     }
 
     private func disablePinCode() throws {
         try lockService.secureLockConfigurator.disablePinCode()
-        usageLogService.securitySettings.logPinStatus(isEnabled: false, origin: SecuritySettingsLogger.Origin.securitySettings)
     }
 
         func handleToggleValueChange(newValue enabled: Bool) {
@@ -152,8 +158,7 @@ final class PinCodeSettingsViewModel: ObservableObject, SessionServicesInjecting
         private func toggleValueWithAnimation(_ on: Bool) {
         withAnimation { isToggleOn = on }
     }
-
-    private var isPinCodeActivated: Bool {
+        private var isPinCodeActivated: Bool {
         lockService.secureLockConfigurator.isPincodeActivated
     }
 }
@@ -161,9 +166,9 @@ final class PinCodeSettingsViewModel: ObservableObject, SessionServicesInjecting
 extension PinCodeSettingsViewModel {
 
     static var mock: PinCodeSettingsViewModel {
-        PinCodeSettingsViewModel(lockService: LockServiceMock(),
+        PinCodeSettingsViewModel(session: .mock,
+                                 lockService: LockServiceMock(),
                                  teamSpaceService: .mock(),
-                                 usageLogService: UsageLogService.fakeService,
                                  actionHandler: { _ in })
     }
 }

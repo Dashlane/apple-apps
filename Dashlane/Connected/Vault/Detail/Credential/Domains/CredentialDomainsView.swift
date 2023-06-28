@@ -1,7 +1,6 @@
 import SwiftUI
 import CorePersonalData
 import CorePasswords
-import DashlaneReportKit
 import DashTypes
 import Combine
 import UIDelight
@@ -11,6 +10,8 @@ import IconLibrary
 import CoreUserTracking
 import UIComponents
 import DesignSystem
+import VaultKit
+import CoreLocalization
 
 struct EditableDomain: Identifiable {
     let id: UUID = UUID()
@@ -51,7 +52,7 @@ struct CredentialDomainsView: View {
         }
         .detailListStyle()
         .alert(using: $duplicatedCredential, content: { alertView(duplicatedCredential: $0) })
-        .navigationBarTitle(L10n.Localizable.KWAuthentifiantIOS.Domains.title, displayMode: .inline)
+        .navigationBarTitle(CoreLocalization.L10n.Core.KWAuthentifiantIOS.Domains.title, displayMode: .inline)
         .navigationBarBackButtonHidden(true)
         .toolbar(content: { toolbarContent })
         .navigationBarStyle(UIDelight.NavigationBarStyle.table)
@@ -80,10 +81,10 @@ struct CredentialDomainsView: View {
     var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .navigationBarLeading) {
             if model.isAdditionMode {
-                Button(action: { dismiss() }, title: L10n.Localizable.cancel)
+                Button(action: { dismiss() }, title: CoreLocalization.L10n.Core.cancel)
                     .tint(.ds.text.brand.standard)
             } else {
-                BackButton(label: L10n.Localizable.kwBack, action: {
+                BackButton(label: CoreLocalization.L10n.Core.kwBack, action: {
                     if editMode.isEditing {
                         checkDuplicate(of: lastIdDuplicateChecked) { _ in
                             dismiss()
@@ -104,7 +105,7 @@ struct CredentialDomainsView: View {
     private var trailingButton: some View {
         if model.canAddDomain {
             if model.isAdditionMode {
-                NavigationBarButton(L10n.Localizable.kwDoneButton) {
+                NavigationBarButton(CoreLocalization.L10n.Core.kwDoneButton) {
                     checkDuplicate(of: lastIdDuplicateChecked) { domains in
                         commit(domains: domains)
                         dismiss()
@@ -115,7 +116,7 @@ struct CredentialDomainsView: View {
                     .tint(.ds.text.brand.standard)
                     .hidden(model.initialMode.isEditing)
             } else {
-                NavigationBarButton(L10n.Localizable.kwSave) {
+                NavigationBarButton(CoreLocalization.L10n.Core.kwSave) {
                     checkDuplicate(of: lastIdDuplicateChecked) { domains in
                         editMode = .inactive
                         let domainsToSave = domains.filter { !$0.content.domain.isEmpty }
@@ -130,7 +131,7 @@ struct CredentialDomainsView: View {
     @ViewBuilder
     var mainWebsite: some View {
         if let url = model.item.url?.rawValue {
-            DomainsSectionView(sectionTitle: L10n.Localizable.KWAuthentifiantIOS.Domains.main,
+            DomainsSectionView(sectionTitle: CoreLocalization.L10n.Core.KWAuthentifiantIOS.Domains.main,
                                domains: [url],
                                isOpenable: !editMode.isEditing)
         }
@@ -146,19 +147,19 @@ struct CredentialDomainsView: View {
     }
 
     var servicesReading: some View {
-        DomainsSectionView(sectionTitle: L10n.Localizable.KWAuthentifiantIOS.Domains.addedByYou,
+        DomainsSectionView(sectionTitle: CoreLocalization.L10n.Core.KWAuthentifiantIOS.Domains.addedByYou,
                            domains: addedDomains.map { $0.content.domain },
                            isOpenable: !editMode.isEditing)
     }
 
     var servicesUpdating: some View {
-        Section(header: Text(L10n.Localizable.KWAuthentifiantIOS.Domains.addedByYou.uppercased())) {
+        Section(header: Text(CoreLocalization.L10n.Core.KWAuthentifiantIOS.Domains.addedByYou.uppercased())) {
             ForEach($addedDomains) { $addedDomain in
-                TextField(L10n.Localizable.KWAuthentifiantIOS.Domains.placeholder, text: $addedDomain.content.domain)
+                TextField(CoreLocalization.L10n.Core.KWAuthentifiantIOS.Domains.placeholder, text: $addedDomain.content.domain)
                     .focused($domainIdToEdit, equals: addedDomain.id)
                     .keyboardType(.URL)
                     .textInputAutocapitalization(.never)
-                    .disableAutocorrection(true)
+                    .autocorrectionDisabled()
             }
             .onDelete { indexSet in
                 addedDomains.remove(atOffsets: indexSet)
@@ -177,7 +178,7 @@ struct CredentialDomainsView: View {
                         .foregroundColor(.ds.text.positive.standard)
                         .scaleEffect(1.3)
                         .padding(.horizontal, 2)
-                    Text(L10n.Localizable.KWAuthentifiantIOS.Domains.add)
+                    Text(CoreLocalization.L10n.Core.KWAuthentifiantIOS.Domains.add)
                         .foregroundColor(.ds.text.brand.standard)
                         .padding(.leading, 8)
                 }
@@ -187,7 +188,7 @@ struct CredentialDomainsView: View {
     }
 
     var associatedWebsites: some View {
-        DomainsSectionView(sectionTitle: L10n.Localizable.KWAuthentifiantIOS.Domains.automaticallyAdded,
+        DomainsSectionView(sectionTitle: CoreLocalization.L10n.Core.KWAuthentifiantIOS.Domains.automaticallyAdded,
                            domains: model.linkedDomains,
                            isOpenable: !editMode.isEditing)
     }
@@ -199,15 +200,15 @@ struct CredentialDomainsView: View {
 
     private func alertView(duplicatedCredential: DuplicatePrompt) -> Alert {
         let completion = duplicatedCredential.completion
-        return Alert(title: Text(L10n.Localizable.KWAuthentifiantIOS.Domains.Duplicate.title(duplicatedCredential.domain.content.domain)),
-                     message: Text(L10n.Localizable.KWAuthentifiantIOS.Domains.duplicate(duplicatedCredential.title)),
-                     primaryButton: Alert.Button.cancel(Text(L10n.Localizable.cancel), action: {
+        return Alert(title: Text(CoreLocalization.L10n.Core.KWAuthentifiantIOS.Domains.Duplicate.title(duplicatedCredential.domain.content.domain)),
+                     message: Text(CoreLocalization.L10n.Core.KWAuthentifiantIOS.Domains.duplicate(duplicatedCredential.title)),
+                     primaryButton: Alert.Button.cancel(Text(CoreLocalization.L10n.Core.cancel), action: {
             DispatchQueue.main.async {
                 self.addedDomains.removeAll(where: { duplicatedCredential.domain.id == $0.id })
             }
             completion(self.addedDomains.filter { duplicatedCredential.domain.id != $0.id })
         }),
-                     secondaryButton: Alert.Button.default(Text(L10n.Localizable.addWebsite), action: {
+                     secondaryButton: Alert.Button.default(Text(CoreLocalization.L10n.Core.addWebsite), action: {
             completion(self.addedDomains)
         }))
     }

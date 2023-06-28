@@ -10,6 +10,9 @@ public class SessionInactivityAutomaticLogout {
     private let sessionLifeCycleHandler: SessionLifeCycleHandler?
     private let logoutInterval: TimeInterval
     private var logoutTimer: Timer?
+    private let unlockedSession: PassthroughSubject<Void, Never>
+
+    var unlockedSessionPublisher: some Publisher<Void, Never> { unlockedSession }
 
     #if targetEnvironment(macCatalyst)
         private var currentIdleTime: TimeInterval {
@@ -24,7 +27,7 @@ public class SessionInactivityAutomaticLogout {
     init(teamSpaceService: TeamSpacesService,
          sessionLifeCycleHandler: SessionLifeCycleHandler?) {
         self.sessionLifeCycleHandler = sessionLifeCycleHandler
-
+        self.unlockedSession = .init()
                 if let automaticLogout = teamSpaceService.availableBusinessTeam?.space.info.forceAutomaticLogout {
                         logoutInterval = TimeInterval(automaticLogout * 60)
                         DispatchQueue.main.async {
@@ -33,6 +36,7 @@ public class SessionInactivityAutomaticLogout {
         } else {
             logoutInterval = 0
         }
+
     }
 
     private func setupTimer(timeInterval: TimeInterval) {
@@ -48,5 +52,9 @@ public class SessionInactivityAutomaticLogout {
 
         })
         #endif
+    }
+
+    func didLoadSession() {
+        self.unlockedSession.send()
     }
 }

@@ -15,6 +15,9 @@ import AuthenticatorKit
 import LoginKit
 import NotificationKit
 import CoreUserTracking
+import SwiftTreats
+import VaultKit
+import CorePersonalData
 
 final class AppServicesContainer: DependenciesContainer {
     let nonAuthenticatedUKIBasedWebService: LegacyWebServiceImpl
@@ -33,12 +36,11 @@ final class AppServicesContainer: DependenciesContainer {
     let globalSettings = AppSettings()
     let keychainService: AuthenticationKeychainService
     weak var sessionLifeCycleHandler: SessionLifeCycleHandler?
-    let passwordEvaluator: PasswordEvaluator
+    let passwordEvaluator: PasswordEvaluatorProtocol
     let crashReporter: CrashReporterService
-    let installerLogService: InstallerLogService
     let notificationService: NotificationService
     let deepLinkingService: DeepLinkingService
-    let loginUsageLogService: LoginUsageLogService
+    let loginMetricsReporter: LoginMetricsReporter
     let networkReachability: NetworkReachability
     let unauthenticatedABTestingService: UnauthenticatedABTestingService
     let spotlightIndexer: SpotlightIndexer
@@ -49,7 +51,6 @@ final class AppServicesContainer: DependenciesContainer {
     let appKitBridge: AppKitBridgeProtocol
     let safariExtensionService: SafariExtensionService
     #endif
-    let authenticatorDatabaseService: AuthenticatorDatabaseService
     let brazeService: BrazeServiceProtocol
 
     @MainActor
@@ -58,6 +59,9 @@ final class AppServicesContainer: DependenciesContainer {
          appLaunchTimeStamp: TimeInterval) throws {
         self.crashReporter = crashReporter
         globalSettings.configure()
+
+        var url = ApplicationGroup.containerURL
+        try? url.setExcludedFromiCloudBackup()
 
         let localLogger = LocalLogger()
         self.appAPIClient = try AppAPIClient()
@@ -72,7 +76,6 @@ final class AppServicesContainer: DependenciesContainer {
             localLogger,
             remoteLogger
         ]
-        authenticatorDatabaseService = AuthenticatorDatabaseService(logger: rootLogger)
         spiegelSettingsManager = SettingsManager(logger: rootLogger)
 
         domainParser = try DomainParser.defaultConfiguration()
@@ -90,24 +93,19 @@ final class AppServicesContainer: DependenciesContainer {
 
         memoryPressureLogger = MemoryPressureLogger(webService: nonAuthenticatedUKIBasedWebService, origin: .mainApplication)
 
-        installerLogService = InstallerLogService(logger: rootLogger[.installerLogs],
-                                                  appSettings: globalSettings,
-                                                  networkReachability: networkReachability)
-
         activityReporter = UserTrackingAppActivityReporter(logger: rootLogger[.userTrackingLogs],
                                                            component: .mainApp,
                                                            appAPIClient: appAPIClient,
-                                                           platform: .ios)
+                                                           platform: .current)
         passwordEvaluator = try PasswordEvaluator()
         self.brazeService = BrazeService(logger: rootLogger)
         notificationService = NotificationService(logger: rootLogger[.remoteNotifications])
         self.deepLinkingService = DeepLinkingService(sessionLifeCycleHandler: sessionLifeCycleHandler, notificationService: notificationService, brazeService: brazeService)
         self.sessionLifeCycleHandler = sessionLifeCycleHandler
-        loginUsageLogService = LoginUsageLogService(appLaunchTimeStamp: appLaunchTimeStamp)
+        loginMetricsReporter = LoginMetricsReporter(appLaunchTimeStamp: appLaunchTimeStamp)
 
         spotlightIndexer = SpotlightIndexer(logger: rootLogger[.spotlight])
         unauthenticatedABTestingService = UnauthenticatedABTestingService(logger: rootLogger[.abTesting],
-                                                                          abTestInstallerlogger: installerLogService.abTesting,
                                                                           apiClient: appAPIClient,
                                                                           testsToEvaluate: UnauthenticatedABTestingService.testsToEvaluate,
                                                                           cache: globalSettings)
@@ -118,7 +116,7 @@ final class AppServicesContainer: DependenciesContainer {
                                                         activityReporter: activityReporter)
         #if targetEnvironment(macCatalyst)
         appKitBridge = AppKitBundleLoader.load()
-        safariExtensionService = SafariExtensionService(appKitBridge: appKitBridge, logger: rootLogger)
+        safariExtensionService = SafariExtensionService(appKitBridge: appKitBridge, logger: rootLogger[.localCommunication])
         #endif
         updateGlobalAppEnvironment()
     }
@@ -131,11 +129,17 @@ final class AppServicesContainer: DependenciesContainer {
 }
 
 extension AppServicesContainer {
-    var personalDataURLDecoder: DashlaneAppKit.PersonalDataURLDecoder {
+    var personalDataURLDecoder: PersonalDataURLDecoderProtocol {
         PersonalDataURLDecoder(domainParser: domainParser, linkedDomainService: linkedDomainService)
     }
 }
 
 extension LoginKitServicesContainer: AppServicesInjecting {
 
+}
+
+extension AppServicesContainer: AccountCreationFlowDependenciesContainer {
+    var logger: DashTypes.Logger {
+        rootLogger
+    }
 }

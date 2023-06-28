@@ -3,7 +3,7 @@ import Foundation
 struct ColorFile: Encodable {
     let colors: [ColorElement]
     let info: Info = Info()
-    
+
     init(lightModeColor: RGBAValue, darkModeColor: RGBAValue) {
         self.colors = [
             ColorElement(mode: .light, rgbaValue: lightModeColor),
@@ -16,7 +16,7 @@ struct ColorElement: Encodable {
     let appearances: [DarkModeAppearance]?
     let color: ColorEntry
     let idiom: String = "universal"
-    
+
     init(mode: UserInterfaceStyle, rgbaValue: RGBAValue) {
         self.appearances = mode == .dark ? [DarkModeAppearance()] : nil
         self.color = ColorEntry(rgbaValue: rgbaValue)
@@ -36,7 +36,7 @@ struct ColorEntry: Encodable {
         case colorSpace = "color-space"
         case components
     }
-    
+
     init(rgbaValue: RGBAValue) {
         self.components = Components(value: rgbaValue)
     }
@@ -44,14 +44,14 @@ struct ColorEntry: Encodable {
 
 struct Components: Encodable {
     let value: RGBAValue
-    
+
     enum CodingKeys: CodingKey {
         case alpha
         case blue
         case green
         case red
     }
-    
+
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(String(format: "%.3f", value.alpha), forKey: .alpha)

@@ -8,6 +8,7 @@ import VaultKit
 import CoreSharing
 import CoreFeature
 import DesignSystem
+import CoreLocalization
 
 struct QuickActionsMenuView: View {
 
@@ -18,6 +19,12 @@ struct QuickActionsMenuView: View {
 
     @Environment(\.toast)
     private var toast
+
+    @Environment(\.vaultItemRowCollectionActions)
+    private var collectionActions
+
+    @Environment(\.vaultItemRowEditAction)
+    private var editAction
 
     @State
     private var deleteRequest: DeleteVaultItemRequest = .init()
@@ -31,10 +38,23 @@ struct QuickActionsMenuView: View {
     @State
     private var showSharing: Bool = false
 
+    @State
+    private var showCollectionAddition: Bool = false
+
+    @State
+    private var showCollectionRemoval: Bool = false
+
+    @FeatureState(.collectionsContainer)
+    private var areCollectionsEnabled: Bool
+
     var body: some View {
         Menu {
             VaultItemMenuContent(item: model.item, copy: model.copy)
+            editButton
             shareButton
+            if areCollectionsEnabled {
+                collectionActionsButtons
+            }
             DeleteMenuButton {
                 Task {
                     deleteRequest.itemDeleteBehavior = try await model.deleteBehaviour()
@@ -45,7 +65,7 @@ struct QuickActionsMenuView: View {
             Image.ds.action.more.outlined
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .accessibility(label: Text(L10n.Localizable.kwActions))
+                .accessibility(label: Text(CoreLocalization.L10n.Core.kwActions))
                 .frame(width: 24, height: 40)
                 .foregroundColor(.ds.text.brand.standard)
                 .onReceive(model.copyResultPublisher, perform: onCopyAction)
@@ -65,6 +85,12 @@ struct QuickActionsMenuView: View {
         })
         .sheet(isPresented: $showSharing) {
             ShareFlowView(model: self.model.shareFlowViewModelFactory.make(items: [self.model.item]))
+        }
+        .sheet(isPresented: $showCollectionAddition) {
+            collectionAdditionView
+        }
+        .sheet(isPresented: $showCollectionRemoval) {
+            collectionRemovalView
         }
     }
 
@@ -90,14 +116,82 @@ extension QuickActionsMenuView {
                 if model.sharingDeactivationReason != nil {
                     showSharingDisabledAlert = true
                 } else {
-                    self.showSharing = true
+                    showSharing = true
                 }
             } label: {
                 HStack {
                     Text(L10n.Localizable.shareQuickAction)
-                    Image(asset: FiberAsset.shareIcon)
+                    Image.ds.shared.outlined
                 }
             }
+        }
+    }
+}
+
+private extension QuickActionsMenuView {
+    @ViewBuilder
+    var editButton: some View {
+        if let editAction {
+            Button {
+                editAction()
+            } label: {
+                HStack {
+                    Text(CoreLocalization.L10n.Core.kwEdit)
+                    Image.ds.action.edit.outlined
+                }
+            }
+        }
+    }
+}
+
+private extension QuickActionsMenuView {
+    @ViewBuilder
+    var collectionActionsButtons: some View {
+                if model.item is Credential {
+            ForEach(collectionActions, id: \.id) { collectionAction in
+                                if collectionAction != .removeFromACollection || !model.itemCollections.isEmpty {
+                    Button {
+                        switch collectionAction {
+                        case .addToACollection:
+                            showCollectionAddition = true
+                        case .removeFromACollection:
+                            showCollectionRemoval = true
+                        case .removeFromThisCollection(let action):
+                            action()
+                        }
+                    } label: {
+                        HStack {
+                            Text(collectionAction.title)
+                            collectionAction.image
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    var collectionAdditionView: some View {
+        CollectionAdditionView(
+            allCollections: model.allVaultCollections.filter(spaceId: model.item.spaceId),
+            collections: model.unusedCollections
+        ) { completion in
+            if case .done(let collectionName) = completion {
+                try? model.addItemToCollection(named: collectionName)
+                toast(CoreLocalization.L10n.Core.KWVaultItem.Changes.saved, image: .ds.feedback.success.outlined)
+            }
+            showCollectionAddition = false
+        }
+    }
+
+    var collectionRemovalView: some View {
+        CollectionsRemovalView(
+            collections: model.itemCollections
+        ) { completion in
+            if case .done(let collectionsRemoved) = completion {
+                try? model.removeItem(from: collectionsRemoved)
+                toast(CoreLocalization.L10n.Core.KWVaultItem.Changes.saved, image: .ds.feedback.success.outlined)
+            }
+            showCollectionRemoval = false
         }
     }
 }
@@ -116,7 +210,7 @@ extension Definition.Field {
         case .number:           return L10n.Localizable.pasteboardCopyNumber
         case .fiscalNumber:     return L10n.Localizable.pasteboardCopyFiscalNumber
         case .otpCode:          return L10n.Localizable.pasteboardCopyOtpCode
-        default: return L10n.Localizable.kwCopied
+        default: return CoreLocalization.L10n.Core.kwCopied
         }
     }
 }

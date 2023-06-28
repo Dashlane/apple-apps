@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import DashTypes
+import VaultKit
 
 final class SettingsLockSectionViewModel: ObservableObject, SessionServicesInjecting {
 

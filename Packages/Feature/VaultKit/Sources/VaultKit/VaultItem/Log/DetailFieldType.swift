@@ -21,7 +21,7 @@ public enum DetailFieldType: String {
 }
 
 public extension DetailFieldType {
-    
+
     var definitionField: Definition.Field {
         switch self {
         case .login:

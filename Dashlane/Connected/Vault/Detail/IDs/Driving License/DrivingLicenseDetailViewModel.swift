@@ -10,6 +10,7 @@ import DocumentServices
 import CoreUserTracking
 import CoreSettings
 import VaultKit
+import UIComponents
 
 class DrivingLicenseDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting, MockVaultConnectedInjecting {
 
@@ -43,8 +44,7 @@ class DrivingLicenseDetailViewModel: DetailViewModelProtocol, SessionServicesInj
         vaultItemsService: VaultItemsServiceProtocol,
         sharingService: SharedVaultHandling,
         teamSpacesService: TeamSpacesService,
-        usageLogService: UsageLogServiceProtocol,
-        deepLinkService: DeepLinkingServiceProtocol,
+        deepLinkService: VaultKit.DeepLinkingServiceProtocol,
         activityReporter: ActivityReporterProtocol,
         regionInformationService: RegionInformationService,
         iconViewModelProvider: @escaping (VaultItem) -> VaultItemIconViewModel,
@@ -52,8 +52,8 @@ class DrivingLicenseDetailViewModel: DetailViewModelProtocol, SessionServicesInj
         accessControl: AccessControlProtocol,
         userSettings: UserSettings,
         documentStorageService: DocumentStorageService,
-        attachmentSectionFactory: AttachmentsSectionViewModel.Factory,
-        attachmentsListViewModelProvider: @escaping (VaultItem, AnyPublisher<VaultItem, Never>) -> AttachmentsListViewModel
+        pasteboardService: PasteboardServiceProtocol,
+        attachmentSectionFactory: AttachmentsSectionViewModel.Factory
     ) {
         self.init(
             service: .init(
@@ -62,16 +62,15 @@ class DrivingLicenseDetailViewModel: DetailViewModelProtocol, SessionServicesInj
                 vaultItemsService: vaultItemsService,
                 sharingService: sharingService,
                 teamSpacesService: teamSpacesService,
-                usageLogService: usageLogService,
                 documentStorageService: documentStorageService,
                 deepLinkService: deepLinkService,
                 activityReporter: activityReporter,
                 iconViewModelProvider: iconViewModelProvider,
+                attachmentSectionFactory: attachmentSectionFactory,
                 logger: logger,
                 accessControl: accessControl,
                 userSettings: userSettings,
-                attachmentSectionFactory: attachmentSectionFactory,
-                attachmentsListViewModelProvider: attachmentsListViewModelProvider
+                pasteboardService: pasteboardService
             ),
             regionInformationService: regionInformationService
         )

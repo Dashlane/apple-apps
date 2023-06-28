@@ -10,7 +10,7 @@ public class AutofillActivationModalAnnouncement: HomeModalAnnouncement, HomeAnn
     let identifier: String = UUID().uuidString
 
     let triggers: Set<HomeModalAnnouncementTrigger> = [.sessionUnlocked]
-    private let abTestingService: ABTestingServiceProtocol
+    private let featureService: FeatureServiceProtocol
 
     private var activationStatus: AutofillActivationStatus = .unknown
     private var subscriptions: Set<AnyCancellable> = []
@@ -22,9 +22,9 @@ public class AutofillActivationModalAnnouncement: HomeModalAnnouncement, HomeAnn
 
     public init(userSettings: UserSettings,
                 autofillService: NotificationKitAutofillServiceProtocol,
-                abTestingService: ABTestingServiceProtocol) {
+                featureService: FeatureServiceProtocol) {
         self.userSettings = userSettings
-        self.abTestingService = abTestingService
+        self.featureService = featureService
 
         autofillService.notificationKitActivationStatus.sink { status in
             self.activationStatus = status
@@ -33,28 +33,31 @@ public class AutofillActivationModalAnnouncement: HomeModalAnnouncement, HomeAnn
     }
 
     func shouldDisplay() -> Bool {
-                if let autofillActivationPopUpHasBeenShown: Bool = userSettings[.autofillActivationPopUpHasBeenShown] {
-            guard autofillActivationPopUpHasBeenShown == false else {
-                return false
-            }
+                let autofillActivationPopUpHasBeenShown: Bool = userSettings[.autofillActivationPopUpHasBeenShown] ?? false
+        guard autofillActivationPopUpHasBeenShown == false else {
+            return false
         }
 
                 guard activationStatus == .disabled else {
             return false
         }
 
-                guard abTestingService.get(test: ABTest.AutofillIosActivationbannereducation.self)?.variant == .a else {
+                let hasUserDismissedOnboardingChecklist: Bool = userSettings[.hasUserDismissedOnboardingChecklist] ?? false
+        let hasUserUnlockedOnboardingChecklist: Bool = userSettings[.hasUserUnlockedOnboardingChecklist] ?? false
+        guard hasUserDismissedOnboardingChecklist && hasUserUnlockedOnboardingChecklist else {
+            return false
+        }
+
+                guard featureService.isEnabled(.autofillBannerEducation) else {
             return false
         }
 
         return true
-
-        
     }
 }
 
 extension AutofillActivationModalAnnouncement {
     static var mock: AutofillActivationModalAnnouncement {
-        .init(userSettings: .mock, autofillService: FakeNotificationKitAutofillService(), abTestingService: ABTestingServiceMock.mock)
+        .init(userSettings: .mock, autofillService: FakeNotificationKitAutofillService(), featureService: .mock())
     }
 }

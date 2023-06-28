@@ -9,6 +9,8 @@ import UIComponents
 import VaultKit
 import DashTypes
 import DesignSystem
+import IconLibrary
+import CoreLocalization
 
 class DarkWebMonitoringDetailsViewModel: ObservableObject, SessionServicesInjecting {
     var breachViewModel: BreachViewModel
@@ -27,7 +29,7 @@ class DarkWebMonitoringDetailsViewModel: ObservableObject, SessionServicesInject
             return nil
         }
 
-        return MiniBrowserViewModel(email: email, password: initialPassword, displayableDomain: breach.url.displayDomain, url: url, domainParser: domainParser, usageLogService: usageLogService, userSettings: userSettings) { [weak self] result in
+        return MiniBrowserViewModel(email: email, password: initialPassword, displayableDomain: breach.url.displayDomain, url: url, domainParser: domainParser, userSettings: userSettings) { [weak self] result in
             switch result {
             case .back, .done:
                 self?.shouldShowMiniBrowser = false
@@ -49,7 +51,6 @@ class DarkWebMonitoringDetailsViewModel: ObservableObject, SessionServicesInject
     private let darkWebMonitoringService: DarkWebMonitoringServiceProtocol
     private let correspondingCredentials: [Credential]
     private let domainParser: DomainParserProtocol
-    private let usageLogService: DWMLogService
     private let userSettings: UserSettings
     private let initialPassword: String
     private var newPassword: String
@@ -58,13 +59,11 @@ class DarkWebMonitoringDetailsViewModel: ObservableObject, SessionServicesInject
          breachViewModel: BreachViewModel,
          darkWebMonitoringService: DarkWebMonitoringServiceProtocol,
          domainParser: DomainParserProtocol,
-         usageLogService: DWMLogService,
          userSettings: UserSettings,
          actionPublisher: PassthroughSubject<DarkWebToolsFlowViewModel.Action, Never>? = nil) {
         self.breachViewModel = breachViewModel
         self.darkWebMonitoringService = darkWebMonitoringService
         self.domainParser = domainParser
-        self.usageLogService = usageLogService
         self.userSettings = userSettings
         self.actionPublisher = actionPublisher
         self.correspondingCredentials = darkWebMonitoringService.correspondingCredentials(for: breach)
@@ -136,8 +135,7 @@ extension DarkWebMonitoringDetailsViewModel {
         DarkWebMonitoringDetailsViewModel(breach: DWMSimplifiedBreach(breachId: "00", url: .init(rawValue: "world.com"), leakedPassword: nil, date: nil),
                                           breachViewModel: .mock(for: .init()),
                                           darkWebMonitoringService: DarkWebMonitoringServiceMock(),
-                                          domainParser: DomainParserMock(),
-                                          usageLogService: .fakeService,
+                                          domainParser: FakeDomainParser(),
                                           userSettings: .mock,
                                           actionPublisher: nil)
     }
@@ -158,7 +156,8 @@ struct DarkWebMonitoringDetailsView: View {
                 ourAdviceSection
                 Spacer()
                 Button(action: { showConfirmAlert.toggle() }, label: {
-                    Text(L10n.Localizable.dwmDeleteAlertCta).foregroundColor(Color(asset: FiberAsset.midGreen))
+                    Text(L10n.Localizable.dwmDeleteAlertCta)
+                        .foregroundColor(.ds.text.brand.standard)
                 }).buttonStyle(BorderlessActionButtonStyle())
             }
         }
@@ -177,11 +176,11 @@ struct DarkWebMonitoringDetailsView: View {
             Text(model.breachViewModel.url.displayDomain)
                 .font(DashlaneFont.custom(20, .medium).font)
             Text(L10n.Localizable.dwmDetailViewSubtitle)
-                .font(.body).foregroundColor(Color(asset: FiberAsset.neutralText)).multilineTextAlignment(.center)
+                .font(.body).foregroundColor(.ds.text.neutral.quiet).multilineTextAlignment(.center)
         }
         .padding(16)
         .frame(maxWidth: .infinity)
-        .background(Color(asset: FiberAsset.cellBackground))
+        .background(Color.ds.container.agnostic.neutral.supershy)
     }
 
     @ViewBuilder
@@ -207,7 +206,7 @@ struct DarkWebMonitoringDetailsView: View {
 
     private var alertView: Alert {
         Alert(title: Text(L10n.Localizable.dwmDetailViewDeleteConfirmTitle),
-              primaryButton: Alert.Button.default(Text(L10n.Localizable.kwDelete), action: {
+              primaryButton: Alert.Button.default(Text(CoreLocalization.L10n.Core.kwDelete), action: {
                 confirmDelete()
               }),
               secondaryButton: Alert.Button.cancel()

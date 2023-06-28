@@ -4,6 +4,7 @@ import UIComponents
 import DesignSystem
 import UIDelight
 import LoginKit
+import CoreLocalization
 
 struct DevicesList: View {
 
@@ -47,7 +48,7 @@ struct DevicesList: View {
                 .fullScreenCover(item: self.$deviceToBeRenamed, content: self.renameView)
                 .actionSheet(item: self.$selectedDevice, content: self.mainActionSheet)
                 .alert(item: self.$deletionRequest, content: self.deactivateAlert)
-                .hideBottomBar(hidden: mode?.wrappedValue != .active)
+                .toolbar(mode?.wrappedValue != .active ? .hidden : .visible, for: .bottomBar)
                 .toolbar {
                     ToolbarItem(placement: .navigationBarTrailing) {
                         EditButton()
@@ -61,9 +62,9 @@ struct DevicesList: View {
             if model.listStatus == .loading {
                 loadingIndicator
             } else if model.listStatus == .noInternet {
-                listErrorPlaceholder(withMessage: L10n.Localizable.kwNoInternet)
+                listErrorPlaceholder(withMessage: CoreLocalization.L10n.Core.kwNoInternet)
             } else if model.listStatus == .error {
-                listErrorPlaceholder(withMessage: L10n.Localizable.kwExtSomethingWentWrong)
+                listErrorPlaceholder(withMessage: CoreLocalization.L10n.Core.kwExtSomethingWentWrong)
             }
         }.animation(.default, value: model.devicesGroups)
             .navigationBarBackButtonHidden(mode?.wrappedValue == .active)
@@ -71,36 +72,34 @@ struct DevicesList: View {
 
     @ViewBuilder
     var bottomBar: some View {
-                if mode?.wrappedValue == .active {
-            Menu {
-                Button(L10n.Localizable.kwDeviceListToolbarUnselectAll) {
-                    self.selectedDevices = []
-                }
-                .disabled(selectedDevices.isEmpty)
-                Button(L10n.Localizable.kwDeviceListToolbarSelectOthers) {
-                    self.selectedDevices = model.allDevicesIdsButCurrentOne()
-                }
-                Button(L10n.Localizable.kwDeviceListToolbarSelectAll) {
-                    self.selectedDevices = model.allDevicesIds()
-                }
-            } label: {
-                Image(systemName: "ellipsis.circle")
+        Menu {
+            Button(L10n.Localizable.kwDeviceListToolbarUnselectAll) {
+                self.selectedDevices = []
             }
-            Spacer()
-            Text(L10n.Localizable.kwDeviceListToolbarTitle).bold()
-            Spacer()
-            Button(action: {
-                let devices = model.devices(forIds: self.selectedDevices)
-                if devices.count == 1, let device = devices.first {
-                    self.deletionRequest = .singleItem(device)
-                } else {
-                    self.deletionRequest = .multipleItems(devices)
-                }
-            }, label: {
-                Image(systemName: "trash")
-                    .foregroundColor(.ds.text.danger.standard)
-            }).disabled(self.selectedDevices.isEmpty)
+            .disabled(selectedDevices.isEmpty)
+            Button(L10n.Localizable.kwDeviceListToolbarSelectOthers) {
+                self.selectedDevices = model.allDevicesIdsButCurrentOne()
+            }
+            Button(L10n.Localizable.kwDeviceListToolbarSelectAll) {
+                self.selectedDevices = model.allDevicesIds()
+            }
+        } label: {
+            Image(systemName: "ellipsis.circle")
         }
+        Spacer()
+        Text(L10n.Localizable.kwDeviceListToolbarTitle).bold()
+        Spacer()
+        Button(action: {
+            let devices = model.devices(forIds: self.selectedDevices)
+            if devices.count == 1, let device = devices.first {
+                self.deletionRequest = .singleItem(device)
+            } else {
+                self.deletionRequest = .multipleItems(devices)
+            }
+        }, label: {
+            Image(systemName: "trash")
+                .foregroundColor(.ds.text.danger.standard)
+        }).disabled(self.selectedDevices.isEmpty)
     }
 
         var list: some View {
@@ -151,7 +150,7 @@ struct DevicesList: View {
 
         return ActionSheet(title: title,
                            buttons: [
-                            .default(Text(L10n.Localizable.kwDeviceRename), action: {
+                            .default(Text(CoreLocalization.L10n.Core.kwDeviceRename), action: {
                                 self.deviceToBeRenamed = device
                             }),
                             .destructive(Text(L10n.Localizable.kwDeviceDeactivate), action: {

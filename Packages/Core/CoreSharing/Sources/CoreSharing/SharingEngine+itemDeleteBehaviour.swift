@@ -6,15 +6,15 @@ public extension SharingEngine {
         guard let itemGroup = try operationDatabase.fetchItemGroup(withItemId: id) else {
             return .normal
         }
-        
+
                 for userGroup in itemGroup.userGroupMembers where userGroup.status == .accepted {
             guard let userGroupPair = try operationDatabase.fetchUserGroupUserPair(withGroupId: userGroup.id, userId: userId), userGroupPair.user.status == .accepted else {
                 continue
             }
-            
+
             return .cannotDeleteUserInvolvedInUserGroup
         }
-        
+
                 let adminUsers = itemGroup.users.filter { $0.permission == .admin  && $0.status == .accepted }
 
         if adminUsers.count == 1,
@@ -22,8 +22,7 @@ public extension SharingEngine {
             itemGroup.users.count > 1 {
             return .cannotDeleteWhenNoOtherAdmin
         }
-        
+
         return .canDeleteByLeavingItemGroup
     }
 }
-

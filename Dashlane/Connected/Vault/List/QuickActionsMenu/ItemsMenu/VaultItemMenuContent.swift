@@ -40,6 +40,8 @@ struct VaultItemMenuContent: View {
             BankAccountMenu(bankAccount: bankAccount, copyAction: copy)
         case let .identity(identity):
             IdentityMenu(identity: identity, copyAction: copy)
+        case let .passkey(passkey):
+            PasskeyMenu(passkey: passkey, copyAction: copy)
         }
     }
 }

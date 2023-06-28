@@ -4,11 +4,9 @@ import DashlaneAPI
 
 public struct UserGroupMember: Codable, Hashable, Identifiable {
 
-    
         public let id: Identifier
         let itemGroupId: Identifier
-          
-        public let name: String
+                public let name: String
         public let status: SharingMemberStatus
         public let permission: SharingPermission
         public let encryptedGroupKey: String?

@@ -3,6 +3,7 @@ import Combine
 import AuthenticatorKit
 import CorePersonalData
 import DashTypes
+import VaultKit
 
 class OTPExplorerViewModel: ObservableObject, SessionServicesInjecting {
 
@@ -80,7 +81,7 @@ extension OTPExplorerViewModel {
         return OTPExplorerViewModel(
             vaultItemsService: container.vaultItemsService,
             otpSupportedDomainsRepository: OTPSupportedDomainsRepository(),
-            vaultItemRowModelFactory: .init { .mock(configuration: $0, additionialConfiguration: $1) },
+            vaultItemRowModelFactory: .init { .mock(configuration: $0, additionalConfiguration: $1) },
             actionHandler: { _ in }
         )
     }

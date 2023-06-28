@@ -9,9 +9,9 @@ public struct AutofillOnboardingIntroViewModel: HomeAnnouncementsServicesInjecti
     let dismiss: @MainActor () -> Void
 
     public init(shouldShowSync: Bool,
-         activityReporter: ActivityReporterProtocol,
-         action: @MainActor @escaping () -> Void,
-         dismiss: @MainActor @escaping () -> Void) {
+                activityReporter: ActivityReporterProtocol,
+                action: @MainActor @escaping () -> Void,
+                dismiss: @MainActor @escaping () -> Void) {
         self.shouldShowSync = shouldShowSync
         self.activityReporter = activityReporter
         self.action = action

@@ -1,6 +1,6 @@
 import Foundation
 extension UserDeviceAPIClient.SharingUserdevice {
-        public struct RefuseUserGroup {
+        public struct RefuseUserGroup: APIRequest {
         public static let endpoint: Endpoint = "/sharing-userdevice/RefuseUserGroup"
 
         public let api: UserDeviceAPIClient
@@ -17,7 +17,13 @@ extension UserDeviceAPIClient.SharingUserdevice {
 }
 
 extension UserDeviceAPIClient.SharingUserdevice.RefuseUserGroup {
-        struct Body: Encodable {
+        public struct Body: Encodable {
+
+        private enum CodingKeys: String, CodingKey {
+            case provisioningMethod = "provisioningMethod"
+            case revision = "revision"
+            case groupId = "groupId"
+        }
 
         public let provisioningMethod: ProvisioningMethod
 

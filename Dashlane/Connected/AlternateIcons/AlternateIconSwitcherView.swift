@@ -1,3 +1,4 @@
+import DesignSystem
 import SwiftUI
 import UIDelight
 
@@ -13,48 +14,50 @@ struct AlternateIconSwitcherView: View {
     }
 
     var body: some View {
-        VStack(alignment: .leading) {
-            Text(L10n.Localizable.alternateIconViewTitle)
-                .font(.body)
-                .bold()
-                .foregroundColor(Color.primary)
-                .padding(.top, 32)
-                .padding(.bottom, 16)
-                .padding(.horizontal, 28)
-            LazyVGrid(columns: columns) {
-                ForEach(0..<iconSettings.iconNames.count, id: \.self) { index in
-                    iconRow(forIndex: index, isSelected: self.iconSettings.currentIndex == index)
-                }
-            }.padding(.horizontal, 28)
-
-            Spacer()
+        LazyVGrid(columns: columns) {
+            ForEach(iconSettings.icons, id: \.name) { icon in
+                row(icon, isSelected: iconSettings.currentIcon == icon)
+            }
         }
+        .padding(.horizontal, 28)
+        .frame(maxHeight: .infinity, alignment: .top)
         .navigationTitle(L10n.Localizable.alternateIconSettingsTitle)
-        .backgroundColorIgnoringSafeArea(Color(asset: FiberAsset.appBackground))
+        .backgroundColorIgnoringSafeArea(.ds.background.default)
+        .animation(.default, value: iconSettings.currentIcon)
     }
 
     @ViewBuilder
-    func iconRow(forIndex index: Int, isSelected: Bool) -> some View {
-        ZStack {
-            Image(uiImage: UIImage(named: self.iconSettings.iconNames[index] ?? "AppIconAlternate") ?? UIImage())
-                .resizable()
-                .renderingMode(.original)
-                .frame(width: 60, height: 60)
-                .cornerRadius(15)
-                .overlay(RoundedRectangle(cornerRadius: 15)
-                            .stroke(Color(asset: FiberAsset.alternateIconBorder), lineWidth: 0.5))
-                .shadow(color: Color.black.opacity(0.2), radius: 2, x: 0, y: 1)
-            Image(asset: FiberAsset.iconSelection)
-                .resizable()
-                .frame(width: 24, height: 24, alignment: .center)
-                .padding(.top, 56)
-                .padding(.leading, 56)
-                .opacity(isSelected ? 1 : 0)
-        }
-        .contentShape(Rectangle())
-        .onTapGesture {
-            self.iconSettings.changeIcon(toIndex: index)
-        }
+    func row(_ icon: AlternateIconNames.Icon, isSelected: Bool) -> some View {
+        Image(uiImage: UIImage(named: icon.name)!)
+            .resizable()
+            .renderingMode(.original)
+            .frame(width: 60, height: 60)
+            .cornerRadius(15)
+            .overlay(RoundedRectangle(cornerRadius: 15)
+                .stroke(Color.ds.border.neutral.standard.idle, lineWidth: 0.5))
+            .shadow(color: Color.black.opacity(0.2), radius: 2, x: 0, y: 1)
+            .padding(8)
+            .overlay(alignment: .bottomTrailing) {
+                selectedIcon
+                    .opacity(isSelected ? 1 : 0)
+            }
+            .onTapGesture {
+                self.iconSettings.changeIcon(to: icon)
+            }
+    }
+
+    var selectedIcon: some View {
+        Circle()
+            .foregroundColor(Color.ds.container.expressive.positive.catchy.active)
+            .frame(width: 24, height: 24, alignment: .center)
+            .overlay {
+                Image.ds.checkmark.outlined
+                    .renderingMode(.template)
+                    .resizable()
+                    .foregroundColor(.ds.text.inverse.catchy)
+                    .padding(4)
+            }
+
     }
 }
 

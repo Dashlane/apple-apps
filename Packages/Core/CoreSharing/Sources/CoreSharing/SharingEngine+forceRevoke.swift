@@ -1,14 +1,14 @@
 import Foundation
 import DashTypes
+import DashlaneAPI
 
 extension SharingEngine {
-                public func forceRevokeItemGroup(withItemIds ids: [Identifier]) async throws {
+                    public func forceRevokeItemGroup(withItemIds ids: [Identifier]) async throws {
         for id in ids {
             guard let itemGroup = try operationDatabase.fetchItemGroup(withItemId: id) else {
                 continue
             }
 
-            let currentUser = itemGroup.user(with: userId)
             let itemState = try operationDatabase.sharingMembers(forUserId: userId, in: itemGroup).computeItemState()
             switch itemState?.permission {
             case .admin:
@@ -24,8 +24,9 @@ extension SharingEngine {
 
                                         try await revoke(in: itemGroup.info,
                                      users: usersToRevoke,
-                                     userGroupMembers: userGroupsToRevoke)
-                   
+                                     userGroupMembers: userGroupsToRevoke,
+                                     userAuditLogDetails: nil)
+
                 }
 
             case .limited:

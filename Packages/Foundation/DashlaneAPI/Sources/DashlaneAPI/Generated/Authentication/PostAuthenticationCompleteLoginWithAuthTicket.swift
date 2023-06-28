@@ -1,6 +1,6 @@
 import Foundation
 extension AppAPIClient.Authentication {
-        public struct CompleteLoginWithAuthTicket {
+        public struct CompleteLoginWithAuthTicket: APIRequest {
         public static let endpoint: Endpoint = "/authentication/CompleteLoginWithAuthTicket"
 
         public let api: AppAPIClient
@@ -17,7 +17,13 @@ extension AppAPIClient.Authentication {
 }
 
 extension AppAPIClient.Authentication.CompleteLoginWithAuthTicket {
-        struct Body: Encodable {
+        public struct Body: Encodable {
+
+        private enum CodingKeys: String, CodingKey {
+            case login = "login"
+            case deviceAccessKey = "deviceAccessKey"
+            case authTicket = "authTicket"
+        }
 
                 public let login: String
 
@@ -32,13 +38,19 @@ extension AppAPIClient.Authentication.CompleteLoginWithAuthTicket {
 
         public struct DataType: Codable, Equatable {
 
-                public let remoteKeys: [AuthenticationCompleteRemoteKeys]?
+        private enum CodingKeys: String, CodingKey {
+            case remoteKeys = "remoteKeys"
+            case serverKey = "serverKey"
+            case ssoServerKey = "ssoServerKey"
+        }
+
+                public let remoteKeys: [AuthenticationCompleteWithAuthTicketRemoteKeys]?
 
                 public let serverKey: String?
 
                 public let ssoServerKey: String?
 
-        public init(remoteKeys: [AuthenticationCompleteRemoteKeys]? = nil, serverKey: String? = nil, ssoServerKey: String? = nil) {
+        public init(remoteKeys: [AuthenticationCompleteWithAuthTicketRemoteKeys]? = nil, serverKey: String? = nil, ssoServerKey: String? = nil) {
             self.remoteKeys = remoteKeys
             self.serverKey = serverKey
             self.ssoServerKey = ssoServerKey

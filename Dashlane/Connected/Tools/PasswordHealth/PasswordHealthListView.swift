@@ -74,7 +74,6 @@ struct PasswordHealthListView: View {
 
     private func detail(for credential: Credential) {
         action(.credentialDetail(credential))
-        viewModel.logOpenDetails(for: credential)
     }
 }
 

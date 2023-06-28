@@ -5,9 +5,7 @@ public struct CryptoRawConfig: Equatable {
         self.fixedSalt = fixedSalt
         self.parametersHeader = parametersHeader
     }
-    
+
     public var fixedSalt: Data?
     public let parametersHeader: String
 }
-
-

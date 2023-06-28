@@ -1,5 +1,6 @@
 import Foundation
 import SecurityDashboard
+import CorePasswords
 
 enum ToolDeepLinkComponent {
     enum OtherToolDeepLinkComponent: String {

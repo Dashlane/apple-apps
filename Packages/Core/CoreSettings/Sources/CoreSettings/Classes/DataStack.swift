@@ -5,9 +5,9 @@ extension NSManagedObjectContext {
         guard self.hasChanges else {
             return
         }
-        
+
         try self.save()
-        
+
         if let parent = self.parent {
             var result: Result<Void, Error> = .failure(URLError(.unknown))
             switch parent.concurrencyType {
@@ -22,30 +22,29 @@ extension NSManagedObjectContext {
                         result = .init(catching: parent.recursiveSave)
                     }
             }
-            
+
             try result.get()
         }
     }
 }
 
 final class DataStack {
-    
+
     private let persistentStore: NSPersistentStoreCoordinator
-    
+
     let main: NSManagedObjectContext
-    
+
     var concurrent: NSManagedObjectContext {
         let context = NSManagedObjectContext(concurrencyType: .privateQueueConcurrencyType)
         context.parent = main
         return context
     }
-    
+
     var currentThreadContext: NSManagedObjectContext {
         return Thread.isMainThread ? main : concurrent
     }
-    
-        
-    init?(modelURL: URL, storeURL: URL) {
+
+        init?(modelURL: URL, storeURL: URL) {
         guard let model = NSManagedObjectModel(contentsOf: modelURL) else {
             return nil
         }
@@ -62,5 +61,5 @@ final class DataStack {
         context.persistentStoreCoordinator = persistentStore
         main = context
     }
-    
+
 }

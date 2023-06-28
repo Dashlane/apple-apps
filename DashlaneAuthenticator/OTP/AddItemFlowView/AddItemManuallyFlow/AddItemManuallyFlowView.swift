@@ -1,20 +1,22 @@
 import Foundation
 import SwiftUI
 import UIDelight
+import AuthenticatorKit
+import LoginKit
 
 struct AddItemManuallyFlowView: View {
-    
+
     @StateObject
     var viewModel: AddItemManuallyFlowViewModel
-    
+
     init(viewModel: @autoclosure @escaping () -> AddItemManuallyFlowViewModel) {
         self._viewModel = .init(wrappedValue: viewModel())
     }
-    
+
     var body: some View {
         navigationView
     }
-    
+
     var navigationView: some View {
         StepBasedContentNavigationView(steps: $viewModel.steps) { step in
             switch step {
@@ -31,13 +33,13 @@ struct AddItemManuallyFlowView: View {
             case let .scanCode(viewModel):
                 AddItemScanCodeFlowView(viewModel: viewModel)
             case let .dashlane2FAMessage(otpInfo):
-                Dashlane2FAMessageView() {
+                Dashlane2FAMessageView {
                     viewModel.complete(otpInfo, mode: .textCode)
                 }
             }
         }
     }
-    
+
     func failedToAddItemErrorView(website: String) -> some View {
         FeedbackView(title: L10n.Localizable.errorAdd2FaTitle(website),
                   message: L10n.Localizable.errorAdd2FaMessage(L10n.Localizable.errorAdd2FaMessageModeManual, L10n.Localizable.errorAdd2FaMessageModeManualTryScan),

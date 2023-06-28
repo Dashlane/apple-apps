@@ -5,6 +5,9 @@ import DesignSystem
 import CoreNetworking
 import CoreSession
 import UIComponents
+import LoginKit
+import SwiftTreats
+import CoreLocalization
 
 struct TwoFAPhoneNumberSetupView: View {
 
@@ -39,7 +42,7 @@ struct TwoFAPhoneNumberSetupView: View {
                 if model.inProgress {
                    ProgressView()
                 } else {
-                    NavigationBarButton(action: { model.complete() }, title: L10n.Localizable.kwNext)
+                    NavigationBarButton(action: { model.complete() }, title: CoreLocalization.L10n.Core.kwNext)
                 }
             }
         }
@@ -78,10 +81,10 @@ struct TwoFAPhoneNumberSetupView: View {
             isFocused = true
         }
         .fullScreenCover(isPresented: $model.showError) {
-            FeedbackView(title: L10n.Localizable.twofaPhoneSetupErrorTitle, message: L10n.Localizable.twofaPhoneSetupErrorMessage, primaryButton: (L10n.Localizable.modalTryAgain, {
+            FeedbackView(title: L10n.Localizable.twofaPhoneSetupErrorTitle, message: L10n.Localizable.twofaPhoneSetupErrorMessage, primaryButton: (CoreLocalization.L10n.Core.modalTryAgain, {
                 dismiss()
                 model.complete()
-            }), secondaryButton: (L10n.Localizable.cancel, {
+            }), secondaryButton: (CoreLocalization.L10n.Core.cancel, {
                 model.completion(nil)
             }))
         }
@@ -111,7 +114,7 @@ struct TwoFAPhoneNumberSetupView: View {
                 .focused($isFocused)
             Spacer()
             Image(systemName: "xmark")
-                .fiberAccessibilityLabel(Text(L10n.Localizable.kwDelete))
+                .fiberAccessibilityLabel(Text(CoreLocalization.L10n.Core.kwDelete))
                 .foregroundColor(.ds.text.neutral.standard)
                 .hidden(model.phoneNumber.isEmpty)
                 .contentShape(Rectangle())
@@ -139,11 +142,5 @@ struct TwoFAPhoneNumberSetupView_Previews: PreviewProvider {
         NavigationView {
             TwoFAPhoneNumberSetupView(model: .mock(.everyLogin))
         }
-    }
-}
-
-extension String: Identifiable {
-    public var id: String {
-        return self
     }
 }

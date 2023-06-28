@@ -52,20 +52,17 @@ class ImportMethodViewModel: ImportMethodViewModelProtocol, SessionServicesInjec
     let sections: [ImportMethodSection]
     let completion: (ImportMethodCompletion) -> Void
 
-    private let usageLogService: DWMLogService
     private let dwmOnboardingService: DWMOnboardingService
     private let dwmSettings: DWMOnboardingSettings
     private let activityReporter: ActivityReporterProtocol
     private let importService: ImportMethodServiceProtocol
     private var cancellables = Set<AnyCancellable>()
 
-    init(usageLogService: UsageLogServiceProtocol,
-         dwmSettings: DWMOnboardingSettings,
+    init(dwmSettings: DWMOnboardingSettings,
          dwmOnboardingService: DWMOnboardingService,
          importService: ImportMethodServiceProtocol,
          activityReporter: ActivityReporterProtocol,
          completion: @escaping (ImportMethodCompletion) -> Void) {
-        self.usageLogService = usageLogService.dwmLogService
         self.dwmSettings = dwmSettings
         self.dwmOnboardingService = dwmOnboardingService
         self.importService = importService
@@ -80,14 +77,6 @@ class ImportMethodViewModel: ImportMethodViewModelProtocol, SessionServicesInjec
     }
 
     func logDisplay() {
-        if shouldShowDWMScanResult {
-            usageLogService.log(.noBreachesFoundMessageDisplayed)
-        }
-
-        if shouldShowDWMScanPrompt {
-            usageLogService.log(.lastChanceScanPromptDisplayed)
-        }
-
         if case .firstPassword = importService.mode {
             activityReporter.reportPageShown(.homeAddItem)
         }
@@ -103,12 +92,10 @@ class ImportMethodViewModel: ImportMethodViewModelProtocol, SessionServicesInjec
     }
 
         func dismissLastChanceScanPrompt() {
-        usageLogService.log(.lastChanceScanPromptDismissed)
         completion(.dwmScanPromptDismissed)
     }
 
     func startDWMScan() {
-        usageLogService.log(.lastChanceScanPromptAccepted)
         completion(.dwmScanRequested)
     }
 

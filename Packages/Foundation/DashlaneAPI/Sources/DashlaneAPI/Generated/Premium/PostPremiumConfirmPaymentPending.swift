@@ -1,6 +1,6 @@
 import Foundation
 extension AppAPIClient.Premium {
-        public struct ConfirmPaymentPending {
+        public struct ConfirmPaymentPending: APIRequest {
         public static let endpoint: Endpoint = "/premium/ConfirmPaymentPending"
 
         public let api: AppAPIClient
@@ -18,7 +18,12 @@ extension AppAPIClient.Premium {
 }
 
 extension AppAPIClient.Premium.ConfirmPaymentPending {
-        struct Body: Encodable {
+        public struct Body: Encodable {
+
+        private enum CodingKeys: String, CodingKey {
+            case login = "login"
+            case externalId = "externalId"
+        }
 
                 public let login: String
 

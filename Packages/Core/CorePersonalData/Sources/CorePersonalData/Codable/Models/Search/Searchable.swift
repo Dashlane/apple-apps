@@ -1,9 +1,8 @@
 import Foundation
 
-
 public protocol Searchable {
         var searchableKeyPaths: [KeyPath<Self, String>] { get }
-    
+
         static var searchCategory: SearchCategory { get }
 }
 
@@ -17,7 +16,7 @@ public struct SearchMatch: Hashable {
                 case title
                 case secondaryInfo(String)
     }
-    
+
     public let kind: Kind
     public let location: Location
     public let category: SearchCategory
@@ -45,22 +44,22 @@ public extension Searchable where Self: Displayable {
         let options: String.CompareOptions = [.diacriticInsensitive, .caseInsensitive, .widthInsensitive]
         let title = displayTitle.lowercased()
         let searchCriteria = searchCriteria.lowercased()
-        
+
                 if title.hasPrefix(searchCriteria) {
             return SearchMatch(kind: .startWith, location: .title, category: Self.searchCategory)
         }
-        
+
                 if title.range(of: searchCriteria, options: options) != nil {
             return SearchMatch(kind: .contain, location: .title, category: Self.searchCategory)
         }
 
         for keyPath in searchableKeyPaths {
             let value = self[keyPath: keyPath]
-            
+
                         if value.lowercased().hasPrefix(searchCriteria) {
                 return SearchMatch(kind: .startWith, location: .secondaryInfo(value), category: Self.searchCategory)
             }
-            
+
                         if value.range(of: searchCriteria, options: options) != nil {
                 return SearchMatch(kind: .contain, location: .secondaryInfo(value), category: Self.searchCategory)
             }

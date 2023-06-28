@@ -3,7 +3,6 @@ import CorePremium
 import CoreSettings
 import CoreSharing
 import CoreUserTracking
-import DashlaneReportKit
 import Foundation
 import VaultKit
 
@@ -65,9 +64,7 @@ class VaultItemRowModel: SessionServicesInjecting, MockVaultConnectedInjecting {
     private let vaultIconViewModelFactory: VaultItemIconViewModel.Factory
     private let quickActionsMenuViewModelFactory: QuickActionsMenuViewModel.Factory
 
-    private let userSettings: UserSettings
     private let itemPasteboard: ItemPasteboardProtocol
-    private let usageLogService: UsageLogServiceProtocol
     private let teamSpacesService: TeamSpacesService
     private let activityReporter: ActivityReporterProtocol
     private let vaultItemsService: VaultItemsServiceProtocol
@@ -80,7 +77,7 @@ class VaultItemRowModel: SessionServicesInjecting, MockVaultConnectedInjecting {
         quickActionsMenuViewModelFactory: QuickActionsMenuViewModel.Factory,
         userSettings: UserSettings,
         accessControl: AccessControlProtocol,
-        usageLogService: UsageLogServiceProtocol,
+        pasteboardService: PasteboardServiceProtocol,
         activityReporter: ActivityReporterProtocol,
         teamSpacesService: TeamSpacesService,
         vaultItemsService: VaultItemsServiceProtocol,
@@ -98,9 +95,7 @@ class VaultItemRowModel: SessionServicesInjecting, MockVaultConnectedInjecting {
         self.vaultIconViewModelFactory = vaultIconViewModelFactory
         self.quickActionsMenuViewModelFactory = quickActionsMenuViewModelFactory
 
-        self.userSettings = userSettings
-        self.itemPasteboard = ItemPasteboard(accessControl: accessControl, userSettings: userSettings)
-        self.usageLogService = usageLogService
+        self.itemPasteboard = ItemPasteboard(accessControl: accessControl, pasteboardService: pasteboardService)
         self.activityReporter = activityReporter
         self.teamSpacesService = teamSpacesService
         self.vaultItemsService = vaultItemsService
@@ -144,35 +139,18 @@ extension VaultItemRowModel {
 
     private func sendCopyUsageLog(fieldType: Definition.Field) {
         guard let origin else { return }
-
-        var action  = "quickCopy"
-        if let isUniversalClipboardEnabled: Bool = userSettings[.isUniversalClipboardEnabled],
-           isUniversalClipboardEnabled {
-            action += "Universal"
-        }
-        var website: String?
-        if let item = item as? Credential {
-            website = item.url?.domain?.name
-        }
-        usageLogService.post(
-            UsageLogCode75GeneralActions(
-                type: item.usageLogType75,
-                subtype: fieldType.rawValue,
-                action: action,
-                subaction: origin.subAction,
-                website: website,
-                position: -1
-            )
-        )
-        var isProtected = false
+        let isProtected: Bool
         if let secureItem = item as? SecureItem {
             isProtected = secureItem.secured
+        } else {
+            isProtected = false
         }
-
+        let item = item
+        let highlight = origin.definitionHighlight(isSuggested)
         activityReporter.report(
             UserEvent.CopyVaultItemField(
                 field: fieldType,
-                highlight: origin.definitionHighlight(isSuggested),
+                highlight: highlight,
                 index: Double(-1),
                 isProtected: isProtected,
                 itemId: item.anonId,
@@ -181,7 +159,7 @@ extension VaultItemRowModel {
         )
         activityReporter.report(
             AnonymousEvent.CopyVaultItemField(
-                domain: item.hashedDomainForLogs,
+                domain: item.hashedDomainForLogs(),
                 field: fieldType,
                 itemType: item.vaultItemType
             )
@@ -248,11 +226,11 @@ extension VaultItemRowModel {
 
     static func mock(
         configuration: Configuration,
-        additionialConfiguration: AdditionalConfiguration? = nil
+        additionalConfiguration: AdditionalConfiguration? = nil
     ) -> VaultItemRowModel {
         MockVaultConnectedContainer().makeVaultItemRowModel(
             configuration: configuration,
-            additionalConfiguration: additionialConfiguration
+            additionalConfiguration: additionalConfiguration
         )
     }
 }

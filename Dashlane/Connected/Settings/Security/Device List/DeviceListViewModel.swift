@@ -39,7 +39,7 @@ class DeviceListViewModel: ObservableObject, SessionServicesInjecting {
 
     private let deviceService: DeviceServiceProtocol
     private let reachability: NetworkReachability
-    private var subcription: AnyCancellable?
+    private var subscription: AnyCancellable?
     private var logoutAndDeleteHandler: (() -> Void)?
 
     init(apiClient: DeprecatedCustomAPIClient, legacyWebService: LegacyWebService, session: Session, reachability: NetworkReachability, logoutHandler: SessionLifeCycleHandler?) {
@@ -87,7 +87,7 @@ class DeviceListViewModel: ObservableObject, SessionServicesInjecting {
             return
         }
 
-        subcription = reachability.$isConnected
+        subscription = reachability.$isConnected
             .receive(on: DispatchQueue.main)
             .filter { $0 }.sink { [weak self] _ in
             self?.fetch()

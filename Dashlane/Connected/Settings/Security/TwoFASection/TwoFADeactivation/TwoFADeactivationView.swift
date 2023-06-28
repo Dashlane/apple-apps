@@ -25,24 +25,6 @@ struct TwoFADeactivationView: View {
 
     var body: some View {
         NavigationView {
-            ZStack {
-                switch model.state {
-                case .otpInput:
-                    mainView
-                case .inProgress:
-                    TwoFAProgressView(state: $model.progressState)
-                case .failure:
-                    errorView
-                case .twoFAEnforced:
-                    enforcementView
-                }
-            }
-            .frame(maxWidth: .infinity)
-            .onReceive(model.dismissPublisher) {
-                dismiss()
-            }
-            .animation(.default, value: model.state)
-            .animation(.default, value: model.isTokenError)
             navigationContent
                 .modifier(LostOTPSheetModifier(isLostOTPSheetDisplayed: $isLostOTPSheetDisplayed,
                                                useBackupCode: { code in Task { await model.useBackupCode(code) }},
@@ -57,7 +39,7 @@ struct TwoFADeactivationView: View {
             case .otpInput:
                 mainView
             case .inProgress:
-                TwoFAProgressView(state: $model.progressState)
+                ProgressionView(state: $model.progressState)
             case .failure:
                 errorView
             case .twoFAEnforced:
@@ -81,16 +63,17 @@ struct TwoFADeactivationView: View {
                     .weight(.medium))
                 .foregroundColor(.ds.text.neutral.catchy)
             otpField
-            Group {
+
+            Button(action: {
+                isLostOTPSheetDisplayed = true
+            }, label: {
                 Text(L10n.Localizable.twofaDeactivationHelpTitle)
                     .foregroundColor(.ds.text.neutral.quiet) + Text(" ") +
                 Text(L10n.Localizable.twofaDeactivationHelpCta)
                     .foregroundColor(.ds.text.brand.standard)
                     .underline()
-            }
-            .onTapGesture {
-                isLostOTPSheetDisplayed = true
-            }
+            })
+
             Spacer()
         }
         .padding(24)
@@ -98,7 +81,7 @@ struct TwoFADeactivationView: View {
         .navigationTitle(Text(L10n.Localizable.twofaStepsNavigationTitle))
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
-                NavigationBarButton(action: dismiss.callAsFunction, title: L10n.Localizable.cancel)
+                NavigationBarButton(action: dismiss.callAsFunction, title: CoreLocalization.L10n.Core.cancel)
             }
             ToolbarItem(placement: .navigationBarTrailing) {
                 NavigationBarButton(action: {
@@ -106,7 +89,7 @@ struct TwoFADeactivationView: View {
                         await model.disable(model.otpValue)
                     }
                 }, label: {
-                    Text(L10n.Localizable.kwNext)
+                    Text(CoreLocalization.L10n.Core.kwNext)
                         .opacity(model.canValidate ? 1 : 0.5)
                 })
                 .disabled(!model.canValidate)
@@ -136,9 +119,13 @@ struct TwoFADeactivationView: View {
 
     var enforcementView: some View {
         FeedbackView(title: L10n.Localizable.twofaDisableTitle,
-                     message: L10n.Localizable.twofaDisableMessage1 + "\n\n" + L10n.Localizable.twofaDisableMessage2, kind: .twoFA,
+                     message: L10n.Localizable.twofaDisableMessage1,
+                     kind: .twoFA,
                      primaryButton: (L10n.Localizable.twofaDisableCta, { model.state = .otpInput }),
-                     secondaryButton: (L10n.Localizable.cancel, { dismiss() }))
+                     secondaryButton: (CoreLocalization.L10n.Core.cancel, { dismiss() }),
+                     accessory: {
+            Text(L10n.Localizable.twofaDisableMessage2)
+        })
     }
 }
 
@@ -148,5 +135,6 @@ struct TwoFADeactivationView_Previews: PreviewProvider {
         TwoFADeactivationView(model: .mock(state: .otpInput))
         TwoFADeactivationView(model: .mock(state: .failure))
         TwoFADeactivationView(model: .mock(state: .inProgress))
+        TwoFADeactivationView(model: .mock(state: .twoFAEnforced))
     }
 }

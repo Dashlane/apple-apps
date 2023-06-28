@@ -4,7 +4,7 @@ public struct Category {
     public let id: String
         public let color: CommonColor
         public let code: String
-    
+
     public let important: Bool
 }
 
@@ -13,7 +13,7 @@ internal struct Domain {
 }
 
 extension Category: Equatable, Hashable {
-    public static func ==(lhs: Category, rhs: Category) -> Bool {
+    public static func == (lhs: Category, rhs: Category) -> Bool {
         return lhs.id == rhs.id
     }
 
@@ -23,14 +23,14 @@ extension Category: Equatable, Hashable {
 }
 
 extension Category {
-    
+
     private struct DBKeys {
         static let color = "COLOR"
         static let code = "CODE"
         static let id = "ID"
         static let important = "IMPORTANT"
     }
-    
+
     init?(row: SQLRow) {
         guard let uiColor = row[DBKeys.color].flatMap(CommonColor.init),
             let code = row[DBKeys.code],
@@ -41,7 +41,6 @@ extension Category {
         self.init(id: id, color: uiColor, code: code, important: row[DBKeys.important] == "1")
     }
 }
-
 
 extension Domain {
     init?(row: SQLRow) {

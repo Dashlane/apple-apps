@@ -11,7 +11,7 @@ public extension View {
             DocumentPicker(.export(fileURL), completion: { _ in completion() })
         )
     }
-    
+
     func documentPicker(open contentTypes: [UTType], isPresented: Binding<Bool>, completion: @escaping (Data?) -> Void) -> some View {
         background(
             DocumentPicker(.open(contentTypes, isPresented: isPresented), completion: completion)
@@ -84,7 +84,7 @@ private final class DocumentPickerControllerWrapper: UIViewController, UIDocumen
         guard presentedViewController == nil else { return }
 
         let controller: UIDocumentPickerViewController
-        
+
         switch mode {
         case .export(let fileURL):
             controller = UIDocumentPickerViewController(forExporting: [fileURL.wrappedValue!])
@@ -107,7 +107,7 @@ private final class DocumentPickerControllerWrapper: UIViewController, UIDocumen
             dismiss()
             return
         }
-        
+
         dismiss(data)
     }
 

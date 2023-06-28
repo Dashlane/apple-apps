@@ -10,15 +10,13 @@ struct TrialPeriodNotificationRowView: View {
     var body: some View {
         BaseNotificationRowView(icon: model.notification.icon,
                                 title: model.notification.title,
-                                description: model.notification.description,
-                                reportClick: model.notification.notificationActionHandler.reportClick) {
+                                description: model.notification.description) {
             self.model.showTrialFeatureView = true
         }
                                 .sheet(isPresented: $model.showTrialFeatureView) {
                                     TrialFeaturesView(viewModel: .init(capabilityService: model.capabilityService,
                                                                        deepLinkingService: model.deepLinkingService,
-                                                                       activityReporter: model.activityReporter),
-                                                                       dismiss: dismiss)
+                                                                       activityReporter: model.activityReporter))
                                 }
     }
 }

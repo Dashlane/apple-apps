@@ -7,16 +7,16 @@ extension DatabaseReader {
               record.metadata.syncStatus != .pendingRemove else {
                   return nil
               }
-        
+
         return record
     }
-    
+
     func fetchOneMetadataForSharing(with id: Identifier) throws -> RecordMetadata? {
         guard let metadata = try fetchOneMetadata(with: id),
               metadata.syncStatus != .pendingRemove else {
                   return nil
               }
-        
+
         return metadata
     }
 }

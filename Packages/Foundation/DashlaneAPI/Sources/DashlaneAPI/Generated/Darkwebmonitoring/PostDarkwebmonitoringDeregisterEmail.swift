@@ -1,6 +1,6 @@
 import Foundation
 extension UserDeviceAPIClient.Darkwebmonitoring {
-        public struct DeregisterEmail {
+        public struct DeregisterEmail: APIRequest {
         public static let endpoint: Endpoint = "/darkwebmonitoring/DeregisterEmail"
 
         public let api: UserDeviceAPIClient
@@ -17,7 +17,11 @@ extension UserDeviceAPIClient.Darkwebmonitoring {
 }
 
 extension UserDeviceAPIClient.Darkwebmonitoring.DeregisterEmail {
-        struct Body: Encodable {
+        public struct Body: Encodable {
+
+        private enum CodingKeys: String, CodingKey {
+            case email = "email"
+        }
 
                 public let email: String
     }
@@ -27,6 +31,11 @@ extension UserDeviceAPIClient.Darkwebmonitoring.DeregisterEmail {
     public typealias Response = DataType
 
         public struct DataType: Codable, Equatable {
+
+        private enum CodingKeys: String, CodingKey {
+            case email = "email"
+            case result = "result"
+        }
 
                 public let email: String
 

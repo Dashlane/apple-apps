@@ -8,7 +8,7 @@ extension BankAccount {
         .static(Image(asset: Asset.bankAccountThumb),
                 backgroundColor: Color.clear)
     }
-    
+
     public static var addIcon: SwiftUI.Image {
         .ds.item.taxNumber.outlined
     }

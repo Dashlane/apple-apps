@@ -67,13 +67,13 @@ struct GenerateAndEvaluatePasswordHandler: MaverickOrderHandleable, SessionServi
 
     let maverickOrderMessage: MaverickOrderMessage
     let passwordEvaluator: PasswordEvaluatorProtocol
-    let personalDataURLDecoder: DashlaneAppKit.PersonalDataURLDecoder
+    let personalDataURLDecoder: PersonalDataURLDecoderProtocol
     let database: ApplicationDatabase
     let userSettings: UserSettings
 
     init(maverickOrderMessage: MaverickOrderMessage,
          passwordEvaluator: PasswordEvaluatorProtocol,
-         personalDataURLDecoder: DashlaneAppKit.PersonalDataURLDecoder,
+         personalDataURLDecoder: PersonalDataURLDecoderProtocol,
          database: ApplicationDatabase,
          userSettings: UserSettings) {
         self.maverickOrderMessage = maverickOrderMessage
@@ -89,7 +89,7 @@ struct GenerateAndEvaluatePasswordHandler: MaverickOrderHandleable, SessionServi
         }
 
         let generatedPassword = try generatePassword(fromRequest: request, userSettings: userSettings)
-        let score = passwordEvaluator.evaluate(generatedPassword).strength.score
+        let score = passwordEvaluator.evaluate(generatedPassword).score
 
         var generated = GeneratedPassword()
         generated.password = generatedPassword

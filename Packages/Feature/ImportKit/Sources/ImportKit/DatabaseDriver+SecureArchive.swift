@@ -2,7 +2,6 @@ import Foundation
 import CorePersonalData
 import DashlaneCrypto
 import DashTypes
-import DashlaneAppKit
 
 extension DatabaseDriver {
     private func makeSecureArchiveStack(password: String) throws -> SecureArchiveDBStack {

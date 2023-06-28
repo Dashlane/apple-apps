@@ -2,6 +2,7 @@ import Foundation
 import SwiftUI
 import Combine
 import UIDelight
+import CoreLocalization
 
 struct AccessControlView<Model: AccessControlViewModelProtocol>: View {
 
@@ -53,9 +54,9 @@ struct AccessControlView<Model: AccessControlViewModelProtocol>: View {
     }
 
     private func alert(for error: AccessControl.AuthenticationError) -> Alert {
-        Alert(title: Text(L10n.Localizable.kwErrorTitle),
+        Alert(title: Text(CoreLocalization.L10n.Core.kwErrorTitle),
               message: Text(L10n.Localizable.message(for: error)),
-              dismissButton: Alert.Button.default(Text(L10n.Localizable.kwButtonOk), action: self.model.cancel))
+              dismissButton: Alert.Button.default(Text(CoreLocalization.L10n.Core.kwButtonOk), action: self.model.cancel))
     }
 
 }

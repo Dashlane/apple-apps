@@ -4,12 +4,12 @@ import CommonCrypto
 public struct AES {
 
         fileprivate static func recursiveCrypt(data: Data,
-                                          withKey key: Data,
-                                          mode: AESMode = .cbc,
-                                          initializationVector iv: [UInt8],
-                                          operation: CCOperation,
-                                          bufferSize: Int? = nil) -> Data? {
-        
+                                           withKey key: Data,
+                                           mode: AESMode = .cbc,
+                                           initializationVector iv: [UInt8],
+                                           operation: CCOperation,
+                                           bufferSize: Int? = nil) -> Data? {
+
         let bufferSize = bufferSize ?? data.count + kCCBlockSizeAES128 
         var buffer = [UInt8](repeating: 0, count: bufferSize )
         var dataOutMoved = 0
@@ -39,9 +39,9 @@ public struct AES {
     }
 
     public static func encrypt(data: Data,
-                       withKey key: Data,
-                       mode: AESMode = .cbc,
-                       initializationVector iv: [UInt8]) -> Data? {
+                               withKey key: Data,
+                               mode: AESMode = .cbc,
+                               initializationVector iv: [UInt8]) -> Data? {
         return AES.recursiveCrypt(data: data,
                                   withKey: key,
                                   mode: mode,
@@ -50,9 +50,9 @@ public struct AES {
     }
 
     public static func decrypt(data: Data,
-                       withKey key: Data,
-                       mode: AESMode = .cbc,
-                       initializationVector iv: [UInt8]) -> Data? {
+                               withKey key: Data,
+                               mode: AESMode = .cbc,
+                               initializationVector iv: [UInt8]) -> Data? {
         return AES.recursiveCrypt(data: data,
                                   withKey: key,
                                   mode: mode,

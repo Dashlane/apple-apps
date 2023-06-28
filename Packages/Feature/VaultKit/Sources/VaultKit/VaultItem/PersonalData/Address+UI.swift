@@ -19,7 +19,7 @@ extension Address: VaultItem {
             .components(separatedBy: "\n")
             .joined(separator: ", ")
     }
-    
+
     public static var localizedName: String {
         L10n.Core.kwAddressIOS
     }
@@ -27,7 +27,7 @@ extension Address: VaultItem {
     public static var addTitle: String {
         L10n.Core.kwadddatakwAddressIOS
     }
-    
+
     public static var nativeMenuAddTitle: String {
         L10n.Core.addAddress
     }

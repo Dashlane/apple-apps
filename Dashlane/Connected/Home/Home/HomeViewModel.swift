@@ -1,7 +1,6 @@
 import SwiftUI
 import Combine
 import CorePersonalData
-import DashlaneReportKit
 import CoreUserTracking
 import CoreFeature
 import DashlaneAppKit
@@ -10,11 +9,17 @@ import CoreSettings
 import DashTypes
 import NotificationKit
 import CorePremium
+import ImportKit
+import AutofillKit
+import VaultKit
 
 class HomeViewModel: ObservableObject, SessionServicesInjecting {
 
     @Published
     var showAutofillBanner: Bool = false
+
+    @Published
+    var shouldShowLastpassBanner: Bool
 
     @Published
     var shouldShowOnboardingBanner: Bool
@@ -23,59 +28,54 @@ class HomeViewModel: ObservableObject, SessionServicesInjecting {
 
     private let vaultItemsService: VaultItemsServiceProtocol
     private let autofillService: AutofillService
-    private let usageLogService: UsageLogServiceProtocol
     private let brazeService: BrazeServiceProtocol
+    private let featureService: FeatureServiceProtocol
     private var subscriptions = Set<AnyCancellable>()
     private let queue = DispatchQueue(label: "homeView", qos: .utility)
     private let premiumAnnouncementsViewModel: PremiumAnnouncementsViewModel
+    private let isLastpassInstalled: Bool
 
     let autofillBannerViewModel: AutofillBannerViewModel
+    let lastpassImportBannerViewModel: LastpassImportBannerViewModel
     let userSettings: UserSettings
     let onboardingChecklistViewModel: OnboardingChecklistViewModel?
     let vaultListViewModel: VaultListViewModel
 
-    var shouldDisplayEmptyVaultPlaceholder: Bool {
-        Device.isMac && vaultItemsService.credentials.isEmpty
-    }
-
-    var homeAnnouncementsViewModel: HomeBannersAnnouncementsViewModel {
+    func makeHomeAnnouncementsViewModel() -> HomeBannersAnnouncementsViewModel {
         HomeBannersAnnouncementsViewModel(premiumAnnouncementsViewModel: premiumAnnouncementsViewModel,
                                           autofillBannerViewModel: autofillBannerViewModel,
-                                          showAutofillBanner: showAutofillBanner)
+                                          lastpassImportBannerViewModel: lastpassImportBannerViewModel,
+                                          showAutofillBannerPublisher: $showAutofillBanner.eraseToAnyPublisher(),
+                                          shouldShowLastpassBanner: shouldShowLastpassBanner,
+                                          credentialsCount: vaultItemsService.credentials.count)
     }
-
-    let modalAnnouncementsViewModel: HomeModalAnnouncementsViewModel
 
     init(
         vaultItemsService: VaultItemsServiceProtocol,
         autofillService: AutofillService,
         userSettings: UserSettings,
         viewModelFactory: ViewModelFactory?,
-        usageLogService: UsageLogServiceProtocol,
         brazeService: BrazeServiceProtocol,
         syncedSettings: SyncedSettingsService,
+        featureService: FeatureServiceProtocol,
         premiumService: CorePremium.PremiumServiceProtocol,
         deepLinkingService: NotificationKitDeepLinkingServiceProtocol,
         activityReporter: ActivityReporterProtocol,
         capabilityService: CapabilityServiceProtocol,
-        lockService: LockServiceProtocol,
         abTestingService: ABTestingServiceProtocol,
         onboardingAction: @escaping (OnboardingChecklistFlowViewModel.Action) -> Void,
         action: @escaping (VaultFlowViewModel.Action) -> Void,
-        homeModalAnnouncementsViewModelFactory: HomeModalAnnouncementsViewModel.Factory,
+        lastpassDetector: LastpassDetector,
         vaultListViewModelFactory: VaultListViewModel.Factory,
         premiumAnnouncementsViewModelFactory: PremiumAnnouncementsViewModel.Factory
     ) {
-        self.usageLogService = usageLogService
+        self.featureService = featureService
         self.userSettings = userSettings
         self.brazeService = brazeService
-        self.onboardingChecklistViewModel = viewModelFactory?.makeOnboardingChecklistViewModel(
-            logsService: .init(usageLogService: usageLogService),
-            action: onboardingAction)
+        self.onboardingChecklistViewModel = viewModelFactory?.makeOnboardingChecklistViewModel(action: onboardingAction)
         self.autofillService = autofillService
         self.vaultItemsService = vaultItemsService
 
-        self.modalAnnouncementsViewModel = homeModalAnnouncementsViewModelFactory.make()
         self.premiumAnnouncementsViewModel = premiumAnnouncementsViewModelFactory.make(excludedAnnouncements: [])
         self.action = action
         self.autofillBannerViewModel = AutofillBannerViewModel {
@@ -84,25 +84,22 @@ class HomeViewModel: ObservableObject, SessionServicesInjecting {
                 action(.showAutofillDemo)
             }
         }
+        self.lastpassImportBannerViewModel = .init(deeplinkingService: deepLinkingService,
+                                                   userSettings: userSettings)
         self.vaultListViewModel = vaultListViewModelFactory.make(filter: .all) { completion in
             switch completion {
-            case let .enterDetail(item, selectVaultItem):
-                action(.didSelectItem(item, selectVaultItem: selectVaultItem))
+            case let .enterDetail(item, selectVaultItem, isEditing):
+                action(.didSelectItem(item, selectVaultItem: selectVaultItem, isEditing: isEditing))
             case let.addItem(mode):
                 action(.addItem(displayMode: mode))
             }
         }
+        self.isLastpassInstalled = lastpassDetector.isLastpassInstalled
 
+        self.shouldShowLastpassBanner = featureService.isEnabled(.lastpassImport) && self.userSettings[.lastpassImportPopupHasBeenShown] != true && isLastpassInstalled
         shouldShowOnboardingBanner = userSettings.shouldShowOnboardingChecklist
 
         setupPublishers()
-
-        lockService.locker.screenLocker?
-            .$lock
-            .filter { $0 == nil }
-            .sink { [weak self] _ in
-                self?.modalAnnouncementsViewModel.trigger.send(.sessionUnlocked)
-            }.store(in: &subscriptions)
     }
 
     func setupPublishers() {
@@ -122,6 +119,8 @@ class HomeViewModel: ObservableObject, SessionServicesInjecting {
             switch key {
             case .hasUserDismissedOnboardingChecklist, .hasUserUnlockedOnboardingChecklist:
                 self.shouldShowOnboardingBanner = self.userSettings.shouldShowOnboardingChecklist
+            case .lastpassImportPopupHasBeenShown:
+                self.shouldShowLastpassBanner = self.featureService.isEnabled(.lastpassImport) && self.userSettings[.lastpassImportPopupHasBeenShown] != true && self.isLastpassInstalled
             default:
                 break
             }
@@ -145,18 +144,17 @@ extension HomeViewModel {
             autofillService: AutofillService(vaultItemsService: MockServicesContainer().vaultItemsService),
             userSettings: .mock,
             viewModelFactory: nil,
-            usageLogService: UsageLogService.fakeService,
             brazeService: BrazeService.mock,
             syncedSettings: .mock,
+            featureService: .mock(),
             premiumService: CorePremium.PremiumServiceMock(),
             deepLinkingService: NotificationKitDeepLinkingServiceMock(),
             activityReporter: .fake,
-            capabilityService: CapabilityServiceMock(),
-            lockService: LockServiceMock(),
+            capabilityService: .mock(),
             abTestingService: ABTestingServiceMock.mock,
             onboardingAction: { _ in },
             action: { _ in },
-            homeModalAnnouncementsViewModelFactory: .init { .mock },
+            lastpassDetector: .mock,
             vaultListViewModelFactory: .init { _, _  in .mock },
             premiumAnnouncementsViewModelFactory: .init { .mock(announcements: Array($0)) }
         )

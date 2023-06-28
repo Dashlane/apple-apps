@@ -7,6 +7,8 @@ import DocumentServices
 import CoreUserTracking
 import CoreSettings
 import VaultKit
+import UIComponents
+import CoreLocalization
 
 class EmailDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting, MockVaultConnectedInjecting {
 
@@ -21,16 +23,15 @@ class EmailDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting, M
         vaultItemsService: VaultItemsServiceProtocol,
         sharingService: SharedVaultHandling,
         teamSpacesService: TeamSpacesService,
-        usageLogService: UsageLogServiceProtocol,
         documentStorageService: DocumentStorageService,
-        deepLinkService: DeepLinkingServiceProtocol,
+        deepLinkService: VaultKit.DeepLinkingServiceProtocol,
         activityReporter: ActivityReporterProtocol,
         iconViewModelProvider: @escaping (VaultItem) -> VaultItemIconViewModel,
         logger: Logger,
         accessControl: AccessControlProtocol,
         userSettings: UserSettings,
-        attachmentSectionFactory: AttachmentsSectionViewModel.Factory,
-        attachmentsListViewModelProvider: @escaping (VaultItem, AnyPublisher<VaultItem, Never>) -> AttachmentsListViewModel
+        pasteboardService: PasteboardServiceProtocol,
+        attachmentSectionFactory: AttachmentsSectionViewModel.Factory
     ) {
         self.init(
             service: .init(
@@ -39,16 +40,15 @@ class EmailDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting, M
                 vaultItemsService: vaultItemsService,
                 sharingService: sharingService,
                 teamSpacesService: teamSpacesService,
-                usageLogService: usageLogService,
                 documentStorageService: documentStorageService,
                 deepLinkService: deepLinkService,
                 activityReporter: activityReporter,
                 iconViewModelProvider: iconViewModelProvider,
+                attachmentSectionFactory: attachmentSectionFactory,
                 logger: logger,
                 accessControl: accessControl,
                 userSettings: userSettings,
-                attachmentSectionFactory: attachmentSectionFactory,
-                attachmentsListViewModelProvider: attachmentsListViewModelProvider
+                pasteboardService: pasteboardService
             )
         )
     }
@@ -75,7 +75,7 @@ class EmailDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting, M
     private func setupName() {
         if mode.isAdding {
             let count = vaultItemsService.emails.count + 1
-            item.name = "\(L10n.Localizable.kwEmailIOS) \(count)"
+            item.name = "\(CoreLocalization.L10n.Core.kwEmailIOS) \(count)"
         }
     }
 }

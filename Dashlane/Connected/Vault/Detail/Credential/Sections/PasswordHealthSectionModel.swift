@@ -12,8 +12,8 @@ class PasswordHealthSectionModel: DetailViewModelProtocol, SessionServicesInject
     @Published
     var isCompromised: Bool = false
 
-    var passwordStrength: PasswordStrength {
-        passwordEvaluator.evaluate(item.password).strength
+        var passwordStrength: PasswordStrength {
+        passwordEvaluator.evaluate(item.password)
     }
 
     let service: DetailService<Credential>
@@ -64,7 +64,7 @@ extension PasswordHealthSectionModel {
     static func mock(service: DetailService<Credential>) -> PasswordHealthSectionModel {
         PasswordHealthSectionModel(
             service: service,
-            passwordEvaluator: PasswordEvaluator.mock,
+            passwordEvaluator: .mock(),
             identityDashboardService: IdentityDashboardService.mock
         )
     }

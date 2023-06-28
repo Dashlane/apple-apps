@@ -14,6 +14,7 @@ struct MasterPasswordMigrationView: View {
     var body: some View {
         VStack {
             Image(asset: FiberAsset.multidevices)
+                .accessibilityHidden(true)
             VStack(spacing: 24) {
                 Text(title)
                     .font(.title)
@@ -22,7 +23,7 @@ struct MasterPasswordMigrationView: View {
                     .fixedSize(horizontal: false, vertical: true)
                 Text(subtitle)
                     .font(.subheadline)
-                    .foregroundColor(Color(asset: FiberAsset.dashlaneTextGrey))
+                    .foregroundColor(.ds.text.neutral.quiet)
                     .multilineTextAlignment(.center)
                     .fixedSize(horizontal: false, vertical: true)
             }.padding(.top, 43)
@@ -34,7 +35,7 @@ struct MasterPasswordMigrationView: View {
                     .roundedButtonLayout(.fill)
                 Button(action: {completion(.cancel)}, label: {
                     Text(cancelButtonTitle)
-                        .foregroundColor(Color(asset: FiberAsset.buttonTitle))
+                        .foregroundColor(.ds.text.brand.standard)
                         .frame(maxWidth: .infinity)
                         .frame(height: 50)
                         .contentShape(Rectangle())
@@ -58,7 +59,7 @@ extension MasterPasswordMigrationView: NavigationBarStyleProvider {
 struct MasterPasswordMigrationView_Previews: PreviewProvider {
     static var previews: some View {
         MasterPasswordMigrationView(title: "Create a Master Password for Dashlane",
-                                    subtitle: "Your account rights have changed. Create a strong Master Password to log in to Dashlane going forward.",
+                                    subtitle: "Your account rights have changed. Create a strong Master Password to log into Dashlane going forward.",
                                     migrateButtonTitle: "Create Master Password",
                                     cancelButtonTitle: "Log out",
                                     completion: {_ in})

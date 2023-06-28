@@ -6,7 +6,7 @@ import DashlaneAppKit
 
 class RatingService {
     var requestRating = false
-    
+
     enum Key: String, CustomStringConvertible {
         var description: String {
             return rawValue
@@ -14,17 +14,17 @@ class RatingService {
         case sessionCount
         case lastVersionPromptedForReview
     }
-    
+
     @SharedUserDefault(key: Key.sessionCount, userDefaults: ApplicationGroup.authenticatorUserDefaults)
     var sessionCount: Int?
-    
+
     @SharedUserDefault(key: Key.lastVersionPromptedForReview, userDefaults: ApplicationGroup.authenticatorUserDefaults)
     var lastVersionPromptedForReview: String?
-    
+
     init() {
         start()
     }
-    
+
     func start() {
                 var count = sessionCount ?? 0
         count += 1
@@ -36,7 +36,7 @@ class RatingService {
             requestRating = true
         }
     }
-    
+
     func update() {
         lastVersionPromptedForReview = Application.version()
         requestRating = false

@@ -10,4 +10,11 @@ public enum LocalLoginFlowContext {
         default: return false
         }
     }
+
+    var isPasswordApp: Bool {
+        switch self {
+        case .passwordApp: return true
+        default: return false
+        }
+    }
 }

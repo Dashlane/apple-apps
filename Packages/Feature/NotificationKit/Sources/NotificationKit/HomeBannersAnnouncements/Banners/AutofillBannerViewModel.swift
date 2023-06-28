@@ -1,6 +1,5 @@
 import Foundation
 import Combine
-import DashlaneReportKit
 import DashTypes
 
 public class AutofillBannerViewModel: ObservableObject {

@@ -2,6 +2,7 @@ import SwiftUI
 import DesignSystem
 import SwiftTreats
 import UIComponents
+import LoginKit
 
 struct SSOEnableBiometricsOrPinView: View {
 

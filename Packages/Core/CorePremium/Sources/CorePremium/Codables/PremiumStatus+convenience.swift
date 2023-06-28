@@ -11,7 +11,7 @@ public extension PremiumStatus {
         }
         return false
     }
-    
+
         var isPremiumFreeOfCharge: Bool {
                 guard statusCode == .premium,
               !capabilities.secureWiFi.enabled,

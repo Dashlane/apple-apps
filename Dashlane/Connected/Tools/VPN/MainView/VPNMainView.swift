@@ -7,6 +7,7 @@ import UIDelight
 import UIComponents
 import VaultKit
 import DesignSystem
+import CoreLocalization
 
 struct VPNMainView: View {
 
@@ -83,27 +84,32 @@ struct VPNMainView: View {
             VStack {
                 HStack(spacing: 8) {
                     VaultItemIconView(isListStyle: true, model: VaultItemIconViewModel(item: credential,
-                                                                                       iconService: model.iconService))
+                                                                                       iconLibrary: model.iconService.domain))
                     Text("Hotspot Shield").font(.body).fontWeight(.semibold)
                     Spacer()
                 }
-                TextDetailField(title: L10n.Localizable.KWAuthentifiantIOS.login,
-                                text: Binding.constant(credential.email))
-                    .actions([.copy(copy)])
-                    .fiberFieldType(.email)
-                    .padding(.top, 26)
+                TextDetailField(
+                    title: CoreLocalization.L10n.Core.KWAuthentifiantIOS.login,
+                    text: Binding.constant(credential.email),
+                    actions: [.copy(copy)]
+                )
+                .actions([.copy(copy)])
+                .fiberFieldType(.email)
+                .padding(.top, 26)
 
-                SecureDetailField(title: L10n.Localizable.KWAuthentifiantIOS.password,
-                                  text: Binding.constant(credential.password),
-                                  shouldReveal: $model.shouldReveal,
-                                  action: { _ in model.shouldReveal.toggle() },
-                                  isColored: true)
-                    .actions([.copy(copy)])
-                    .fiberFieldType(.password)
-
+                SecureDetailField(
+                    title: CoreLocalization.L10n.Core.KWAuthentifiantIOS.password,
+                    text: Binding.constant(credential.password),
+                    shouldReveal: $model.shouldReveal,
+                    onRevealAction: { _ in model.shouldReveal.toggle() },
+                    isColored: true,
+                    actions: [.copy(copy)]
+                )
+                .actions([.copy(copy)])
+                .fiberFieldType(.password)
             }
             .padding(16)
-            .background(Color(asset: FiberAsset.grey06))
+            .background(Color.ds.container.expressive.neutral.quiet.idle)
             .cornerRadius(8)
         }
     }
@@ -115,7 +121,7 @@ struct VPNMainView: View {
                     .font(.custom(GTWalsheimPro.bold.name, size: 26, relativeTo: .title).weight(.medium))
                 Text(model.subtitle)
                     .font(.subheadline)
-                    .foregroundColor(Color(asset: FiberAsset.neutralText))
+                    .foregroundColor(.ds.text.neutral.quiet)
                     .padding(.top, 8)
             }
             Spacer()
@@ -133,7 +139,7 @@ struct VPNMainView: View {
             Text(L10n.Localizable.mobileVpnPageFaqTitle)
                 .textCase(.uppercase)
                 .font(.footnote)
-                .foregroundColor(Color(asset: FiberAsset.grey01))
+                .foregroundColor(.ds.text.neutral.quiet)
                 .accessibility(addTraits: .isHeader)
 
             FAQView(items: [

@@ -11,14 +11,11 @@ public struct DocumentDeleteService {
     }
     let database: ApplicationDatabase
     let webservice: ProgressableNetworkingEngine
-    let logger: DocumentStorageLogger
 
     init(database: ApplicationDatabase,
-         webservice: ProgressableNetworkingEngine,
-         logger: DocumentStorageLogger) {
+         webservice: ProgressableNetworkingEngine) {
         self.database = database
         self.webservice = webservice
-        self.logger = logger
     }
 
                 public func deleteAllAttachments(of item: DocumentAttachable) async throws {
@@ -53,7 +50,7 @@ public struct DocumentDeleteService {
     }
 
                             public func deleteAttachment(_ attachment: Attachment,
-                          on item: DocumentAttachable) async throws {
+                                 on item: DocumentAttachable) async throws {
         try await deleteAttachmentRemotely(attachment, on: item)
         var updatingItem = item
         updatingItem.attachments?.remove(attachment)
@@ -75,7 +72,6 @@ public struct DocumentDeleteService {
                 try? self.database.fetch(with: Identifier(attachment.id), type: SecureFileInformation.self)
             }
 
-        secureFileInfo.forEach { self.logger.logAttachment(for: $0, action: .delete)}
         try self.database.delete(secureFileInfo)
     }
 }

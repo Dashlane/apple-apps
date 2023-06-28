@@ -1,5 +1,4 @@
 import Foundation
-
 struct Bitset {
 
 		private let bitsetSize = 32
@@ -56,19 +55,19 @@ struct Bitset {
 extension Bitset {
 
 	static func & (lhs: Bitset, rhs: Bitset) -> Bitset {
-		let m = max(lhs.size, rhs.size)
-		var out = Bitset(size: m)
-		let n = min(lhs.bitset.count, rhs.bitset.count)
-		for i in 0..<n {
-			out.bitset[i] = lhs.bitset[i] & rhs.bitset[i]
+		let max = max(lhs.size, rhs.size)
+		var out = Bitset(size: max)
+		let min = min(lhs.bitset.count, rhs.bitset.count)
+		for index in 0..<min {
+			out.bitset[index] = lhs.bitset[index] & rhs.bitset[index]
 		}
 		return out
 	}
 
 	static prefix func ~ (rhs: Bitset) -> Bitset {
 		var out = Bitset(size: rhs.size)
-		for i in 0..<rhs.bitset.count {
-			out.bitset[i] = ~rhs.bitset[i]
+		for index in 0..<rhs.bitset.count {
+			out.bitset[index] = ~rhs.bitset[index]
 		}
 		return out
 	}

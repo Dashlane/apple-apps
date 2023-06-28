@@ -18,6 +18,7 @@ internal enum Asset {
   internal static let dashImport = ImageAsset(name: "dash-import")
   internal static let keychainImport = ImageAsset(name: "keychain-import")
   internal static let keychainInstructions = ImageAsset(name: "keychain-instructions")
+  internal static let lastpassImport = ImageAsset(name: "lastpass-import")
   internal static let checkboxSelected = ImageAsset(name: "checkboxSelected")
   internal static let checkboxUnselected = ImageAsset(name: "checkboxUnselected")
   internal static let importError = ImageAsset(name: "import-error")

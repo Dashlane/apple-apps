@@ -134,11 +134,18 @@ fileprivate extension ActivityReporterProtocol {
 
 extension PasswordHealthFlowViewModel {
     static var mock: PasswordHealthFlowViewModel {
-        return .init(passwordHealthViewModelFactory: .init({ _ in .mock }),
-                     passwordHealthDetailedListViewModelFactory: .init({ _, _ in .mock }),
-                     credentialDetailViewModelFactory: .init({ _, _, _, _, _, _ in MockVaultConnectedContainer().makeCredentialDetailViewModel(item: PersonalDataMock.Credentials.amazon, mode: .viewing) }),
-                     deeplinkingService: DeepLinkingService.fakeService,
-                     activityReporter: .fake,
-                     origin: .identityDashboard)
+        return .init(
+            passwordHealthViewModelFactory: .init({ _  in .mock }),
+            passwordHealthDetailedListViewModelFactory: .init({ _, _ in .mock }),
+            credentialDetailViewModelFactory: .init { _, _, _, _, _, _ in
+                MockVaultConnectedContainer().makeCredentialDetailViewModel(
+                    item: PersonalDataMock.Credentials.amazon,
+                    mode: .viewing
+                )
+            },
+            deeplinkingService: DeepLinkingService.fakeService,
+            activityReporter: .fake,
+            origin: .identityDashboard
+        )
     }
 }

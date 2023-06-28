@@ -5,11 +5,11 @@ public actor AsyncCache<CacheKey: Hashable, Output> {
         case pending(Task<Output, Never>)
         case ready(Output)
     }
-    
+
     private var storage: [CacheKey: Cache] = [:]
-    
+
     public init() {
-        
+
     }
 
     public func value(for key: CacheKey, using taskProvider: @Sendable @escaping () -> Task<Output, Never>) async -> Output {
@@ -27,7 +27,7 @@ public actor AsyncCache<CacheKey: Hashable, Output> {
                 return value
         }
     }
-    
+
     public func clearCache() {
         for case let Cache.pending(task)? in storage.values {
             task.cancel()

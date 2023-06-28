@@ -1,3 +1,4 @@
+import DesignSystem
 import SwiftUI
 import CorePersonalData
 import SecurityDashboard
@@ -14,14 +15,18 @@ struct DarkWebMonitoringEmailRowView: View {
         HStack {
             GravatarIconView(model: model.makeGravatarIconViewModel(), isLarge: false)
             VStack(alignment: .leading, spacing: 3) {
-                Text(model.title).font(.body)
+                Text(model.title)
+                    .font(.body)
+                    .foregroundColor(.ds.text.neutral.standard)
                 Text(title(for: model.status))
                     .font(.footnote)
                     .foregroundColor(titleColor(for: model.status))
             }.padding(.leading, 16)
+                .accessibilityElement(children: .combine)
             Spacer()
             Button(action: { model.actionPublisher.send(.deleteEmail(model.title)) }, label: {
-                Image(systemName: "xmark").foregroundColor(Color(asset: FiberAsset.neutralText))
+                Image(systemName: "xmark")
+                    .foregroundColor(.ds.text.neutral.quiet)
             })
             .accessibilityIdentifier("DeleteMonitoredEmailButton")
         }
@@ -44,11 +49,11 @@ struct DarkWebMonitoringEmailRowView: View {
     private func titleColor(for status: DataLeakEmail.State) -> SwiftUI.Color {
         switch status {
         case .active:
-            return Color(asset: FiberAsset.grey01)
+            return .ds.text.neutral.quiet
         case .pending:
-            return Color(asset: FiberAsset.dashlaneOrange)
+            return .ds.text.warning.quiet
         case .disabled:
-            return Color(asset: FiberAsset.grey01)
+            return .ds.text.neutral.quiet
         }
     }
 }
@@ -70,7 +75,8 @@ struct DarkWebMonitoringEmailRowView_Previews: PreviewProvider {
             VStack {
                 DarkWebMonitoringEmailRowView(model: model)
                 DarkWebMonitoringEmailRowView(model: notMonitoredModel)
-            }.background(Color(asset: FiberAsset.dashGreenCopy))
+            }
+            .background(Color.ds.container.expressive.brand.quiet.idle)
         }
         .previewLayout(.sizeThatFits)
     }

@@ -4,6 +4,7 @@ import Combine
 import DashTypes
 import DashlaneAppKit
 import SwiftTreats
+import UIComponents
 
 enum SessionDefaultShortcutCommand: String, ShortcutCommand {
     case sync
@@ -15,7 +16,7 @@ class SessionMainMenuHandler: MainMenuHandler {
     @Published
     private var dynamicShortcuts = Set<ShortcutAction>()
 
-    private let syncKeyboardShortut: SyncKeyboardShortcut
+    private let syncKeyboardShortcut: SyncKeyboardShortcut
     private let menuBuilder: SessionMainMenuBuilder
     private let menuSystemPublisher: PassthroughSubject<Void, Never>
 
@@ -25,8 +26,8 @@ class SessionMainMenuHandler: MainMenuHandler {
         self.applicationHandler = applicationHandler
         applicationHandler.unload()
         menuSystemPublisher = PassthroughSubject<Void, Never>()
-        syncKeyboardShortut = SyncKeyboardShortcut(syncService: syncService, refreshMenuBar: menuSystemPublisher)
-        menuBuilder = .init(syncShortcut: syncKeyboardShortut, logger: logger)
+        syncKeyboardShortcut = SyncKeyboardShortcut(syncService: syncService, refreshMenuBar: menuSystemPublisher)
+        menuBuilder = .init(syncShortcut: syncKeyboardShortcut, logger: logger)
         guard Device.isIpadOrMac else { return }
 
         bridge.$dynamicShortcuts.sink {
@@ -75,7 +76,7 @@ class SessionMainMenuHandler: MainMenuHandler {
     func handle(_ command: SessionDefaultShortcutCommand) {
         switch command {
         case .sync:
-            syncKeyboardShortut.sync()
+            syncKeyboardShortcut.sync()
         }
     }
 

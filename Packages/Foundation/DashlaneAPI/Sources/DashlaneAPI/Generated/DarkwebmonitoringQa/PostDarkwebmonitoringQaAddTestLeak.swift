@@ -1,6 +1,6 @@
 import Foundation
 extension AppAPIClient.DarkwebmonitoringQa {
-        public struct AddTestLeak {
+        public struct AddTestLeak: APIRequest {
         public static let endpoint: Endpoint = "/darkwebmonitoring-qa/AddTestLeak"
 
         public let api: AppAPIClient
@@ -18,7 +18,11 @@ extension AppAPIClient.DarkwebmonitoringQa {
 }
 
 extension AppAPIClient.DarkwebmonitoringQa.AddTestLeak {
-        struct Body: Encodable {
+        public struct Body: Encodable {
+
+        private enum CodingKeys: String, CodingKey {
+            case leak = "leak"
+        }
 
         public let leak: Leak
     }
@@ -36,6 +40,13 @@ extension AppAPIClient.DarkwebmonitoringQa.AddTestLeak {
             case geolocation = "geolocation"
             case personalinfo = "personalinfo"
             case social = "social"
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case uuid = "uuid"
+            case fields = "fields"
+            case types = "types"
+            case email = "email"
         }
 
         public let uuid: String
@@ -92,6 +103,11 @@ extension AppAPIClient.DarkwebmonitoringQa.AddTestLeak {
                 case socialWhatsapp = "social_whatsapp"
                 case socialYahoo = "social_yahoo"
                 case socialYoutube = "social_youtube"
+            }
+
+            private enum CodingKeys: String, CodingKey {
+                case field = "field"
+                case value = "value"
             }
 
             public let field: Field

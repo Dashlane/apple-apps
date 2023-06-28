@@ -7,6 +7,19 @@ public struct UserGroupDownload: Codable, Equatable {
         case teamAdmins = "teamAdmins"
     }
 
+    private enum CodingKeys: String, CodingKey {
+        case groupId = "groupId"
+        case name = "name"
+        case type = "type"
+        case publicKey = "publicKey"
+        case privateKey = "privateKey"
+        case revision = "revision"
+        case users = "users"
+        case externalId = "externalId"
+        case familyId = "familyId"
+        case teamId = "teamId"
+    }
+
     public let groupId: String
 
     public let name: String

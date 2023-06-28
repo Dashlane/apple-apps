@@ -1,6 +1,6 @@
 import Foundation
 extension UserDeviceAPIClient.Mpless {
-        public struct CompleteTransfer {
+        public struct CompleteTransfer: APIRequest {
         public static let endpoint: Endpoint = "/mpless/CompleteTransfer"
 
         public let api: UserDeviceAPIClient
@@ -8,6 +8,10 @@ extension UserDeviceAPIClient.Mpless {
                 @discardableResult
         public func callAsFunction(transferId: String, encryptedData: String, publicKey: String, cryptography: MplessTransferCryptography, timeout: TimeInterval? = nil) async throws -> Response {
             let body = Body(transferId: transferId, encryptedData: encryptedData, publicKey: publicKey, cryptography: cryptography)
+            return try await api.post(Self.endpoint, body: body, timeout: timeout)
+        }
+
+        public func callAsFunction(_ body: Body, timeout: TimeInterval? = nil) async throws -> Response {
             return try await api.post(Self.endpoint, body: body, timeout: timeout)
         }
     }
@@ -18,7 +22,14 @@ extension UserDeviceAPIClient.Mpless {
 }
 
 extension UserDeviceAPIClient.Mpless.CompleteTransfer {
-        struct Body: Encodable {
+        public struct Body: Encodable {
+
+        private enum CodingKeys: String, CodingKey {
+            case transferId = "transferId"
+            case encryptedData = "encryptedData"
+            case publicKey = "publicKey"
+            case cryptography = "cryptography"
+        }
 
                 public let transferId: String
 

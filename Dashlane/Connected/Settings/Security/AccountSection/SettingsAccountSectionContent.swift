@@ -1,4 +1,6 @@
 import SwiftUI
+import DesignSystem
+import CoreLocalization
 
 struct SettingsAccountSectionContent: View {
 
@@ -17,45 +19,53 @@ struct SettingsAccountSectionContent: View {
     }
 
     var body: some View {
-        if viewModel.isResetMasterPasswordAvailable {
-            MasterPasswordResetActivationView(viewModel: viewModel.masterPasswordResetActivationViewModel,
+
+        if viewModel.canShowAccountRecovery {
+            AccountRecoveryKeyStatusView(model: viewModel.makeAccountRecoveryKeyStatusViewModel())
+        }
+        if let password = viewModel.isResetMasterPasswordAvailable {
+            MasterPasswordResetActivationView(viewModel: viewModel.makeMasterPasswordResetActivationViewModel(masterPassword: password),
                                               masterPasswordChallengeItem: $masterPasswordChallengeItem)
         }
-        if viewModel.isChangeMasterPasswordAvailable {
-            Button(action: { masterPasswordChallengeItem = masterPasswordChallengeAlertViewModel }, label: {
+        if let password = viewModel.isChangeMasterPasswordAvailable {
+            Button(action: { masterPasswordChallengeItem = masterPasswordChallengeAlertViewModel(masterPassword: password) }, label: {
                 Text(L10n.Localizable.settingsMasterPassword)
-                    .foregroundColor(.primary)
+                    .foregroundColor(.ds.text.neutral.standard)
+                    .textStyle(.body.standard.regular)
             })
         }
 
-        Button(action: viewModel.goToPrivacySettings) {
+        Button(action: { viewModel.goToPrivacySettings() }, label: {
             Text(L10n.Localizable.settingsDataPrivacy)
-                .foregroundColor(.primary)
-        }
+                .foregroundColor(.ds.text.neutral.standard)
+                .textStyle(.body.standard.regular)
+        })
+        .accessibilityAddTraits(.isLink)
 
-        NavigationLink(L10n.Localizable.kwDeviceListTitle) {
-            DevicesList(model: viewModel.deviceListViewModel())
-        }
+        NavigationLink(destination: { DevicesList(model: viewModel.deviceListViewModel()) },
+                       label: {
+            Text(L10n.Localizable.kwDeviceListTitle)
+                .textStyle(.body.standard.regular)
+                .foregroundColor(.ds.text.neutral.standard)
+        })
 
         Button(action: { viewModel.activeAlert = .logOut }, label: {
             Text(L10n.Localizable.kwSignOutFromDevice)
-                .foregroundColor(Color(asset: FiberAsset.settingsWarningRed))
+                .foregroundColor(.ds.text.danger.standard)
+                .textStyle(.body.standard.regular)
         })
         .alert(using: $viewModel.activeAlert) { alert in
             switch alert {
             case .privacyError:
-                return Alert(title: Text(L10n.Localizable.kwNoInternet),
+                return Alert(title: Text(CoreLocalization.L10n.Core.kwNoInternet),
                              message: nil,
-                             dismissButton: .default(Text(L10n.Localizable.kwButtonOk)))
+                             dismissButton: .default(Text(CoreLocalization.L10n.Core.kwButtonOk)))
             case .wrongMasterPassword:
                 return Alert(title: Text(L10n.Localizable.kwWrongMasterPasswordMessage),
                              message: nil,
-                             dismissButton: .default(Text(L10n.Localizable.kwButtonOk)))
+                             dismissButton: .default(Text(CoreLocalization.L10n.Core.kwButtonOk)))
             case .logOut:
-                return Alert(title: Text(L10n.Localizable.askLogout),
-                             message: Text(L10n.Localizable.signoutAskMasterPassword),
-                             primaryButton: .destructive(Text(L10n.Localizable.kwSignOut), action: viewModel.logOut),
-                             secondaryButton: .cancel())
+                return logoutAlert
             }
         }
         .fullScreenCover(isPresented: $displayMasterPasswordChanger) {
@@ -71,10 +81,9 @@ struct SettingsAccountSectionContent: View {
         }
     }
 
-    private var masterPasswordChallengeAlertViewModel: MasterPasswordChallengeAlertViewModel {
-        MasterPasswordChallengeAlertViewModel(session: viewModel.session, intent: .changeMasterPassword) { completion in
+    private func masterPasswordChallengeAlertViewModel(masterPassword: String) -> MasterPasswordChallengeAlertViewModel {
+        viewModel.makeMasterPasswordChallengeAlertViewModel(masterPassword: masterPassword) { completion in
             defer { masterPasswordChallengeItem = nil }
-
             switch completion {
             case .validated:
                 displayMasterPasswordChanger = true
@@ -83,6 +92,27 @@ struct SettingsAccountSectionContent: View {
             case .cancelled:
                 return
             }
+
+        }
+    }
+
+    var logoutAlert: Alert {
+        switch viewModel.session.authenticationMethod {
+        case .masterPassword:
+            return Alert(title: Text(CoreLocalization.L10n.Core.askLogout),
+                         message: Text(CoreLocalization.L10n.Core.signoutAskMasterPassword),
+                         primaryButton: .destructive(Text(CoreLocalization.L10n.Core.kwSignOut), action: viewModel.logOut),
+                         secondaryButton: .cancel())
+                    case .sso:
+            return Alert(title: Text(CoreLocalization.L10n.Core.askLogout),
+                         message: Text(CoreLocalization.L10n.Core.signoutAskMasterPassword),
+                         primaryButton: .destructive(Text(CoreLocalization.L10n.Core.kwSignOut), action: viewModel.logOut),
+                         secondaryButton: .cancel())
+        case .invisibleMasterPassword:
+            return Alert(title: Text(L10n.Localizable.mplessLogoutAlertTitle),
+                         message: Text(L10n.Localizable.mplessLogoutAlertMessage),
+                         primaryButton: .destructive(Text(CoreLocalization.L10n.Core.kwSignOut), action: viewModel.logOut),
+                         secondaryButton: .cancel())
         }
     }
 }

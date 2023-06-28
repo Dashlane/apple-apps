@@ -1,6 +1,6 @@
 import Foundation
 extension UserDeviceAPIClient.SharingUserdevice {
-        public struct AddItems {
+        public struct AddItems: APIRequest {
         public static let endpoint: Endpoint = "/sharing-userdevice/AddItems"
 
         public let api: UserDeviceAPIClient
@@ -17,7 +17,13 @@ extension UserDeviceAPIClient.SharingUserdevice {
 }
 
 extension UserDeviceAPIClient.SharingUserdevice.AddItems {
-        struct Body: Encodable {
+        public struct Body: Encodable {
+
+        private enum CodingKeys: String, CodingKey {
+            case revision = "revision"
+            case groupId = "groupId"
+            case items = "items"
+        }
 
                 public let revision: Int
 

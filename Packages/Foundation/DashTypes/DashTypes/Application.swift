@@ -13,7 +13,7 @@ public struct Application {
         if let version = ProcessInfo.processInfo.environment["appVersion"] {
             return version
         }
-        
+
                 let bundle: Bundle = Bundle(for: BundleClass.self)
         #else
         let bundle: Bundle = .main

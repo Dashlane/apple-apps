@@ -6,8 +6,7 @@ public enum ResourceType {
     case callingCodes
     case continents
     case europeanUnionCountries
-    
-    
+
     var resourceName: String {
         switch self {
         case .banks:
@@ -23,7 +22,7 @@ public enum ResourceType {
         }
     }
     var resourceExtension: String { return "json" }
-    
+
     func loadResource() throws -> Data {
         let url = Bundle.module.url(forResource: resourceName,
                              withExtension: resourceExtension)!

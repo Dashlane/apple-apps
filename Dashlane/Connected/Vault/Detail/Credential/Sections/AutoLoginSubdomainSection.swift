@@ -1,5 +1,7 @@
 import CorePersonalData
+import DesignSystem
 import SwiftUI
+import CoreLocalization
 
 struct AutoLoginSubdomainSection: View {
 
@@ -8,9 +10,9 @@ struct AutoLoginSubdomainSection: View {
 
     var body: some View {
         Section {
-                        ToggleDetailField(title: L10n.Localizable.KWAuthentifiantIOS.autoLogin, isOn: $item.autoLogin)
+                        DS.Toggle(CoreLocalization.L10n.Core.KWAuthentifiantIOS.autoLogin, isOn: $item.autoLogin)
 
-                        ToggleDetailField(title: L10n.Localizable.KWAuthentifiantIOS.subdomainOnly, isOn: $item.subdomainOnly)
+                        DS.Toggle(CoreLocalization.L10n.Core.KWAuthentifiantIOS.subdomainOnly, isOn: $item.subdomainOnly)
         }
     }
 }

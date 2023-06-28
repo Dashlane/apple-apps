@@ -2,6 +2,7 @@ import SwiftUI
 import UIDelight
 import UIComponents
 import DesignSystem
+import CoreLocalization
 
 struct ChromeImportView: View {
 
@@ -69,14 +70,14 @@ struct ChromeImportView: View {
     }
 
     private var confirmationPopup: Alert {
-        let yesButton: Alert.Button = .default(Text(L10n.Localizable.m2WImportFromChromeConfirmationPopupYes), action: {
+        let yesButton: Alert.Button = .default(Text(CoreLocalization.L10n.Core.m2WImportFromChromeConfirmationPopupYes), action: {
             self.completion?(.importCompleted)
         })
-        let noButton: Alert.Button = .cancel(Text(L10n.Localizable.m2WImportFromChromeConfirmationPopupNo), action: {
+        let noButton: Alert.Button = .cancel(Text(CoreLocalization.L10n.Core.m2WImportFromChromeConfirmationPopupNo), action: {
             self.completion?(.importNotYetCompleted)
         })
 
-        return Alert(title: Text(L10n.Localizable.m2WImportFromChromeConfirmationPopupTitle),
+        return Alert(title: Text(CoreLocalization.L10n.Core.m2WImportFromChromeConfirmationPopupTitle),
               primaryButton: yesButton,
               secondaryButton: noButton)
     }
@@ -116,13 +117,13 @@ struct ChromeImportView: View {
     }
 
     private var cancelButton: NavigationBarButton<Text> {
-        NavigationBarButton(L10n.Localizable.m2WImportFromChromeIntoScreenCancel, action: {
+        NavigationBarButton(CoreLocalization.L10n.Core.m2WImportFromChromeIntoScreenCancel, action: {
             self.completion?(.cancel)
         })
     }
 
     private var backButton: NavigationBarButton<Text> {
-        NavigationBarButton(L10n.Localizable.m2WImportFromChromeImportScreenBack, action: {
+        NavigationBarButton(CoreLocalization.L10n.Core.m2WImportFromChromeImportScreenBack, action: {
             self.completion?(.back)
         })
     }
@@ -132,7 +133,7 @@ struct ChromeImportView: View {
             self.completion?(.nextStep)
             self.confirmationPopupShown = true
         }, label: {
-            Text(L10n.Localizable.m2WImportFromChromeImportScreenDone).bold()
+            Text(CoreLocalization.L10n.Core.m2WImportFromChromeImportScreenDone).bold()
         })
     }
 
@@ -148,7 +149,7 @@ struct ChromeImportView: View {
         secondaryTitle(for: step)
             .frame(maxWidth: 400)
             .font(DashlaneFont.custom(20, .medium).font)
-            .foregroundColor(Color(asset: FiberAsset.mainCopy))
+            .foregroundColor(.ds.text.neutral.catchy)
             .padding(.horizontal, 32)
             .multilineTextAlignment(.center)
     }
@@ -174,17 +175,18 @@ struct ChromeImportView: View {
         switch step {
         case .intro:
             return VStack {
-                Text(L10n.Localizable.m2WImportFromChromeIntoScreenPrimaryTitlePart1)
-                    .foregroundColor(Color(asset: FiberAsset.mainCopy))
-                Text(L10n.Localizable.m2WImportFromChromeIntoScreenPrimaryTitlePart2).foregroundColor(Color(asset: FiberAsset.mainCopy))
+                Text(CoreLocalization.L10n.Core.m2WImportFromChromeIntoScreenPrimaryTitlePart1)
+                    .foregroundColor(.ds.text.neutral.catchy)
+                Text(CoreLocalization.L10n.Core.m2WImportFromChromeIntoScreenPrimaryTitlePart2)
+                    .foregroundColor(.ds.text.neutral.catchy)
             }.eraseToAnyView()
         case .url:
-            return Text(L10n.Localizable.m2WImportFromChromeURLScreenPrimaryTitle)
-                .foregroundColor(Color(asset: FiberAsset.mainCopy))
+            return Text(CoreLocalization.L10n.Core.m2WImportFromChromeURLScreenPrimaryTitle)
+                .foregroundColor(.ds.text.neutral.catchy)
                 .eraseToAnyView()
         case .navigationInExtension:
-            return Text(L10n.Localizable.m2WImportFromChromeImportScreenPrimaryTitle)
-                .foregroundColor(Color(asset: FiberAsset.mainCopy))
+            return Text(CoreLocalization.L10n.Core.m2WImportFromChromeImportScreenPrimaryTitle)
+                .foregroundColor(.ds.text.neutral.catchy)
                 .eraseToAnyView()
         }
     }
@@ -192,11 +194,11 @@ struct ChromeImportView: View {
     private func secondaryTitle(for step: Step) -> some View {
         switch step {
         case .intro:
-            return Text(L10n.Localizable.m2WImportFromChromeIntoScreenSecondaryTitle).eraseToAnyView()
+            return Text(CoreLocalization.L10n.Core.m2WImportFromChromeIntoScreenSecondaryTitle).eraseToAnyView()
         case .url:
             return EmptyView().eraseToAnyView()
         case .navigationInExtension:
-            return Text(L10n.Localizable.m2WImportFromChromeImportScreenSecondaryTitle).eraseToAnyView()
+            return Text(CoreLocalization.L10n.Core.m2WImportFromChromeImportScreenSecondaryTitle).eraseToAnyView()
         }
     }
 
@@ -213,9 +215,9 @@ struct ChromeImportView: View {
     private func buttonTitle(for step: Step) -> String? {
         switch step {
         case .intro:
-            return L10n.Localizable.m2WImportFromChromeIntoScreenCTA
+            return CoreLocalization.L10n.Core.m2WImportFromChromeIntoScreenCTA
         case .url:
-            return L10n.Localizable.m2WImportFromChromeURLScreenCTA
+            return CoreLocalization.L10n.Core.m2WImportFromChromeURLScreenCTA
         case .navigationInExtension:
             return nil
         }
@@ -224,7 +226,7 @@ struct ChromeImportView: View {
 }
 
 extension ChromeImportView: NavigationBarStyleProvider {
-    var navigationBarStyle: NavigationBarStyle {
+    var navigationBarStyle: UIComponents.NavigationBarStyle {
         return .transparent(tintColor: FiberAsset.dashGreenCopy.color, statusBarStyle: .default)
     }
 }

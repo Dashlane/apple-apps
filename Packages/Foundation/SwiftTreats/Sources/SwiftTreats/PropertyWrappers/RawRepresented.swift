@@ -6,9 +6,9 @@ public struct RawRepresented<T: RawRepresentable> {
         case known(T)
         case unknown(T.RawValue)
     }
-    
+
     private let storage: Storage
-    
+
     public var wrappedValue: T? {
         switch storage {
             case let .known(value):
@@ -17,7 +17,7 @@ public struct RawRepresented<T: RawRepresentable> {
                 return nil
         }
     }
-    
+
     public var projectedValue: T.RawValue {
         switch storage {
             case let .known(value):
@@ -26,7 +26,7 @@ public struct RawRepresented<T: RawRepresentable> {
                 return value
         }
     }
-    
+
     public init(rawValue: T.RawValue) {
         if let value = T(rawValue: rawValue) {
             storage = .known(value)
@@ -34,7 +34,7 @@ public struct RawRepresented<T: RawRepresentable> {
             storage = .unknown(rawValue)
         }
     }
-    
+
     public init(_ value: T) {
         storage = .known(value)
     }
@@ -46,7 +46,7 @@ extension RawRepresented: Codable where T.RawValue: Codable {
         let value = try container.decode(T.RawValue.self)
         self.init(rawValue: value)
     }
-    
+
     public func encode(to encoder: Encoder) throws {
         var container = encoder.singleValueContainer()
         try container.encode(projectedValue)

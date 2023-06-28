@@ -1,6 +1,6 @@
 import Foundation
 extension AppAPIClient.Authentication {
-        public struct PerformDuoPushVerification {
+        public struct PerformDuoPushVerification: APIRequest {
         public static let endpoint: Endpoint = "/authentication/PerformDuoPushVerification"
 
         public let api: AppAPIClient
@@ -17,7 +17,11 @@ extension AppAPIClient.Authentication {
 }
 
 extension AppAPIClient.Authentication.PerformDuoPushVerification {
-        struct Body: Encodable {
+        public struct Body: Encodable {
+
+        private enum CodingKeys: String, CodingKey {
+            case login = "login"
+        }
 
                 public let login: String
     }

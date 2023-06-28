@@ -1,5 +1,6 @@
 import SwiftUI
 import VaultKit
+import IconLibrary
 
 struct BreachIconView: View {
 

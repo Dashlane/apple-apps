@@ -61,8 +61,6 @@ struct ResponseParser<T: Codable>: ResponseParserProtocol {
             switch Code(rawValue: code) {
             case .success:
                 self.content = try keyedContainer.decode(T.self, forKey: .content)
-            case .invalid:
-                fallthrough
             default:
                 let message = try? keyedContainer.decodeIfPresent(String.self, forKey: .message)
                 throw LegacySharingError(code: code, message: message)

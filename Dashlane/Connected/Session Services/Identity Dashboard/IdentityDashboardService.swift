@@ -14,6 +14,7 @@ import DashlaneAppKit
 import CoreSync
 import UIKit
 import CoreFeature
+import VaultKit
 
 public class IdentityDashboardService: Mockable {
     public let session: SecurityDashboard.IdentityDashboardSession
@@ -88,13 +89,13 @@ public class IdentityDashboardService: Mockable {
                                       log: logger)
         dataLeakMonitoringRegisterService = DataLeakMonitoringRegisterService(webservice: webservice, notificationService: notificationService, logger: logger)
 
-        let alertInfoPrivider = BreachAlertsInfoProvider(premiumService: premiumService, featureService: featureService)
+        let alertInfoProvider = BreachAlertsInfoProvider(premiumService: premiumService, featureService: featureService)
         let localizationProvider = IdentityDashboardLocalizationProvider()
 
         self.session = IdentityDashboardSession(credentialsProvider: credentialsProvider,
                                                 breachesStore: breachesStore,
                                                 webservice: webservice,
-                                                alertsInformationProvider: alertInfoPrivider,
+                                                alertsInformationProvider: alertInfoProvider,
                                                 localizationProvider: localizationProvider,
                                                 notificationManager: notificationManager,
                                                 logger: logger)

@@ -6,4 +6,10 @@ extension DateFormatter {
         dateFormatter.dateStyle = .medium
         return dateFormatter
     }()
+
+    public static let birthDateFormatter: DateFormatter = {
+        let formatter = DateFormatter()
+        formatter.dateStyle = .medium
+        return formatter
+    }()
 }

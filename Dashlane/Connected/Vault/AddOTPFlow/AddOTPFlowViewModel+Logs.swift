@@ -10,35 +10,34 @@ import VaultKit
 
 extension AddOTPFlowViewModel {
     func logOTPAdded(_ configuration: OTPConfiguration, to credential: Credential, by additionMode: Definition.OtpAdditionMode) {
-        let userEvent = UserEvent.AddTwoFactorAuthenticationToCredential(
+
+        activityReporter.report(UserEvent.AddTwoFactorAuthenticationToCredential(
             flowStep: .complete,
             itemId: credential.userTrackingLogID,
             otpAdditionMode: additionMode,
             space: credential.userTrackingSpace
-        )
-        let anonymousEvent = AnonymousEvent.AddTwoFactorAuthenticationToCredential(
-            domain: credential.hashedDomainForLogs,
+        ))
+
+        activityReporter.report(AnonymousEvent.AddTwoFactorAuthenticationToCredential(
+            domain: credential.hashedDomainForLogs(),
             flowStep: .complete,
             otpAdditionMode: additionMode,
             otpSpecifications: configuration.specifications,
             space: credential.userTrackingSpace
-        )
-        let updateCredential = AnonymousEvent.UpdateCredential(
+        ))
+
+        activityReporter.report(AnonymousEvent.UpdateCredential(
             action: .edit,
             associatedWebsitesAddedList: [],
             associatedWebsitesRemovedList: [],
             credentialOriginalSecurityStatus: nil,
             credentialSecurityStatus: nil,
-            domain: credential.hashedDomainForLogs,
+            domain: credential.hashedDomainForLogs(),
             fieldList: [.otpSecret],
             isCredentialCurrentlyEligibleToPasswordChanger: nil,
             space: credential.userTrackingSpace,
             updateCredentialOrigin: .manual
-        )
-
-        activityReporter.report(userEvent)
-        activityReporter.report(anonymousEvent)
-        activityReporter.report(updateCredential)
+        ))
     }
 
     func logOTPAdditionStarted(for additionMode: Definition.OtpAdditionMode, to credential: Credential?) {

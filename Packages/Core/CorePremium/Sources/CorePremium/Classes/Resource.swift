@@ -16,7 +16,7 @@ struct Resource<Parser: ResponseParserProtocol> {
     let file: File?
     let keyOrder: [String]?
     let parser: Parser
-    
+
     init(endpoint: String,
          method: HTTPMethod,
          params: [String: Encodable],

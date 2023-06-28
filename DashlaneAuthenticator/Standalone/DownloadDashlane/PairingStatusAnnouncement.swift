@@ -9,14 +9,14 @@ enum PairingStatusAnnouncementAction {
 }
 
 struct PairingStatusAnnouncement: View {
-    
+
     @Environment(\.scenePhase) var scenePhase
-    
+
     @StateObject
     var viewModel: PairingStatusAnnouncementViewModel
     let refreshPairingAnnouncement: AnyPublisher<Void, Never>
     let action: (PairingStatusAnnouncementAction) -> Void
-    
+
     init(viewModel: @autoclosure @escaping () -> PairingStatusAnnouncementViewModel = { PairingStatusAnnouncementViewModel() }(),
          refreshPairingAnnouncement: AnyPublisher<Void, Never>,
          action: @escaping (PairingStatusAnnouncementAction) -> Void) {
@@ -24,7 +24,7 @@ struct PairingStatusAnnouncement: View {
         self.refreshPairingAnnouncement = refreshPairingAnnouncement
         self.action = action
     }
-    
+
     var body: some View {
         Group {
             switch viewModel.status {
@@ -52,7 +52,7 @@ struct PairingStatusAnnouncement: View {
             HStack {
                 Text(L10n.Localizable.backupYourAccountsAnnouncementTitle)
                 Spacer()
-                Image(asset: AuthenticatorAsset.arrow)
+                Image.ds.arrowRight.outlined
             }
             .font(.body.weight(.medium))
             .foregroundColor(.ds.text.brand.standard)
@@ -62,7 +62,7 @@ struct PairingStatusAnnouncement: View {
             .cornerRadius(8)
         })
     }
-    
+
     var notPairedLabel: some View {
         Infobox(title: L10n.Localizable.backupNotPairedTitle,
                 description: L10n.Localizable.backupNotPairedDescription) {
@@ -71,7 +71,7 @@ struct PairingStatusAnnouncement: View {
         }
         .style(mood: .warning)
     }
-    
+
     var noAccountLabel: some View {
         Infobox(title: L10n.Localizable.createYourAccountAnnouncementTitle,
                 description: L10n.Localizable.createYourAccountAnnouncementMessage) {

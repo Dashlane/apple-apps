@@ -1,7 +1,6 @@
 import Foundation
 import CorePersonalData
 import Combine
-import DashlaneReportKit
 import CoreFeature
 import DashlaneAppKit
 import IconLibrary
@@ -32,26 +31,12 @@ class ExtensionSearchViewModel: ExtensionSearchViewModelProtocol {
     private let queue = DispatchQueue(label: "extensionSearch", qos: .userInteractive)
     private var cancellables = Set<AnyCancellable>()
     private let credentialsListService: CredentialListService
-    private let usageLogService: UsageLogServiceProtocol
-    
-
-    
-    var searchUsageLogPublisher: AnyPublisher<UsageLogCode32Search, Never> {
-        return $result
-            .debounce(for: .seconds(10), scheduler: RunLoop.main)
-            .dropFirst()
-            .map { $0.searchUsageLog() }
-            .eraseToAnyPublisher()
-    }
-
     
     init(credentialsListService: CredentialListService,
-         usageLogService: UsageLogServiceProtocol,
          domainIconLibrary: DomainIconLibrary) {
         self.credentialsListService = credentialsListService
         self.searchCriteria = ""
         self.isActive = false
-        self.usageLogService = usageLogService
         self.domainIconLibrary = domainIconLibrary
         setup()
     }
@@ -92,9 +77,5 @@ class ExtensionSearchViewModel: ExtensionSearchViewModelProtocol {
             .receive(on: RunLoop.main)
             .assign(to: \.recentSearchItems, on: self)
             .store(in: &cancellables)
-    }
-    
-    func sendSearchUsageLogFromSelection() {
-        usageLogService.post(result.searchUsageLog(click: true))
     }
 }

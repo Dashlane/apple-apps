@@ -1,5 +1,6 @@
 import Foundation
 import SecurityDashboard
+
 struct IdentityDashboardLocalizationProvider: LocalizationProvider {
     func localizedString(for key: LocalizationKey) -> String {
         return NSLocalizedString(key.rawValue, comment: "")
@@ -45,7 +46,7 @@ extension LocalizationKey {
                 return "SECURITY_ALERT_DISMISS_BUTTON"
             case .popupViewDetailsCTA:
                 return "SECURITY_ALERT_VIEW_DETAILS_BUTTON"
-            
+
                         case .trayWhenJustNow:
                 return "SECURITY_ALERT_UNRESOLVED_JUSTNOW"
             case .trayWhenToday:
@@ -76,7 +77,7 @@ extension LocalizationKey {
                 return "SECURITY_BREACH_DARKWEB_RECOMMANDATION_NO_DOMAIN_NO_PASSWORD_LEAKED"
             case .trayViewCTA:
                 return "SECURITY_ALERT_UNRESOLVED_VIEW"
-            
+
                         case .dataTypeLogin: return "SECURITY_BREACH_LEAKED_LOGIN"
             case .dataTypePasswords: return "SECURITY_BREACH_LEAKED_PASSWORD"
             case .dataTypeEmails: return "SECURITY_BREACH_LEAKED_EMAIL"
@@ -89,7 +90,7 @@ extension LocalizationKey {
             case .dataTypeGeolocation: return "SECURITY_BREACH_LEAKED_GEOLOCATION"
             case .dataTypePersonalInfo: return "SECURITY_BREACH_LEAKED_PERSONAL_INFO"
             case .dataTypeSocial: return "SECURITY_BREACH_LEAKED_SOCIAL"
-            
+
             case .popupDataLeakHiddenDescription:
                 return "SECURITY_BREACH_DARKWEB_HIDDEN_DESCRIPTION"
             case .popupBreachDetailsEmails:

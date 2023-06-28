@@ -83,7 +83,7 @@ struct AutofillOnboardingInstructionsView: View {
     var actionButton: some View {
         RoundedButton(L10n.Core.credentialProviderOnboardingCTA,
                       action: {
-            Task { await model.action() }
+            model.action()
         })
         .roundedButtonLayout(.fill)
     }

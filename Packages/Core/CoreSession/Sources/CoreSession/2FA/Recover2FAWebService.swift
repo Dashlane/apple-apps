@@ -39,12 +39,12 @@ public enum Recover2FAError: String, Error, Decodable {
 }
 
 private struct Recover2FAResponseParser: ResponseParserProtocol {
-    
+
     struct EmptyResponse: Decodable {
         let code: Int?
     }
-    
-    func parse(data: Data) throws -> Void {
+
+    func parse(data: Data) throws {
         let decoder = JSONDecoder()
         if let response = try? decoder.decode(EmptyResponse.self, from: data), response.code == 200 {
             return

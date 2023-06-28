@@ -56,7 +56,8 @@ private struct LifeCycleModifier: ViewModifier {
 }
 
 extension View {
-    public func lifeCycleEvent(onWillAppear: @escaping () -> Void = {}, onWillDisappear: @escaping () -> Void = {}) -> some View {
+    public func lifeCycleEvent(onWillAppear: @escaping () -> Void = {},
+                               onWillDisappear: @escaping () -> Void = {}) -> some View {
         self.modifier(LifeCycleModifier(onWillAppear: onWillAppear, onWillDisappear: onWillDisappear))
     }
 }

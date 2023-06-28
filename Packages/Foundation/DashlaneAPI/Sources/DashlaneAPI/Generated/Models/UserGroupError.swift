@@ -2,11 +2,16 @@ import Foundation
 
 public struct UserGroupError: Codable, Equatable {
 
-    public let groupId: String?
+    private enum CodingKeys: String, CodingKey {
+        case groupId = "groupId"
+        case message = "message"
+    }
 
-    public let message: String?
+    public let groupId: String
 
-    public init(groupId: String? = nil, message: String? = nil) {
+    public let message: String
+
+    public init(groupId: String, message: String) {
         self.groupId = groupId
         self.message = message
     }

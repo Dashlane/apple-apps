@@ -11,13 +11,13 @@ public extension View {
         })
         .buttonStyle(DefaultButtonStyle())
         .foregroundColor(.primary)
-        
+
         #else
         Button(action: action, label: {
             self
                 .contentShape(Rectangle())
         }).foregroundColor(.primary)
         #endif
-        
+
     }
 }

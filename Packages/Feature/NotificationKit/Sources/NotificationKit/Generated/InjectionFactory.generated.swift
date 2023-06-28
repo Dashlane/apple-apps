@@ -4,6 +4,9 @@ import BrazeKit
 #if canImport(Combine)
 import Combine
 #endif
+#if canImport(CoreFeature)
+import CoreFeature
+#endif
 #if canImport(CoreLocalization)
 import CoreLocalization
 #endif
@@ -27,9 +30,6 @@ import DashTypes
 #endif
 #if canImport(DesignSystem)
 import DesignSystem
-#endif
-#if canImport(CoreFeature)
-import CoreFeature
 #endif
 #if canImport(Foundation)
 import Foundation
@@ -59,7 +59,7 @@ extension HomeAnnouncementsServicesContainer {
             return AutofillActivationModalAnnouncement(
                             userSettings: userSettings,
                             autofillService: notificationKitAutofillService,
-                            abTestingService: abTestingService
+                            featureService: notificationKitFeatureService
             )
         }
         
@@ -71,7 +71,7 @@ extension HomeAnnouncementsServicesContainer {
             return AutofillOnboardingFlowViewModel(
                             autofillService: notificationKitAutofillService,
                             premiumService: announcementsPremiumService,
-                            abTesttingService: abTestingService,
+                            featureService: notificationKitFeatureService,
                             activityReporter: announcementsActivityReporter,
                             userSettings: userSettings,
                             autofillOnboardingIntroViewModelFactory: InjectedFactory(makeAutofillOnboardingIntroViewModel),
@@ -135,7 +135,8 @@ extension HomeAnnouncementsServicesContainer {
                             rateAppModalAnnouncement: InjectedFactory(makeRateAppModalAnnouncement),
                             freeTrialAnnouncement: InjectedFactory(makeFreeTrialAnnouncement),
                             planRecommandationAnnouncement: InjectedFactory(makePlanRecommandationAnnouncement),
-                            autofillActivationAnnouncement: InjectedFactory(makeAutofillActivationModalAnnouncement)
+                            autofillActivationAnnouncement: InjectedFactory(makeAutofillActivationModalAnnouncement),
+                            updateOperatingSystemAnnouncement: InjectedFactory(makeUpdateOperatingSystemAnnouncement)
             )
         }
         
@@ -219,6 +220,17 @@ extension HomeAnnouncementsServicesContainer {
                             capabilityService: capabilityService,
                             deepLinkingService: deepLinkingService,
                             activityReporter: announcementsActivityReporter
+            )
+        }
+        
+}
+
+extension HomeAnnouncementsServicesContainer {
+        
+        public func makeUpdateOperatingSystemAnnouncement(informationProvider: DeviceInformationProvider = DeviceInformation(), cache: UpdateOperatingSystemCacheProtocol = UpdateOperatingSystemCache()) -> UpdateOperatingSystemAnnouncement {
+            return UpdateOperatingSystemAnnouncement(
+                            informationProvider: informationProvider,
+                            cache: cache
             )
         }
         
@@ -456,5 +468,25 @@ public extension InjectedFactory where T == _TrialFeaturesViewModelFactory {
 
 extension TrialFeaturesViewModel {
         public typealias Factory = InjectedFactory<_TrialFeaturesViewModelFactory>
+}
+
+
+public typealias _UpdateOperatingSystemAnnouncementFactory =  (
+    _ informationProvider: DeviceInformationProvider,
+    _ cache: UpdateOperatingSystemCacheProtocol
+) -> UpdateOperatingSystemAnnouncement
+
+public extension InjectedFactory where T == _UpdateOperatingSystemAnnouncementFactory {
+    
+    func make(informationProvider: DeviceInformationProvider = DeviceInformation(), cache: UpdateOperatingSystemCacheProtocol = UpdateOperatingSystemCache()) -> UpdateOperatingSystemAnnouncement {
+       return factory(
+              informationProvider,
+              cache
+       )
+    }
+}
+
+extension UpdateOperatingSystemAnnouncement {
+        public typealias Factory = InjectedFactory<_UpdateOperatingSystemAnnouncementFactory>
 }
 

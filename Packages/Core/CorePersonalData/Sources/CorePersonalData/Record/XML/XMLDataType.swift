@@ -26,6 +26,7 @@ public enum XMLDataType: String, Codable, Hashable {
     case socialSecurityInfo = "KWSocialSecurityStatement"
     case taxNumber = "KWFiscalStatement"
     case website = "KWPersonalWebsite"
+    case passkey = "KWPasskey"
 }
 
 extension XMLDataType {
@@ -77,6 +78,8 @@ extension XMLDataType {
             self = .taxNumber
         case .website:
             self = .website
+        case .passkey:
+            self = .passkey
         }
     }
 }
@@ -130,6 +133,8 @@ extension PersonalDataContentType {
             self = .taxNumber
         case .website:
             self = .website
+        case .passkey:
+            self = .passkey
         case .dataChangeSets:
             return nil
         }

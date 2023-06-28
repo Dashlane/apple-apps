@@ -1,6 +1,6 @@
 import Foundation
 extension UserDeviceAPIClient.Premium {
-        public struct GetSubscriptionInfo {
+        public struct GetSubscriptionInfo: APIRequest {
         public static let endpoint: Endpoint = "/premium/GetSubscriptionInfo"
 
         public let api: UserDeviceAPIClient
@@ -17,7 +17,7 @@ extension UserDeviceAPIClient.Premium {
 }
 
 extension UserDeviceAPIClient.Premium.GetSubscriptionInfo {
-        struct Body: Encodable {
+        public struct Body: Encodable {
     }
 }
 
@@ -26,11 +26,22 @@ extension UserDeviceAPIClient.Premium.GetSubscriptionInfo {
 
         public struct DataType: Codable, Equatable {
 
+        private enum CodingKeys: String, CodingKey {
+            case b2cSubscription = "b2cSubscription"
+            case b2bSubscription = "b2bSubscription"
+        }
+
         public let b2cSubscription: B2cSubscription
 
         public let b2bSubscription: B2bSubscription?
 
                 public struct B2cSubscription: Codable, Equatable {
+
+            private enum CodingKeys: String, CodingKey {
+                case autoRenewInfo = "autoRenewInfo"
+                case hasInvoices = "hasInvoices"
+                case billingInformation = "billingInformation"
+            }
 
             public let autoRenewInfo: AutoRenewInfo
 
@@ -49,6 +60,13 @@ extension UserDeviceAPIClient.Premium.GetSubscriptionInfo {
                                 public enum Trigger: String, Codable, Equatable, CaseIterable {
                     case manual = "manual"
                     case automatic = "automatic"
+                }
+
+                private enum CodingKeys: String, CodingKey {
+                    case theory = "theory"
+                    case reality = "reality"
+                    case periodicity = "periodicity"
+                    case trigger = "trigger"
                 }
 
                                 public let theory: Bool
@@ -76,13 +94,22 @@ extension UserDeviceAPIClient.Premium.GetSubscriptionInfo {
 
                 public struct B2bSubscription: Codable, Equatable {
 
+            private enum CodingKeys: String, CodingKey {
+                case hasInvoices = "hasInvoices"
+                case billingInformation = "billingInformation"
+                case vatNumber = "vatNumber"
+            }
+
                         public let hasInvoices: Bool
 
             public let billingInformation: PremiumGetSubscriptionInfoBillingInformation?
 
-            public init(hasInvoices: Bool, billingInformation: PremiumGetSubscriptionInfoBillingInformation? = nil) {
+                        public let vatNumber: Int?
+
+            public init(hasInvoices: Bool, billingInformation: PremiumGetSubscriptionInfoBillingInformation? = nil, vatNumber: Int? = nil) {
                 self.hasInvoices = hasInvoices
                 self.billingInformation = billingInformation
+                self.vatNumber = vatNumber
             }
         }
 

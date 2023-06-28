@@ -1,10 +1,10 @@
 import Foundation
 
 enum OTPType {
-    
+
     case totp(period: TimeInterval = 30) 
     case hotp(UInt64) 
-    
+
     init?(urlComponents: URLComponents) {
         guard let type = urlComponents.host else {
             return nil
@@ -25,7 +25,7 @@ enum OTPType {
             return nil
         }
     }
-    
+
     func counterValue(for time: Date, currentCounter: UInt64?) -> UInt64 {
         switch self {
         case .hotp(let counter):
@@ -42,7 +42,7 @@ extension OTPType: Codable {
         case type
         case value
     }
-    
+
     init(from decoder: Decoder) throws {
         let container = try decoder.container(keyedBy: CodingKeys.self)
         let type = try container.decode(String.self, forKey: .type)
@@ -55,19 +55,19 @@ extension OTPType: Codable {
             self = .hotp(counter)
         }
     }
-    
+
     func encode(to encoder: Encoder) throws {
         var container = encoder.container(keyedBy: CodingKeys.self)
         switch self {
         case let .totp(period):
-            try container.encode("totp", forKey:.type)
+            try container.encode("totp", forKey: .type)
             try container.encode(period, forKey: .value)
         case let .hotp(couter):
-            try container.encode("hotp", forKey:.type)
+            try container.encode("hotp", forKey: .type)
             try container.encode(couter, forKey: .value)
         }
     }
-    
+
 }
 
 extension Sequence where Iterator.Element == URLQueryItem {

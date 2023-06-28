@@ -1,6 +1,6 @@
 import Foundation
 extension AppAPIClient.Authenticator {
-        public struct ValidateRequest {
+        public struct ValidateRequest: APIRequest {
         public static let endpoint: Endpoint = "/authenticator/ValidateRequest"
 
         public let api: AppAPIClient
@@ -18,7 +18,13 @@ extension AppAPIClient.Authenticator {
 }
 
 extension AppAPIClient.Authenticator.ValidateRequest {
-        struct Body: Encodable {
+        public struct Body: Encodable {
+
+        private enum CodingKeys: String, CodingKey {
+            case requestId = "requestId"
+            case deviceAccessKey = "deviceAccessKey"
+            case approval = "approval"
+        }
 
                 public let requestId: String
 
@@ -32,6 +38,11 @@ extension AppAPIClient.Authenticator.ValidateRequest {
                 public enum Status: String, Codable, Equatable, CaseIterable {
             case approved = "approved"
             case rejected = "rejected"
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case status = "status"
+            case isSuspicious = "isSuspicious"
         }
 
                 public let status: Status

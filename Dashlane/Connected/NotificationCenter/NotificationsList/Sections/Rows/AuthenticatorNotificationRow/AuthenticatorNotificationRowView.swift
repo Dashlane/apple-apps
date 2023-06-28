@@ -8,7 +8,7 @@ struct AuthenticatorNotificationRowView: View {
         BaseNotificationRowView(icon: model.notification.icon,
                                 title: model.notification.title,
                                 description: model.notification.description,
-                                reportClick: model.notification.notificationActionHandler.reportClick) {
+                                accessibilityDescription: L10n.Localizable.authenticatorToolOnboardingActionItemDescriptionAccessibility) {
             model.openAuthenticator()
         }
     }

@@ -4,7 +4,7 @@ import DashTypes
 public struct LoadSessionInformation {
     public let login: Login
     public let masterKey: MasterKey
-    
+
     public init(login: Login,
                 masterKey: MasterKey) {
         self.login = login

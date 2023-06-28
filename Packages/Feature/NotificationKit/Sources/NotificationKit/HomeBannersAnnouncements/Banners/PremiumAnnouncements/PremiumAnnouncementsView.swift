@@ -25,8 +25,6 @@ struct PremiumAnnouncementsView: View {
                 premiumExpiredView
             } else if model.announcements.first == PremiumAnnouncement.premiumWillExpireAnnouncement {
                 premiumWillExpireView
-            } else if model.announcements.first == PremiumAnnouncement.iOSDropSupportAnnouncement {
-                iOSSupportDropAlertView
             } else {
                 EmptyView()
             }
@@ -63,26 +61,9 @@ struct PremiumAnnouncementsView: View {
         Announcement(subTitle: Text(model.premiumWillExpireTitle),
                      button: Button(L10n.Core.announcePremiumExpiredCta, action: { model.showPremium() }))
     }
-
-    var iOSSupportDropAlertView: some View {
-        Announcement(title: nil,
-                     subTitle: Text(iOSSupportSubtitle),
-                     button: Button(L10n.Core.ios13SupportDropAnnouncementCTA, action: { model.showSystemSettings() }))
-        .dismissable {
-            self.model.dismiss(announcement: .iOSDropSupportAnnouncement)
-        }
-    }
-
-    private var iOSSupportSubtitle: String {
-        if Device.isMac {
-            return L10n.Core.macOSSupportDropAnnouncementBody
-        } else {
-            return L10n.Core.ios13SupportDropAnnouncementBody
-        }
-    }
 }
 
-private struct DismissableAnnounementModifier: ViewModifier {
+private struct DismissableAnnouncementModifier: ViewModifier {
 
     let dismiss: () -> Void
 
@@ -99,9 +80,9 @@ private struct DismissableAnnounementModifier: ViewModifier {
     }
 }
 
-private extension View {
+internal extension View {
     func dismissable(_ dismiss: @escaping () -> Void) -> some View {
-        self.modifier(DismissableAnnounementModifier(dismiss: dismiss))
+        self.modifier(DismissableAnnouncementModifier(dismiss: dismiss))
     }
 
 }
@@ -110,15 +91,25 @@ struct Announcement: View {
     let title: Text?
     let subTitle: Text
     let button: Button<Text>?
+    let image: ImageAsset?
 
-    init(title: Text? = nil, subTitle: Text, button: Button<Text>? = nil) {
+    init(title: Text? = nil,
+         subTitle: Text,
+         image: ImageAsset? = nil,
+         button: Button<Text>? = nil) {
         self.title = title
+        self.image = image
         self.subTitle = subTitle
         self.button = button
     }
 
     var body: some View {
         VStack(alignment: .center, spacing: 10) {
+            if let imageAsset = image {
+                Image(asset: imageAsset)
+                    .resizable()
+                    .frame(width: 175, height: 30)
+            }
             if title != nil {
                 title
                     .multilineTextAlignment(.center)
@@ -158,17 +149,13 @@ struct PremiumAnnouncementsView_Previews: PreviewProvider {
             ]))
             PremiumAnnouncementsView(model: .mock(announcements:
                 [
-                    .iOSDropSupportAnnouncement
-            ]))
-            PremiumAnnouncementsView(model: .mock(announcements:
-                [
             ]))
         }.previewLayout(.sizeThatFits)
 
     }
 }
 
-private struct AnnouncementButtonStyle: ButtonStyle {
+struct AnnouncementButtonStyle: ButtonStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
             .foregroundColor(.ds.text.brand.standard)

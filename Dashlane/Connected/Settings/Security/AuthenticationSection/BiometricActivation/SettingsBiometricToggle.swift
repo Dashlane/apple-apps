@@ -1,5 +1,7 @@
 import SwiftUI
 import SwiftTreats
+import DesignSystem
+import CoreLocalization
 
 struct SettingsBiometricToggle: View {
     typealias Confirmed = Bool
@@ -8,8 +10,7 @@ struct SettingsBiometricToggle: View {
     var viewModel: SettingsBiometricToggleViewModel
 
     var body: some View {
-        Toggle(L10n.Localizable.kwUseBiometryType(Device.currentBiometryDisplayableName), isOn: $viewModel.isToggleOn)
-            .toggleStyle(SwitchToggleStyle(tint: .green))
+        DS.Toggle(L10n.Localizable.kwUseBiometryType(Device.currentBiometryDisplayableName), isOn: $viewModel.isToggleOn)
             .alert(using: $viewModel.activeAlert) { alert in
                 switch alert {
                 case .pinCodeReplacementWarning(let completion):
@@ -29,8 +30,8 @@ struct SettingsBiometricToggle: View {
         let title = L10n.Localizable.kwReplacePinConfirmMsg(Device.currentBiometryDisplayableName)
         return Alert(title: Text(title),
               message: nil,
-              primaryButton: .cancel(Text(L10n.Localizable.kwReplaceTouchidCancel), action: { completion(false) }),
-              secondaryButton: .default(Text(L10n.Localizable.kwReplaceTouchidOk), action: { completion(true) }))
+                     primaryButton: .cancel(Text(CoreLocalization.L10n.Core.kwReplaceTouchidCancel), action: { completion(false) }),
+                     secondaryButton: .default(Text(CoreLocalization.L10n.Core.kwReplaceTouchidOk), action: { completion(true) }))
     }
 
     private func makeMasterPasswordResetDeactivationWarningAlert(completion: @escaping (Confirmed) -> Void) -> Alert {
@@ -59,7 +60,7 @@ struct SettingsBiometricToggle: View {
         return Alert(title: Text(title),
                            message: nil,
                            primaryButton: .cancel({ completion(false) }),
-                           secondaryButton: .default(Text(L10n.Localizable.kwButtonOk)) { completion(true) })
+                           secondaryButton: .default(Text(CoreLocalization.L10n.Core.kwButtonOk)) { completion(true) })
     }
 }
 

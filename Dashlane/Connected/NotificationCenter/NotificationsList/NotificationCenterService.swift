@@ -10,6 +10,7 @@ import DashTypes
 import CoreKeychain
 import LoginKit
 import VaultKit
+import CorePremium
 
 public class NotificationCenterServicePublishersStore {
     @Published
@@ -26,7 +27,6 @@ public class NotificationCenterServicePublishersStore {
 }
 
 public final class NotificationCenterService: NotificationCenterServicePublishersStore, Mockable, SessionServicesInjecting {
-    private let actionItemCenterLogger: NotificationCenterLogger
     private let notificationProviders: [NotificationProvider]
 
     init(session: Session,
@@ -36,46 +36,38 @@ public final class NotificationCenterService: NotificationCenterServicePublisher
          premiumService: PremiumServiceProtocol,
          identityDashboardService: IdentityDashboardServiceProtocol,
          resetMasterPasswordService: ResetMasterPasswordServiceProtocol,
-         usageLogService: UsageLogServiceProtocol,
          sharingService: SharingServiceProtocol,
          teamspaceService: TeamSpacesService,
          abtestService: AuthenticatedABTestingService,
          keychainService: AuthenticationKeychainServiceProtocol,
          featureService: FeatureServiceProtocol) {
 
-        self.actionItemCenterLogger = .init(usageLogService: usageLogService)
         self.notificationProviders = [
-            ResetMasterPasswordNotificationProvider(keychainService: keychainService,
+            ResetMasterPasswordNotificationProvider(session: session,
+                                                    keychainService: keychainService,
                                                     featureService: featureService,
                                                     resetMasterPasswordService: resetMasterPasswordService,
                                                     userSettings: userSettings,
                                                     teamSpaceService: teamspaceService,
-                                                    settingsStore: settings,
-                                                    logger: actionItemCenterLogger),
+                                                    settingsStore: settings),
             SecureLockNotificationProvider(lockService: lockService,
-                                           settingsStore: settings,
-                                           logger: actionItemCenterLogger),
+                                           settingsStore: settings),
             TrialPeriodNotificationProvider(premiumService: premiumService,
                                             abTestService: abtestService,
-                                            settingsStore: settings,
-                                            logger: actionItemCenterLogger),
+                                            settingsStore: settings),
             SharingItemGroupNotificationProvider(session: session,
                                                  sharingService: sharingService,
                                                  featureService: featureService,
-                                                 settingsStore: settings,
-                                                 logger: actionItemCenterLogger),
+                                                 settingsStore: settings),
             SharingUserGroupNotificationProvider(session: session,
                                                  sharingService: sharingService,
                                                  featureService: featureService,
-                                                 settingsStore: settings,
-                                                 logger: actionItemCenterLogger),
+                                                 settingsStore: settings),
             SecurityAlertNotificationProvider(identityDashboardService: identityDashboardService,
-                                              settingsStore: settings,
-                                              logger: actionItemCenterLogger),
+                                              settingsStore: settings),
             AuthenticatorToolNotificationProvider(userSettings: userSettings,
                                                   featureService: featureService,
-                                                  settingsStore: settings,
-                                                  logger: actionItemCenterLogger)
+                                                  settingsStore: settings)
         ]
 
         super.init()

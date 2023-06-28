@@ -1,9 +1,11 @@
 import Foundation
 import SwiftUI
+import CoreLocalization
 import CorePersonalData
 import UIDelight
 import DashlaneAppKit
 import UIComponents
+import VaultKit
 
 struct BankAccountDetailView: View {
 
@@ -18,50 +20,52 @@ struct BankAccountDetailView: View {
         DetailContainerView(service: model.service) {
             Section {
                                 if model.mode.isEditing {
-                    TextDetailField(title: L10n.Localizable.KWBankStatementIOS.bankAccountName,
+                    TextDetailField(title: CoreLocalization.L10n.Core.KWBankStatementIOS.bankAccountName,
                                     text: $model.item.name,
-                                    placeholder: L10n.Localizable.KWBankStatementIOS.BankAccountName.placeholder)
+                                    placeholder: CoreLocalization.L10n.Core.KWBankStatementIOS.BankAccountName.placeholder)
                     .textInputAutocapitalization(.words)
                 }
 
-                                PickerDetailField(title: L10n.Localizable.KWBankStatementIOS.localeFormat,
+                                PickerDetailField(title: CoreLocalization.L10n.Core.KWBankStatementIOS.localeFormat,
                                   selection: $model.selectedCountry,
                                   elements: CountryCodeNamePair.countries) { country in
                                     Text(country?.name ?? CountryCodeNamePair.defaultCountry.name)
                 }
 
-                                TextDetailField(title: L10n.Localizable.KWBankStatementIOS.bankAccountOwner, text: $model.item.owner)
+                                TextDetailField(title: CoreLocalization.L10n.Core.KWBankStatementIOS.bankAccountOwner, text: $model.item.owner)
                     .textInputAutocapitalization(.words)
 
-                                SecureDetailField(title: L10n.Localizable.KWBankStatementIOS.bicFieldTitle(for: model.item.bicVariant),
-                                  text: $model.item.bic,
-                                  shouldReveal: $model.shouldReveal,
-                                  formatter: .uppercase,
-                                  obfuscatingFormatter: .obfuscatedCode,
-                                  action: model.reveal,
-                                  usagelogSubType: .bankAccountBIC)
-                    .actions([.copy(model.copy), .largeDisplay],
-                             accessHandler: model.requestAccess)
-                    .textInputAutocapitalization(.characters)
-                    .fiberFieldType(.bankAccountBIC)
+                                SecureDetailField(
+                    title: CoreLocalization.L10n.Core.KWBankStatementIOS.bicFieldTitle(for: model.item.bicVariant),
+                    text: $model.item.bic,
+                    shouldReveal: $model.shouldReveal,
+                    onRevealAction: model.reveal,
+                    formatter: .uppercase,
+                    obfuscatingFormatter: .obfuscatedCode,
+                    actions: [.copy(model.copy)]
+                )
+                .actions([.copy(model.copy), .largeDisplay], accessHandler: model.requestAccess)
+                .textInputAutocapitalization(.characters)
+                .fiberFieldType(.bankAccountBIC)
 
-                                SecureDetailField(title: L10n.Localizable.KWBankStatementIOS.ibanFieldTitle(for: model.item.ibanVariant),
-                                  text: $model.item.iban,
-                                  shouldReveal: $model.shouldReveal,
-                                  formatter: .uppercase,
-                                  obfuscatingFormatter: .obfuscatedCode,
-                                  action: model.reveal,
-                                  usagelogSubType: .bankAccountIBAN)
-                    .actions([.copy(model.copy), .largeDisplay],
-                             accessHandler: model.requestAccess)
-                    .textInputAutocapitalization(.characters)
-                    .fiberFieldType(.bankAccountIBAN)
+                                SecureDetailField(
+                    title: CoreLocalization.L10n.Core.KWBankStatementIOS.ibanFieldTitle(for: model.item.ibanVariant),
+                    text: $model.item.iban,
+                    shouldReveal: $model.shouldReveal,
+                    onRevealAction: model.reveal,
+                    formatter: .uppercase,
+                    obfuscatingFormatter: .obfuscatedCode,
+                    actions: [.copy(model.copy)]
+                )
+                .actions([.copy(model.copy), .largeDisplay], accessHandler: model.requestAccess)
+                .textInputAutocapitalization(.characters)
+                .fiberFieldType(.bankAccountIBAN)
 
                                 if model.item.hasBankInformation {
-                    PickerDetailField(title: L10n.Localizable.KWBankStatementIOS.bankAccountBank,
+                    PickerDetailField(title: CoreLocalization.L10n.Core.KWBankStatementIOS.bankAccountBank,
                                       selection: $model.selectedBank,
                                       elements: model.banks) { bank in
-                                        Text(bank?.name ?? L10n.Localizable.kwLinkedDefaultOther)
+                        Text(bank?.name ?? CoreLocalization.L10n.Core.kwLinkedDefaultOther)
                     }
                 }
             }.makeShortcuts(model: model)

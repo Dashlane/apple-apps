@@ -10,14 +10,13 @@ import CoreUserTracking
 import CorePersonalData
 import VaultKit
 
-
 public class SyncService: Mockable {
     public enum Origin {
         case autofillExtension
         case safariExtension
         case app
         case authenticator
-        
+
         var acceptedTypes: Set<PersonalDataContentType> {
             switch self {
             case .autofillExtension, .authenticator:
@@ -26,7 +25,7 @@ public class SyncService: Mockable {
                 return Set(PersonalDataContentType.allCases)
             }
         }
-        
+
         var maxConcurrentProcessCount: Int {
             switch self {
             case .autofillExtension:
@@ -36,11 +35,11 @@ public class SyncService: Mockable {
             }
         }
     }
-    
+
     enum SyncStoreKey: String, StoreKey {
         case lastSyncTimestamp
     }
-    
+
     public enum SyncStatus {
                 case syncing
                 case idle
@@ -48,15 +47,13 @@ public class SyncService: Mockable {
                 case disabled
                 case error(Error)
     }
-    
-    enum SyncError: Error {
-        case alreadyInProgress
-        case timeout
+
+    enum SyncServiceError: Error {
         case disabled
     }
-    
+
     let syncEngine: SyncLoop<SyncDBStack>
-    
+
         public var lastSync: Timestamp {
         get {
             store.retrieve()
@@ -69,14 +66,14 @@ public class SyncService: Mockable {
             }
         }
     }
-    
+
     let database: SyncDBStack
     let activityReporter: ActivityReporterProtocol
     let store: BasicKeyedStore<SyncStoreKey>
     let syncLogger: Logger
     let target: BuildTarget
     let sharingKeysStore: SharingKeysStore
-    
+
         @Published
     public var syncStatus: SyncStatus = .idle {
         didSet {
@@ -85,15 +82,15 @@ public class SyncService: Mockable {
             }
         }
     }
-    
+
         @Published
     public var lastTimeSyncTriggered = Date()
-    
+
                 private var cancellables = Set<AnyCancellable>()
-    
+
     let executionQueue: DispatchQueue = DispatchQueue(label: "SyncServiceQueue", qos: .utility)
-    var currentSyncTask: Task<Void, Error>? = nil
-    
+    var currentSyncTask: Task<Void, Error>?
+
     @Atomic
     private var disableSync = false
     private let sharingHandler: SharingSyncHandler
@@ -129,30 +126,30 @@ public class SyncService: Mockable {
         self.sharingHandler = sharingHandler
         self.activityReporter = activityReporter
         self.sharingKeysStore = sharingKeysStore
-        
+
         database = SyncDBStack(driver: databaseDriver,
                                transactionCryptoEngine: remoteCryptoEngine,
                                historyUserInfo: HistoryUserInfo(session: session))
-        
+
         syncEngine = SyncLoop(database: database,
                               sharingKeysStore: sharingKeysStore,
                               apiClient: apiClient,
                               logger: syncLogger)
-        
+
         store = try BasicKeyedStore(persistenceEngine: session.lastSyncTimestampURL)
-        
+
         self.target = target
-        
+
         let lockURL = try session.directory.storeURL(for: .galactica, in: target).appendingPathComponent("lock")
-        lock = DistributedLock(url: lockURL)
-        
+        lock = DistributedLock(id: target.rawValue, url: lockURL)
+
         setupSyncOnEvent(using: databaseDriver)
     }
-    
+
     public func hasAlreadySync() -> Bool {
         return database.hasAlreadySync()
     }
-    
+
         private func setupSyncOnEvent(using databaseDriver: DatabaseDriver) {
         NotificationCenter
             .default
@@ -160,12 +157,12 @@ public class SyncService: Mockable {
             .sink { [weak self] _ in
                 self?.sync(triggeredBy: .wake)
             }.store(in: &cancellables)
-        
+
         databaseDriver.syncTriggerPublisher.sink { [weak self] _ in
             self?.sync(triggeredBy: .save)
         }.store(in: &cancellables)
     }
-    
+
         public func unload(_ completion: @escaping VoidCompletionBlock) {
         Task {
             await waitForCurrentSyncToFinish()
@@ -173,21 +170,21 @@ public class SyncService: Mockable {
             completion()
         }
     }
-    
+
             public func sync(triggeredBy trigger: Definition.Trigger) {
         syncLogger.debug("dipatching a sync")
         self.latestTrigger = trigger
         syncDispatcher.dispatch()
     }
-    
+
     private func sync() async throws {
         guard !disableSync else {
             syncLogger.warning("Sync is disabled!")
-            throw SyncError.disabled
+            throw SyncServiceError.disabled
         }
-        
+
         await waitForCurrentSyncToFinish()
-        
+
         syncStatus = .syncing
         currentSyncTask = Task.detached(priority: .background) {
             try await self.performSync()
@@ -195,21 +192,21 @@ public class SyncService: Mockable {
         try await currentSyncTask?.value
         currentSyncTask = nil
     }
-    
+
     private func waitForCurrentSyncToFinish() async {
         try? await currentSyncTask?.value
     }
-    
-        private func performSync() async throws  {
+
+        private func performSync() async throws {
         let syncExtent: Definition.Extent = self.lastSync == 0 ? .initial : .light
         var summary: SharingSummaryInfo?
-        
+
         do {
             let syncOutput = try await self.syncEngine.sync(from: lastSync, sharingSummary: &summary)
             self.lastSync = syncOutput.timestamp
-            
+
             try? await self.sharingHandler.sync(using: summary)
-            
+
             var trigger: Definition.Trigger
             if syncExtent == .initial {
                 trigger = .initialLogin
@@ -219,26 +216,24 @@ public class SyncService: Mockable {
             self.activityReporter.reportSuccessfulSync(syncOutput.syncReport,
                                                        extent: syncExtent,
                                                        trigger: trigger)
-            
+
         } catch {
-            self.syncLogger.fatal("Sync did fail with error", error: error)
-            
                         try? await self.sharingHandler.sync(using: summary)
-            
+
             throw error
         }
     }
-    
+
     private func syncDidFinish(result: Result<Void, Error>) {
         switch result {
-        case .success():
+        case .success:
             syncStatus = .idle
-        case .failure(SyncLoopError.offline):
+        case .failure(SyncError.offline):
             syncStatus = .offline
-        case .failure(SyncError.disabled):
+        case .failure(SyncServiceError.disabled):
             syncStatus = .disabled
-        case .failure(SyncLoopError.unknownUserDevice):
-            syncStatus = .error(SyncLoopError.unknownUserDevice)
+        case .failure(SyncError.unknownUserDevice):
+            syncStatus = .error(SyncError.unknownUserDevice)
         case let .failure(error):
             syncStatus = .error(error)
             syncLogger.fatal("Sync did fail with error", error: error)
@@ -247,28 +242,16 @@ public class SyncService: Mockable {
 }
 
 extension SyncService {
-        public func syncAndDisable(completion: @escaping (Result<Void, Error>) -> Void) {
-        executionQueue.async { [weak self] in
-            guard let self = self else { return }
-            Task {
-                do {
-                    await self.waitForCurrentSyncToFinish()
-                    try await self.performSync()
-                    self.disableSync = true
-                    completion(.success)
-                } catch {
-                    completion(.failure(error))
-                }
-            }
-        }
+        public func syncAndDisable() async throws {
+        try await self.sync()
+        self.disableSync = true
     }
-    
+
     public func enableSync(triggeredBy trigger: Definition.Trigger) {
         self.disableSync = false
         sync(triggeredBy: trigger)
     }
 }
-
 
 extension SyncService {
         func load() async throws {
@@ -279,7 +262,7 @@ extension SyncService {
             self.sync(triggeredBy: .login)
         }
     }
-    
+
     public convenience init(apiClient: DeprecatedCustomAPIClient,
                             activityReporter: ActivityReporterProtocol,
                             sharingKeysStore: SharingKeysStore,
@@ -305,7 +288,7 @@ extension KeyedStore where Key == SyncService.SyncStoreKey {
     func store(_ timestamp: Timestamp) throws {
         try store(timestamp.rawValue, for: .lastSyncTimestamp)
     }
-    
+
     func retrieve() -> Timestamp {
         let lastSyncTimestamp: UInt64? = try? retrieve(for: .lastSyncTimestamp)
         return lastSyncTimestamp.flatMap {Timestamp.init($0)} ?? .distantPast

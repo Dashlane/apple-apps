@@ -40,9 +40,39 @@ struct PasswordHealthDetailedListView: View {
 
     private var headline: String {
         if viewModel.credentialsCount == 1 {
-            return L10n.Localizable.passwordHealthDetailedListHeadlineSingular(viewModel.credentialsCount, viewModel.kind.title.lowercasingFirstLetter())
+            return viewModel.kind.singularHeadline
         } else {
-            return L10n.Localizable.passwordHealthDetailedListHeadlinePlural(viewModel.credentialsCount, viewModel.kind.title.lowercasingFirstLetter())
+            return viewModel.kind.pluralHeadline(count: viewModel.credentialsCount)
+        }
+    }
+}
+
+private extension PasswordHealthKind {
+    var singularHeadline: String {
+        switch self {
+        case .weak:
+            return L10n.Localizable.passwordHealthDetailedWeakListHeadlineSingular
+        case .reused:
+            return L10n.Localizable.passwordHealthDetailedReusedListHeadlineSingular
+        case .compromised:
+            return L10n.Localizable.passwordHealthDetailedCompromisedListHeadlineSingular
+        default:
+            assertionFailure("No detail for other kinds")
+            return ""
+        }
+    }
+
+    func pluralHeadline(count: Int) -> String {
+        switch self {
+        case .weak:
+            return L10n.Localizable.passwordHealthDetailedWeakListHeadlinePlural(count)
+        case .reused:
+            return L10n.Localizable.passwordHealthDetailedReusedListHeadlinePlural(count)
+        case .compromised:
+            return L10n.Localizable.passwordHealthDetailedCompromisedListHeadlinePlural(count)
+        default:
+            assertionFailure("No detail for other kinds")
+            return ""
         }
     }
 }

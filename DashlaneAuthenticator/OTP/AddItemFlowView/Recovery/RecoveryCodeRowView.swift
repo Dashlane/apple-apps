@@ -2,13 +2,13 @@ import Foundation
 import SwiftUI
 
 struct RecoveryCodeRowView<Content: View>: View {
-    
+
     let code: String
     let index: Int
     let action: () -> Void
-    
+
     let imageContent: Content
-    
+
     init(code: String,
          index: Int,
          action: @escaping () -> Void,
@@ -18,7 +18,7 @@ struct RecoveryCodeRowView<Content: View>: View {
         self.action = action
         self.imageContent = content()
     }
-    
+
     var body: some View {
         Button(action: action, label: {
             HStack {
@@ -26,7 +26,7 @@ struct RecoveryCodeRowView<Content: View>: View {
                     .foregroundColor(Color(asset: AuthenticatorAsset.secondaryText))
                     .font(.caption)
                     .frame(minWidth: 13, alignment: .trailing)
-              
+
                 Rectangle()
                     .foregroundColor(Color(asset: AuthenticatorAsset.secondaryText))
                     .frame(width: 1)

@@ -8,11 +8,12 @@ import DashlaneAppKit
 import CoreUserTracking
 import CoreSettings
 import VaultKit
+import UIComponents
+import CoreLocalization
 
 class CreditCardDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting, MockVaultConnectedInjecting {
 
     let regionInformationService: RegionInformationService
-    let logger: CreditCardUsageLogger
 
     var banks: [BankCodeNamePair] {
         regionInformationService.bankInfo.banks(forCountryCode: self.item.country?.code)
@@ -61,23 +62,23 @@ class CreditCardDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
     private var cancellables: Set<AnyCancellable> = []
     private var vaultItemsService: VaultItemsServiceProtocol
 
-    convenience init(item: CreditCard,
-                     mode: DetailMode = .viewing,
-                     vaultItemsService: VaultItemsServiceProtocol,
-                     sharingService: SharedVaultHandling,
-                     teamSpacesService: TeamSpacesService,
-                     usageLogService: UsageLogServiceProtocol,
-                     deepLinkService: DeepLinkingServiceProtocol,
-                     activityReporter: ActivityReporterProtocol,
-                     iconViewModelProvider: @escaping (VaultItem) -> VaultItemIconViewModel,
-                     logger: Logger,
-                     accessControl: AccessControlProtocol,
-                     regionInformationService: RegionInformationService,
-                     userSettings: UserSettings,
-                     documentStorageService: DocumentStorageService,
-                     attachmentSectionFactory: AttachmentsSectionViewModel.Factory,
-                     attachmentsListViewModelProvider: @escaping (VaultItem, AnyPublisher<VaultItem, Never>) -> AttachmentsListViewModel,
-                     dismiss: (() -> Void)? = nil
+    convenience init(
+        item: CreditCard,
+        mode: DetailMode = .viewing,
+        vaultItemsService: VaultItemsServiceProtocol,
+        sharingService: SharedVaultHandling,
+        teamSpacesService: TeamSpacesService,
+        deepLinkService: VaultKit.DeepLinkingServiceProtocol,
+        activityReporter: ActivityReporterProtocol,
+        iconViewModelProvider: @escaping (VaultItem) -> VaultItemIconViewModel,
+        logger: Logger,
+        accessControl: AccessControlProtocol,
+        regionInformationService: RegionInformationService,
+        userSettings: UserSettings,
+        documentStorageService: DocumentStorageService,
+        pasteboardService: PasteboardServiceProtocol,
+        attachmentSectionFactory: AttachmentsSectionViewModel.Factory,
+        dismiss: (() -> Void)? = nil
     ) {
         self.init(
             service: .init(
@@ -86,16 +87,15 @@ class CreditCardDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
                 vaultItemsService: vaultItemsService,
                 sharingService: sharingService,
                 teamSpacesService: teamSpacesService,
-                usageLogService: usageLogService,
                 documentStorageService: documentStorageService,
                 deepLinkService: deepLinkService,
                 activityReporter: activityReporter,
                 iconViewModelProvider: iconViewModelProvider,
+                attachmentSectionFactory: attachmentSectionFactory,
                 logger: logger,
                 accessControl: accessControl,
                 userSettings: userSettings,
-                attachmentSectionFactory: attachmentSectionFactory,
-                attachmentsListViewModelProvider: attachmentsListViewModelProvider
+                pasteboardService: pasteboardService
             ),
             regionInformationService: regionInformationService
         )
@@ -108,7 +108,6 @@ class CreditCardDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
         self.service = service
         self.vaultItemsService = service.vaultItemsService
         self.regionInformationService = regionInformationService
-        self.logger = CreditCardUsageLogger(usageLogService: service.usageLogService)
 
         registerServiceChanges()
         fetchAddresses()
@@ -126,12 +125,10 @@ class CreditCardDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
 
     func prepareForSaving() throws {
         try service.prepareForSaving()
-        logger.logCreditCardDetails(item: item, action: mode.isAdding ? .add : .edit)
     }
 
     func delete() async {
         await service.delete()
-        logger.logCreditCardDetails(item: item, action: .remove)
     }
 
     private func fetchAddresses() {
@@ -145,7 +142,7 @@ class CreditCardDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
     private func setupInfo() {
         if mode.isAdding {
             let count = vaultItemsService.creditCards.count + 1
-            item.name = "\(L10n.Localizable.kwPaymentMeanCreditCardIOS) \(count)"
+            item.name = "\(CoreLocalization.L10n.Core.kwPaymentMeanCreditCardIOS) \(count)"
 
             guard mode.isAdding,
                 let identity = vaultItemsService.identities.first,

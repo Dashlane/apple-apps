@@ -12,29 +12,6 @@ enum GuidedOnboardingAnswer: Int, CaseIterable, Hashable, Equatable {
     case syncAcrossDevices
     case warnMeAboutHacks
 
-    var image: ImageAsset? {
-        switch self {
-        case .autofill:
-            return FiberAsset.onboardingAutofill
-        case .storeAccountsSecurely:
-            return FiberAsset.onboardingOnePlace
-        case .protectMyAccounts:
-            return FiberAsset.onboardingProtect
-        case .memorizePasswords:
-            return FiberAsset.onboardingMemorized
-        case .browser:
-            return FiberAsset.onboardingBrowser
-        case .anotherPasswordManager:
-            return FiberAsset.onboardingAnotherManager
-        case .somethingElse:
-            return FiberAsset.onboardingSomethingElse
-        case .syncAcrossDevices:
-            return nil
-        case .warnMeAboutHacks:
-            return nil
-        }
-    }
-
     var title: String {
         switch self {
         case .autofill:

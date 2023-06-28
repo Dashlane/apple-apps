@@ -3,32 +3,32 @@ import PackageDescription
 let package = Package(
     name: "CoreIPC",
     platforms: [
-        .iOS(.v15),
-        .macOS(.v12)
+        .iOS(.v16),
+        .macOS(.v13)
     ],
     products: [
         .library(
             name: "CoreIPC",
-            targets: ["CoreIPC"]),
+            targets: ["CoreIPC"])
     ],
     dependencies: [
-        .package(path: "../../Foundation/DashTypes"),
-        .package(path: "../../Common/cryptocenter"),
-        .package(path: "../../Core/CoreKeychain"),
+        .package(path: "../../Foundation/DashTypes")
     ],
     targets: [
         .target(
             name: "CoreIPC",
             dependencies: [
-                .product(name: "DashTypes", package: "DashTypes"),
-                .product(name: "DashlaneCrypto", package: "cryptocenter"),
-                .product(name: "CoreKeychain", package: "CoreKeychain")
+                .product(name: "DashTypes", package: "DashTypes")
             ]),
         .testTarget(
             name: "CoreIPCTests",
             dependencies: ["CoreIPC",
-                           .product(name: "DashTypes", package: "DashTypes"),
+                           .product(name: "DashTypes", package: "DashTypes")
             ]
         ),
+        .testTarget(
+            name: "CoreIPCPerformanceTests",
+            dependencies: ["CoreIPC"]
+        )
     ]
 )

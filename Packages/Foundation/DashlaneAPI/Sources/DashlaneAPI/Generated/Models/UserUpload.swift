@@ -2,6 +2,16 @@ import Foundation
 
 public struct UserUpload: Codable, Equatable {
 
+    private enum CodingKeys: String, CodingKey {
+        case userId = "userId"
+        case alias = "alias"
+        case permission = "permission"
+        case proposeSignature = "proposeSignature"
+        case acceptSignature = "acceptSignature"
+        case groupKey = "groupKey"
+        case proposeSignatureUsingAlias = "proposeSignatureUsingAlias"
+    }
+
         public let userId: String
 
         public let alias: String

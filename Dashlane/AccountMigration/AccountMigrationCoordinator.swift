@@ -10,6 +10,8 @@ import DashlaneCrypto
 import SwiftTreats
 import CoreSync
 import LoginKit
+import UIComponents
+import CoreLocalization
 
 class AccountMigrationCoordinator: NSObject, Coordinator, SubcoordinatorOwner {
 
@@ -95,7 +97,7 @@ class AccountMigrationCoordinator: NSObject, Coordinator, SubcoordinatorOwner {
         let view = MasterPasswordMigrationView(title: L10n.Localizable.ssoToMPTitle,
                                                subtitle: L10n.Localizable.ssoToMPSubtitle,
                                                migrateButtonTitle: L10n.Localizable.ssoToMPButton,
-                                               cancelButtonTitle: L10n.Localizable.kwLogOut) { result in
+                                               cancelButtonTitle: CoreLocalization.L10n.Core.kwLogOut) { result in
             switch result {
             case .cancel:
                 self.navigator.dismiss(animated: true)
@@ -141,7 +143,6 @@ class AccountMigrationCoordinator: NSObject, Coordinator, SubcoordinatorOwner {
     private func showMasterPasswordCreationView(navigator: Navigator, authTicket: String?, type: AccountMigrationType) {
         let model = NewMasterPasswordViewModel(mode: .masterPasswordChange,
                                                evaluator: sessionServices.appServices.passwordEvaluator,
-                                               logger: sessionServices.appServices.installerLogService.accountCreation,
                                                keychainService: sessionServices.appServices.keychainService,
                                                login: sessionServices.session.login,
                                                activityReporter: sessionServices.activityReporter) { [weak self] result in
@@ -150,9 +151,11 @@ class AccountMigrationCoordinator: NSObject, Coordinator, SubcoordinatorOwner {
                 self?.sessionServices.activityReporter.report(UserEvent.ChangeMasterPassword(flowStep: .cancel))
                 self?.navigator.dismiss(animated: true)
             case let .next(masterPassword: masterPassword):
-                self?.startChangingMasterPassword(with: masterPassword,
-                                                  navigator: navigator, authTicket: authTicket,
-                                                  type: type)
+                Task {
+                    await self?.startChangingMasterPassword(with: masterPassword,
+                                                      navigator: navigator, authTicket: authTicket,
+                                                      type: type)
+                }
             }
         }
         let masterPasswordCreationView = NewMasterPasswordView(model: model, title: "")
@@ -162,58 +165,59 @@ class AccountMigrationCoordinator: NSObject, Coordinator, SubcoordinatorOwner {
     private func startChangingMasterPassword(with masterPassword: String,
                                              navigator: Navigator,
                                              authTicket: String?,
-                                             type: AccountMigrationType) {
+                                             type: AccountMigrationType) async {
 
-        let model = MigrationProgressViewModel(type: self.type, activityReporter: sessionServices.activityReporter) { [weak self] result in
-            guard let self = self else {
-                return
-            }
-
-            switch result {
-            case let .success(session):
-                self.completion(.success(.finished(session)))
-            case let .failure( error):
-                self.completion(.failure(error))
-            }
-        }
-        navigator.push(MigrationProgressView(model: model))
-        var newAuthTicket: AuthTicket?
+        var newAuthTicket: CoreSync.AuthTicket?
         if let authTicket = authTicket, type == .ssoToMasterPassword {
             newAuthTicket = AuthTicket(token: authTicket, verification: Verification(type: .email_token))
         }
-        createMasterPasswordChangerService(withNewMasterPassword: masterPassword,
-                                           sessionServices: sessionServices,
-                                           newVerification: type == .ssoToMasterPassword ? Verification(type: .email_token) : nil,
-                                           authTicket: newAuthTicket,
-                                           type: type) { result in
-            DispatchQueue.main.async {
-                switch result {
-                case let .success(service):
-                    self.accountCryptoChangerService = service
-                    self.accountCryptoChangerService?.delegate = model
-                    self.accountCryptoChangerService?.start()
-                case .failure(let error):
-                    self.completion(.failure(error))
+        do {
+            self.accountCryptoChangerService = try await createMasterPasswordChangerService(withNewMasterPassword: masterPassword,
+                                                                                            sessionServices: sessionServices,
+                                                                                            newVerification: type == .ssoToMasterPassword ? Verification(type: .email_token) : nil,
+                                                                                            authTicket: newAuthTicket,
+                                                                                            type: type)
+            let model = sessionServices.viewModelFactory.makeMigrationProgressViewModel(
+                type: self.type,
+                accountCryptoChangerService: accountCryptoChangerService!,
+                context: .accountTypeMigration) { [weak self] result in
+                    guard let self = self else {
+                        return
+                    }
+
+                    switch result {
+                    case let .success(session):
+                        self.completion(.success(.finished(session)))
+                    case let .failure( error):
+                        self.completion(.failure(error))
+                    }
                 }
-            }
+            navigator.push(MigrationProgressView(model: model))
+            self.accountCryptoChangerService?.start()
+
+        } catch {
+            self.completion(.failure(error))
         }
     }
 
     func startChangeMasterKey(withAuthTicket authTicket: String, serviceProviderKey: String) {
         do {
-            let model = MigrationProgressViewModel(type: self.type, activityReporter: sessionServices.activityReporter) { result in
-                switch result {
-                case let .success(session):
-                    self.completion(.success(.finished(session)))
-                case .failure(let error):
-                    self.completion(.failure(error))
-                }
-            }
-            navigator.push(MigrationProgressView(model: model))
+
             accountCryptoChangerService = try self.createMasterPasswordChangerService(withServiceProviderKey: serviceProviderKey,
                                                                                      sessionServices: self.sessionServices,
                                                                                       authTicket: authTicket)
-            accountCryptoChangerService?.delegate = model
+            let model = sessionServices.viewModelFactory.makeMigrationProgressViewModel(
+                type: self.type,
+                accountCryptoChangerService: accountCryptoChangerService!,
+                context: .accountTypeMigration) { result in
+                    switch result {
+                    case let .success(session):
+                        self.completion(.success(.finished(session)))
+                    case .failure(let error):
+                        self.completion(.failure(error))
+                    }
+                }
+            navigator.push(MigrationProgressView(model: model))
             accountCryptoChangerService?.start()
         } catch {
             self.completion(.failure(error))
@@ -224,7 +228,7 @@ class AccountMigrationCoordinator: NSObject, Coordinator, SubcoordinatorOwner {
         let title = L10n.Localizable.changeMasterPasswordWarningPremiumStatusUpdateErrorTitle
         let message = L10n.Localizable.changeMasterPasswordWarningPremiumStatusUpdateErrorDescription
         let alert = UIAlertController(title: title, message: message, preferredStyle: UIAlertController.Style.alert)
-        alert.addAction(UIAlertAction.init(title: L10n.Localizable.kwButtonOk, style: .default, handler: {_ in completion()}))
+        alert.addAction(UIAlertAction.init(title: CoreLocalization.L10n.Core.kwButtonOk, style: .default, handler: {_ in completion()}))
         DispatchQueue.main.async {
             self.navigator.present(alert, animated: true)
         }

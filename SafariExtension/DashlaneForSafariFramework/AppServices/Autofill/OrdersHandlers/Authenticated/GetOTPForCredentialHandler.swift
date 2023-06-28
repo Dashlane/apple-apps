@@ -1,6 +1,7 @@
 import Foundation
 import TOTPGenerator
 import DashTypes
+import VaultKit
 
 struct GetOTPForCredentialHandler: MaverickOrderHandleable, SessionServicesInjecting {
 

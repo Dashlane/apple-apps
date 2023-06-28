@@ -15,6 +15,8 @@ import SwiftTreats
 import CoreKeychain
 import IconLibrary
 import LoginKit
+import CorePersonalData
+import VaultKit
 
 public class AppServices: DependenciesContainer {
     let applicationState: ApplicationStateService
@@ -56,25 +58,24 @@ public class AppServices: DependenciesContainer {
                                                            localStorageURL: ApplicationGroup.authenticatorLogsLocalStoreURL,
                                                            appAPIClient: appAPIClient,
                                                            platform: .authenticatorIos)
-        
+
         sessionsContainer =  try! SessionsContainer(baseURL: ApplicationGroup.fiberSessionsURL,
                                                     cryptoEngineProvider: SessionCryptoEngineProvider(logger: rootLogger),
                                                     sessionStoreProvider: SessionStoreProvider())
-        
+
         self.authenticatorAPIClient = AuthenticatorAPIClient(apiClient: appAPIClient)
         self.notificationService = NotificationService(apiClient: authenticatorAPIClient, sessionsContainer: sessionsContainer, activityReporter: activityReporter)
 
         spiegelSettingsManager = SettingsManager(logger: rootLogger[.localSettings])
         keychainService = AuthenticationKeychainService(cryptoEngine: CryptoCenter(from: CryptoRawConfig.keyBasedDefault.parametersHeader)!, keychainSettingsDataProvider: spiegelSettingsManager, accessGroup: ApplicationGroup.keychainAccessGroup)
-        self.applicationState = ApplicationStateService(sessionsContainer: sessionsContainer, keychainService: keychainService, logger: rootLogger.sublogger(for: AppLoggerIdentifier.authenticator), settingsManager: spiegelSettingsManager)
-        ipcService = PasswordAppCommunicator(logger: rootLogger[.authenticator], appState: applicationState)
+        self.applicationState = ApplicationStateService(sessionsContainer: sessionsContainer, keychainService: keychainService, logger: rootLogger[.localCommunication], settingsManager: spiegelSettingsManager)
+        ipcService = PasswordAppCommunicator(logger: rootLogger[.localCommunication], appState: applicationState)
         ratingService = RatingService()
     }
 }
 
 extension AppServices {
-    var personalDataURLDecoder: DashlaneAppKit.PersonalDataURLDecoder {
+    var personalDataURLDecoder: PersonalDataURLDecoderProtocol {
         PersonalDataURLDecoder(domainParser: domainParser, linkedDomainService: linkedDomainService)
     }
 }
-

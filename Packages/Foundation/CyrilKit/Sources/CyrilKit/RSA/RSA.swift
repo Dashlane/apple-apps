@@ -1,7 +1,6 @@
 import Foundation
 import Security
 
-
 public enum RSA { }
 
 extension RSA {
@@ -27,16 +26,16 @@ extension RSA {
             }
         }
     }
-    
+
                 public struct MessageSigner: CyrilKit.MessageSigner {
         public let privateKey: PrivateKey
         public let variant: SignatureVariant
-        
+
         public init(privateKey: PrivateKey, variant: SignatureVariant = .sha512) {
             self.privateKey = privateKey
             self.variant = variant
         }
-        
+
         public func sign(_ data: Message) throws -> Signature {
             var error: Unmanaged<CFError>?
             defer {
@@ -50,20 +49,20 @@ extension RSA {
             guard error == nil, let data = signedData as? Data else {
                 throw RSAError.signFailed
             }
-            
+
             return .init(data)
         }
     }
-    
+
                 public struct SignatureVerifier: CyrilKit.SignatureVerifier {
         public let publicKey: PublicKey
         public let variant: SignatureVariant
-        
+
         public init(publicKey: PublicKey, variant: SignatureVariant = .sha512) {
             self.publicKey = publicKey
             self.variant = variant
         }
-        
+
         public func verify(_ data: Message, with signature: Signature) -> Bool {
             var error: Unmanaged<CFError>?
             defer {
@@ -79,21 +78,6 @@ extension RSA {
     }
 }
 
-
-
-extension SecPadding {
-    var blockOffset: Int {
-        switch self {
-        case .OAEP:
-            return 66
-        case .sigRaw:
-            return 0
-        default:
-            return 11
-        }
-    }
-}
-
 extension RSA {
     public enum EncryptionVariant {
                 public enum OAEPHashVariant {
@@ -103,10 +87,10 @@ extension RSA {
             case sha384
             case sha512
         }
-        
+
         case raw
                 case oaep(OAEPHashVariant)
-      
+
         var algorithm: SecKeyAlgorithm {
             switch self {
             case .raw:
@@ -126,7 +110,7 @@ extension RSA {
                 }
             }
         }
-        
+
         var blockOffset: Int {
             switch self {
             case .oaep:
@@ -140,13 +124,13 @@ extension RSA {
         public struct Encrypter: CyrilKit.Encrypter {
         let variant: EncryptionVariant
         let publicKey: PublicKey
-        
+
         public init(publicKey: PublicKey,
                     variant: EncryptionVariant = .oaep(.sha256)) {
             self.variant = variant
             self.publicKey = publicKey
         }
-        
+
         private func encryptBlock(_ data: Data) throws -> Data {
             var error: Unmanaged<CFError>?
             defer {
@@ -158,13 +142,13 @@ extension RSA {
             }
             return encryptedData as Data
         }
-        
+
         public func encrypt(_ dataToEncrypt: Data) throws -> Data {
             let blockLength = SecKeyGetBlockSize(publicKey.secKey) - variant.blockOffset
             guard dataToEncrypt.count > blockLength else {
                 return try encryptBlock(dataToEncrypt)
             }
-            
+
             var encryptedData = Data()
             var position = 0
             while position < dataToEncrypt.count {
@@ -173,21 +157,21 @@ extension RSA {
                 encryptedData.append(encryptedBlock)
                 position += blockLength
             }
-            
+
             return encryptedData
         }
     }
-    
+
         public struct Decrypter: CyrilKit.Decrypter {
         let variant: EncryptionVariant
         let privateKey: PrivateKey
-        
+
         public init(privateKey: PrivateKey,
                     variant: EncryptionVariant = .oaep(.sha256)) {
             self.variant = variant
             self.privateKey = privateKey
         }
-        
+
         private func decryptBlock(_ data: Data) throws -> Data {
             var error: Unmanaged<CFError>?
             defer {
@@ -199,23 +183,23 @@ extension RSA {
             }
             return decryptedData as Data
         }
-        
+
         public func decrypt(_ dataToDecrypt: Data) throws -> Data {
             let blockLength = SecKeyGetBlockSize(privateKey.secKey)
             guard dataToDecrypt.count > blockLength else {
                 return try decryptBlock(dataToDecrypt)
             }
-            
+
             var decryptedData = Data()
             var position = 0
             while position < dataToDecrypt.count {
                 let range = position..<min(position+blockLength, dataToDecrypt.count)
                 let decryptedBlock = try decryptBlock(dataToDecrypt.subdata(in: range))
                 decryptedData.append(decryptedBlock)
-                position = position + blockLength
+                position += blockLength
             }
             return decryptedData
         }
-        
+
     }
 }

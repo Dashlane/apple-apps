@@ -14,7 +14,7 @@ public struct Continent: Decodable, Hashable {
         hasher.combine(code)
     }
 
-    public static func ==(lhs: Continent, rhs: Continent) -> Bool {
+    public static func == (lhs: Continent, rhs: Continent) -> Bool {
         return lhs.code == rhs.code
     }
 }
@@ -27,5 +27,3 @@ public struct Country: Decodable, Hashable {
         self.code = code.uppercased()
     }
 }
-
-

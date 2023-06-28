@@ -1,7 +1,7 @@
 import Foundation
 
 public struct CryptoConfigParser {
-    
+
     public static func header(from configuration: CryptoConfig) -> String {
         switch configuration {
             case .kwc3:
@@ -41,7 +41,7 @@ public struct CryptoConfigParser {
             """
         }
     }
-    
+
     static func configuration(from parameters: [String]) -> CryptoConfig? {
         guard [ConfigurationLength.Argon2, ConfigurationLength.PBKDF2, ConfigurationLength.NoDerivation].contains(parameters.count) else {
             return nil
@@ -52,60 +52,97 @@ public struct CryptoConfigParser {
         }
         switch derivationAlgorithm {
             case .pbkdf2:
-                guard let pseudoRandomAlgorithm = PseudoRandomAlgorithm(rawValue: parameters[ConfigurationIndexes.PBKDF2.pseudoRandomAlgorithm]),
-                      let encryptionAlgorithm = EncryptionAlgorithm(rawValue: parameters[ConfigurationIndexes.PBKDF2.encryptionAlgorithm]),
-                      let cipherMode = AESMode(rawValue: parameters[ConfigurationIndexes.PBKDF2.cipherMode]),
-                      let ivLength = Int(parameters[ConfigurationIndexes.PBKDF2.ivLength]),
-                      let iterations = Int(parameters[ConfigurationIndexes.iterations]),
-                      let saltLength = Int(parameters[ConfigurationIndexes.saltLength]) else {
-                    return nil
-                }
-                let PBKDF2Conf = PBKDF2Configuration(saltLength: saltLength,
-                                                     iterations: iterations,
-                                                     pseudoRandomAlgorithm: pseudoRandomAlgorithm)
-                let baseConf = BaseConfig(version: version,
-                                          derivationAlgorithm: derivationAlgorithm,
-                                          encryptionAlgorithm: encryptionAlgorithm,
-                                          cipherMode: cipherMode,
-                                          ivLength: ivLength)
-                return CryptoConfig.pbkdf2Based(derivationAlgorithm: PBKDF2Conf,
-                                                baseConfig: baseConf)
-            case .argon2d:
-                guard let memoryCost = Int(parameters[ConfigurationIndexes.Argon2.memoryCost]),
-                      let parallelism = Int(parameters[ConfigurationIndexes.Argon2.parallelism]),
-                      let encryptionAlgorithm = EncryptionAlgorithm(rawValue: parameters[ConfigurationIndexes.Argon2.encryptionAlgorithm]),
-                      let cipherMode = AESMode(rawValue: parameters[ConfigurationIndexes.Argon2.cipherMode]),
-                      let ivLength = Int(parameters[ConfigurationIndexes.Argon2.ivLength]),
-                      let iterations = Int(parameters[ConfigurationIndexes.iterations]),
-                      let saltLength = Int(parameters[ConfigurationIndexes.saltLength]) else {
-                    return nil
-                }
-                let argon2Conf = Argon2Configuration(iterations: iterations,
-                                                     memoryCost: memoryCost,
-                                                     parallelism: parallelism,
-                                                     saltLength: saltLength)
-                let baseConf = BaseConfig(version: version,
-                                          derivationAlgorithm: derivationAlgorithm,
-                                          encryptionAlgorithm: encryptionAlgorithm,
-                                          cipherMode: cipherMode,
-                                          ivLength: ivLength)
-                return CryptoConfig.argon2dBased(derivationAlgorithm: argon2Conf,
-                                                 baseConfig: baseConf)
-            case .none:
-                guard let encryptionAlgorithm = EncryptionAlgorithm(rawValue: parameters[ConfigurationIndexes.NoDerivation.encryptionAlgorithm]),
-                      let cipherMode = AESMode(rawValue: parameters[ConfigurationIndexes.NoDerivation.cipherMode]),
-                      let ivLength = Int(parameters[ConfigurationIndexes.NoDerivation.ivLength]) else {
-                    return nil
-                }
-                let baseConf = BaseConfig(version: version,
-                                          derivationAlgorithm: derivationAlgorithm,
-                                          encryptionAlgorithm: encryptionAlgorithm,
-                                          cipherMode: cipherMode,
-                                          ivLength: ivLength)
-                return CryptoConfig.noDerivation(baseConfig: baseConf)
+            return pbkdf2Config(
+                from: parameters,
+                version: version,
+                derivationAlgorithm: derivationAlgorithm
+            )
+        case .argon2d:
+            return argon2dConfig(
+                from: parameters,
+                version: version,
+                derivationAlgorithm: derivationAlgorithm
+            )
+        case .none:
+            return noDerivationConfig(
+                from: parameters,
+                version: version,
+                derivationAlgorithm: derivationAlgorithm
+            )
         }
     }
-    
+
+    private static func pbkdf2Config(
+        from parameters: [String],
+        version: Int,
+        derivationAlgorithm: DerivationAlgorithm
+    ) -> CryptoConfig? {
+        guard let pseudoRandomAlgorithm = PseudoRandomAlgorithm(rawValue: parameters[ConfigurationIndexes.PBKDF2.pseudoRandomAlgorithm]),
+              let encryptionAlgorithm = EncryptionAlgorithm(rawValue: parameters[ConfigurationIndexes.PBKDF2.encryptionAlgorithm]),
+              let cipherMode = AESMode(rawValue: parameters[ConfigurationIndexes.PBKDF2.cipherMode]),
+              let ivLength = Int(parameters[ConfigurationIndexes.PBKDF2.ivLength]),
+              let iterations = Int(parameters[ConfigurationIndexes.iterations]),
+              let saltLength = Int(parameters[ConfigurationIndexes.saltLength]) else {
+            return nil
+        }
+        let PBKDF2Conf = PBKDF2Configuration(saltLength: saltLength,
+                                             iterations: iterations,
+                                             pseudoRandomAlgorithm: pseudoRandomAlgorithm)
+        let baseConf = BaseConfig(version: version,
+                                  derivationAlgorithm: derivationAlgorithm,
+                                  encryptionAlgorithm: encryptionAlgorithm,
+                                  cipherMode: cipherMode,
+                                  ivLength: ivLength)
+        return CryptoConfig.pbkdf2Based(derivationAlgorithm: PBKDF2Conf,
+                                        baseConfig: baseConf)
+
+    }
+
+    private static func argon2dConfig(
+        from parameters: [String],
+        version: Int,
+        derivationAlgorithm: DerivationAlgorithm
+    ) -> CryptoConfig? {
+        guard let memoryCost = Int(parameters[ConfigurationIndexes.Argon2.memoryCost]),
+              let parallelism = Int(parameters[ConfigurationIndexes.Argon2.parallelism]),
+              let encryptionAlgorithm = EncryptionAlgorithm(rawValue: parameters[ConfigurationIndexes.Argon2.encryptionAlgorithm]),
+              let cipherMode = AESMode(rawValue: parameters[ConfigurationIndexes.Argon2.cipherMode]),
+              let ivLength = Int(parameters[ConfigurationIndexes.Argon2.ivLength]),
+              let iterations = Int(parameters[ConfigurationIndexes.iterations]),
+              let saltLength = Int(parameters[ConfigurationIndexes.saltLength]) else {
+            return nil
+        }
+        let argon2Conf = Argon2Configuration(iterations: iterations,
+                                             memoryCost: memoryCost,
+                                             parallelism: parallelism,
+                                             saltLength: saltLength)
+        let baseConf = BaseConfig(version: version,
+                                  derivationAlgorithm: derivationAlgorithm,
+                                  encryptionAlgorithm: encryptionAlgorithm,
+                                  cipherMode: cipherMode,
+                                  ivLength: ivLength)
+        return CryptoConfig.argon2dBased(derivationAlgorithm: argon2Conf,
+                                         baseConfig: baseConf)
+    }
+
+    private static func noDerivationConfig(
+        from parameters: [String],
+        version: Int,
+        derivationAlgorithm: DerivationAlgorithm
+    ) -> CryptoConfig? {
+        guard let encryptionAlgorithm = EncryptionAlgorithm(rawValue: parameters[ConfigurationIndexes.NoDerivation.encryptionAlgorithm]),
+              let cipherMode = AESMode(rawValue: parameters[ConfigurationIndexes.NoDerivation.cipherMode]),
+              let ivLength = Int(parameters[ConfigurationIndexes.NoDerivation.ivLength]) else {
+            return nil
+        }
+        let baseConf = BaseConfig(version: version,
+                                  derivationAlgorithm: derivationAlgorithm,
+                                  encryptionAlgorithm: encryptionAlgorithm,
+                                  cipherMode: cipherMode,
+                                  ivLength: ivLength)
+        return CryptoConfig.noDerivation(baseConfig: baseConf)
+    }
+
     static func legacyMarker(from data: Data) -> CryptoConfig? {
         guard data.count >= DefaultValues.minimumHeaderLength else {
             return nil
@@ -119,7 +156,7 @@ public struct CryptoConfigParser {
         }
         return marker.cryptoConfig
     }
-    
+
     static func configuration(from data: Data) -> CryptoConfig? {
                                 let legacyMarker = self.legacyMarker(from: data)
         guard legacyMarker == nil else {
@@ -151,13 +188,13 @@ public struct CryptoConfigParser {
                 return self.configuration(from: noDerivationParams)
         }
     }
-    
+
     public static func configuration(from string: String) -> CryptoConfig? {
         guard let data = string.data(using: .utf8),
               let configuration = configuration(from: data) else {
             return nil
         }
-        
+
         return configuration
     }
 }

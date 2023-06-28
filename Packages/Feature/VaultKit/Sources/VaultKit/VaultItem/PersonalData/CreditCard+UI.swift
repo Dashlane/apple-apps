@@ -51,10 +51,10 @@ extension CreditCard: VaultItem {
         if cardNumber.isEmpty {
             return L10n.Core.KWIDCardIOS.number
         }
-        
+
         return "••••\(cardNumber.suffix(4)) \(subtitleDateString ?? "")"
     }
-    
+
     private var subtitleDateString: String? {
         guard let date = editableExpireDate else { return nil }
         return CreditCard.expireDateSubtitleFormatter.string(from: date)
@@ -70,10 +70,6 @@ extension CreditCard: VaultItem {
 
     public static var nativeMenuAddTitle: String {
         L10n.Core.addCreditCard
-    }
-
-        public var logData: VaultItemUsageLogData {
-        VaultItemUsageLogData(country: country?.code)
     }
 }
 
@@ -122,4 +118,3 @@ extension CreditCardColor {
         }
     }
 }
-

@@ -12,4 +12,3 @@ public struct ResponseKey {
     public static let message = "message"
     public static let data = "data"
 }
-

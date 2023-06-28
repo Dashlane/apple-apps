@@ -19,7 +19,6 @@ extension APIError {
 extension APIErrorCodes {
     public enum Account: String, Decodable, Equatable, RawRepresentable {
                 case accountAlreadyExists = "account_already_exists"
-                case accountRecoveryAlreadyEnabled = "account_recovery_already_enabled"
                 case contactEmailRequired = "contact_email_required"
                 case contactPhoneRequired = "contact_phone_required"
                 case deviceOutdated = "device_outdated"
@@ -31,6 +30,7 @@ extension APIErrorCodes {
                 case missingContactEmail = "missing_contact_email"
                 case missingContactPhone = "missing_contact_phone"
                 case notAccepted = "not_accepted"
+                case phoneValidationFailed = "phone_validation_failed"
                 case ssoBlocked = "sso_blocked"
                 case teamHasNotEnabledSso = "team_has_not_enabled_sso"
                 case unsupportedVersion = "unsupported_version"
@@ -39,6 +39,21 @@ extension APIErrorCodes {
 
 extension APIError {
     public func hasAccountCode(_ errorCode: APIErrorCodes.Account) -> Bool {
+        self.has(errorCode.rawValue)
+    }
+}
+extension APIErrorCodes {
+    public enum Accountrecovery: String, Decodable, Equatable, RawRepresentable {
+                case invalidAuthenticationTicket = "invalid_authentication_ticket"
+                case invalidRecoveryId = "invalid_recovery_id"
+                case noAccountRecovery = "no_account_recovery"
+                case notLatestStartedActivation = "not_latest_started_activation"
+                case notPendingForActivation = "not_pending_for_activation"
+    }
+}
+
+extension APIError {
+    public func hasAccountrecoveryCode(_ errorCode: APIErrorCodes.Accountrecovery) -> Bool {
         self.has(errorCode.rawValue)
     }
 }
@@ -57,46 +72,28 @@ extension APIError {
 extension APIErrorCodes {
     public enum Authentication: String, Decodable, Equatable, RawRepresentable {
                 case accountBlockedContactSupport = "account_blocked_contact_support"
-                case adfsCertificateNotProvided = "adfs_certificate_not_provided"
-                case assertionRejected = "assertion_rejected"
-                case attestationRejected = "attestation_rejected"
-                case authenticationTypeNotSupported = "authentication_type_not_supported"
-                case authenticatorNotAvailableOnDevice = "authenticator_not_available_on_device"
-                case authenticatorNotRegistered = "authenticator_not_registered"
                 case b2bSsoUserNotFound = "b2b_sso_user_not_found"
                 case cannotSeedForUserWithTotpEnabled = "cannot_seed_for_user_with_totp_enabled"
-                case challengeExpired = "challenge_expired"
-                case challengeNotFound = "challenge_not_found"
-                case challengeVerificationFailed = "challenge_verification_failed"
                 case clientVersionDoesNotSupportSsoMigration = "client_version_does_not_support_sso_migration"
                 case deactivatedDevice = "deactivated_device"
                 case deviceDeactivated = "device_deactivated"
                 case deviceNotFound = "device_not_found"
-                case existingSecureRemembermeSession = "existing_secure_rememberme_session"
-                case expiredSamlAssertion = "expired_saml_assertion"
                 case expiredVersion = "expired_version"
                 case failedToContactAuthenticatorDevice = "failed_to_contact_authenticator_device"
-                case invalidRequest = "invalid request"
                 case invalidAuthTicket = "invalid_auth_ticket"
                 case invalidAuthentication = "invalid_authentication"
                 case invalidOtpAlreadyUsed = "invalid_otp_already_used"
                 case invalidOtpBlocked = "invalid_otp_blocked"
-                case invalidSignature = "invalid_signature"
                 case invalidSsoToken = "invalid_sso_token"
                 case invalidToken = "invalid_token"
                 case invalidTotpStatus = "invalid_totp_status"
-                case loginParameterNotFound = "login_parameter_not_found"
-                case noKeyhandleFound = "no_keyhandle_found"
-                case noRecoveryPhone = "no_recovery_phone"
-                case notATestAccount = "not_a_test_account"
                 case otpFailed = "otp_failed"
                 case phoneValidationFailed = "phone_validation_failed"
                 case ssoBlocked = "sso_blocked"
-                case temporaryDeviceForbidden = "temporary_device_forbidden"
+                case teamGenericError = "team_generic_error"
                 case totpActiveOrNotSeeded = "totp_active_or_not_seeded"
                 case totpTypeIsNotSetToEmailToken = "totp_type_is_not_set_to_email_token"
                 case twofaEmailTokenNotEnabled = "twofa_email_token_not_enabled"
-                case u2fBadRequest = "u2f_bad_request"
                 case userHasNoActiveAuthenticator = "user_has_no_active_authenticator"
                 case userNotFound = "user_not_found"
                 case verificationFailed = "verification_failed"
@@ -169,7 +166,9 @@ extension APIErrorCodes {
     public enum DarkwebmonitoringQa: String, Decodable, Equatable, RawRepresentable {
                 case breachIsNotAccessible = "breach_is_not_accessible"
                 case breachNotFound = "breach_not_found"
+                case emailDoesntExistsInBreach = "email_doesnt_exists_in_breach"
                 case exceededStagingFileSizeLimit = "exceeded_staging_file_size_limit"
+                case invalidJsonBreachLine = "invalid_json_breach_line"
     }
 }
 
@@ -183,6 +182,8 @@ extension APIErrorCodes {
                 case clientDeviceNotFound = "client_device_not_found"
                 case clientDevicesNotFound = "client_devices_not_found"
                 case deviceNotFound = "device_not_found"
+                case jsonParsingError = "json_parsing_error"
+                case jsonValidationError = "json_validation_error"
                 case pairingGroupsNotFound = "pairing_groups_not_found"
     }
 }
@@ -240,10 +241,7 @@ extension APIErrorCodes {
                 case paymentPendingLoginMismatch = "payment_pending_login_mismatch"
                 case paymentPendingNotFound = "payment_pending_not_found"
                 case paymentPendingUseridMismatch = "payment_pending_userid_mismatch"
-                case premiumStatusNotUpdated = "premium_status_not_updated"
                 case productIdentifierNotFound = "product_identifier_not_found"
-                case userDoesNotBelongToPartner = "user_does_not_belong_to_partner"
-                case userDoesNotExist = "user_does_not_exist"
     }
 }
 
@@ -266,6 +264,7 @@ extension APIError {
 extension APIErrorCodes {
     public enum SharingUserdevice: String, Decodable, Equatable, RawRepresentable {
                 case aliasDoesNotBelongToAuthor = "alias_does_not_belong_to_author"
+                case atLeastOneItemGroupAlreadyAcceptedInCollection = "at_least_one_item_group_already_accepted_in_collection"
                 case authorAcceptSignatureIsMissing = "author_accept_signature_is_missing"
                 case authorDoesNotHavePermissions = "author_does_not_have_permissions"
                 case authorHasInvalidStatus = "author_has_invalid_status"
@@ -274,11 +273,19 @@ extension APIErrorCodes {
                 case authorMustBeAdmin = "author_must_be_admin"
                 case badlyFormattedEmail = "badly_formatted_email"
                 case cannotUpdateOwnPermission = "cannot_update_own_permission"
+                case collectionAlreadyExists = "collection_already_exists"
+                case collectionHasOtherRemainingMembers = "collection_has_other_remaining_members"
+                case collectionNotFound = "collection_not_found"
+                case existingUserCannotSpecifyCollectionKey = "existing_user_cannot_specify_collection_key"
+                case existingUserCannotSpecifyProposeSignature = "existing_user_cannot_specify_propose_signature"
+                case existingUserMustSpecifyCollectionKey = "existing_user_must_specify_collection_key"
                 case existingUserMustSpecifyGroupKey = "existing_user_must_specify_group_key"
                 case groupHasInvalidStatus = "group_has_invalid_status"
                 case insufficientAccessPrivileges = "insufficient_access_privileges"
                 case insufficientPermissionPrivileges = "insufficient_permission_privileges"
+                case insufficientPermissions = "insufficient_permissions"
                 case insufficientPrivileges = "insufficient_privileges"
+                case invalidCollectionRevision = "invalid_collection_revision"
                 case invalidItemGroupRevision = "invalid_item_group_revision"
                 case invalidItemTimestamp = "invalid_item_timestamp"
                 case invalidNumberOfItems = "invalid_number_of_items"
@@ -286,12 +293,18 @@ extension APIErrorCodes {
                 case invalidTeamId = "invalid_team_id"
                 case invalidUserGroupRevision = "invalid_user_group_revision"
                 case invalidUserGroupTeam = "invalid_user_group_team"
+                case itemGroupAlreadyExistsInCollection = "item_group_already_exists_in_collection"
                 case itemGroupIdAlreadyExists = "item_group_id_already_exists"
                 case itemGroupIsNotFound = "item_group_is_not_found"
+                case itemGroupIsPartOfCollection = "item_group_is_part_of_collection"
+                case itemGroupNotInCollection = "item_group_not_in_collection"
                 case itemGroupUpdateConflict = "item_group_update_conflict"
                 case itemIsAlreadyShared = "item_is_already_shared"
                 case itemIsNotFound = "item_is_not_found"
                 case missingTeamCaptains = "missing_team_captains"
+                case newUserMustSpecifyCollectionKey = "new_user_must_specify_collection_key"
+                case newUserMustSpecifyProposeSignature = "new_user_must_specify_propose_signature"
+                case noCollectionKeyToAccept = "no_collection_key_to_accept"
                 case noGroupKeyToAccept = "no_group_key_to_accept"
                 case noUserGroupAcceptSignature = "no_user_group_accept_signature"
                 case noUserOrUserGroupIsProvided = "no_user_or_user_group_is_provided"
@@ -299,6 +312,7 @@ extension APIErrorCodes {
                 case nonExistingUserMustSpecifyProposeSignatureUsingAlias = "non_existing_user_must_specify_propose_signature_using_alias"
                 case notAMemberCannotShareWithUserGroup = "not_a_member_cannot_share_with_user_group"
                 case notEnoughAdmins = "not_enough_admins"
+                case notEnoughAdminsInCollection = "not_enough_admins_in_collection"
                 case pi20211231Killswitch = "pi_20211231_killswitch"
                 case providedUserIdDoesNotExist = "provided_user_id_does_not_exist"
                 case providedUserIsNotItemGroupMember = "provided_user_is_not_item_group_member"
@@ -306,21 +320,27 @@ extension APIErrorCodes {
                 case sharingDisabledByTeam = "sharing_disabled_by_team"
                 case teamAdminsUserGroupAlreadyExists = "team_admins_user_group_already_exists"
                 case teamDoesNotExist = "team_does_not_exist"
+                case teamNotFound = "team_not_found"
                 case tooManyLogins = "too_many_logins"
                 case userGroupIdAlreadyExists = "user_group_id_already_exists"
                 case userGroupIsNotAdmin = "user_group_is_not_admin"
                 case userGroupIsNotFound = "user_group_is_not_found"
+                case userGroupIsNotInCollection = "user_group_is_not_in_collection"
                 case userGroupIsNotInItemGroup = "user_group_is_not_in_item_group"
                 case userGroupIsNotInPendingStatus = "user_group_is_not_in_pending_status"
                 case userGroupUpdateConflict = "user_group_update_conflict"
+                case userGroupsCannotBeRevokedFromCollection = "user_groups_cannot_be_revoked_from_collection"
                 case userGroupsCannotBeRevokedFromItemGroup = "user_groups_cannot_be_revoked_from_item_group"
                 case userGroupsItemGroupAlreadyExists = "user_groups_item_group_already_exists"
                 case userHasNoPublicKey = "user_has_no_public_key"
+                case userIsNotAcceptedInCollection = "user_is_not_accepted_in_collection"
+                case userIsNotInCollection = "user_is_not_in_collection"
                 case userIsNotInItemGroup = "user_is_not_in_item_group"
                 case userIsNotInPendingStatus = "user_is_not_in_pending_status"
                 case userIsNotInUserGroup = "user_is_not_in_user_group"
                 case userIsNotMemberOfTeam = "user_is_not_member_of_team"
                 case userIsNotTeamCaptain = "user_is_not_team_captain"
+                case usersCannotBeRevokedFromCollection = "users_cannot_be_revoked_from_collection"
                 case usersCannotBeRevokedFromItemGroup = "users_cannot_be_revoked_from_item_group"
                 case usersCannotBeRevokedFromUserGroup = "users_cannot_be_revoked_from_user_group"
                 case usersNotInUserGroup = "users_not_in_user_group"

@@ -1,4 +1,5 @@
 import SwiftUI
+import VaultKit
 
 struct ShareButton<Label: View>: View {
     let model: ShareButtonViewModel

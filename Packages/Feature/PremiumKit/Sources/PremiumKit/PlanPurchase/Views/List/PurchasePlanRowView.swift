@@ -41,7 +41,7 @@ struct PurchasePlanRowView: View {
             .padding(.top, 12)
 
             Spacer()
-            
+
             MarkdownText(model.plan.localizedDescription)
                 .font(.footnote)
                 .foregroundColor(.ds.text.neutral.standard)

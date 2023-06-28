@@ -8,7 +8,7 @@ public struct ParsedServerResponse {
         public var itemGroupErrors: [ItemGroupError]
         public var items: [ItemContentCache]
         public var itemErrors: [ItemError]
-    
+
     init(userGroups: [UserGroup] = [],
          userGroupErrors: [UserGroupError] = [],
          itemGroups: [ItemGroup] = [],
@@ -22,7 +22,7 @@ public struct ParsedServerResponse {
         self.items = items
         self.itemErrors = itemErrors
     }
-    
+
     init(_ serverResponse: ServerResponse) {
         self.itemErrors = serverResponse.itemErrors ?? []
         self.itemGroupErrors = serverResponse.itemGroupErrors ?? []
@@ -40,24 +40,24 @@ extension ServerResponse {
 }
 
 public extension ParsedServerResponse {
-    static func +=(lhs: inout ParsedServerResponse, rhs: ParsedServerResponse) {
+    static func += (lhs: inout ParsedServerResponse, rhs: ParsedServerResponse) {
         lhs.userGroups += rhs.userGroups
         lhs.userGroupErrors += rhs.userGroupErrors
-        
+
         lhs.itemGroups += rhs.itemGroups
         lhs.itemGroupErrors += rhs.itemGroupErrors
-        
+
         lhs.items += rhs.items
         lhs.itemErrors += rhs.itemErrors
     }
-    
+
     init() {
         userGroups = []
         userGroupErrors = []
-        
+
         itemGroups = []
         itemGroupErrors = []
-        
+
         items = []
         itemErrors = []
     }

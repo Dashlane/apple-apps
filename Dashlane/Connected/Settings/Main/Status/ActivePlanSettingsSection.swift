@@ -1,3 +1,4 @@
+import DesignSystem
 import SwiftUI
 import CorePremium
 import UIDelight
@@ -27,6 +28,7 @@ struct ActivePlanSettingsSection: View {
         Text(plan.localizedTitle)
             .frame(maxWidth: .infinity, alignment: .leading)
             .font(.custom(GTWalsheimPro.bold.name, size: 26, relativeTo: .title))
+            .foregroundColor(.ds.text.neutral.standard)
     }
 
     @ViewBuilder
@@ -34,7 +36,7 @@ struct ActivePlanSettingsSection: View {
         if let info = status.localizedInfo {
             Text(info)
                 .font(.subheadline)
-                .foregroundColor(Color(asset: FiberAsset.secondaryText))
+                .foregroundColor(.ds.text.neutral.quiet)
         }
     }
 
@@ -43,7 +45,9 @@ struct ActivePlanSettingsSection: View {
         if let action = status.planAction {
             Button(action: showPurchase) {
                 Text(action.localizedTitle)
-            }.accentColor(Color(asset: FiberAsset.accentColor))
+            }
+            .accentColor(.ds.text.brand.standard)
+            .foregroundColor(.ds.text.brand.standard)
         }
     }
 

@@ -1,9 +1,11 @@
 import SwiftUI
 import VaultKit
+import UIComponents
+import CoreLocalization
 
-struct DetailFieldActionSheet: ViewModifier {
+public struct DetailFieldActionSheet: ViewModifier {
 
-    enum Action {
+    public enum Action {
         case copy((_ value: String, _ fieldType: DetailFieldType) -> Void)
         case largeDisplay
     }
@@ -31,7 +33,7 @@ struct DetailFieldActionSheet: ViewModifier {
     var fieldType
 
     @ViewBuilder
-    func body(content: Content) -> some View {
+    public func body(content: Content) -> some View {
         HStack(spacing: 4) {
             if detailMode.isEditing {
                 content
@@ -41,7 +43,7 @@ struct DetailFieldActionSheet: ViewModifier {
                 content
                     .contextMenu {
                         if self.actions.copyAction != nil {
-                            Button(L10n.Localizable.kwCopy, action: copy)
+                            Button(CoreLocalization.L10n.Core.kwCopy, action: copy)
                         }
                         if self.actions.hasLargeDisplay {
                             Button(L10n.Localizable.editMenuShowLargeCharacters, action: requestLargeDisplay)
@@ -63,15 +65,6 @@ struct DetailFieldActionSheet: ViewModifier {
                         self.detailFieldActionSheet
                     }
                 #endif
-            }
-
-            if detailMode == .viewing && !self.text.isEmpty && self.actions.copyAction != nil && hasAccessory {
-                Spacer()
-                Button(action: copy, label: {
-                    Text(L10n.Localizable.kwCopy)
-                        .font(sizeCategory.isAccessibilityCategory ? .footnote : .body) 
-                })
-                .accentColor(Color(asset: FiberAsset.accentColor))
             }
         }
         .overFullScreen(isPresented: $showLargeDisplay) {
@@ -116,7 +109,7 @@ extension DetailFieldActionSheet {
     }
 
     private func copyButton(action: @escaping (String, DetailFieldType) -> Void) -> ActionSheet.Button {
-        .default(Text(L10n.Localizable.kwCopy), action: {
+        .default(Text(CoreLocalization.L10n.Core.kwCopy), action: {
             action(self.text, self.fieldType)
         })
     }
@@ -126,7 +119,7 @@ extension DetailFieldActionSheet {
     }
 }
 
-extension CopiableDetailField {
+public extension CopiableDetailField {
     func actions(_ actions: [DetailFieldActionSheet.Action],
                  hasAccessory: Bool = true,
                  accessHandler: ((@escaping (Bool) -> Void) -> Void)? = nil) -> some View {

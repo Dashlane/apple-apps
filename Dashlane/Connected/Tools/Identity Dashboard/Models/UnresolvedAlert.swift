@@ -175,9 +175,9 @@ extension DataLeakPlaintextTrayAlert: UnresolvedAlertShowable {
 
         public var icon: UIImage {
             if state == .hidden {
-                return FiberAsset.revealButton.image
+                return UIImage.ds.action.reveal.outlined
             }
-            return FiberAsset.revealButtonSelected.image
+            return UIImage.ds.action.hide.outlined
         }
 
         init(message: NSAttributedString, passwords: [String]) {

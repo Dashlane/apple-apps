@@ -1,91 +1,131 @@
 import Foundation
 import Combine
 import DashTypes
+import UIKit
 
-enum DWMEmailRegistrationRequestState {
-    case notSent
-    case sent
-}
+@MainActor
+final class DWMRegistrationInGuidedOnboardingViewModel: ObservableObject, SessionServicesInjecting {
 
-final class DWMRegistrationInGuidedOnboardingViewModel: DWMRegistrationViewModel, SessionServicesInjecting {
+    struct Alert: Identifiable {
+        let id: UUID = .init()
+        let message: String
+        let isUnexpected: Bool
+    }
 
-        @Published private var emailRegistrationRequestState: DWMEmailRegistrationRequestState = .notSent
+    private enum RequestState {
+        case notSent
+        case sent
+    }
+
+        @Published
+    private var emailRegistrationRequestState: RequestState = .notSent
+
+    @Published
+    var shouldShowRegistrationRequestSent: Bool = false
+
+    @Published
+    var shouldShowMailAppsMenu: Bool = false
+
+    @Published
+    var shouldShowLoading: Bool = false
+
+    @Published
+    var alert: Alert?
 
         private var shouldMakeRequest: Bool {
-        guard emailRegistrationRequestState == .notSent else {
-            return false
-        }
-
-        return true
+        return emailRegistrationRequestState == .notSent
     }
 
-    override init(email: String, dwmOnboardingService: DWMOnboardingService, logsService: UsageLogServiceProtocol, completion: ((DWMRegistrationViewModel.Completion) -> Void)?) {
-        super.init(email: email, dwmOnboardingService: dwmOnboardingService, logsService: logsService, completion: completion)
+    let email: String
+    let mailApps: [MailApp] = {
+        MailApp.allCases.compactMap { UIApplication.shared.canOpenURL(URL(string: $0.urlScheme)!) ? $0 : nil }
+    }()
 
-        dwmOnboardingService.progressPublisher().removeDuplicates().receive(on: DispatchQueue.main).sink { [weak self] progress in
-            guard let progress = progress else {
-                self?.emailRegistrationRequestState = .notSent
-                return
+    private let dwmOnboardingService: DWMOnboardingService
+    private var cancellables = Set<AnyCancellable>()
+
+    init(email: String, dwmOnboardingService: DWMOnboardingService) {
+        self.email = email
+        self.dwmOnboardingService = dwmOnboardingService
+
+        dwmOnboardingService.progressPublisher()
+            .removeDuplicates()
+            .receive(on: DispatchQueue.main)
+            .sink { [weak self] progress in
+                guard let progress = progress else {
+                    self?.emailRegistrationRequestState = .notSent
+                    return
+                }
+
+                                                                self?.emailRegistrationRequestState = progress >= .emailRegistrationRequestSent ? .sent : .notSent
+                self?.shouldShowRegistrationRequestSent = self?.emailRegistrationRequestState == .sent
             }
-
-                        self?.emailRegistrationRequestState = progress >= .emailRegistrationRequestSent ? .sent : .notSent
-            self?.shouldShowRegistrationRequestSent = self?.emailRegistrationRequestState == .sent
-            self?.sendDisplayLogs()
-        }.store(in: &cancellables)
+            .store(in: &cancellables)
     }
 
-    override func register() {
-        usageLogsService.log(.checkForBreachesTapped)
-
+    func register() {
         guard shouldMakeRequest else {
             shouldShowRegistrationRequestSent = true
             return
         }
 
-        super.register()
+        shouldShowLoading = true
+        dwmOnboardingService.register(email: email)
+            .receive(on: DispatchQueue.main)
+            .sink(receiveCompletion: { [weak self] result in
+                guard let self = self else { return }
+                self.shouldShowLoading = false
+                if case let .failure(error) = result {
+                    switch error {
+                    case .incorrectEmail:
+                        self.alert = .init(message: L10n.Localizable.darkWebMonitoringEmailRegistrationErrorInvalidEmail, isUnexpected: false)
+                    case .connectionError:
+                        self.alert = .init(message: L10n.Localizable.darkWebMonitoringEmailRegistrationErrorConnection, isUnexpected: false)
+                    case .unexpectedError:
+                        self.alert = .init(message: L10n.Localizable.darkWebMonitoringEmailRegistrationErrorUnknown, isUnexpected: true)
+                    }
+                }
+            }, receiveValue: { [weak self] _ in
+                guard let self = self else { return }
+                self.shouldShowLoading = false
+            })
+            .store(in: &cancellables)
     }
 
-    override func sendDisplayLogs() {
-        if case .sent = emailRegistrationRequestState {
-            super.sendDisplayLogs()
-        }
+    func openMailAppsMenu() {
+        shouldShowMailAppsMenu = true
     }
 
-    override func back() {
-                if emailRegistrationRequestState == .sent && shouldShowRegistrationRequestSent == true {
+    func openMailApp(_ app: MailApp) {
+        UIApplication.shared.open(URL(string: app.urlScheme)!)
+    }
+
+    func updateProgressUponDisplay() {
+        dwmOnboardingService.shown()
+    }
+
+    func skip() {
+        dwmOnboardingService.skip()
+        cancellables.removeAll()
+    }
+
+    func canGoBack() -> Bool {
+                guard !(emailRegistrationRequestState == .sent && shouldShowRegistrationRequestSent) else {
             shouldShowRegistrationRequestSent = false
-        } else {
-            completion?(.back)
+            return false
         }
+        return true
     }
 
-    override func updateProgressUponDisplay() {
-        usageLogsService.log(.emailRegistrationScreenDisplayed)
-        super.updateProgressUponDisplay()
+    func dismiss() {
+        cancellables.removeAll()
     }
 }
 
-class FakeDWMEmailRegistrationInGuidedOnboardingViewModel: DWMRegistrationViewModelProtocol {
-
-    var shouldShowRegistrationRequestSent: Bool
-
-    let email: String = "_"
-    var shouldShowMailAppsMenu: Bool = false
-    var mailApps: [MailApp] = [.appleMail]
-    var shouldShowLoading: Bool = false
-    var shouldDisplayError: Bool = false
-    var errorContent: String = ""
-    var errorDismissalCompletion: (() -> Void)?
-
-    func register() {}
-    func openMailAppsMenu() {}
-    func openMailApp(_ app: MailApp) {}
-    func userIndicatedEmailWasConfirmed() {}
-    func updateProgressUponDisplay() {}
-    func back() {}
-    func skip() {}
-
-    init(registrationRequestSent: Bool = false) {
-        self.shouldShowRegistrationRequestSent = registrationRequestSent
+extension DWMRegistrationInGuidedOnboardingViewModel {
+    static func mock(shouldShowRegistrationRequestSent: Bool = false) -> DWMRegistrationInGuidedOnboardingViewModel {
+        let viewModel = DWMRegistrationInGuidedOnboardingViewModel(email: "_", dwmOnboardingService: .mock)
+        viewModel.shouldShowRegistrationRequestSent = shouldShowRegistrationRequestSent
+        return viewModel
     }
 }

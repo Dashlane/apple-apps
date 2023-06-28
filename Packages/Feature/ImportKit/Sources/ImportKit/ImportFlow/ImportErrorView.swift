@@ -4,6 +4,7 @@ import SwiftUI
 import UIDelight
 import UIComponents
 
+@MainActor
 public struct ImportErrorView: View {
 
     public enum Action {
@@ -15,7 +16,7 @@ public struct ImportErrorView: View {
     private var showDocumentPicker: Bool = false
 
     let model: ImportViewModel
-    let action: (Action) -> Void
+    let action: @MainActor (Action) -> Void
 
     public var body: some View {
         VStack(alignment: .leading) {
@@ -74,7 +75,7 @@ public struct ImportErrorView: View {
     private func save() {
         Task {
             do {
-                try await self.model.save()
+                try await self.model.save(in: nil)
                 await MainActor.run {
                     self.action(.saved)
                 }

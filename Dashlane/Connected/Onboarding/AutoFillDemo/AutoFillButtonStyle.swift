@@ -1,10 +1,11 @@
+import DesignSystem
 import SwiftUI
 import UIDelight
 
 struct AutoFillButtonStyle: ButtonStyle {
     func makeBody(configuration: Self.Configuration) -> some View {
         configuration.label
-            .foregroundColor(Color(asset: FiberAsset.mainCopy))
+            .foregroundColor(.ds.text.neutral.catchy)
             .padding(.top, 9)
             .frame(maxWidth: .infinity)
             .background(configuration.isPressed ? Color(UIColor.systemGray5) : Color.clear)

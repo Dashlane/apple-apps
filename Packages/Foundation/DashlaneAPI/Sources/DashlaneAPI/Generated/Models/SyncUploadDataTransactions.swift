@@ -2,6 +2,14 @@ import Foundation
 
 public struct SyncUploadDataTransactions: Codable, Equatable {
 
+    private enum CodingKeys: String, CodingKey {
+        case identifier = "identifier"
+        case time = "time"
+        case content = "content"
+        case type = "type"
+        case action = "action"
+    }
+
         public let identifier: String
 
         public let time: Int

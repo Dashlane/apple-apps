@@ -3,17 +3,17 @@ import PackageDescription
 let package = Package(
     name: "CorePremium",
     platforms: [
-        .iOS(.v15),
-        .macOS(.v12)
+        .iOS(.v16),
+        .macOS(.v13)
     ],
     products: [
                 .library(
             name: "CorePremium",
-            targets: ["CorePremium"]),
+            targets: ["CorePremium"])
     ],
     dependencies: [
                         .package(path: "../../Foundation/DashTypes"),
-        .package(path: "../CoreNetworking"),
+        .package(path: "../CoreNetworking")
     ],
     targets: [
                         .target(
@@ -25,8 +25,7 @@ let package = Package(
             name: "CorePremiumTests",
             dependencies: [
                 "CorePremium",
-                .product(name: "DashTypes", package: "DashTypes"),
-                .product(name: "CoreNetworking", package: "CoreNetworking")
+                .product(name: "DashTypes", package: "DashTypes")
             ]
         )
     ]

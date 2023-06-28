@@ -53,7 +53,7 @@ extension BrazeAnnouncement {
 }
 
 extension Braze.InAppMessage.Graphic {
-    func imageURL() throws ->  URL {
+    func imageURL() throws -> URL {
         switch self {
         case .image(let url):
             return url

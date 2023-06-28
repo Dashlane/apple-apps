@@ -5,6 +5,7 @@ import CoreSettings
 import CoreSession
 import DashTypes
 import CoreNetworking
+import VaultKit
 
 @MainActor
 class DarkWebToolsFlowViewModel: ObservableObject, SessionServicesInjecting {
@@ -52,7 +53,6 @@ class DarkWebToolsFlowViewModel: ObservableObject, SessionServicesInjecting {
     let dataLeakMonitoringAddEmailViewModelFactory: DataLeakMonitoringAddEmailViewModel.Factory
     let darkWebMonitoringDetailsViewModelFactory: DarkWebMonitoringDetailsViewModel.Factory
     let breachViewModelFactory: BreachViewModel.SecondFactory
-    let usageLogService: UsageLogServiceProtocol
     let webservice: LegacyWebService
     let notificationService: SessionNotificationService
     let logger: Logger
@@ -66,7 +66,6 @@ class DarkWebToolsFlowViewModel: ObservableObject, SessionServicesInjecting {
          dataLeakMonitoringAddEmailViewModelFactory: DataLeakMonitoringAddEmailViewModel.Factory,
          darkWebMonitoringDetailsViewModelFactory: DarkWebMonitoringDetailsViewModel.Factory,
          breachViewModelFactory: BreachViewModel.SecondFactory,
-         usageLogService: UsageLogServiceProtocol,
          webservice: LegacyWebService,
          notificationService: SessionNotificationService,
          logger: Logger,
@@ -79,7 +78,6 @@ class DarkWebToolsFlowViewModel: ObservableObject, SessionServicesInjecting {
         self.dataLeakMonitoringAddEmailViewModelFactory = dataLeakMonitoringAddEmailViewModelFactory
         self.darkWebMonitoringDetailsViewModelFactory = darkWebMonitoringDetailsViewModelFactory
         self.breachViewModelFactory = breachViewModelFactory
-        self.usageLogService = usageLogService
         self.webservice = webservice
         self.notificationService = notificationService
         self.logger = logger
@@ -118,7 +116,6 @@ extension DarkWebToolsFlowViewModel {
     func makeDarkWebMonitoringDetailsViewModel(for breach: DWMSimplifiedBreach) -> DarkWebMonitoringDetailsViewModel {
         return darkWebMonitoringDetailsViewModelFactory.make(breach: breach,
                                                              breachViewModel: breachViewModelFactory.make(breach: breach),
-                                                             usageLogService: DWMLogService(usageLogService: usageLogService),
                                                              actionPublisher: actionPublisher)
     }
 
@@ -176,9 +173,8 @@ extension DarkWebToolsFlowViewModel {
               deepLinkingService: DeepLinkingService.fakeService,
               darkWebMonitoringViewModelFactory: .init({ _ in .mock }),
               dataLeakMonitoringAddEmailViewModelFactory: .init({ _, _ in .mock }),
-              darkWebMonitoringDetailsViewModelFactory: .init({ _, _, _, _ in .fake() }),
+              darkWebMonitoringDetailsViewModelFactory: .init({ _, _, _ in .fake() }),
               breachViewModelFactory: .init({ _ in .mock(for: .init()) }),
-              usageLogService: UsageLogService.fakeService,
               webservice: LegacyWebServiceMock(response: ""),
               notificationService: .fakeService,
               logger: LoggerMock(),

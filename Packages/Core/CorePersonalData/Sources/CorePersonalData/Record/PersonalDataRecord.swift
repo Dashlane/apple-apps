@@ -6,10 +6,10 @@ public struct PersonalDataRecord: Identifiable, Hashable {
     public var id: Identifier {
         return metadata.id
     }
-    
+
     public var metadata: RecordMetadata
         public var content: PersonalDataCollection
-    
+
     public init(metadata: RecordMetadata, content: PersonalDataCollection) {
         self.metadata = metadata
         self.content = content
@@ -30,15 +30,15 @@ public struct RecordMetadata: Identifiable, Codable, Hashable {
         case lastLocalUseDate
         case lastLocalSearchDate
     }
-    
+
     public enum SyncStatus: String, Codable, Hashable {
         case pendingUpload = "BACKUP_EDIT"
         case pendingRemove = "BACKUP_REMOVE"
     }
-    
+
     public var id: Identifier
     public let contentType: PersonalDataContentType
-    
+
     public var lastSyncTimestamp: DashTypes.Timestamp? 
     public internal(set) var syncStatus: SyncStatus? {
         didSet {
@@ -82,15 +82,15 @@ public struct RecordMetadata: Identifiable, Codable, Hashable {
             self.syncRequestId = UUID().uuidString
         }
     }
-    
+
     public mutating func markAsPendingUpload() {
         syncStatus = .pendingUpload
     }
-    
+
     public mutating func markAsPendingRemove() {
         syncStatus = .pendingRemove
     }
-    
+
     public mutating func clearSyncStatus() {
         syncStatus = nil
     }

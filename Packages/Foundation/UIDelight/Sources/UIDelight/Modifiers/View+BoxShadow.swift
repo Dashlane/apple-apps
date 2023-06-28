@@ -2,7 +2,7 @@ import SwiftUI
 
 struct BoxShadowModifier: ViewModifier {
     let enabled: Bool
-    
+
     func body(content: Content) -> some View {
         if enabled {
             content

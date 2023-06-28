@@ -7,6 +7,7 @@ import IconLibrary
 import CorePersonalData
 import UIComponents
 import SwiftTreats
+import DesignSystem
 
 struct AuthenticatorToolFlowView: View {
 
@@ -31,7 +32,7 @@ struct AuthenticatorToolFlowView: View {
                     .reportPageAppearance(.toolsAuthenticatorLogins)
             }
         }
-        .accentColor(Color(asset: FiberAsset.accentColor))
+        .accentColor(.ds.text.brand.standard)
         .fullScreenCover(isPresented: $viewModel.presentAdd2FAFlow) {
             AddOTPFlowView(viewModel: viewModel.makeAddOTPFlowViewModel())
         }.bottomSheet(isPresented: $viewModel.isIntroSheetPresented) {

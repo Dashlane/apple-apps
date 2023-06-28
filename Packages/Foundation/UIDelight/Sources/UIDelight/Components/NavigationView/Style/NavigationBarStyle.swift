@@ -8,7 +8,7 @@ public struct NavigationBarStyle: Equatable {
     let standardAppearance: UINavigationBarAppearance
     let compactAppearance: UINavigationBarAppearance?
     let scrollEdgeAppearance: UINavigationBarAppearance?
-    
+
     init(tintColor: UIColor?,
          standardAppearance: UINavigationBarAppearance,
          compactAppearance: UINavigationBarAppearance?,
@@ -24,7 +24,7 @@ public struct NavigationBarStyle: Equatable {
         appearance.backgroundColor = backgroundColor
         appearance.titleTextAttributes = [.foregroundColor: tintColor]
         appearance.largeTitleTextAttributes = [.foregroundColor: tintColor]
-        
+
         self.init(tintColor: tintColor,
                   standardAppearance: appearance,
                   compactAppearance: appearance,
@@ -36,20 +36,20 @@ public extension NavigationBarStyle {
     static var transparent: NavigationBarStyle {
         return .transparent(tintColor: nil, titleColor: nil)
     }
-    
+
     static func transparent(tintColor: UIColor?, titleColor: UIColor?) -> NavigationBarStyle {
         let appearance = UINavigationBarAppearance.transparent
         if let titleColor = titleColor {
             appearance.titleTextAttributes = [.foregroundColor: titleColor]
             appearance.largeTitleTextAttributes = [.foregroundColor: titleColor]
         }
-        
+
         return .init(tintColor: tintColor,
                      standardAppearance: appearance,
                      compactAppearance: appearance,
                      scrollEdgeAppearance: appearance)
     }
-    
+
     static var `default`: NavigationBarStyle {
         let appearance = UINavigationBarAppearance.default
         return .init(tintColor: nil,
@@ -57,15 +57,15 @@ public extension NavigationBarStyle {
                      compactAppearance: appearance,
                      scrollEdgeAppearance: appearance)
     }
-    
+
     static var purpleWhyNot: NavigationBarStyle {
         return .init(tintColor: .white, backgroundColor: .purple)
     }
-    
+
     static var yellowWhyNot: NavigationBarStyle {
         return .init(tintColor: .label, backgroundColor: .yellow)
     }
-    
+
     static var greenWhyNot: NavigationBarStyle {
         return .init(tintColor: .label, backgroundColor: .green)
     }
@@ -104,9 +104,8 @@ public extension NavigationBarStyle {
                      compactAppearance: appearance,
                      scrollEdgeAppearance: appearance)
     }
-    
-}
 
+}
 
 extension UINavigationBar {
     private static let defaultTintColor = UINavigationBar.appearance().tintColor
@@ -118,12 +117,11 @@ extension UINavigationBar {
                                   scrollEdgeAppearance: scrollEdgeAppearance.map { .init(barAppearance: $0) })
     }
 
-    
     func apply(_ style: NavigationBarStyle) {
         standardAppearance = style.standardAppearance
         compactAppearance = style.compactAppearance
         scrollEdgeAppearance = style.scrollEdgeAppearance
-        
+
         if let tintColor = style.tintColor {
             self.tintColor = tintColor
         } else {

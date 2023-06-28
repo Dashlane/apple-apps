@@ -9,6 +9,7 @@ import SwiftTreats
 import DashlaneAppKit
 import CoreNetworking
 import CoreUserTracking
+import UIComponents
 
 @MainActor
 class AuthenticationCoordinator: Coordinator, SubcoordinatorOwner {
@@ -23,7 +24,8 @@ class AuthenticationCoordinator: Coordinator, SubcoordinatorOwner {
     let completion: @MainActor (Result<SessionServicesContainer, Error>) -> ()
     var subcoordinator: Coordinator?
     let inputMode: InputMode
-
+    let localLoginFlowViewModelFactory: LocalLoginFlowViewModel.Factory
+    
     enum AuthError: Error {
         case noUserConnected(details: String)
         case userCanceledAuthentication
@@ -34,11 +36,13 @@ class AuthenticationCoordinator: Coordinator, SubcoordinatorOwner {
     init(appServices: AppServicesContainer,
          navigator: DashlaneNavigationController,
          inputMode: InputMode = .loggedOut,
+         localLoginFlowViewModelFactory: LocalLoginFlowViewModel.Factory,
          completion: @escaping @MainActor (Result<SessionServicesContainer, Error>) -> ()) {
         self.navigator = navigator
         self.appServices = appServices
         self.completion = completion
         self.inputMode = inputMode
+        self.localLoginFlowViewModelFactory = localLoginFlowViewModelFactory
     }
 
     func start() {
@@ -62,6 +66,7 @@ class AuthenticationCoordinator: Coordinator, SubcoordinatorOwner {
     private func makeLoginHandler(for login: Login) -> LoginHandler {
         let cryptoEngineProvider = SessionCryptoEngineProvider(logger: appServices.rootLogger)
         return LoginHandler(sessionsContainer: appServices.sessionsContainer,
+                            appApiClient: appServices.appAPIClient,
                             apiClient: appServices.appAPIClient,
                             deviceInfo: DeviceInfo.default,
                             logger: appServices.rootLogger[.session],
@@ -101,26 +106,10 @@ class AuthenticationCoordinator: Coordinator, SubcoordinatorOwner {
 
         let resetMasterPasswordService = ResetMasterPasswordService(login: loginHandler.login, settings: userSettings, keychainService: appServices.keychainService)
 
-        let logger = appServices.rootLogger[.session]
-
-        let model = LocalLoginFlowViewModel(localLoginHandler: loginHandler,
-                                            settingsManager: appServices.settingsManager,
-                                            loginUsageLogService: appServices.loginUsageLogService,
-                                            installerLogService: appServices.installerLogService,
-                                            activityReporter: appServices.activityReporter,
-                                            sessionContainer: appServices.sessionsContainer,
-                                            logger: logger,
-                                            resetMasterPasswordService: resetMasterPasswordService,
-                                            userSettings: userSecuritySettings,
-                                            nonAuthenticatedUKIBasedWebService: appServices.nonAuthenticatedUKIBasedWebService,
-                                            keychainService: appServices.keychainService,
-                                            email: loginHandler.login.email,
-                                            context: .autofillExtension(cancelAction: cancelAction),
-                                            nitroWebService: appServices.nitroWebService) { [weak self] completion in
+        let model = localLoginFlowViewModelFactory.make(localLoginHandler: loginHandler, resetMasterPasswordService: resetMasterPasswordService, userSettings: userSecuritySettings, email: loginHandler.login.email, context: .autofillExtension(cancelAction: cancelAction)) { [weak self] completion in
             guard let self = self else { return }
             self.handleLoginCompletion(completion, localLoginHandler: loginHandler)
         }
-
         navigator.setRootNavigation(LocalLoginFlow(viewModel: model), barStyle: .transparent, animated: false)
     }
 
@@ -131,7 +120,7 @@ class AuthenticationCoordinator: Coordinator, SubcoordinatorOwner {
             switch completion {
             case .logout:
                 self.handle(error: AuthError.userCanceledAuthentication)
-            case let .completed(session, _, _, logInfo):
+            case let .completed(session, _, _, logInfo, _, _):
                 if case let .servicesLoaded(sessionServicesContainer) = self.inputMode {
                     sessionServicesContainer.activityReporter.logSuccessfulLocalLogin(logInfo)
                     self.completion(.success(sessionServicesContainer))
@@ -143,7 +132,7 @@ class AuthenticationCoordinator: Coordinator, SubcoordinatorOwner {
                         sessionServicesContainer.activityReporter.logSuccessfulLocalLogin(logInfo)
                         self.completion(.success(sessionServicesContainer))
                     } catch {
-                        self.appServices.loginUsageLogService.resetTimer(.login)
+                        self.appServices.loginMetricsReporter.resetTimer(.login)
                         self.handle(error: error)
                     }
                 }

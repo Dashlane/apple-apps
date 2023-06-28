@@ -6,6 +6,6 @@ public protocol PasswordHealthResult {
         var elements: [SecurityDashboardCredential] { get set }
 
     	var count: Int { get }
-    
+
         mutating func filter(bySpacedId: String?, sensitiveOnly: Bool)
 }

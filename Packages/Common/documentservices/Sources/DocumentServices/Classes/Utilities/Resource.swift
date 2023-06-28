@@ -18,13 +18,13 @@ struct Resource<Parser: ResponseParserProtocol> {
     let parser: Parser
 
     init(endpoint: String,
-          method: HTTPMethod,
-          params: [String: Encodable],
-          contentFormat: ContentFormat,
-          needsAuthentication: Bool,
-          file: File? = nil,
-          keyOrder: [String]? = nil,
-          parser: Parser) {
+         method: HTTPMethod,
+         params: [String: Encodable],
+         contentFormat: ContentFormat,
+         needsAuthentication: Bool,
+         file: File? = nil,
+         keyOrder: [String]? = nil,
+         parser: Parser) {
         self.endpoint = endpoint
         self.method = method
         self.params = params
@@ -50,7 +50,7 @@ extension Resource {
                            completion: completion)
 
     }
-    
+
     func load(on engine: ProgressableNetworkingEngine) async throws -> Parser.ParsedResponse {
         try await engine.sendRequest(to: self.endpoint,
                                      using: self.method,

@@ -1,6 +1,7 @@
 import Foundation
 import UIKit
 import DashTypes
+import UIComponents
 
 struct SessionMainMenuBuilder {
     let syncShortcut: SyncKeyboardShortcut
@@ -10,6 +11,10 @@ struct SessionMainMenuBuilder {
         builder.insertSibling(makeSyncMenu(), beforeMenu: .help)
 
                 let dynamic = makeDynamicMenus(shortcuts: dynamicShortcuts)
+
+                if dynamic.contains(where: { $0.key == .application }) {
+            builder.remove(menu: .preferences)
+        }
 
         dynamic.forEach { item in
             builder.insertChild(item.value, atEndOfMenu: item.key.identifier)
@@ -32,7 +37,7 @@ struct SessionMainMenuBuilder {
         return shortcuts
             .sorted(by: { $0.shortcut.title < $1.shortcut.title })
             .reduce(into: [ShortcutMenu: [UIKeyCommand]]()) { result, element in
-                result[element.shortcut.menu, default: []].append(element.shortcut.command)
+                result[element.shortcut.menu, default: []].append(element.shortcut.command(selector: #selector(SidebarHostingViewController.handleMenuBarShortcut(_:))))
             }
             .mapValues { commands in
                 UIMenu(title: "",

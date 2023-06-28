@@ -5,6 +5,9 @@ import CoreUserTracking
 import UIComponents
 import DesignSystem
 import PremiumKit
+import VaultKit
+import SwiftTreats
+import AutofillKit
 
 struct CredentialListView: View {
     @StateObject
@@ -22,11 +25,11 @@ struct CredentialListView: View {
             }
         }
         .accentColor(.ds.text.brand.standard)
-        .bottomSheet(isPresented: $model.displayLinkingView, detents: [.large]) {
+        .linkingViewContainer(isPresented: $model.displayLinkingView, view: {
             if let credentialLinkingViewModel = model.makeCredentialLinkingViewModel() {
                 CredentialLinkingView(model: credentialLinkingViewModel)
             }
-        }
+        })
     }
 
     @ViewBuilder
@@ -34,8 +37,7 @@ struct CredentialListView: View {
         ExtensionSearchView(model: model.searchViewModel,
                             addAction: { model.addAction() },
                             closeAction: { model.cancel() },
-                            select: { model.select($0, origin: $1) },
-                            onSearchAppear: { model.onSearchAppear() }) {
+                            select: { model.select($0, origin: $1) }) {
             VStack(spacing: 0) {
                 if !model.isReady {
                     ProgressViewBox()
@@ -101,9 +103,21 @@ struct AddCredentialRowView: View {
         HStack(spacing: 16) {
             Image(asset: FiberAsset.addNewPassword)
             Button(L10n.Localizable.addNewPassword, action: select)
-                .foregroundColor(Color(asset: FiberAsset.midGreen))
+                .foregroundColor(.ds.text.brand.standard)
         }
         .padding(.vertical, 5)
         .onTapWithFeedback(perform: select)
+    }
+}
+
+private extension View {
+
+    @ViewBuilder
+    func linkingViewContainer<V: View>(isPresented: Binding<Bool>, @ViewBuilder view: @escaping () -> V) -> some View {
+        if Device.isMac {
+                        self.fullScreenCover(isPresented: isPresented, content: { view() })
+        } else {
+            self.bottomSheet(isPresented: isPresented, detents: [.large], content: { view() })
+        }
     }
 }

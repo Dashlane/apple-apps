@@ -4,14 +4,13 @@ import Combine
 
 public struct InMemoryDatabaseDriver: DatabaseDriver {
 
-
     public class Store {
         @Published
         public var records: [Identifier: PersonalDataRecord] = [:]
         @Published
         public var snapshots: [Identifier: PersonalDataSnapshot] = [:]
     }
-    
+
     public let eventPublisher = PassthroughSubject<DatabaseEvent, Never>()
     public let syncTriggerPublisher = PassthroughSubject<Void, Never>()
     public let store = Store()
@@ -19,13 +18,13 @@ public struct InMemoryDatabaseDriver: DatabaseDriver {
     private let queue = DispatchQueue(label: "InMemoryDatabaseDriver")
 
     public init() {
-        
+
     }
-    
+
     public func read<T>(_ reader: (DatabaseReader) throws -> T) throws -> T {
        return try queue.sync { try reader(InMemoryDatabase(store: store)) }
     }
-    
+
     public func write<T>(shouldSyncChange: Bool, _ writer: (inout DatabaseWriter) throws -> T) throws -> T {
         return try queue.sync {
             var database: DatabaseWriter = InMemoryDatabase(store: store)
@@ -37,7 +36,7 @@ public struct InMemoryDatabaseDriver: DatabaseDriver {
             return result
         }
     }
- 
+
     public func publisher(with id: Identifier) -> AnyPublisher<PersonalDataRecord?, Error> {
         store.$records.map { records in
            return records[id]

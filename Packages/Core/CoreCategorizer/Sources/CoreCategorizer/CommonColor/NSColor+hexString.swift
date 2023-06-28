@@ -5,18 +5,18 @@ import AppKit
 public typealias CommonColor = NSColor
 
 extension NSColor {
-	convenience init?(hex:String) {
-		var cString:String = hex.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
+	convenience init?(hex: String) {
+		var cString: String = hex.trimmingCharacters(in: .whitespacesAndNewlines).uppercased()
 
-		if (cString.hasPrefix("#")) {
+		if cString.hasPrefix("#") {
 			cString.remove(at: cString.startIndex)
 		}
 
-		if ((cString.count) != 6) {
+		if (cString.count) != 6 {
 			return nil
 		}
 
-		var rgbValue:UInt64 = 0
+		var rgbValue: UInt64 = 0
         Scanner(string: cString).scanHexInt64(&rgbValue)
 
 		self.init(
@@ -28,4 +28,3 @@ extension NSColor {
 	}
 }
 #endif
-

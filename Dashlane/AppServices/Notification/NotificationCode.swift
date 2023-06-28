@@ -22,5 +22,5 @@ enum NotificationCode: Int, Hashable {
     case sharingEvent            = 800
     case sharingEventItemGroup   = 801
     case sharingEventUserGroup   = 802
-    case reciept                 = 999
+    case receipt                 = 999
 }

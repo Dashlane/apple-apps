@@ -3,20 +3,20 @@ import PackageDescription
 let package = Package(
     name: "CoreCrypto",
     platforms: [
-        .iOS(.v15),
-        .macOS(.v12)
+        .iOS(.v16),
+        .macOS(.v13)
     ],
     products: [
                 .library(
             name: "CoreCrypto",
-            targets: ["CoreCrypto"]),
+            targets: ["CoreCrypto"])
     ],
     dependencies: [
         .package(path: "../../Foundation/DashTypes"),
         .package(path: "../../Foundation/CyrilKit"),
         .package(path: "../../Foundation/SwiftTreats"),
         .package(url: "_", from: "0.9.1"),
-        .package(url: "_", from: "0.4.5")
+        .package(url: "_", from: "0.4.6")
                     ],
     targets: [
                         .target(
@@ -32,6 +32,6 @@ let package = Package(
                            .product(name: "SwiftCBOR", package: "SwiftCBOR"),
                            .product(name: "DashTypes", package: "DashTypes")
             ],
-            resources: [.process("Resources")]),
+            resources: [.process("Resources")])
     ]
 )

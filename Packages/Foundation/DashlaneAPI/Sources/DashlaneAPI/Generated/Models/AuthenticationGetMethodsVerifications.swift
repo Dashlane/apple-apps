@@ -2,13 +2,19 @@ import Foundation
 
 public struct AuthenticationGetMethodsVerifications: Codable, Equatable {
 
-    public let challenges: [AuthenticationChallenges]?
+    private enum CodingKeys: String, CodingKey {
+        case challenges = "challenges"
+        case ssoInfo = "ssoInfo"
+        case type = "type"
+    }
+
+    public let challenges: [AuthenticationGetMethodsChallenges]?
 
     public let ssoInfo: AuthenticationSsoInfo?
 
-    public let type: AuthenticationType?
+    public let type: AuthenticationGetMethodsType?
 
-    public init(challenges: [AuthenticationChallenges]? = nil, ssoInfo: AuthenticationSsoInfo? = nil, type: AuthenticationType? = nil) {
+    public init(challenges: [AuthenticationGetMethodsChallenges]? = nil, ssoInfo: AuthenticationSsoInfo? = nil, type: AuthenticationGetMethodsType? = nil) {
         self.challenges = challenges
         self.ssoInfo = ssoInfo
         self.type = type

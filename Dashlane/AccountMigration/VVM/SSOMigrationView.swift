@@ -3,6 +3,7 @@ import SwiftUI
 import UIComponents
 import DashTypes
 import DesignSystem
+import CoreLocalization
 
 enum MigrationCompletionType {
     case cancel
@@ -45,7 +46,7 @@ struct SSOMigrationView: View {
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
-                NavigationBarButton(action: { self.completion(.cancel) }, title: L10n.Localizable.cancel)
+                NavigationBarButton(action: { self.completion(.cancel) }, title: CoreLocalization.L10n.Core.cancel)
             }
         }
     }

@@ -3,6 +3,7 @@ import CorePremium
 import CoreSharing
 import Foundation
 import SwiftUI
+import VaultKit
 
 class SecureNotesDetailToolbarModel: DetailViewModelProtocol, SessionServicesInjecting, MockVaultConnectedInjecting {
 
@@ -18,23 +19,18 @@ class SecureNotesDetailToolbarModel: DetailViewModelProtocol, SessionServicesInj
         teamSpacesService.availableSpaces.filter { $0 != .both }
     }
 
-    let logger: SecureNotesDetailUsageLogger
-
     let shareButtonViewModelFactory: ShareButtonViewModel.Factory
 
     let service: DetailService<SecureNote>
 
-    private var teamSpacesService: TeamSpacesService {
+    private var teamSpacesService: VaultKit.TeamSpacesServiceProtocol {
         service.teamSpacesService
     }
 
-    init(
-        service: DetailService<SecureNote>,
-        shareButtonViewModelFactory: ShareButtonViewModel.Factory
-    ) {
+    init(service: DetailService<SecureNote>,
+         shareButtonViewModelFactory: ShareButtonViewModel.Factory) {
         self.service = service
         self.shareButtonViewModelFactory = shareButtonViewModelFactory
-        self.logger = SecureNotesDetailUsageLogger(usageLogService: service.usageLogService)
     }
 }
 

@@ -1,7 +1,7 @@
 import Foundation
 
 public extension Sequence where Element == OTPInfo {
-    func sortedByIssuer() -> Array<OTPInfo> {
+    func sortedByIssuer() -> [OTPInfo] {
         sorted(by: {
             let lhsTitle = $0.configuration.issuerOrTitle.lowercased()
             let rhsTitle = $1.configuration.issuerOrTitle.lowercased()

@@ -2,6 +2,8 @@ import Foundation
 import SwiftUI
 import CorePersonalData
 import UIDelight
+import VaultKit
+import CoreLocalization
 
 struct PhoneDetailView: View {
     @ObservedObject
@@ -15,23 +17,27 @@ struct PhoneDetailView: View {
         DetailContainerView(service: model.service) {
             Section {
                                 if model.mode.isEditing {
-                    TextDetailField(title: L10n.Localizable.KWPhoneIOS.phoneName, text: $model.item.name)
+                    TextDetailField(title: CoreLocalization.L10n.Core.KWPhoneIOS.phoneName, text: $model.item.name)
                         .textInputAutocapitalization(.words)
                 }
 
-                                PickerDetailField(title: L10n.Localizable.KWPhoneIOS.type,
+                                PickerDetailField(title: CoreLocalization.L10n.Core.KWPhoneIOS.type,
                                   selection: $model.item.type,
                                   elements: Phone.NumberType.allCases.reversed(),
                                   content: { item in
                                     Text(item != nil ? item!.localizedString : L10n.Localizable.other)
                 })
 
-                                TextDetailField(title: L10n.Localizable.KWPhoneIOS.number, text: $model.item.number)
-                    .actions([.copy(model.copy)])
-                    .keyboardType(.numberPad)
-                    .fiberFieldType(.number)
+                                TextDetailField(
+                    title: CoreLocalization.L10n.Core.KWPhoneIOS.number,
+                    text: $model.item.number,
+                    actions: [.copy(model.copy)]
+                )
+                .actions([.copy(model.copy)])
+                .keyboardType(.numberPad)
+                .fiberFieldType(.number)
 
-                                PickerDetailField(title: L10n.Localizable.KWPhoneIOS.localeFormat,
+                                PickerDetailField(title: CoreLocalization.L10n.Core.KWPhoneIOS.localeFormat,
                                   selection: $model.item.country,
                                   elements: CountryCodeNamePair.countries,
                                   content: { country in

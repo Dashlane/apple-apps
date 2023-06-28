@@ -3,8 +3,7 @@ import DashTypes
 import SwiftTreats
 
 public struct CreditCard: PersonalDataCodable, Equatable, Identifiable, DatedPersonalData {
- 
-    
+
     public static let contentType: PersonalDataContentType = .creditCard
     public static let searchCategory: SearchCategory = .payment
 
@@ -43,7 +42,7 @@ public struct CreditCard: PersonalDataCodable, Equatable, Identifiable, DatedPer
         }
     }
     public var securityCode: String 
-    
+
     public var name: String
     public var color: CreditCardColor
     public var note: String
@@ -51,12 +50,12 @@ public struct CreditCard: PersonalDataCodable, Equatable, Identifiable, DatedPer
     public var issueNumber: String 
     public var linkedBillingAddress: Identifier?
     public var ownerName: String
-    
+
     public var startMonth: Int? 
     public var startYear: Int? 
     public var expireMonth: Int?
     public var expireYear: Int?
-    
+
     public var country: CountryCodeNamePair?
     public var creationDatetime: Date?
     public var userModificationDatetime: Date?
@@ -69,7 +68,7 @@ public struct CreditCard: PersonalDataCodable, Equatable, Identifiable, DatedPer
         return String(cardNumber.suffix(4))
     }
 
-                mutating func link(with address: Address) -> Void {
+                mutating func link(with address: Address) {
         self.linkedBillingAddress = address.id
     }
 
@@ -94,19 +93,19 @@ public struct CreditCard: PersonalDataCodable, Equatable, Identifiable, DatedPer
         creationDatetime = Date()
         _attachments = .init(nil)
     }
-    
-    init(id: Identifier,
-         anonId: String,
+
+    init(id: Identifier = .init(),
+         anonId: String = UUID().uuidString,
          bank: BankCodeNamePair? = nil,
          cardNumber: String,
          securityCode: String,
-         name: String,
+         name: String = "",
          color: CreditCardColor = .defaultValue,
-         note: String,
-         issueNumber: String,
+         note: String = "",
+         issueNumber: String = "",
          linkedBillingAddress:
             Identifier? = nil,
-         ownerName: String,
+         ownerName: String = "",
          startMonth: Int? = nil,
          startYear: Int? = nil,
          expireMonth: Int? = nil,
@@ -154,6 +153,17 @@ extension CreditCard: Searchable {
         return [
             \CreditCard.name,
             \CreditCard.ownerName
+        ]
+    }
+}
+
+extension CreditCard: Deduplicable {
+
+    public var deduplicationKeyPaths: [KeyPath<Self, String>] {
+        [
+            \CreditCard.cardNumber,
+             \CreditCard.securityCode,
+             \CreditCard.note
         ]
     }
 }

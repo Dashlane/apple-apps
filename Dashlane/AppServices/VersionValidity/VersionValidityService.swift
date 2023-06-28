@@ -6,6 +6,7 @@ import CoreSession
 import DashlaneAppKit
 import CoreUserTracking
 import LoginKit
+import CoreSettings
 
 class VersionValidityService {
 

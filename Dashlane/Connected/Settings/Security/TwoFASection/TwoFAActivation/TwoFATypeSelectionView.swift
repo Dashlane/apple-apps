@@ -2,6 +2,7 @@ import Foundation
 import SwiftUI
 import DesignSystem
 import UIComponents
+import CoreLocalization
 
 enum TFAOption {
     case firstLogin
@@ -35,10 +36,10 @@ struct TwoFATypeSelectionView: View {
         .navigationTitle(L10n.Localizable.twofaStepsNavigationTitle)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
-                NavigationBarButton(action: dismiss.callAsFunction, title: L10n.Localizable.cancel)
+                NavigationBarButton(action: dismiss.callAsFunction, title: CoreLocalization.L10n.Core.cancel)
             }
             ToolbarItem(placement: .navigationBarTrailing) {
-                NavigationBarButton(L10n.Localizable.kwNext) {
+                NavigationBarButton(CoreLocalization.L10n.Core.kwNext) {
                     completion(selectedOption)
                 }
             }

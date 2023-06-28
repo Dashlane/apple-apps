@@ -14,6 +14,7 @@ case `fiscalStatement` = "fiscal_statement"
 case `generatedPassword` = "generated_password"
 case `idCard` = "id_card"
 case `identity`
+case `passkey`
 case `passport`
 case `paypal`
 case `phone`

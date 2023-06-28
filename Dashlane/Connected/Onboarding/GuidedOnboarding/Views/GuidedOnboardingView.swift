@@ -3,40 +3,40 @@ import UIDelight
 import LoginKit
 import UIComponents
 import DesignSystem
+import CoreLocalization
 
-struct GuidedOnboardingView<Model: GuidedOnboardingViewModelProtocol>: View {
+struct GuidedOnboardingView: View {
 
     @ObservedObject
-    var viewModel: Model
+    var viewModel: GuidedOnboardingViewModel
 
     @State
     private var showFAQ: Bool = false
 
     private let horizontalPadding: CGFloat = 24
 
+    private var showNextButton: Bool {
+        return viewModel.selectedAnswer != nil
+    }
+
+    private var showAltActionButton: Bool {
+        viewModel.selectedAnswer?.altActionTitle != nil
+    }
+
     var body: some View {
-        GeometryReader { geo in
-            FullScreenScrollView {
-                VStack(spacing: 20) {
-                    contentView(for: geo.size.width - (horizontalPadding * 2))
-                    actionsView
-                    Spacer()
-                }
-                .padding(.top, 38)
-                .padding(.bottom, 24)
-                .padding(.horizontal, horizontalPadding)
-                .loginAppearance()
-                .sheet(isPresented: $showFAQ, content: {
-                    OnboardingFAQView(questions: self.viewModel.onboardingFAQService.questions,
-                                      completion: { result in
-                                        switch result {
-                                        case .faqSectionShown:
-                                            self.viewModel.faqSectionShown()
-                                        case .questionOpened(question: let question):
-                                            self.viewModel.faqQuestionSelected(question)
-                                        }
-                                      })
-                })
+        FullScreenScrollView {
+            VStack(spacing: 20) {
+                contentView
+                actionsView
+                Spacer()
+            }
+            .animation(.default, value: viewModel.selectedAnswer)
+            .padding(.top, 38)
+            .padding(.bottom, 24)
+            .padding(.horizontal, horizontalPadding)
+            .loginAppearance(backgroundColor: .ds.background.default)
+            .sheet(isPresented: $showFAQ) {
+                OnboardingFAQView(questions: self.viewModel.onboardingFAQService.questions)
             }
         }
         .backgroundColorIgnoringSafeArea(.ds.background.default)
@@ -45,17 +45,22 @@ struct GuidedOnboardingView<Model: GuidedOnboardingViewModelProtocol>: View {
             ToolbarItem(placement: .navigationBarLeading) {
                 backButton
             }
+            ToolbarItem(placement: .navigationBarTrailing) {
+                NavigationBarButton(L10n.Localizable.kwSkip) {
+                    viewModel.skip()
+                }
+            }
         }
     }
 
     private var backButton: some View {
-        NavigationBarButton(L10n.Localizable.kwBack, action: {
-            if self.viewModel.hasSelectedAnswer {
-                self.selectAnswer(nil)
+        NavigationBarButton(CoreLocalization.L10n.Core.kwBack, action: {
+            if viewModel.selectedAnswer != nil {
+                self.viewModel.selectAnswer(nil)
             } else {
                 self.viewModel.goToPreviousStep()
             }
-        }).hidden(!viewModel.hasSelectedAnswer && !viewModel.canGoBackToPreviousQuestion)
+        }).hidden(viewModel.selectedAnswer == nil && !viewModel.canGoBackToPreviousQuestion)
     }
 
     private var animationView: LottieView? {
@@ -73,41 +78,34 @@ struct GuidedOnboardingView<Model: GuidedOnboardingViewModelProtocol>: View {
     private var stepsNumberingLabel: some View {
         self.viewModel.stepNumberingDetails.map {
             Text(L10n.Localizable.guidedOnboardingNumberingLabel(String($0.currentStepIndex), String($0.totalSteps)).uppercased())
-            .font(DashlaneFont.custom(20, .medium).font)
+                .textStyle(.title.section.medium)
             .foregroundColor(.ds.text.brand.quiet)
             .fixedSize(horizontal: false, vertical: true)
             .padding(.bottom, 8)
         }
     }
 
-    func contentView(for screenWidth: CGFloat) -> some View {
-        VStack(alignment: .leading, spacing: 0.0) {
-
-            self.stepsNumberingLabel
-
-            Text(self.viewModel.step.question.title)
-                .font(DashlaneFont.custom(26, .bold).font)
-                .fixedSize(horizontal: false, vertical: true)
-
-            Spacer(minLength: 16.0)
-                .fixedSize()
-
-            if let animationView = animationView {
-                animationView.frame(height: screenWidth / animationView.aspectRatio)
-                    .cornerRadius(14)
-                    .id(animationView.asset)
-                    .padding(.vertical, 16)
+    var contentView: some View {
+        VStack(alignment: .leading, spacing: 16) {
+            VStack(alignment: .leading, spacing: 8) {
+                self.stepsNumberingLabel
+                Text(self.viewModel.step.question.title)
+                    .textStyle(.specialty.brand.small)
+                    .fixedSize(horizontal: false, vertical: true)
             }
 
-            Spacer(minLength: 16.0)
-                .fixedSize()
+            if let animationView = animationView {
+                animationView
+                    .cornerRadius(14)
+                    .id(animationView.asset)
+            }
 
-            VStack(spacing: 8.0) {
-                ForEach(self.viewModel.answers) { answer in
-                    if self.shouldShowAnswer(answer) {
-                        GuidedOnboardingAnswerView(viewModel: answer)
+            VStack(spacing: 8) {
+                ForEach(self.viewModel.answers, id: \.self) { answer in
+                    if viewModel.selectedAnswer == nil || viewModel.selectedAnswer == answer {
+                        GuidedOnboardingAnswerView(answer: answer, showDetails: viewModel.selectedAnswer != nil)
                             .onTapGesture {
-                                self.selectAnswer(answer)
+                                viewModel.selectAnswer(answer)
                             }
                     }
                 }
@@ -119,67 +117,27 @@ struct GuidedOnboardingView<Model: GuidedOnboardingViewModelProtocol>: View {
         VStack(spacing: 8.0) {
             RoundedButton(viewModel.step.nextActionTitle, action: viewModel.goToNextStep)
                 .roundedButtonLayout(.fill)
-            .opacity(viewModel.showNextButton ? 1.0 : 0.0)
+            .opacity(showNextButton ? 1.0 : 0.0)
 
-            if !viewModel.altActionTitle.isEmpty {
+            if let altActionTitle = viewModel.selectedAnswer?.altActionTitle, !altActionTitle.isEmpty {
                 Button(action: {
                     self.showFAQ.toggle()
                 }, label: {
-                    Text(viewModel.altActionTitle)
-                        .foregroundColor(Color(asset: FiberAsset.guidedOnboardingSecondaryAction))
+                    Text(altActionTitle)
+                        .foregroundColor(.ds.text.brand.quiet)
                 })
                 .buttonStyle(BorderlessActionButtonStyle())
-                .opacity(viewModel.showAltActionButton ? 1.0 : 0.0)
+                .opacity(showAltActionButton ? 1.0 : 0.0)
             }
         }
         .fixedSize(horizontal: false, vertical: true)
         .padding(.bottom, 24)
-        .hidden(!viewModel.showNextButton)
-    }
-
-    private func selectAnswer(_ selectedAnswer: GuidedOnboardingAnswerViewModel?) {
-        viewModel.selectAnswer(selectedAnswer?.content)
-
-        let isReversed = (selectedAnswer == nil)
-
-        if !isReversed {
-            viewModel.altActionTitle = selectedAnswer?.content.altActionTitle ?? ""
-        }
-
-                        viewModel.answers.forEach { answer in
-            let isSelectedAnswer = (selectedAnswer == answer)
-
-                        withAnimation(Animation.easeInOut(duration: 0.3).delay(isReversed ? 1.2 : 0.0)) {
-                answer.isInvisible = (!isSelectedAnswer && !isReversed)
-                answer.tintColor = Color(asset: isSelectedAnswer ? FiberAsset.midGreen : FiberAsset.mainGreen)
-            }
-                        withAnimation(Animation.easeInOut(duration: 0.3).delay(isReversed ? 0.9 : 0.3)) {
-                answer.isHidden = !isSelectedAnswer
-            }
-                        withAnimation(Animation.spring().delay(0.6)) {
-                answer.isExpanded = isSelectedAnswer
-            }
-        }
-
-                withAnimation(Animation.spring().delay(isReversed ? 0.9 : 0.3)) {
-            viewModel.hasSelectedAnswer = !isReversed
-        }
-                withAnimation(Animation.easeInOut(duration: 0.3).delay(isReversed ? 0.3 : 0.9)) {
-            viewModel.showNextButton = !isReversed
-        }
-                withAnimation(Animation.easeInOut(duration: 0.3).delay(isReversed ? 0.0 : 1.2)) {
-            viewModel.showAltActionButton = (selectedAnswer?.content.altActionTitle != nil) && !isReversed
-        }
-
-    }
-
-    private func shouldShowAnswer(_ answer: GuidedOnboardingAnswerViewModel) -> Bool {
-        return (viewModel.hasSelectedAnswer && !answer.isHidden) || !self.viewModel.hasSelectedAnswer
+        .hidden(!showNextButton)
     }
 }
 
 extension GuidedOnboardingView: NavigationBarStyleProvider {
-    var navigationBarStyle: NavigationBarStyle {
+    var navigationBarStyle: UIComponents.NavigationBarStyle {
         let appearance = UINavigationBarAppearance()
         appearance.shadowColor = .clear
         appearance.backgroundColor = .ds.background.default
@@ -189,63 +147,21 @@ extension GuidedOnboardingView: NavigationBarStyleProvider {
 
 class GuidedOnboardingView_Previews: PreviewProvider {
 
-    class FakeViewModel: GuidedOnboardingViewModelProtocol {
-        var guidedOnboardingService: GuidedOnboardingService
-        var onboardingFAQService: OnboardingFAQService = OnboardingFAQService()
-        var completion: ((GuidedOnboardingViewModelCompletion) -> Void)?
-        var step: GuidedOnboardingSurveyStep
-        var answers: [GuidedOnboardingAnswerViewModel]
-        var logService: GuidedOnboardingLogsService
-        var hasSelectedAnswer: Bool = false
-        var showNextButton: Bool = false
-        var showAltActionButton: Bool = false
-        var altActionTitle: String = ""
-        var canGoBackToPreviousQuestion: Bool = false
-        var selectedAnswer: GuidedOnboardingAnswer?
-        var stepNumberingDetails: (totalSteps: Int, currentStepIndex: Int)? = (totalSteps: 2, currentStepIndex: 1)
-
-        func selectAnswer(_ answer: GuidedOnboardingAnswer?) {
-
-        }
-
-        func cancel() {
-
-        }
-
-        func goToNextStep() {
-
-        }
-
-        func goToPreviousStep() {
-
-        }
-
-        func skipGuidedOnboarding() {
-
-        }
-
-        func faqSectionShown() {
-
-        }
-
-        func faqQuestionSelected(_ question: OnboardingFAQ) {
-
-        }
-
-        init() {
-            self.guidedOnboardingService = GuidedOnboardingService(dataProvider: GuidedOnboardingInMemoryProvider())
-            self.step = GuidedOnboardingSurveyStep(question: .howPasswordsHandled,
-            answers: [ .memorizePasswords,
-                       .browser,
-                       .somethingElse ])
-            self.logService = GuidedOnboardingLogsService(usageLogService: UsageLogService.fakeService)
-            self.answers = step.answers.map { GuidedOnboardingAnswerViewModel(content: $0) }
+    static var previews: some View {
+        NavigationView {
+            GuidedOnboardingView(viewModel: .mock)
         }
     }
+}
 
-    static var previews: some View {
-        MultiContextPreview(deviceRange: .some([.iPhoneSE, .iPhone8, .iPhone11, .iPadPro])) {
-            GuidedOnboardingView(viewModel: FakeViewModel())
-        }
+private extension GuidedOnboardingViewModel {
+    static var mock: GuidedOnboardingViewModel {
+        GuidedOnboardingViewModel(guidedOnboardingService: GuidedOnboardingService(dataProvider: GuidedOnboardingInMemoryProvider()),
+                                  dwmOnboardingService: .mock,
+                                  step: GuidedOnboardingSurveyStep(question: .howPasswordsHandled,
+                                                                   answers: [ .memorizePasswords,
+                                                                              .browser,
+                                                                              .somethingElse ]),
+                                  completion: nil)
     }
 }

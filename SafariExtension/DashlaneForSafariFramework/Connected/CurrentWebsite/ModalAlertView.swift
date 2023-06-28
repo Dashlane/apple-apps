@@ -1,4 +1,5 @@
 import SwiftUI
+import CoreLocalization
 
 struct ModalAlertView: View {
 
@@ -26,7 +27,7 @@ struct ModalAlertView: View {
             }
             HStack {
                 Spacer()
-                Button(L10n.Localizable.cancel,
+                Button(CoreLocalization.L10n.Core.cancel,
                        action: {
                     isVisible = false
                     cancel()

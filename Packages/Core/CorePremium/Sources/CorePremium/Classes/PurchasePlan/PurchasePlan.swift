@@ -28,11 +28,11 @@ public extension PurchasePlan {
         var isDiscountedOffer: Bool {
         return offer.discountOfferIdentifier != nil
     }
-    
+
         var isIntroductoryOffer: Bool {
         return storeKitProduct.introductoryPrice != nil
     }
-    
+
                     var price: NSDecimalNumber {
         if let identifier = offer.discountOfferIdentifier, let discount = storeKitProduct.discount(with: identifier) {
             return discount.price
@@ -42,23 +42,23 @@ public extension PurchasePlan {
             return storeKitProduct.price
         }
     }
-    
+
     var nonDiscountedPrice: NSDecimalNumber {
         return storeKitProduct.price
     }
-    
+
     var introductoryOfferNumberOfPeriod: Int? {
         return storeKitProduct.introductoryPrice?.numberOfPeriods
     }
-    
+
     var introductoryOfferPeriod: SKProductSubscriptionPeriod? {
         return storeKitProduct.introductoryPrice?.subscriptionPeriod
     }
-    
+
     var isPeriodIdenticalToIntroductoryOfferPeriod: Bool {
         return storeKitProduct.subscriptionPeriod?.unit == storeKitProduct.introductoryPrice?.subscriptionPeriod.unit
     }
-    
+
     var introductoryOfferPaymentMode: SKProductDiscount.PaymentMode? {
         return storeKitProduct.introductoryPrice?.paymentMode
     }

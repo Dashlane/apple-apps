@@ -30,10 +30,8 @@ struct BrazeAnnouncementContainerView: View {
                 BrazeAnnouncementScrolledView(announcement: announcement, dismiss: dismiss)
                     .bottomSheet([.large])
             }
-        } else if Device.isIpadOrMac {
-            BrazeAnnouncementiPadView(announcement: announcement, dismiss: dismiss)
         } else {
-                        BrazeAnnouncementViewLegacy(announcement: announcement, dismiss: dismiss)
+            BrazeAnnouncementiPadView(announcement: announcement, dismiss: dismiss)
         }
     }
 }
@@ -125,12 +123,10 @@ private struct BrazeAnnouncementiPadView: View {
 
 }
 
-
 private struct BrazeAnnouncementScrolledView: View {
 
     let announcement: BrazeAnnouncement
     let dismiss: () -> Void
-
 
     var body: some View {
         VStack(alignment: .center, spacing: 8) {
@@ -178,49 +174,6 @@ private struct BrazeAnnouncementScrolledView: View {
         }
     }
 }
-
-private struct BrazeAnnouncementViewLegacy: View {
-
-    let announcement: BrazeAnnouncement
-    let dismiss: () -> Void
-
-    var body: some View {
-        VStack(alignment: .center, spacing: 24) {
-            header
-            BrazeAnnouncementViewContent(announcement: announcement)
-                .padding(.horizontal, 16)
-            BrazeAnnouncementViewActions(announcement: announcement, dismiss: dismiss)
-                .padding(.horizontal, 16)
-        }
-        .padding(.bottom, 24)
-    }
-
-        @ViewBuilder
-    var header: some View {
-        ZStack {
-                                    if let imageURL = announcement.imageURL {
-                AsyncImage(
-                    url: imageURL,
-                    content: { image in
-                        image
-                            .resizable()
-                            .aspectRatio(contentMode: .fill)
-                            .frame(maxWidth: 1, 
-                                   maxHeight: 176)
-
-                    },
-                    placeholder: {
-                        Color.clear
-                    })
-            }
-        }
-        .frame(maxWidth: .infinity)
-        .overlay(alignment: Device.isMac ? .topLeading : .topTrailing) {
-            AnnouncementCloseButton(dismiss: dismiss)
-        }
-    }
-}
-
 
 private struct BrazeAnnouncementViewContent: View {
 
@@ -273,7 +226,6 @@ private struct BrazeAnnouncementViewActions: View {
 
 struct BrazeModalView_Previews: PreviewProvider {
 
-
     struct Container<Content: View>: View {
 
         let content: () -> Content
@@ -298,7 +250,6 @@ struct BrazeModalView_Previews: PreviewProvider {
         }
     }
 
-
     static var previews: some View {
 
         Container {
@@ -314,4 +265,3 @@ struct BrazeModalView_Previews: PreviewProvider {
         }.previewDisplayName("[Legacy] Multiple actions")
     }
 }
-

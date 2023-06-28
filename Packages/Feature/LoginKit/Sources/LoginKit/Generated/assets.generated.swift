@@ -19,11 +19,14 @@ internal enum Asset {
   internal static let applePlatform = ImageAsset(name: "apple_platform")
   internal static let webPlatform = ImageAsset(name: "web_platform")
   internal static let windowsPlatform = ImageAsset(name: "windows_platform")
+  internal static let authenticator = ImageAsset(name: "authenticator")
+  internal static let error = ImageAsset(name: "error")
   internal static let faceId = ImageAsset(name: "faceId")
   internal static let fingerprint = ImageAsset(name: "fingerprint")
   internal static let multidevices = ImageAsset(name: "multidevices")
   internal static let revealButtonSelected = ImageAsset(name: "reveal-button-selected")
   internal static let revealButton = ImageAsset(name: "reveal-button")
+  internal static let shield = ImageAsset(name: "shield")
   internal static let sso = ImageAsset(name: "sso")
 }
 internal struct ImageAsset {

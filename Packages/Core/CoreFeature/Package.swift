@@ -3,11 +3,11 @@ import PackageDescription
 let package = Package(
     name: "CoreFeature",
     platforms: [
-        .iOS(.v15),
-        .macOS(.v12)
+        .iOS(.v16),
+        .macOS(.v13)
     ],
     products: [
-        .library(name: "CoreFeature", targets: ["CoreFeature"]),
+        .library(name: "CoreFeature", targets: ["CoreFeature"])
     ],
     dependencies: [
         .package(path: "../../Foundation/DashTypes"),
@@ -15,8 +15,7 @@ let package = Package(
         .package(path: "../../Foundation/DashlaneAPI"),
         .package(path: "../../Core/CoreNetworking"),
         .package(path: "../../Core/CoreSession"),
-        .package(path: "../../Foundation/CyrilKit"),
-        .package(path: "../../Common/DashlaneReportKit")
+        .package(path: "../../Foundation/CyrilKit")
     ],
     targets: [
         .target(name: "CoreFeature", dependencies: [
@@ -24,7 +23,6 @@ let package = Package(
             .product(name: "SwiftTreats", package: "SwiftTreats"),
             .product(name: "CoreNetworking", package: "CoreNetworking"),
             .product(name: "CoreSession", package: "CoreSession"),
-            .product(name: "DashlaneReportKit", package: "DashlaneReportKit"),
             .product(name: "Argon2", package: "CyrilKit"),
             .product(name: "DashlaneAPI", package: "DashlaneAPI")
         ]),

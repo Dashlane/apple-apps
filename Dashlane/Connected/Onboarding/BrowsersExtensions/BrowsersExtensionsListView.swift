@@ -16,6 +16,7 @@ struct BrowsersExtensionsListView: View {
         VStack(alignment: .leading, spacing: 32) {
             Image(asset: FiberAsset.logomark)
                 .foregroundColor(Color(asset: FiberAsset.dashGreen))
+                .fiberAccessibilityHidden(true)
             VStack(alignment: .leading, spacing: 8) {
                 Text(L10n.Localizable.extensionsOnboardingAllBrowsersTitle)
                     .font(DashlaneFont.custom(26, .bold).font)

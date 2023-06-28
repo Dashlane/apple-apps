@@ -110,7 +110,7 @@ struct MainTabView_Previews: PreviewProvider {
         let distributedSizePercentage: CGFloat
         var isActive: Bool = true
         
-        static func ==(lhs: TabViewElementMock, rhs: TabViewElementMock) -> Bool {
+        static func == (lhs: TabViewElementMock, rhs: TabViewElementMock) -> Bool {
             lhs.id == rhs.id
         }
     }

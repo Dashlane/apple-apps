@@ -1,15 +1,5 @@
 import Foundation
-
-public struct TwoFAStatus: Decodable {
-    public let type: TwoFAOption
-}
-
-public enum TwoFAOption: String, Decodable, Hashable {
-    case emailToken = "email_token"
-    case totpForFirstLogin = "totp_device_registration"
-    case totpForEveryLogin = "totp_login"
-    case sso
-}
+import DashlaneAPI
 
 public enum Dashlane2FAType: String, Identifiable, Hashable {
     public var id: String {
@@ -19,12 +9,12 @@ public enum Dashlane2FAType: String, Identifiable, Hashable {
     case otp2
 }
 
-public extension TwoFAStatus {
+public extension AuthenticationGet2FAStatusType {
     var twoFAType: Dashlane2FAType? {
-        switch type {
-        case .totpForEveryLogin:
+        switch self {
+        case .totpLogin:
             return .otp2
-        case .totpForFirstLogin:
+        case .totpDeviceRegistration:
             return .otp1
         default:
             return nil

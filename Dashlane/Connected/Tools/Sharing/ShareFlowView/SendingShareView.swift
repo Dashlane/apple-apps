@@ -28,7 +28,7 @@ struct SendingShareView: View {
                     .frame(width: 172, height: 172)
                     .padding(30)
                     .overlay {
-                        Image(asset: FiberAsset.sharingPaywall)
+                        Image.ds.group.outlined
                             .foregroundColor(.ds.border.neutral.quiet.idle)
                             .padding(50)
                     }

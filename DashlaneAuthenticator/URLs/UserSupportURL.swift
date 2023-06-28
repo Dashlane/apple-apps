@@ -1,9 +1,10 @@
 import Foundation
 import SwiftUI
 import UIDelight
+import UIComponents
 
 enum UserSupportURL: String {
-    
+
     case dashlaneTwoStepsVerification = "_"
     case base = "_"
     case whatIsDashlane = "_"
@@ -12,7 +13,7 @@ enum UserSupportURL: String {
     case changePin = "_"
     case troubleshooting = "_"
     case helpCenter = "_"
-    
+
     var url: URL {
         URL(string: self.rawValue)!
     }
@@ -25,7 +26,7 @@ extension View {
     }
 }
 
-extension Link {
+extension UIComponents.Link {
     init(title: String,
          supportURL: UserSupportURL,
          isPresented: Binding<Bool>? = nil) {

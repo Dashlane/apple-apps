@@ -6,15 +6,13 @@ import CoreUserTracking
 public struct PlanPurchaseServicesContainer {
     let manager: DashlanePremiumManager
     let apiClient: DeprecatedCustomAPIClient
-    let premiumStatusLogger: PremiumStatusLogger
     let logger: Logger
     let screenLocker: ScreenLocker?
     let activityReporter: ActivityReporterProtocol
 
-    public init(manager: DashlanePremiumManager, apiClient: DeprecatedCustomAPIClient, premiumStatusLogger: PremiumStatusLogger, logger: Logger, screenLocker: ScreenLocker?, activityReporter: ActivityReporterProtocol) {
+    public init(manager: DashlanePremiumManager, apiClient: DeprecatedCustomAPIClient, logger: Logger, screenLocker: ScreenLocker?, activityReporter: ActivityReporterProtocol) {
         self.manager = manager
         self.apiClient = apiClient
-        self.premiumStatusLogger = premiumStatusLogger
         self.logger = logger
         self.screenLocker = screenLocker
         self.activityReporter = activityReporter
@@ -23,7 +21,7 @@ public struct PlanPurchaseServicesContainer {
 
 extension PlanPurchaseServicesContainer {
     func makePurchaseViewModel() -> PurchaseViewModel {
-        return PurchaseViewModel(manager: DashlanePremiumManager.shared, logger: premiumStatusLogger)
+        return PurchaseViewModel(manager: DashlanePremiumManager.shared)
     }
 
     #if canImport(UIKit)
@@ -31,8 +29,8 @@ extension PlanPurchaseServicesContainer {
         return PurchaseProcessViewModel(
             manager: manager,
             dashlaneAPI: apiClient,
-            logger: .init(selectedItem: plan, logger: logger, premiumStatusLogger: premiumStatusLogger),
-            purchasePlan: plan
+            purchasePlan: plan,
+            logger: logger
         )
     }
     #endif

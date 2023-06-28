@@ -3,6 +3,7 @@ import DashlaneAppKit
 import CoreFeature
 import Foundation
 import SwiftUI
+import VaultKit
 
 class SecureNotesDetailNavigationBarModel: DetailViewModelProtocol, SessionServicesInjecting, MockVaultConnectedInjecting {
 

@@ -3,13 +3,13 @@ import PackageDescription
 let package = Package(
     name: "CoreCategorizer",
     platforms: [
-        .iOS(.v15),
-        .macOS(.v12)
+        .iOS(.v16),
+        .macOS(.v13)
     ],
     products: [
                 .library(
             name: "CoreCategorizer",
-            targets: ["CoreCategorizer"]),
+            targets: ["CoreCategorizer"])
     ],
     dependencies: [],
     targets: [
@@ -23,10 +23,16 @@ let package = Package(
         .testTarget(
             name: "CoreCategorizerTests",
             dependencies: [
-                "CoreCategorizer",
+                "CoreCategorizer"
             ],
             resources: [
                 .process("Resources")
+            ]
+        ),
+        .testTarget(
+            name: "CoreCategorizerPerformanceTests",
+            dependencies: [
+                "CoreCategorizer"
             ]
         )
     ]

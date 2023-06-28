@@ -5,12 +5,12 @@ import DesignSystem
 import UIDelight
 
 struct OnboardingView: View {
-    
+
     @Environment(\.dismiss)
     var dismiss
 
     let completion: () -> Void
-    
+
     var body: some View {
         VStack(spacing: 0) {
             TabView {
@@ -29,18 +29,18 @@ struct OnboardingView: View {
                 .roundedButtonLayout(.fill)
                 .padding(.horizontal, 24)
         }
-        .onAppear() {
+        .onAppear {
             setup()
         }
         .backgroundColorIgnoringSafeArea(.ds.background.alternate)
         .navigationBarBackButtonHidden(true)
     }
-    
+
     func setup() {
         UIPageControl.appearance().currentPageIndicatorTintColor = .ds.container.expressive.neutral.catchy.idle
         UIPageControl.appearance().pageIndicatorTintColor = .ds.container.expressive.neutral.quiet.idle
     }
-    
+
     func pageView(for image: ImageAsset, title: String, message: String) -> some View {
         ScrollView {
             VStack(spacing: 60) {
@@ -68,7 +68,7 @@ struct OnboardingView: View {
 struct OnboardingView_Previews: PreviewProvider {
     static var previews: some View {
         MultiContextPreview(dynamicTypePreview: true) {
-            OnboardingView() { }
+            OnboardingView { }
         }
     }
 }

@@ -4,12 +4,25 @@ import SwiftUI
 import NotificationKit
 import CoreFeature
 
-struct GenericSheet: Identifiable {
+struct GenericSheet: Identifiable, Equatable {
     let id = UUID()
     let view: AnyView
 
     init(view: some View) {
         self.view = view.eraseToAnyView()
+    }
+
+    static func == (lhs: GenericSheet, rhs: GenericSheet) -> Bool {
+        return lhs.id == rhs.id
+    }
+}
+
+enum OnboardingChecklistOrigin {
+    case home
+    case standalone
+
+    var shouldEmbedNavigationView: Bool {
+        return self == .standalone
     }
 }
 
@@ -17,6 +30,7 @@ struct GenericSheet: Identifiable {
 protocol OnboardingChecklistActionHandler: AnyObject {
     var genericSheet: GenericSheet? { get set }
     var genericFullCover: GenericSheet? { get set }
+    var origin: OnboardingChecklistOrigin { get }
 
     var sessionServices: SessionServicesContainer { get }
     func handleOnboardingChecklistViewAction(_ action: OnboardingChecklistFlowViewModel.Action)
@@ -66,9 +80,8 @@ extension OnboardingChecklistActionHandler {
             self?.dismissFullCover()
         }
         presentFullCover(
-            NavigationView {
-                AddItemFlow(viewModel: viewModel)
-            }
+            AddItemFlow(viewModel: viewModel)
+                .embedInNavigationView(origin.shouldEmbedNavigationView)
         )
     }
 
@@ -100,7 +113,7 @@ extension OnboardingChecklistActionHandler {
                 }
                 self.presentSheet(AutofillOnboardingFlowView(model: model))
             }
-        case .m2d:
+        case .mobileToDesktop:
             let settings = M2WSettings(userSettings: sessionServices.spiegelUserSettings)
             let viewModel = M2WFlowViewModel(initialStep: .connect)
             let view = M2WFlowView(viewModel: viewModel) { [weak self] dismissAction in
@@ -124,13 +137,25 @@ extension OnboardingChecklistActionHandler {
             }
         }
         presentFullCover(
-            NavigationView {
-                ImportMethodFlow(viewModel: viewModel)
-            }
+            ImportMethodFlow(viewModel: viewModel)
+                .embedInNavigationView(origin.shouldEmbedNavigationView)
         )
     }
 
     private func showDarkWebMonitoring() {
         sessionServices.appServices.deepLinkingService.handleLink(.tool(.darkWebMonitoring))
+    }
+}
+
+extension View {
+    @ViewBuilder
+    func embedInNavigationView(_ shouldEmbedNavigationView: Bool) -> some View {
+        if shouldEmbedNavigationView {
+            NavigationView {
+                self
+            }
+        } else {
+            self
+        }
     }
 }

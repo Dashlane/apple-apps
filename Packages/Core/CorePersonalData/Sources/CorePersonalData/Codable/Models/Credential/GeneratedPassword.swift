@@ -14,7 +14,7 @@ public struct GeneratedPassword: PersonalDataCodable, Equatable {
         case platform
         case domain
     }
-    
+
     public let id: Identifier
     public let metadata: RecordMetadata
     public var creationDatetime: Date?
@@ -38,23 +38,22 @@ public struct GeneratedPassword: PersonalDataCodable, Equatable {
 
 extension GeneratedPassword: Searchable {
     public static let searchCategory: SearchCategory = .credential
-    
+
             private var searchableURL: String {
         return domain?.rawValue ?? ""
     }
-    
+
     public var searchableKeyPaths: [KeyPath<GeneratedPassword, String>] {
         var keyPathsList: [KeyPath<GeneratedPassword, String>] = []
 
         if domain != nil {
             keyPathsList.append(\GeneratedPassword.searchableURL)
         }
-        
+
         return keyPathsList
     }
-    
+
     public var secondarySearchableKeyPaths: [KeyPath<GeneratedPassword, String>] {
         searchableKeyPaths
     }
 }
-

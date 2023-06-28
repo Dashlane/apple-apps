@@ -36,11 +36,8 @@ extension NSImage {
             public enum more {
                 public static let outlined = Bundle.module.image(forResource: "action/more/outlined")
             }
-            public enum moreAndroid {
-                public static let outlined = Bundle.module.image(forResource: "action/more-android/outlined")
-            }
-            public enum moreApple {
-                public static let outlined = Bundle.module.image(forResource: "action/more-apple/outlined")
+            public enum moreEmphasized {
+                public static let outlined = Bundle.module.image(forResource: "action/more-emphasized/outlined")
             }
             public enum openExternalLink {
                 public static let outlined = Bundle.module.image(forResource: "action/open-external-link/outlined")
@@ -282,14 +279,17 @@ extension NSImage {
             public static let filled = Bundle.module.image(forResource: "lock/filled")
             public static let outlined = Bundle.module.image(forResource: "lock/outlined")
         }
-        public enum logout {
-            public static let outlined = Bundle.module.image(forResource: "logout/outlined")
+        public enum logOut {
+            public static let outlined = Bundle.module.image(forResource: "log-out/outlined")
         }
         public enum menu {
             public static let outlined = Bundle.module.image(forResource: "menu/outlined")
         }
         public enum muteAutofill {
             public static let outlined = Bundle.module.image(forResource: "mute-autofill/outlined")
+        }
+        public enum noNetwork {
+            public static let outlined = Bundle.module.image(forResource: "no-network/outlined")
         }
         public enum notification {
             public static let filled = Bundle.module.image(forResource: "notification/filled")
@@ -316,6 +316,37 @@ extension NSImage {
         public enum shared {
             public static let filled = Bundle.module.image(forResource: "shared/filled")
             public static let outlined = Bundle.module.image(forResource: "shared/outlined")
+        }
+        public enum shortcut {
+            public enum command {
+                public static let outlined = Bundle.module.image(forResource: "shortcut/command/outlined")
+            }
+            public enum optionAlt {
+                public static let outlined = Bundle.module.image(forResource: "shortcut/option-alt/outlined")
+            }
+            public enum shift {
+                public static let outlined = Bundle.module.image(forResource: "shortcut/shift/outlined")
+            }
+        }
+        public enum social {
+            public enum facebook {
+                public static let filled = Bundle.module.image(forResource: "social/facebook/filled")
+            }
+            public enum instagram {
+                public static let filled = Bundle.module.image(forResource: "social/instagram/filled")
+            }
+            public enum linkedin {
+                public static let filled = Bundle.module.image(forResource: "social/linkedin/filled")
+            }
+            public enum reddit {
+                public static let filled = Bundle.module.image(forResource: "social/reddit/filled")
+            }
+            public enum twitter {
+                public static let filled = Bundle.module.image(forResource: "social/twitter/filled")
+            }
+            public enum youtube {
+                public static let filled = Bundle.module.image(forResource: "social/youtube/filled")
+            }
         }
         public enum spaces {
             public enum all {

@@ -7,11 +7,11 @@ import DocumentServices
 import CoreUserTracking
 import CoreSettings
 import VaultKit
+import UIComponents
 
 class WebsiteDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting, MockVaultConnectedInjecting {
 
     let service: DetailService<PersonalWebsite>
-    let logger: WebsiteUsageLogger
 
     private var cancellables: Set<AnyCancellable> = []
 
@@ -21,16 +21,15 @@ class WebsiteDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting,
         vaultItemsService: VaultItemsServiceProtocol,
         sharingService: SharedVaultHandling,
         teamSpacesService: TeamSpacesService,
-        usageLogService: UsageLogServiceProtocol,
         documentStorageService: DocumentStorageService,
-        deepLinkService: DeepLinkingServiceProtocol,
+        deepLinkService: VaultKit.DeepLinkingServiceProtocol,
         activityReporter: ActivityReporterProtocol,
         iconViewModelProvider: @escaping (VaultItem) -> VaultItemIconViewModel,
         logger: Logger,
         accessControl: AccessControlProtocol,
         userSettings: UserSettings,
-        attachmentSectionFactory: AttachmentsSectionViewModel.Factory,
-        attachmentsListViewModelProvider: @escaping (VaultItem, AnyPublisher<VaultItem, Never>) -> AttachmentsListViewModel
+        pasteboardService: PasteboardServiceProtocol,
+        attachmentSectionFactory: AttachmentsSectionViewModel.Factory
     ) {
         self.init(
             service: .init(
@@ -39,16 +38,15 @@ class WebsiteDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting,
                 vaultItemsService: vaultItemsService,
                 sharingService: sharingService,
                 teamSpacesService: teamSpacesService,
-                usageLogService: usageLogService,
                 documentStorageService: documentStorageService,
                 deepLinkService: deepLinkService,
                 activityReporter: activityReporter,
                 iconViewModelProvider: iconViewModelProvider,
+                attachmentSectionFactory: attachmentSectionFactory,
                 logger: logger,
                 accessControl: accessControl,
                 userSettings: userSettings,
-                attachmentSectionFactory: attachmentSectionFactory,
-                attachmentsListViewModelProvider: attachmentsListViewModelProvider
+                pasteboardService: pasteboardService
             )
         )
     }
@@ -57,7 +55,7 @@ class WebsiteDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting,
         service: DetailService<PersonalWebsite>
     ) {
         self.service = service
-        self.logger = WebsiteUsageLogger(usageLogService: service.usageLogService)
+
         registerServiceChanges()
     }
 

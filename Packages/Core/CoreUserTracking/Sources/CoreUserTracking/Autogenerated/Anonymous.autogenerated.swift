@@ -17,7 +17,7 @@ public let context: Definition.ContextAnonymous
 public let date: Date
 public let dateOrigin: Definition.DateOrigin
 public let id: LowercasedUUID
-public let schemaVersion = "1.15.1"
+public let schemaVersion = "1.19.11"
 public let properties: Event
 }
 }

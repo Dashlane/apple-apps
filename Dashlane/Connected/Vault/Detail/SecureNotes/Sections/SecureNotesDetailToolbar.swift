@@ -5,6 +5,8 @@ import SwiftUI
 import UIDelight
 import UIKit
 import CoreFeature
+import VaultKit
+import CoreLocalization
 
 struct SecureNotesDetailToolbar: View {
 
@@ -62,8 +64,8 @@ struct SecureNotesDetailToolbar: View {
                             .alert(item: $model.alert) { alert in
                                 switch alert {
                                 case .errorWhileDeletingFiles:
-                                    return Alert(title: Text(L10n.Localizable.kwExtSomethingWentWrong),
-                                                 dismissButton: Alert.Button.default(Text(L10n.Localizable.kwButtonOk)))
+                                    return Alert(title: Text(CoreLocalization.L10n.Core.kwExtSomethingWentWrong),
+                                                 dismissButton: Alert.Button.default(Text(CoreLocalization.L10n.Core.kwButtonOk)))
                                 }
                             }
                         deleteButton
@@ -108,7 +110,7 @@ struct SecureNotesDetailToolbar: View {
                 .aspectRatio(contentMode: .fit)
         })
         .deleteItemAlert(request: $deleteRequest, deleteAction: delete)
-        .accessibilityLabel(L10n.Localizable.kwDelete)
+        .accessibilityLabel(CoreLocalization.L10n.Core.kwDelete)
     }
 
         private var lockMessage: String {
@@ -126,7 +128,6 @@ struct SecureNotesDetailToolbar: View {
                 return
             }
             model.item.secured.toggle()
-            model.logger.lockUsageLog(secured: model.item.secured)
             model.saveIfViewing()
             toast(lockMessage, image: .ds.secureLock(locked: model.item.secured))
             UISelectionFeedbackGenerator().selectionChanged()
@@ -158,7 +159,7 @@ struct SecureNotesDetailToolbar: View {
             Image.ds.attachment.outlined
                 .foregroundColor(.ds.text.neutral.quiet)
         })
-        .accessibilityLabel(Text(L10n.Localizable.kwAttachementsTitle))
+        .accessibilityLabel(Text(CoreLocalization.L10n.Core.kwAttachementsTitle))
     }
 
         private var toolsButton: some View {
@@ -168,11 +169,11 @@ struct SecureNotesDetailToolbar: View {
         })
         .actionSheet(isPresented: $showToolsActionSheet) {
             ActionSheet(
-                title: Text(L10n.Localizable.kwSecureNoteIOS),
+                title: Text(CoreLocalization.L10n.Core.kwSecureNoteIOS),
                 message: nil,
                 buttons: [
                     .cancel(),
-                    .default(Text(L10n.Localizable.KWSecureNoteIOS.colorTitle), action: { showColorPicker = true })
+                    .default(Text(CoreLocalization.L10n.Core.KWSecureNoteIOS.colorTitle), action: { showColorPicker = true })
                 ]
             )
         }

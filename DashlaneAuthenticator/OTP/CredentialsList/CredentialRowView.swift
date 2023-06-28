@@ -5,13 +5,14 @@ import Combine
 import UIDelight
 import DashlaneAppKit
 import VaultKit
+import DesignSystem
 
 struct CredentialRowView<Model: CredentialRowViewModelProtocol>: View {
     @ObservedObject
     var model: Model
 
     let select: () -> Void
-    
+
     init(model: Model,
          select: @escaping () -> Void) {
         self.model = model
@@ -23,7 +24,7 @@ struct CredentialRowView<Model: CredentialRowViewModelProtocol>: View {
             main
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .listRowBackground(Color(asset: AuthenticatorAsset.systemBackground))
+        .listRowBackground(Color.ds.background.default)
     }
 
     private var main: some View {
@@ -50,12 +51,12 @@ struct CredentialRowView<Model: CredentialRowViewModelProtocol>: View {
 }
 
 struct CredentialRowView_Previews: PreviewProvider {
-    class Model : CredentialRowViewModelProtocol {
+    class Model: CredentialRowViewModelProtocol {
         var item: VaultItem {
             PersonalDataMock.Credentials.youtube
         }
 
-        var highlightedString: String? = nil
+        var highlightedString: String?
 
         func makeIconViewModel() -> VaultItemIconViewModel {
             return VaultItemIconViewModel.mock(item: item)
@@ -64,17 +65,15 @@ struct CredentialRowView_Previews: PreviewProvider {
 
     static var previews: some View {
         MultiContextPreview {
-            
+
                 CredentialRowView(model: mockModel) {}
                 .padding(20)
                 .background(Color.red)
         }.previewLayout(.sizeThatFits)
     }
 
-
     static var mockModel: Model {
         return Model()
     }
-
 
 }

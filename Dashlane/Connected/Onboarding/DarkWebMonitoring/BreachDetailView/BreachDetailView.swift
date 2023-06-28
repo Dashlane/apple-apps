@@ -3,6 +3,8 @@ import CorePersonalData
 import UIDelight
 import UIComponents
 import DesignSystem
+import VaultKit
+import CoreLocalization
 
 struct BreachDetailView<Model: BreachDetailViewModelProtocol>: View {
 
@@ -37,9 +39,6 @@ struct BreachDetailView<Model: BreachDetailViewModelProtocol>: View {
                 Spacer()
             }
         }
-        .onAppear {
-            self.model.logDisplay()
-        }
         .animation(.easeOut(duration: 0.5), value: model.currentConfiguration)
         .navigationTitle(L10n.Localizable.dwmOnboardingFixBreachesDetailNavigationTitle)
         .toolbar {
@@ -51,7 +50,7 @@ struct BreachDetailView<Model: BreachDetailViewModelProtocol>: View {
             }
         }
         .navigationBarBackButtonHidden(true)
-        .backgroundColorIgnoringSafeArea(Color(asset: FiberAsset.appBackground))
+        .backgroundColorIgnoringSafeArea(.ds.background.default)
         .sheet(isPresented: $model.shouldShowMiniBrowser) {
             self.miniBrowser
         }
@@ -63,7 +62,7 @@ struct BreachDetailView<Model: BreachDetailViewModelProtocol>: View {
     }
 
     private var saveButton: some View {
-        let title = successState ? L10n.Localizable.kwDoneButton : L10n.Localizable.dwmOnboardingFixBreachesDetailSave
+        let title = successState ? CoreLocalization.L10n.Core.kwDoneButton : L10n.Localizable.dwmOnboardingFixBreachesDetailSave
 
         return NavigationBarButton(action: model.save, label: {
             Text(title)
@@ -177,7 +176,6 @@ struct BreachDetailView_Previews: PreviewProvider {
             self.password = password
         }
 
-        func logDisplay() {}
         func cancel() {}
         func save() {}
         func changePassword() {}

@@ -35,7 +35,7 @@ public class AutofillPolicy: Hashable, Equatable, Codable {
             }
         }
         
-        func isStrictierThan(other: Policy) -> Bool {
+        func isStricterThan(other: Policy) -> Bool {
             rawValue > other.rawValue
         }
     }
@@ -70,7 +70,7 @@ public class AutofillPolicy: Hashable, Equatable, Codable {
         return policy == .everything
     }
     
-    public static func ==(lhs: AutofillPolicy, rhs: AutofillPolicy) -> Bool {
+    public static func == (lhs: AutofillPolicy, rhs: AutofillPolicy) -> Bool {
         lhs.domain == rhs.domain
             && lhs.pageURL == rhs.pageURL
     }

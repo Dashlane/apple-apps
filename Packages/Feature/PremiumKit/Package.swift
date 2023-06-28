@@ -3,16 +3,15 @@ import PackageDescription
 let package = Package(
     name: "PremiumKit",
     platforms: [
-        .iOS(.v15),
-        .macOS(.v12)
+        .iOS(.v16),
+        .macOS(.v13)
     ],
     products: [
         .library(
             name: "PremiumKit",
-            targets: ["PremiumKit"]),
+            targets: ["PremiumKit"])
     ],
     dependencies: [
-        .package(path: "../../Common/dashlanereportkit"),
         .package(path: "../../Common/documentservices"),
         .package(path: "../../Core/CorePremium"),
         .package(path: "../../Core/CoreSession"),
@@ -34,7 +33,6 @@ let package = Package(
             dependencies: [
                 .product(name: "SwiftTreats", package: "SwiftTreats"),
                 .product(name: "CoreSession", package: "CoreSession"),
-                .product(name: "DashlaneReportKit", package: "DashlaneReportKit"),
                 .product(name: "DocumentServices", package: "DocumentServices"),
                 .product(name: "CorePersonalData", package: "CorePersonalData"),
                 .product(name: "CoreLocalization", package: "CoreLocalization"),

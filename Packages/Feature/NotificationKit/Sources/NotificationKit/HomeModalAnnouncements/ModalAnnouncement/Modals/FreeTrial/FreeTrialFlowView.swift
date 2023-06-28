@@ -53,7 +53,7 @@ struct FreeTrialFlowView: View {
             case .intro:
                 FreeTrialStartView(learnMore: { viewModel.showTrialFeaturesView() })
             case .features:
-                TrialFeaturesView(viewModel: viewModel.trialFeaturesViewModelFactory.make(), dismiss: dismiss)
+                TrialFeaturesView(viewModel: viewModel.trialFeaturesViewModelFactory.make(), dismissFlow: dismiss)
             }
         }
         .onAppear {

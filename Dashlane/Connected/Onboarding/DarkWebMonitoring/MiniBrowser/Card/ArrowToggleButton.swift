@@ -1,3 +1,4 @@
+import DesignSystem
 import SwiftUI
 
 struct ArrowToggleButton: View {
@@ -14,7 +15,7 @@ struct ArrowToggleButton: View {
                     .resizable()
                     .frame(width: 8, height: 4, alignment: .center)
             }
-            .foregroundColor(Color(asset: FiberAsset.secondaryActionText))
+            .foregroundColor(.ds.text.inverse.quiet)
         })
     }
 }

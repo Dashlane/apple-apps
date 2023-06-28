@@ -3,6 +3,7 @@ import SwiftUI
 import UIDelight
 import DashlaneAppKit
 import SwiftTreats
+import UIComponents
 
 @MainActor
 protocol AutoFillDemoHandler {

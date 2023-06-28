@@ -8,16 +8,16 @@ public struct GetUploadLinkServiceError: Error {
 }
 
 public struct GetUploadAuthenticationService {
-    
+
     private enum Endpoint: String {
         case getUploadLink = "_"
     }
-    
+
     private enum Key: String {
         case contentLength
         case secureFileInfoId
     }
-    
+
     private let webservice: ProgressableNetworkingEngine
 
     public init(webservice: ProgressableNetworkingEngine) {
@@ -37,7 +37,7 @@ public struct GetUploadAuthenticationService {
                                 contentFormat: ContentFormat.queryString,
                                 needsAuthentication: true,
                                 parser: GetUploadAuthenticationServiceParser(size: size))
-        
+
         return try await resource.load(on: webservice)
     }
 }

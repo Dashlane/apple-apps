@@ -40,7 +40,7 @@ class TwoFACompletionViewModel: ObservableObject, SessionServicesInjecting {
     var state: State = .inProgress
 
     @Published
-    var progressState: TwoFAProgressView.State = .inProgress(L10n.Localizable.twofaActivationProgressMessage)
+    var progressState: ProgressionState = .inProgress(L10n.Localizable.twofaActivationProgressMessage)
 
     let option: TFAOption
     let response: TOTPActivationResponse
@@ -50,8 +50,6 @@ class TwoFACompletionViewModel: ObservableObject, SessionServicesInjecting {
     let session: Session
     let sessionsContainer: SessionsContainerProtocol
     let keychainService: AuthenticationKeychainServiceProtocol
-    let accountAPIClient: AccountAPIClientProtocol
-    let persistor: AuthenticatorDatabaseServiceProtocol
     let authenticatorCommunicator: AuthenticatorServiceProtocol
     let syncService: SyncServiceProtocol
     let resetMasterPasswordService: ResetMasterPasswordServiceProtocol
@@ -63,14 +61,13 @@ class TwoFACompletionViewModel: ObservableObject, SessionServicesInjecting {
     let activityReporter: ActivityReporterProtocol
     let logger: Logger
     let sessionLifeCycleHandler: SessionLifeCycleHandler?
+    let userDeviceAPIClient: UserDeviceAPIClient
 
     init(option: TFAOption,
          response: TOTPActivationResponse,
          session: Session,
          sessionsContainer: SessionsContainerProtocol,
          keychainService: AuthenticationKeychainServiceProtocol,
-         accountAPIClient: AccountAPIClientProtocol,
-         persistor: AuthenticatorDatabaseServiceProtocol,
          authenticatorCommunicator: AuthenticatorServiceProtocol,
          syncService: SyncServiceProtocol,
          resetMasterPasswordService: ResetMasterPasswordServiceProtocol,
@@ -79,6 +76,7 @@ class TwoFACompletionViewModel: ObservableObject, SessionServicesInjecting {
          activityReporter: ActivityReporterProtocol,
          authenticatedAPIClient: DeprecatedCustomAPIClient,
          appAPIClient: AppAPIClient,
+         userDeviceAPIClient: UserDeviceAPIClient,
          sessionLifeCycleHandler: SessionLifeCycleHandler?,
          logger: Logger,
          completion: @escaping () -> Void) {
@@ -87,8 +85,6 @@ class TwoFACompletionViewModel: ObservableObject, SessionServicesInjecting {
         self.session = session
         self.sessionsContainer = sessionsContainer
         self.keychainService = keychainService
-        self.accountAPIClient = accountAPIClient
-        self.persistor = persistor
         self.authenticatorCommunicator = authenticatorCommunicator
         self.syncService = syncService
         self.resetMasterPasswordService = resetMasterPasswordService
@@ -100,6 +96,7 @@ class TwoFACompletionViewModel: ObservableObject, SessionServicesInjecting {
         self.appAPIClient = appAPIClient
         self.sessionLifeCycleHandler = sessionLifeCycleHandler
         self.activityReporter = activityReporter
+        self.userDeviceAPIClient = userDeviceAPIClient
         Task {
             await start()
         }
@@ -153,25 +150,24 @@ class TwoFACompletionViewModel: ObservableObject, SessionServicesInjecting {
             throw OTPError.unknown
         }
         let otp = TOTPGenerator.generate(with: config.type, for: Date(), digits: config.digits, algorithm: config.algorithm, secret: config.secret)
-        let webservice = AccountAPIClient(apiClient: appAPIClient)
-        let verificationResponse = try await webservice.performVerification(with: PerformTOTPVerificationRequest(login: self.session.login.email, otp: otp, activationFlow: true))
+        let verificationResponse = try await appAPIClient.authentication.performTotpVerification(login: self.session.login.email, otp: otp, activationFlow: true)
         return (self.response, verificationResponse.authTicket, OTPInfo(configuration: config, isFavorite: true, recoveryCodes: self.response.recoveryKeys))
     }
 
     func completeTOTPActivation(with response: TOTPActivationResponse, authTicket: String, otpInfo: OTPInfo) async throws {
-        try self.persistor.add([otpInfo])
+        try self.authenticatorCommunicator.addOTP(otpInfo)
         self.authenticatorCommunicator.sendMessage(.refresh)
-        try await self.accountAPIClient.completeTOTPActivation(withAuthTicket: authTicket)
+        try await self.userDeviceAPIClient.authentication.completeTOTPActivation(authTicket: authTicket)
     }
 
     func startOtp2(with response: TOTPActivationResponse, authTicket: String, otpInfo: OTPInfo) {
         do {
-            try self.persistor.add([otpInfo])
+            try self.authenticatorCommunicator.addOTP(otpInfo)
             self.authenticatorCommunicator.sendMessage(.refresh)
 
             let serverKey = response.serverKey
             let migratingSession = try sessionsContainer.prepareMigration(of: session,
-                                                                          to: .masterPassword(session.configuration.masterKey.masterPassword!, serverKey: serverKey), remoteKey: nil,
+                                                                          to: .masterPassword(session.authenticationMethod.userMasterPassword!, serverKey: serverKey), remoteKey: nil,
                                                                           cryptoConfig: CryptoRawConfig.masterPasswordBasedDefault,
                                                                           accountMigrationType: .masterPasswordToMasterPassword, loginOTPOption: .authenticatorPush)
 
@@ -192,37 +188,46 @@ class TwoFACompletionViewModel: ObservableObject, SessionServicesInjecting {
                                                                           logger: self.logger,
                                                                           cryptoSettings: migratingSession.target.cryptoConfig)
 
-            accountCryptoChangerService?.delegate = self
+            accountCryptoChangerService?.progressPublisher
+                .receive(on: DispatchQueue.main)
+                .sink { [weak self] state in
+                guard let self = self else {
+                    return
+                }
+                switch state {
+                case let .inProgress(progression):
+                    self.didProgress(progression)
+                case let .finished(result):
+                    self.didFinish(with: result)
+                }
+            }.store(in: &subscriptions)
             accountCryptoChangerService?.start()
-
         } catch {
             self.state = .failure(.unknown)
         }
     }
 }
 
-extension TwoFACompletionViewModel: AccountCryptoChangerServiceDelegate {
+extension TwoFACompletionViewModel {
     func didProgress(_ progression: AccountCryptoChangerService.Progression) {
         logger.debug("Otp2 activation in progress: \(progression)")
     }
 
     func didFinish(with result: Result<Session, AccountCryptoChangerError>) {
-        DispatchQueue.main.async {
-            switch result {
-            case .success(let session):
-                if let serverKey = session.configuration.masterKey.serverKey {
-                    try? self.keychainService.saveServerKey(serverKey, for: session.login)
-                    self.authenticatorCommunicator.sendMessage(.refresh)
-                }
-                self.logger.info("Otp2 activation is sucessfull")
-                self.progressState = .completed(L10n.Localizable.twofaActivationFinalMessage, {
-                    self.state = .success(onDismiss: {
-                        self.sessionLifeCycleHandler?.logoutAndPerform(action: .startNewSession(session, reason: .masterPasswordChanged))
-                    })
-                })
-            case .failure:
-                self.state = .failure(.unknown)
+        switch result {
+        case .success(let session):
+            if let serverKey = session.authenticationMethod.sessionKey.serverKey {
+                try? self.keychainService.saveServerKey(serverKey, for: session.login)
+                self.authenticatorCommunicator.sendMessage(.refresh)
             }
+            self.logger.info("Otp2 activation is sucessful")
+            self.progressState = .completed(L10n.Localizable.twofaActivationFinalMessage, {
+                self.state = .success(onDismiss: {
+                    self.sessionLifeCycleHandler?.logoutAndPerform(action: .startNewSession(session, reason: .masterPasswordChanged))
+                })
+            })
+        case .failure:
+            self.state = .failure(.unknown)
         }
     }
 }
@@ -242,8 +247,6 @@ extension TwoFACompletionViewModel {
                      session: .mock,
                      sessionsContainer: FakeSessionsContainer(),
                      keychainService: .fake,
-                     accountAPIClient: AccountAPIClient(apiClient: .fake),
-                     persistor: AuthenticatorDatabaseServiceMock(),
                      authenticatorCommunicator: AuthenticatorAppCommunicatorMock(),
                      syncService: SyncServiceMock(),
                      resetMasterPasswordService: ResetMasterPasswordServiceMock(),
@@ -251,7 +254,8 @@ extension TwoFACompletionViewModel {
                      sessionCryptoUpdater: .mock,
                      activityReporter: .fake,
                      authenticatedAPIClient: .fake,
-                     appAPIClient: AppAPIClient.mock { _ in },
+                     appAPIClient: AppAPIClient.fake,
+                     userDeviceAPIClient: UserDeviceAPIClient.fake,
                      sessionLifeCycleHandler: nil,
                      logger: LoggerMock(),
                      completion: {})

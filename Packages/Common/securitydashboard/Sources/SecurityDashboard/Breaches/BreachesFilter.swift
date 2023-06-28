@@ -38,13 +38,13 @@ struct BreachesFilter {
 extension Array where Element == BreachesData {
     func filterRevisionAndValidPublicBreaches() -> (lastRevision: Int, breaches: Set<Breach>) {
         var lastRevision = 0
-        
+
         let flatten = self.map({ breachesData -> Set<Breach> in
             if lastRevision < breachesData.revision { lastRevision = breachesData.revision }
             return breachesData.breaches
         })
                     .flatMap { $0 }
-        
+
         let filteredBreaches = flatten
                     .filter { $0.leakedData?.contains(.password) ?? false }
                     .filter {
@@ -80,16 +80,16 @@ extension Collection where Element == StoredBreach {
                   !NSDictionary(dictionary: existingBreachOriginalContent).isEqual(to: onlineBreachOriginalContent) else {
                                             continue
                   }
-            
+
             let mergedBreach = newBreach
                 .mutated(with: existingBreach.objectID, status: existingBreach.status)
                 .updated(with: existingBreach.leakedPasswords) 
             updatedBreaches.insert(mergedBreach)
         }
-        
+
                 let existingIds = Set(self.map(\.breachID))
         let newBreaches: Set<StoredBreach> = Set(collection.filter { !existingIds.contains($0.breachID) })
-        
+
         return DeltaUpdateBreaches(inserted: newBreaches, updated: updatedBreaches)
     }
 }

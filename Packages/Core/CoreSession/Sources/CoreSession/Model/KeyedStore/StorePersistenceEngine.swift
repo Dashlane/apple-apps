@@ -6,12 +6,11 @@ public protocol StorePersistenceEngine {
     func read(for key: StoreKey) throws -> Data
 }
 
-
 extension URL: StorePersistenceEngine {
     public func exists(for key: StoreKey) -> Bool {
         FileManager.default.fileExists(atPath: self.path)
     }
-    
+
     public func write(_ data: Data?, for key: StoreKey) throws {
         if let data = data {
            try data.write(to: self)

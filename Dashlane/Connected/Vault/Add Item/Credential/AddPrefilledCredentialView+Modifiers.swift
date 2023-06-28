@@ -1,4 +1,5 @@
 import SwiftUI
+import VaultKit
 
 private struct PrefilledCredentialViewSpecificBackButtonKey: EnvironmentKey {
     static var defaultValue: SpecificBackButton?

@@ -7,6 +7,7 @@ import CoreUserTracking
 import UIComponents
 import DesignSystem
 import DashTypes
+import CoreLocalization
 
 struct OTPExplorerView: View {
 
@@ -48,7 +49,10 @@ struct OTPExplorerView: View {
 
     private var faqSection: some View {
         VStack(alignment: .leading, spacing: 8) {
-            Text(L10n.Localizable.otpToolFaq).foregroundColor(Color(asset: FiberAsset.grey01)).font(.footnote).fontWeight(.medium)
+            Text(L10n.Localizable.otpToolFaq)
+                .foregroundColor(.ds.text.neutral.quiet)
+                .font(.footnote)
+                .fontWeight(.medium)
             FAQView(items: [
                 FAQItem.authenticator,
                 FAQItem.secondFactorAuthentication,
@@ -59,20 +63,20 @@ struct OTPExplorerView: View {
 
     private var otpFullConfigured: some View {
         VStack(spacing: 25) {
-            Image(asset: FiberAsset.paywallIconShield)
+            Image.ds.healthPositive.outlined
                 .resizable()
                 .renderingMode(.template)
-                .foregroundColor(Color(asset: FiberAsset.dashGreen))
+                .foregroundColor(.ds.text.brand.quiet)
                 .frame(width: 96, height: 96)
 
             VStack(spacing: 8) {
                 Text(L10n.Localizable.otpTool2fasetupForAll)
                     .font(.custom(GTWalsheimPro.regular.name, size: 20, relativeTo: .largeTitle).weight(.medium))
+                    .foregroundColor(.ds.text.neutral.catchy)
                 Text(L10n.Localizable.otpTool2fasetupForAllSubtitle)
                     .font(.body)
-                    .foregroundColor(Color(asset: FiberAsset.tertiaryCopyList))
+                    .foregroundColor(.ds.text.neutral.standard)
                     .multilineTextAlignment(.center)
-
             }
             RoundedButton(L10n.Localizable.otptoolAddLoginCta, action: viewModel.startAddCredentialFlow)
                 .roundedButtonLayout(.fill)
@@ -109,13 +113,13 @@ struct OTPExplorerView: View {
     }
 
         private var otpCompatibleCredentials: some View {
-
         VStack(alignment: .leading) {
             Text(L10n.Localizable.otpTool2faCompatibleLoginsTitle)
                 .font(.custom(GTWalsheimPro.regular.name, size: 20, relativeTo: .largeTitle).weight(.medium))
+                .foregroundColor(.ds.text.neutral.catchy)
             credentialsList
 
-            RoundedButton(L10n.Localizable._2faSetupCta, action: {
+            RoundedButton(CoreLocalization.L10n.Core._2faSetupCta, action: {
                 viewModel.startSetupOTPFlow()
             })
             .roundedButtonLayout(.fill)
@@ -126,10 +130,12 @@ struct OTPExplorerView: View {
     private var credentialListExpansionLabel: some View {
         HStack(spacing: 3) {
             Text(isCredentialListExpanded ?  L10n.Localizable.otpToolSeeLess : L10n.Localizable.otpToolSeeAll)
+                .foregroundColor(.ds.text.brand.quiet)
             Image(systemName: isCredentialListExpanded ? "chevron.up" : "chevron.down")
-        }.foregroundColor(Color(asset: FiberAsset.accentColor))
-            .frame(height: 50)
-            .font(.headline)
+                .foregroundColor(.ds.text.brand.standard)
+        }
+        .frame(height: 50)
+        .font(.headline)
     }
 
     private var noCompatibleLogins: some View {
@@ -137,13 +143,16 @@ struct OTPExplorerView: View {
             Image(asset: FiberAsset.pictoAuthenticator)
                 .resizable()
                 .renderingMode(.template)
-                .foregroundColor(Color(asset: FiberAsset.dashGreen))
+                .foregroundColor(.ds.text.brand.quiet)
                 .frame(width: 84, height: 84)
             VStack(spacing: 8) {
                 Text(L10n.Localizable.otpToolNo2faLogins)
                     .font(.custom(GTWalsheimPro.regular.name, size: 20, relativeTo: .largeTitle).weight(.medium))
+                    .foregroundColor(.ds.text.neutral.catchy)
+
                 Text(L10n.Localizable.otpToolNo2faLoginsSubtitle)
                     .font(.callout)
+                    .foregroundColor(.ds.text.neutral.standard)
             }
             VStack {
                 RoundedButton(L10n.Localizable.otpToolAddCredentialCta, action: viewModel.startAddCredentialFlow)

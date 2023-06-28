@@ -5,19 +5,17 @@ import Combine
 import SecurityDashboard
 import SwiftUI
 import CoreSettings
+import DesignSystem
 
 class SecurityAlertNotificationProvider: NotificationProvider {
     private let identityDashboardService: IdentityDashboardServiceProtocol
     private let settingsStore: LocalSettingsStore
-    private let logger: NotificationCenterLogger
     @Published
     private var unresolvedAlerts: [UnresolvedAlert] = []
     var trayAlertsSubcription: AnyCancellable?
 
     init(identityDashboardService: IdentityDashboardServiceProtocol,
-         settingsStore: LocalSettingsStore,
-         logger: NotificationCenterLogger) {
-        self.logger = logger
+         settingsStore: LocalSettingsStore) {
         self.settingsStore = settingsStore
         self.identityDashboardService = identityDashboardService
         setup()
@@ -59,8 +57,7 @@ class SecurityAlertNotificationProvider: NotificationProvider {
     private func publisher(for unresolvedAlert: UnresolvedAlert) -> AnyPublisher<DashlaneNotification, Never> {
         let settingsPrefix: String = "security-alert-\(unresolvedAlert.alert.breach.id)"
         let settings = NotificationSettings(prefix: settingsPrefix,
-                                            settings: settingsStore,
-                                            logger: logger)
+                                            settings: settingsStore)
         let type: SecurityAlertNotification.NotificationType
         if let emails = unresolvedAlert.alert.breach.impactedEmails, !emails.isEmpty {
             type = .darkWebAlert
@@ -123,11 +120,11 @@ struct SecurityAlertNotification: DashlaneNotification {
             self.title = L10n.Localizable.securityAlertNotificationTitle
             let domain = unresolvedAlert.alert.breach.domains?.first ?? "-"
             self.description = L10n.Localizable.actionItemBreachDetail(domain)
-            self.icon = Image(asset: FiberAsset.breachActionItemIcon)
+            self.icon = Image.ds.notification.outlined
         case .darkWebAlert:
             self.title = L10n.Localizable.actionItemDarkwebTitle
             self.description = L10n.Localizable.actionItemDarkwebDetail
-            self.icon = Image(asset: FiberAsset.darkwebActionItemIcon)
+            self.icon = Image.ds.feature.darkWebMonitoring.outlined
         }
     }
 }

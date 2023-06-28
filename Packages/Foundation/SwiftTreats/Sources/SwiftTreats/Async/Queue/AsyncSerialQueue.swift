@@ -3,9 +3,9 @@ import Foundation
 public actor AsyncSerialQueue: AsyncQueue {
     typealias Operation = @Sendable () async throws -> Void
     private var pendingOperations: [Operation] = []
-    
+
     public init() {
-  
+
     }
 
     public nonisolated func callAsFunction<Output>(_ operation: @escaping @Sendable () async throws -> Output) async throws -> Output {
@@ -22,8 +22,8 @@ public actor AsyncSerialQueue: AsyncQueue {
             }
          }
     }
-    
-    private func add(_ operation: @escaping Operation)  {
+
+    private func add(_ operation: @escaping Operation) {
         pendingOperations.append(operation)
                 if pendingOperations.count == 1 {
             consumeNextOperation()
@@ -40,7 +40,7 @@ public actor AsyncSerialQueue: AsyncQueue {
             await self.clearCurrentAndConsumeNextOperation()
         }
     }
-    
+
     private func clearCurrentAndConsumeNextOperation() {
         pendingOperations.remove(at: 0)
         consumeNextOperation()

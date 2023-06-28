@@ -56,7 +56,7 @@ public final class DocumentDownload: NSObject {
         self.isFileAvailableLocally = isFileAvailableLocally
     }
 
-    private func indicateBackgroudTaskEnd() {
+    private func indicateBackgroundTaskEnd() {
         if let backgroundActivity = backgroundActivity {
             ProcessInfo.processInfo.endActivity(backgroundActivity)
         }
@@ -71,7 +71,7 @@ public final class DocumentDownload: NSObject {
         self.backgroundActivity = ProcessInfo.processInfo.beginActivity(options: [.userInitiated], reason: "DocumentDownload")
         if try isFileAvailableLocally(attachment) {
             let url = try await decryptFile()
-            indicateBackgroudTaskEnd()
+            indicateBackgroundTaskEnd()
             progress?.cancel()
             return url
         } else {
@@ -80,14 +80,14 @@ public final class DocumentDownload: NSObject {
             return try await self.download(from: link)
         }
     }
-    
+
     private func decryptFile() async throws -> URL {
         guard let cryptoKey = Data(base64Encoded: attachment.cryptoKey) else {
             throw DocumentDownloadError("cryptoKey is not base64 string")
         }
         let _decryptedFileURL = self.decryptedFileURL
         let _downloadedFileURL = self.downloadedFileURL
-        
+
         return try await withCheckedThrowingContinuation { continuation in
             do {
                 self.streamDecrypt = try StreamDecrypt(source: _downloadedFileURL, destination: _decryptedFileURL, key: cryptoKey, chunkSize: 2_000_000) { result in
@@ -140,11 +140,11 @@ public final class DocumentDownload: NSObject {
             self.urlSession.finishTasksAndInvalidate()
         }
     }
-    
+
     private func handleError(_ error: Error) {
         self.progress?.cancel()
         self.completionHandler?(.failure(error))
-        self.indicateBackgroudTaskEnd()
+        self.indicateBackgroundTaskEnd()
     }
 }
 

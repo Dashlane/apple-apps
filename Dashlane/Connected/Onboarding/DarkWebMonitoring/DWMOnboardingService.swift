@@ -8,6 +8,7 @@ import CorePersonalData
 import CoreFeature
 import DashlaneAppKit
 import CoreSettings
+import VaultKit
 
 class DWMOnboardingService {
 
@@ -40,7 +41,7 @@ class DWMOnboardingService {
 
     private let settings: DWMOnboardingSettings
     private let identityDashboardService: IdentityDashboardServiceProtocol
-    private let personalDataURLDecoder: DashlaneAppKit.PersonalDataURLDecoder
+    private let personalDataURLDecoder: PersonalDataURLDecoderProtocol
     private let vaultItemsService: VaultItemsServiceProtocol
     private let darkWebMonitoringService: DarkWebMonitoringServiceProtocol
     private let logger: Logger
@@ -48,7 +49,7 @@ class DWMOnboardingService {
 
     init(settings: DWMOnboardingSettings,
          identityDashboardService: IdentityDashboardServiceProtocol,
-         personalDataURLDecoder: DashlaneAppKit.PersonalDataURLDecoder,
+         personalDataURLDecoder: PersonalDataURLDecoderProtocol,
          vaultItemsService: VaultItemsServiceProtocol,
          darkWebMonitoringService: DarkWebMonitoringServiceProtocol,
          logger: Logger) {
@@ -294,9 +295,9 @@ private extension IdentityDashboardServiceProtocol {
  extension DWMOnboardingService {
     static var mock: DWMOnboardingService {
         .init(
-            settings: .init(internalStore: InMemoryLocalSettingsStore()),
+            settings: .init(internalStore: .mock()),
             identityDashboardService: IdentityDashboardService.mock,
-            personalDataURLDecoder: .init(domainParser: DomainParserMock(), linkedDomainService: LinkedDomainService()),
+            personalDataURLDecoder: PersonalDataURLDecoder(domainParser: FakeDomainParser(), linkedDomainService: LinkedDomainService()),
             vaultItemsService: MockServicesContainer().vaultItemsService,
             darkWebMonitoringService: DarkWebMonitoringServiceMock(),
             logger: LoggerMock()

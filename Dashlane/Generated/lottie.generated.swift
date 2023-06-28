@@ -42,16 +42,6 @@ extension LottieAsset {
  internal static let onboardingVaultBackground = LottieAsset(file:"Lottie/onboarding_vault_background.json", bundle: BundleToken.bundle)
 
  internal static let passwordChangerLoading = LottieAsset(file:"Lottie/PasswordChanger_Loading.json", bundle: BundleToken.bundle)
-
- internal static let preOnboardingAutofillScreenLoop = LottieAsset(file:"Lottie/pre_onboarding_autofillScreen_loop.json", bundle: BundleToken.bundle)
-
- internal static let preOnboardingSecurityAlertsScreenLoop = LottieAsset(file:"Lottie/pre_onboarding_securityAlertsScreen_loop.json", bundle: BundleToken.bundle)
-
- internal static let preOnboardingTrustScreenTransition = LottieAsset(file:"Lottie/pre_onboarding_trustScreen_transition.json", bundle: BundleToken.bundle)
-
- internal static let preOnboardingVaultScreenLoop = LottieAsset(file:"Lottie/pre_onboarding_vaultScreen_loop.json", bundle: BundleToken.bundle)
-
- internal static let preOnboardingVaultScreenTransition = LottieAsset(file:"Lottie/pre_onboarding_vaultScreen_transition.json", bundle: BundleToken.bundle)
  internal static let _2FAConfiguration = LottieAsset(lightAppearanceFile: "Lottie/2FAConfiguration/2FAConfiguration_light.json", darkAppearanceFile: "Lottie/2FAConfiguration/2FAConfiguration_dark.json", bundle: BundleToken.bundle)
  internal static let loading = LottieAsset(lightAppearanceFile: "Lottie/loading/loading_light.json", darkAppearanceFile: "Lottie/loading/loading_dark.json", bundle: BundleToken.bundle)
  internal static let loadingDeterminate = LottieAsset(lightAppearanceFile: "Lottie/loading_determinate/loading_determinate_light.json", darkAppearanceFile: "Lottie/loading_determinate/loading_determinate_dark.json", bundle: BundleToken.bundle)
@@ -59,9 +49,6 @@ extension LottieAsset {
  internal static let m2WStartScreen = LottieAsset(lightAppearanceFile: "Lottie/M2WStartScreen/M2WStartScreen_light.json", darkAppearanceFile: "Lottie/M2WStartScreen/M2WStartScreen_dark.json", bundle: BundleToken.bundle)
  internal static let passwordChangerFail = LottieAsset(lightAppearanceFile: "Lottie/PasswordChangerFail/PasswordChangerFail_light.json", darkAppearanceFile: "Lottie/PasswordChangerFail/PasswordChangerFail_dark.json", bundle: BundleToken.bundle)
  internal static let passwordChangerSuccess = LottieAsset(lightAppearanceFile: "Lottie/PasswordChangerSuccess/PasswordChangerSuccess_light.json", darkAppearanceFile: "Lottie/PasswordChangerSuccess/PasswordChangerSuccess_dark.json", bundle: BundleToken.bundle)
- internal static let preOnboardingAuthenticatorLoop = LottieAsset(lightAppearanceFile: "Lottie/pre_onboarding_authenticator_loop/pre_onboarding_authenticator_loop_light.json", darkAppearanceFile: "Lottie/pre_onboarding_authenticator_loop/pre_onboarding_authenticator_loop_dark.json", bundle: BundleToken.bundle)
- internal static let preOnboardingPrivacyScreenLoop = LottieAsset(lightAppearanceFile: "Lottie/pre_onboarding_privacyScreen_loop/pre_onboarding_privacyScreen_loop_light.json", darkAppearanceFile: "Lottie/pre_onboarding_privacyScreen_loop/pre_onboarding_privacyScreen_loop_dark.json", bundle: BundleToken.bundle)
- internal static let preOnboardingTrustScreenLoop = LottieAsset(lightAppearanceFile: "Lottie/pre_onboarding_trustScreen_loop/pre_onboarding_trustScreen_loop_light.json", darkAppearanceFile: "Lottie/pre_onboarding_trustScreen_loop/pre_onboarding_trustScreen_loop_dark.json", bundle: BundleToken.bundle)
 }
 private final class BundleToken {
   static let bundle: Bundle = {

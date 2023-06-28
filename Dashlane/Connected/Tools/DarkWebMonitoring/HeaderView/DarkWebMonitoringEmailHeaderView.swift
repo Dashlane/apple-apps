@@ -32,6 +32,10 @@ struct DarkWebMonitoringEmailHeaderView: View {
                 Spacer()
                 chevronIndicator
             }
+            .accessibilityElement(children: .combine)
+            .fiberAccessibilityLabel(Text(
+                "\(emailMonitoredLabel) \(statusText) \(isUnrolled ? L10n.Localizable.accessibilityCollapse : L10n.Localizable.accessibilityExpand)"
+            ))
             .padding(16)
             .frame(height: 75)
         })
@@ -47,7 +51,7 @@ struct DarkWebMonitoringEmailHeaderView: View {
                 .foregroundColor(indicatorColor)
             Text(statusText)
                 .font(.callout)
-                .foregroundColor(Color(asset: FiberAsset.placeholder))
+                .foregroundColor(.ds.text.neutral.quiet)
         }
     }
 
@@ -71,11 +75,11 @@ struct DarkWebMonitoringEmailHeaderView: View {
     private var indicatorColor: Color {
         switch status {
         case .active:
-            return Color(asset: FiberAsset.validatorGreen)
+            return .ds.text.positive.quiet
         case .pending:
-            return Color(asset: FiberAsset.dashlaneOrange)
+            return .ds.text.warning.quiet
         case .inactive:
-            return Color(asset: FiberAsset.errorRed)
+            return .ds.text.danger.quiet
         }
     }
 
@@ -95,7 +99,7 @@ struct DarkWebMonitoringEmailHeaderView: View {
         Image(systemName: "chevron.down")
             .resizable()
             .frame(width: 16, height: 10, alignment: .center)
-            .foregroundColor(Color(asset: FiberAsset.grey02))
+            .foregroundColor(.ds.text.inverse.quiet)
             .rotationEffect(Angle.degrees(isUnrolled ? 180 : 0))
             .animation(.easeOut, value: isUnrolled)
     }

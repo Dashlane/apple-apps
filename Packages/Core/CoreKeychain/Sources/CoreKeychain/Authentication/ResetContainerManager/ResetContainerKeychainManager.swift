@@ -69,7 +69,7 @@ public struct ResetContainerKeychainManagerImpl: ResetContainerKeychainManager, 
                         @discardableResult
     public func store(_ masterPassword: MasterPassword, accessMode: KeychainAccessMode = .afterBiometricAuthentication) throws -> ResetContainer {
 
-        let data: [String : Any] = [ResetContainerKeychainManagerImpl.keychainMasterPasswordKey: masterPassword]
+        let data: [String: Any] = [ResetContainerKeychainManagerImpl.keychainMasterPasswordKey: masterPassword]
         try store(data, for: .resetContainer, accessMode: accessMode)
         return ResetContainer(masterPassword: masterPassword)
     }

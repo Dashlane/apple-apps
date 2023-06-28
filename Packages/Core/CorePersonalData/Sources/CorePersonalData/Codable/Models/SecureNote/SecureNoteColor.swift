@@ -7,7 +7,7 @@ public enum SecureNoteColor: String, Equatable, Codable, Defaultable, CaseIterab
     public var id: String {
         return rawValue
     }
-    
+
     case blue = "BLUE"
     case purple = "PURPLE"
     case pink = "PINK"

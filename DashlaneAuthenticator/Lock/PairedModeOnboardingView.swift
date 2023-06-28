@@ -5,7 +5,7 @@ import DesignSystem
 struct PairedModeOnboardingView: View {
     let mode: AuthenticationMode
     let completion: () -> Void
-    
+
     var body: some View {
         ScrollView {
             mainView
@@ -13,7 +13,7 @@ struct PairedModeOnboardingView: View {
             .navigationBarStyle(.transparent)
             .overlay(overlayButton)
     }
-    
+
     var mainView: some View {
         VStack {
             VStack(alignment: .center, spacing: 40) {
@@ -33,7 +33,7 @@ struct PairedModeOnboardingView: View {
         .padding(.horizontal, 24)
         .padding(.bottom, 24)
     }
-    
+
     var label: some View {
         Text(lockLabelAttributedString)
             .multilineTextAlignment(.center)
@@ -45,7 +45,7 @@ struct PairedModeOnboardingView: View {
         let markdownLockLabel = mode.lockLabel.replacingOccurrences(of: mode.displayName, with: "**\(mode.displayName)**")
         return (try? AttributedString(markdown: markdownLockLabel)) ?? AttributedString(mode.lockLabel)
     }
-    
+
     var overlayButton: some View {
         VStack {
             Spacer()
@@ -60,7 +60,7 @@ struct PairedModeOnboardingView_Previews: PreviewProvider {
     static var previews: some View {
         MultiContextPreview(dynamicTypePreview: true) {
             NavigationView {
-                PairedModeOnboardingView(mode: .pincode(code: "1234", attempts: .mock, masterKey: .masterPassword("Azerty12"))) {}
+                PairedModeOnboardingView(mode: .pincode(.init(code: "1234", attempts: .mock, masterKey: .masterPassword("Azerty12")))) {}
             }
         }
         MultiContextPreview(dynamicTypePreview: true) {

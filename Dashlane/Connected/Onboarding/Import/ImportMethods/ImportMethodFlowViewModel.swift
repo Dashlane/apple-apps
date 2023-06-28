@@ -100,30 +100,21 @@ final class ImportMethodFlowViewModel: ObservableObject, SessionServicesInjectin
     }
 
     private func showChromeImport() {
-        let viewModel = ChromeImportFlowViewModel(userSettings: sessionServices.spiegelUserSettings)
+        let viewModel = sessionServices.makeChromeImportFlowViewModel(userSettings: sessionServices.spiegelUserSettings)
         let view = ImportFlowView(viewModel: viewModel, completion: { self.handleImportFlowViewAction($0) })
 
         steps.append(.chromeFlow(view))
     }
 
     private func showDashImport() {
-        let viewModel = DashImportFlowViewModel(
-            personalDataURLDecoder: sessionServices.appServices.personalDataURLDecoder,
-            applicationDatabase: sessionServices.database,
-            databaseDriver: sessionServices.databaseDriver,
-            iconService: sessionServices.iconService,
-            activityReporter: sessionServices.activityReporter)
+        let viewModel = sessionServices.makeDashImportFlowViewModel(applicationDatabase: sessionServices.database, databaseDriver: sessionServices.databaseDriver)
         let view = ImportFlowView(viewModel: viewModel, completion: { self.handleImportFlowViewAction($0) })
 
         steps.append(.dashFlow(view))
     }
 
     private func showKeychainImport() {
-        let viewModel = KeychainImportFlowViewModel(
-            personalDataURLDecoder: sessionServices.appServices.personalDataURLDecoder,
-            applicationDatabase: sessionServices.database,
-            iconService: sessionServices.iconService,
-            activityReporter: sessionServices.activityReporter)
+        let viewModel = sessionServices.makeKeychainImportFlowViewModel(applicationDatabase: sessionServices.database)
         let view = ImportFlowView(viewModel: viewModel, completion: { self.handleImportFlowViewAction($0) })
 
         steps.append(.keychainFlow(view))

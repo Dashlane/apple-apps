@@ -1,6 +1,8 @@
 import SwiftUI
 import CorePersonalData
 import UIDelight
+import VaultKit
+import CoreLocalization
 
 struct DrivingLicenseDetailView: View {
 
@@ -11,7 +13,7 @@ struct DrivingLicenseDetailView: View {
         DetailContainerView(service: model.service) {
             Section {
                                 if model.mode.isEditing {
-                    PickerDetailField(title: L10n.Localizable.KWDriverLicenceIOS.localeFormat,
+                    PickerDetailField(title: CoreLocalization.L10n.Core.KWDriverLicenceIOS.localeFormat,
                                       selection: $model.item.country,
                                       elements: CountryCodeNamePair.countries,
                                       content: { country in
@@ -19,11 +21,11 @@ struct DrivingLicenseDetailView: View {
                     })
                 } else {
                     Text(model.item.country?.name ?? CountryCodeNamePair.defaultCountry.name)
-                        .labeled(L10n.Localizable.KWDriverLicenceIOS.localeFormat)
+                        .labeled(CoreLocalization.L10n.Core.KWDriverLicenceIOS.localeFormat)
                 }
 
                                 if model.mode.isEditing {
-                    PickerDetailField(title: L10n.Localizable.KWDriverLicenceIOS.linkedIdentity,
+                    PickerDetailField(title: CoreLocalization.L10n.Core.KWDriverLicenceIOS.linkedIdentity,
                                       selection: $model.item.linkedIdentity,
                                       elements: model.identities,
                                       allowEmptySelection: true,
@@ -33,36 +35,38 @@ struct DrivingLicenseDetailView: View {
                 }
 
                                 if !model.mode.isEditing {
-                    Text(model.displayFullName).labeled(L10n.Localizable.KWDriverLicenceIOS.fullname)
+                    Text(model.displayFullName).labeled(CoreLocalization.L10n.Core.KWDriverLicenceIOS.fullname)
                 }
 
                 if model.item.linkedIdentity == nil {
                     if model.mode.isEditing {
-                                                TextDetailField(title: L10n.Localizable.KWDriverLicenceIOS.fullname,
+                                                TextDetailField(title: CoreLocalization.L10n.Core.KWDriverLicenceIOS.fullname,
                                         text: $model.item.fullname)
 
-                                                PickerDetailField(title: L10n.Localizable.KWDriverLicenceIOS.sex,
+                                                PickerDetailField(title: CoreLocalization.L10n.Core.KWDriverLicenceIOS.sex,
                                           selection: $model.item.sex,
                                           elements: Gender.allCases,
                                           content: { gender in
                                             Text(gender?.localized ?? "")
                         })
                     } else if model.item.sex != nil {
-                        Text(model.item.genderString).labeled(L10n.Localizable.KWDriverLicenceIOS.sex)
+                        Text(model.item.genderString).labeled(CoreLocalization.L10n.Core.KWDriverLicenceIOS.sex)
                     }
                 }
 
                                 if model.mode.isEditing || !model.item.number.isEmpty {
-                    TextDetailField(title: L10n.Localizable.KWDriverLicenceIOS.number,
-                                    text: $model.item.number)
-                        .actions([.copy(model.copy)])
-                        .fiberFieldType(.number)
-
+                    TextDetailField(
+                        title: CoreLocalization.L10n.Core.KWDriverLicenceIOS.number,
+                        text: $model.item.number,
+                        actions: [.copy(model.copy)]
+                    )
+                    .actions([.copy(model.copy)])
+                    .fiberFieldType(.number)
                 }
 
                                 if model.item.mode == .countryWithState {
                     if model.mode.isEditing {
-                        PickerDetailField(title: L10n.Localizable.KWDriverLicenceIOS.state,
+                        PickerDetailField(title: CoreLocalization.L10n.Core.KWDriverLicenceIOS.state,
                                           selection: $model.item.state,
                                           elements: model.stateItems,
                                           content: { country in
@@ -70,19 +74,17 @@ struct DrivingLicenseDetailView: View {
                         })
                         .textInputAutocapitalization(.words)
                     } else if model.item.state != nil {
-                        Text(model.item.state?.name ?? "").labeled(L10n.Localizable.KWDriverLicenceIOS.state)
+                        Text(model.item.state?.name ?? "").labeled(CoreLocalization.L10n.Core.KWDriverLicenceIOS.state)
                     }
                 }
 
-                                DateDetailField(title: L10n.Localizable.KWDriverLicenceIOS.deliveryDate,
+                                DateDetailField(title: CoreLocalization.L10n.Core.KWDriverLicenceIOS.deliveryDate,
                                 date: $model.item.deliveryDate,
                                 range: .past)
 
-                                if model.item.hasExpireDate {
-                    DateDetailField(title: L10n.Localizable.KWPassportIOS.expireDate,
-                                    date: $model.item.expireDate,
-                                    range: .future)
-                }
+                                DateDetailField(title: CoreLocalization.L10n.Core.KWPassportIOS.expireDate,
+                                date: $model.item.expireDate,
+                                range: .future)
             }.makeShortcuts(model: model)
         }
     }

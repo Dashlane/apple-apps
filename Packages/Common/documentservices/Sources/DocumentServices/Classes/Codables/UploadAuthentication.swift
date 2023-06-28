@@ -1,7 +1,7 @@
 import Foundation
 
 public struct UploadAuthentication: Codable {
-    
+
     struct Fields: Codable {
         let bucket: String
         let policy: String
@@ -10,8 +10,8 @@ public struct UploadAuthentication: Codable {
         let date: String
         let securityToken: String
         let signature: String
-        
-        private enum CodingKeys : String, CodingKey {
+
+        private enum CodingKeys: String, CodingKey {
             case policy = "Policy"
             case bucket
             case algorithm = "X-Amz-Algorithm"
@@ -21,14 +21,14 @@ public struct UploadAuthentication: Codable {
             case signature = "X-Amz-Signature"
         }
     }
-    
+
     let accessControlLevel: String
     let fields: Fields
     public let key: String
     let quota: Quota.QuotaValues
     let url: URL
-    
-    private enum CodingKeys : String, CodingKey {
+
+    private enum CodingKeys: String, CodingKey {
         case accessControlLevel = "acl"
         case fields
         case key

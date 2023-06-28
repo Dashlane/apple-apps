@@ -1,47 +1,32 @@
 import Foundation
 import CorePersonalData
 import SwiftUI
-import DashlaneAppKit
+import DesignSystem
+import VaultKit
 
 extension ItemCategory: TabElement {
 
     var tabBarImage: NavigationImageSet {
-        .init(image: image,
-              selectedImage: image)
-    }
-
-    var image: ImageAsset {
-        switch self {
-            case .credentials:
-                return FiberAsset.menuIconPasswords
-            case .secureNotes:
-                return FiberAsset.menuIconNotes
-            case .payments:
-                return FiberAsset.menuIconPaymentmeans
-            case .personalInfo:
-                return FiberAsset.menuIconPersonalinfos
-            case .ids:
-                return FiberAsset.menuIconConfidentialcards
-        }
+        sidebarImage
     }
 
     var sidebarImage: NavigationImageSet {
         switch self {
-            case .credentials:
-                return .init(image: FiberAsset.sidebarVaultCredentials,
-                             selectedImage: FiberAsset.sidebarVaultCredentialsSelected)
-            case .secureNotes:
-                return .init(image: FiberAsset.sidebarVaultNotes,
-                             selectedImage: FiberAsset.sidebarVaultNotesSelected)
-            case .payments:
-                return .init(image: FiberAsset.sidebarVaultPayments,
-                             selectedImage: FiberAsset.sidebarVaultPaymentsSelected)
-            case .personalInfo:
-                return .init(image: FiberAsset.sidebarVaultPersonalinfo,
-                             selectedImage: FiberAsset.sidebarVaultPersonalinfoSelected)
-            case .ids:
-                return .init(image: FiberAsset.sidebarVaultIds,
-                             selectedImage: FiberAsset.sidebarVaultIdsSelected)
+        case .credentials:
+            return .init(image: .ds.item.login.outlined,
+                         selectedImage: .ds.item.login.filled)
+        case .secureNotes:
+            return .init(image: .ds.item.secureNote.outlined,
+                         selectedImage: .ds.item.secureNote.filled)
+        case .payments:
+            return .init(image: .ds.item.payment.outlined,
+                         selectedImage: .ds.item.payment.filled)
+        case .personalInfo:
+            return .init(image: .ds.item.personalInfo.outlined,
+                         selectedImage: .ds.item.personalInfo.filled)
+        case .ids:
+            return .init(image: .ds.item.id.outlined,
+                         selectedImage: .ds.item.id.filled)
         }
     }
 }

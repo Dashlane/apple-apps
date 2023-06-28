@@ -1,6 +1,6 @@
 import Foundation
 
-enum KeychainHeader: String, CaseIterable, CSVHeader  {
+enum KeychainHeader: String, CaseIterable, CSVHeader {
 
     case title = "Title"
     case url = "URL"

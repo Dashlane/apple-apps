@@ -1,6 +1,7 @@
 import SwiftUI
 import DashlaneAppKit
 import CoreSettings
+import CoreLocalization
 
 struct PasswordGeneratorSliderView: View {
     
@@ -20,7 +21,7 @@ struct PasswordGeneratorSliderView: View {
     }
     
     var lengthSectionHeader: some View {
-        Text(L10n.Localizable.kwPadExtensionGeneratorLength) + Text(" (\(preferences.length))")
+        Text(CoreLocalization.L10n.Core.kwPadExtensionGeneratorLength) + Text(" (\(preferences.length))")
     }
     
 }

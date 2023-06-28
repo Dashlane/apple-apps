@@ -85,20 +85,20 @@ public struct SecureLockConfigurator {
     }
 
     private func saveMasterKeyForBiometry() throws {
-        try keychainService.saveMasterKey(session.configuration.masterKey,
+        try keychainService.saveMasterKey(session.authenticationMethod.sessionKey,
                                           for: session.login,
                                           accessMode: .afterBiometricAuthentication)
     }
 
     private func saveMasterKeyForPin(code: String) throws {
-        try keychainService.saveMasterKey(session.configuration.masterKey,
+        try keychainService.saveMasterKey(session.authenticationMethod.sessionKey,
                                           for: session.login,
                                           accessMode: .whenDeviceUnlocked)
         try keychainService.setPincode(code, for: session.login)
     }
 
     private func saveMasterKeyForRememberMasterPassword() throws {
-        try keychainService.saveMasterKey(session.configuration.masterKey,
+        try keychainService.saveMasterKey(session.authenticationMethod.sessionKey,
                                           for: session.login,
                                           accessMode: .whenDeviceUnlocked)
     }
@@ -219,6 +219,6 @@ extension SecureLockConfigurator {
                                               accessGroup: "")
         return SecureLockConfigurator(session: .mock,
                                       keychainService: keychainService,
-                                      settings: InMemoryLocalSettingsStore())
+                                      settings: .mock())
     }
 }

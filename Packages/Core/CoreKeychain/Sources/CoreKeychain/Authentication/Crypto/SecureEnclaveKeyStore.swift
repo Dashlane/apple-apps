@@ -67,7 +67,7 @@ private extension SecureEnclave {
             }
         }
 
-        let privateKey = item as! SecKey
+                let privateKey = item as! SecKey
 
         guard let publicKey = SecKeyCopyPublicKey(privateKey) else {
             return nil

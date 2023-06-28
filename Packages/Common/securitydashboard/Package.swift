@@ -3,23 +3,23 @@ import PackageDescription
 let package = Package(
     name: "SecurityDashboard",
     platforms: [
-        .iOS(.v15),
-        .macOS(.v12)
+        .iOS(.v16),
+        .macOS(.v13)
     ],
     products: [
                 .library(
             name: "SecurityDashboard",
-            targets: ["SecurityDashboard", "SecurityDashboardUI"]),
+            targets: ["SecurityDashboard", "SecurityDashboardUI"])
     ],
     dependencies: [
                         .package(path: "../../Foundation/DashTypes"),
-        .package(path: "../../Core/CoreNetworking"),
+        .package(path: "../../Core/CoreNetworking")
     ],
     targets: [
                         .target(
             name: "SecurityDashboard",
             dependencies: [
-                .product(name: "DashTypes", package: "DashTypes"),
+                .product(name: "DashTypes", package: "DashTypes")
             ]
         ),
         .target(
@@ -30,8 +30,7 @@ let package = Package(
             name: "SecurityDashboardTests",
             dependencies: [
                 "SecurityDashboard",
-                .product(name: "DashTypes", package: "DashTypes"),
-                .product(name: "CoreNetworking", package: "CoreNetworking")
+                .product(name: "DashTypes", package: "DashTypes")
             ],
             exclude: [
                 "Resources/common-unit-tests/CHANGELOG.md",
@@ -44,7 +43,13 @@ let package = Package(
             resources: [
                 .process("Breaches/Resources"),
                 .process("Resources/common-unit-tests/password-similarity/Tests"),
-                .process("Resources/common-unit-tests/password-strength/Tests"),
+                .process("Resources/common-unit-tests/password-strength/Tests")
+            ]
+        ),
+        .testTarget(
+            name: "SecurityDashboardPerformanceTests",
+            dependencies: [
+                "SecurityDashboard"
             ]
         ),
         .testTarget(

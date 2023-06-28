@@ -3,6 +3,7 @@ import CorePersonalData
 import DomainParser
 import CorePremium
 import DashTypes
+import VaultKit
 
 struct DataRequestHandler: SessionServicesInjecting {
     struct Request: Decodable {

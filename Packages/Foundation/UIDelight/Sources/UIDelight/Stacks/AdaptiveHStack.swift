@@ -12,8 +12,8 @@ public struct AdaptiveHStack<Content: View>: View {
 
     public init(verticalAlignment: VerticalAlignment = .center,
                 horizontalAlignment: HorizontalAlignment = .center,
-        spacing: CGFloat? = nil,
-        @ViewBuilder _ content: @escaping () -> Content) {
+                spacing: CGFloat? = nil,
+                @ViewBuilder _ content: @escaping () -> Content) {
         self.verticalAlignment = verticalAlignment
         self.horizontalAlignment = horizontalAlignment
         self.spacing = spacing
@@ -22,8 +22,8 @@ public struct AdaptiveHStack<Content: View>: View {
 
     public init(verticalAlignment: VerticalAlignment = .center,
                 horizontalAlignment: HorizontalAlignment = .center,
-        spacing: CGFloat? = nil,
-        @ViewBuilder _ content: @escaping (DynamicTypeSize) -> Content) {
+                spacing: CGFloat? = nil,
+                @ViewBuilder _ content: @escaping (DynamicTypeSize) -> Content) {
         self.verticalAlignment = verticalAlignment
         self.horizontalAlignment = horizontalAlignment
         self.spacing = spacing

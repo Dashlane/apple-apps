@@ -3,13 +3,13 @@ import PackageDescription
 let package = Package(
     name: "UIDelight",
     platforms: [
-        .iOS(.v15),
-        .macOS(.v12)
+        .iOS(.v16),
+        .macOS(.v13)
     ],
     products: [
                 .library(
             name: "UIDelight",
-            targets: ["UIDelight"]),
+            targets: ["UIDelight"])
     ],
     dependencies: [
                     ],
@@ -19,6 +19,6 @@ let package = Package(
             dependencies: []),
         .testTarget(
             name: "UIDelightTests",
-            dependencies: ["UIDelight"]),
+            dependencies: ["UIDelight"])
     ]
 )

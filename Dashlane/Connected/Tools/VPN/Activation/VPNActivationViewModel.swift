@@ -5,6 +5,7 @@ import CoreUserTracking
 import DashlaneAppKit
 import DesignSystem
 import CoreSession
+import CoreLocalization
 
 public enum VPNActivationState {
     case initial
@@ -127,6 +128,7 @@ private extension AttributedString {
         var attributeContainer = AttributeContainer()
         attributeContainer.link = url
         attributeContainer.underlineStyle = .single
+        attributeContainer.font = .system(.footnote)
         attributeContainer.foregroundColor = .ds.text.brand.standard
         return attributeContainer
     }
@@ -136,7 +138,7 @@ private extension AttributedString {
         let privacyPolicyURL = URL(string: "_")!
 
         let termString = L10n.Localizable.vpnActivationViewTermsOfService
-        let privacyString = L10n.Localizable.kwCreateAccountPrivacy
+        let privacyString = CoreLocalization.L10n.Core.kwCreateAccountPrivacy
 
         let legalNotice = L10n.Localizable.vpnActivationViewTermsAgree(termString, privacyString)
 

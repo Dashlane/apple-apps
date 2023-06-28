@@ -5,7 +5,7 @@ public enum AppLoggerIdentifier: String, LoggerIdentifier, CaseIterable {
         case accountCreation
 
             case session
-    
+
         case localSettings
 
             case lifecycle
@@ -24,35 +24,35 @@ public enum AppLoggerIdentifier: String, LoggerIdentifier, CaseIterable {
 
         case features
 
-        case usageLogs
-    
         case userTrackingLogs
-    
-        case installerLogs
 
         case identityDashboard
 
         case sharing
 
         case preferences
-    
+
         case teamSpaces
-    
+
         case abTesting
 
         case spotlight
 
         case views
-    
+
         case dwmOnboarding
 
         case appTrackingTransparency
-    
+
         case autofill
-    
-        case authenticator
+
+        case localCommunication
 
         case versionValidity
+
+        case inAppPurchase
+
+        case activityLogs
 
     public var stringValue: String { return self.rawValue.lowercased() }
 }

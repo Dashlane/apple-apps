@@ -7,11 +7,12 @@ import DashlaneAppKit
 import LoginKit
 import SwiftTreats
 import Foundation
+import AutofillKit
 #if canImport(UIKit)
 import UIKit
 #endif
 
-class PremiumService: Mockable {
+class PremiumService: PremiumServiceProtocol {
     let manager = DashlanePremiumManager.shared
     var logger: Logger
     let session: Session
@@ -19,11 +20,10 @@ class PremiumService: Mockable {
         private let userEncryptedSettings: UserEncryptedSettings
     private let webservice: LegacyWebService
     private let dashlaneAPI: DeprecatedCustomAPIClient
-    private let usageLogService: UsageLogServiceProtocol
     private var receiptVerificationService: ReceiptVerificationService
     private var cancellable: AnyCancellable?
     private var premiumNotificationService: PremiumNotificationService?
-    private let communicationCenter = AppExtensionCommunicationCenter(channel: .fromApp)
+    private let communicationCenter = AppExtensionCommunicationCenter(channel: .fromApp, baseURL: ApplicationGroup.documentsURL)
 
         @Published
     public var status: PremiumStatus? 
@@ -48,19 +48,13 @@ class PremiumService: Mockable {
         return offers.allOffers
     }
 
-    public var premiumStatusPublisher: AnyPublisher<PremiumStatus?, Never> {
-        return $status.eraseToAnyPublisher()
-    }
-
     private init(session: Session,
                  userEncryptedSettings: UserEncryptedSettings,
                  webservice: LegacyWebService,
                  dashlaneAPI: DeprecatedCustomAPIClient,
-                 logger: Logger,
-                 usageLogService: UsageLogServiceProtocol) throws {
+                 logger: Logger) throws {
         self.session = session
         self.logger = logger
-        self.usageLogService = usageLogService
         self.webservice = webservice
         self.dashlaneAPI = dashlaneAPI
         self.userEncryptedSettings = userEncryptedSettings
@@ -80,12 +74,6 @@ class PremiumService: Mockable {
         updatePremiumSession()
         verifyReceiptIfNeeded()
         updateDiscountOffers()
-    }
-
-    private func logPremium() {
-        guard let status = status else { return }
-        let usageLogger = PremiumStatusUsageLogger(usageLogService: usageLogService)
-        usageLogger.sendPremiumLogs(for: status)
     }
 
     func setupPremiumWillExpireNotification() {
@@ -185,7 +173,6 @@ extension PremiumService: DashlanePremiumManagerDelegate {
 
             self.setupPremiumWillExpireNotification()
             self.logger.info("Premium Status Available: \(String(describing: newStatus.planName))")
-            self.logPremium()
 
                         if newStatusIsDifferent {
                 self.communicationCenter.write(message: .premiumStatusDidUpdate)
@@ -201,14 +188,12 @@ extension PremiumService {
                      userEncryptedSettings: UserEncryptedSettings,
                      legacyWebService: LegacyWebService,
                      apiClient: DeprecatedCustomAPIClient,
-                     logger: Logger,
-                     usageLogService: UsageLogService) async throws {
+                     logger: Logger) async throws {
         try self.init(session: session,
                       userEncryptedSettings: userEncryptedSettings,
                       webservice: legacyWebService,
                       dashlaneAPI: apiClient,
-                      logger: logger,
-                      usageLogService: usageLogService)
+                      logger: logger)
         _ = try await self.$status
             .filter { $0 != nil }
             .timeout(.seconds(10), scheduler: DispatchQueue.main)
@@ -298,7 +283,7 @@ extension PremiumService {
     }
 }
 
-extension PremiumService: CorePremium.PremiumServiceProtocol {
+extension PremiumService {
     var statusPublisher: Published<CorePremium.PremiumStatus?>.Publisher {
         $status
     }

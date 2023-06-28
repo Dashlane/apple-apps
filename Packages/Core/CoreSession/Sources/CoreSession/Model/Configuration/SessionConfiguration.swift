@@ -4,7 +4,7 @@ import DashTypes
 public struct SessionConfiguration: Equatable, Codable {
     public let login: Login
 
-        public let masterKey: MasterKey
+        let masterKey: MasterKey
     public var keys: SessionSecureKeys
     public var info: SessionInfo
 
@@ -22,12 +22,28 @@ public struct SessionConfiguration: Equatable, Codable {
 public struct SessionInfo: Codable, Equatable {
         public let deviceAccessKey: String?
     public let loginOTPOption: ThirdPartyOTPOption? 
-    public let isPartOfSSOCompany: Bool
-    
-    public init(deviceAccessKey: String?, loginOTPOption: ThirdPartyOTPOption?, isPartOfSSOCompany: Bool) {
+        private let isPartOfSSOCompany: Bool
+    public let accountType: AccountType
+
+    public init(deviceAccessKey: String?,
+                loginOTPOption: ThirdPartyOTPOption?,
+                accountType: AccountType) {
         self.deviceAccessKey = deviceAccessKey
         self.loginOTPOption = loginOTPOption
-        self.isPartOfSSOCompany = isPartOfSSOCompany
+        self.accountType = accountType
+        isPartOfSSOCompany = accountType == .sso
+    }
+
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        self.deviceAccessKey = try container.decodeIfPresent(String.self, forKey: .deviceAccessKey)
+        self.loginOTPOption = try container.decodeIfPresent(ThirdPartyOTPOption.self, forKey: .loginOTPOption)
+        self.isPartOfSSOCompany = try container.decode(Bool.self, forKey: .isPartOfSSOCompany)
+        if let accountType = try container.decodeIfPresent(AccountType.self, forKey: .accountType) {
+            self.accountType = accountType
+        } else {
+            self.accountType = isPartOfSSOCompany == true ? .sso : .masterPassword
+        }
     }
 }
 
@@ -56,7 +72,7 @@ public extension SessionInfo {
     static var mock: SessionInfo {
         .init(deviceAccessKey: nil,
               loginOTPOption: nil,
-              isPartOfSSOCompany: false)
+              accountType: .masterPassword)
     }
 }
 

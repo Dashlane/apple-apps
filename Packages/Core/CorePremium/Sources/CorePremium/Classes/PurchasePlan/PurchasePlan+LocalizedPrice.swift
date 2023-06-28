@@ -7,7 +7,7 @@ public extension PurchasePlan {
         formatter.formatterBehavior = .behavior10_4
         formatter.numberStyle = .currency
         formatter.locale = storeKitProduct.priceLocale
-        formatter.currencyCode = storeKitProduct.priceLocale.currencyCode
+        formatter.currencyCode = storeKitProduct.priceLocale.currency?.identifier
 
         return formatter
     }

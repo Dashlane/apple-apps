@@ -1,3 +1,4 @@
+import DesignSystem
 import SwiftUI
 import UIDelight
 import UIComponents
@@ -15,14 +16,14 @@ struct VPNPaywallHeaderView: View {
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             VStack(alignment: .leading, spacing: 26) {
-                Image(asset: FiberAsset.paywallVpn)
+                Image.ds.feature.vpn.outlined
                     .renderingMode(.template)
-                    .foregroundColor(Color(asset: FiberAsset.premiumPlanTitle))
+                    .foregroundColor(.ds.text.neutral.quiet)
                     .fiberAccessibilityHidden(true)
                 Text(title)
                     .font(.custom(GTWalsheimPro.medium.name, size: 26, relativeTo: .title))
                     .fixedSize(horizontal: false, vertical: true)
-                    .foregroundColor(Color(asset: FiberAsset.premiumPlanTitle))
+                    .foregroundColor(.ds.text.neutral.catchy)
             }
 
             switch description {
@@ -30,7 +31,7 @@ struct VPNPaywallHeaderView: View {
                     Text(description)
                         .font(.body)
                         .fixedSize(horizontal: false, vertical: true)
-                        .foregroundColor(Color(asset: FiberAsset.premiumPlanDescription))
+                        .foregroundColor(.ds.text.neutral.standard)
                         .lineLimit(nil)
                 case .attributedText(let subtitle):
                     Text(subtitle)

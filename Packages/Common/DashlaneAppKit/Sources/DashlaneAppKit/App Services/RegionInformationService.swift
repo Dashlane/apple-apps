@@ -61,7 +61,6 @@ extension Array {
     }
 }
 
-
 public extension CallingCodesInformationManager {
     func code(for country: CountryCodeNamePair) -> CallingCode? {
         return callingCodes.first(where: { $0.region == country.code })
@@ -69,6 +68,6 @@ public extension CallingCodesInformationManager {
 
     func code(forCountry country: String) -> CallingCode? {
         let uppercasedCountry = country.uppercased()
-        return callingCodes.first(where: { $0.region == country })
+        return callingCodes.first(where: { $0.region == uppercasedCountry })
     }
 }

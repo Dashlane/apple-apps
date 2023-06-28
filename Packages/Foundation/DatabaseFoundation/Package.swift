@@ -3,16 +3,16 @@ import PackageDescription
 let package = Package(
     name: "DatabaseFoundation",
     platforms: [
-        .iOS(.v15),
-        .macOS(.v12)
+        .iOS(.v16),
+        .macOS(.v13)
     ],
     products: [
                 .library(
             name: "DatabaseFoundation",
-            targets: ["DatabaseFoundation"]),
+            targets: ["DatabaseFoundation"])
     ],
     dependencies: [
-        .package(url: "_", from: "5.22.2")
+        .package(url: "_", from: "6.10.0")
     ],
     targets: [
                         .target(
@@ -20,6 +20,6 @@ let package = Package(
             dependencies: [.product(name: "GRDB", package: "GRDB")]),
         .testTarget(
             name: "DatabaseFoundationTests",
-            dependencies: ["DatabaseFoundation"]),
+            dependencies: ["DatabaseFoundation"])
     ]
 )

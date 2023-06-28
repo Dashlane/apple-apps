@@ -3,7 +3,9 @@ import Combine
 import CoreSession
 import LoginKit
 import DashTypes
+import SwiftTreats
 
+@MainActor
 final class MasterPasswordResetActivationViewModel: ObservableObject, SessionServicesInjecting {
 
     enum Error: Swift.Error {
@@ -24,7 +26,7 @@ final class MasterPasswordResetActivationViewModel: ObservableObject, SessionSer
         case activateBiometry
     }
 
-    let session: Session
+    let masterPassword: String
     let resetMasterPasswordService: ResetMasterPasswordServiceProtocol
     let lockService: LockServiceProtocol
 
@@ -39,11 +41,11 @@ final class MasterPasswordResetActivationViewModel: ObservableObject, SessionSer
 
     private let actionHandler: (Action) -> Void
 
-    init(session: Session,
+    init(masterPassword: String,
          resetMasterPasswordService: ResetMasterPasswordServiceProtocol,
          lockService: LockServiceProtocol,
          actionHandler: @escaping (MasterPasswordResetActivationViewModel.Action) -> Void) {
-        self.session = session
+        self.masterPassword = masterPassword
         self.resetMasterPasswordService = resetMasterPasswordService
         self.lockService = lockService
         self.isToggleOn = resetMasterPasswordService.isActive
@@ -81,9 +83,6 @@ final class MasterPasswordResetActivationViewModel: ObservableObject, SessionSer
     }
 
     private func activateResetMasterPassword() throws {
-        guard let masterPassword = self.session.configuration.masterKey.masterPassword else {
-            throw Error.resetContainerCreationFailure(Error.unexpectedError)
-        }
         do {
             try self.resetMasterPasswordService.activate(using: masterPassword)
         } catch {
@@ -96,7 +95,7 @@ final class MasterPasswordResetActivationViewModel: ObservableObject, SessionSer
 
         switch status {
         case .validated:
-            if lockService.secureLockConfigurator.isBiometricActivated {
+            if lockService.secureLockConfigurator.isBiometricActivated || Device.biometryType == nil {
                 activateMasterPasswordReset(withBiometric: false)
             } else {
                                 DispatchQueue.main.asyncAfter(deadline: .now() + .milliseconds(250)) { [weak self] in
@@ -141,7 +140,7 @@ final class MasterPasswordResetActivationViewModel: ObservableObject, SessionSer
     }
 
     func makeMasterPasswordChallengeAlertViewModel() -> MasterPasswordChallengeAlertViewModel {
-        MasterPasswordChallengeAlertViewModel(session: session, intent: .enableMasterPasswordReset) { [weak self] status in
+        MasterPasswordChallengeAlertViewModel(masterPassword: masterPassword, intent: .enableMasterPasswordReset) { [weak self] status in
             self?.handleMasterPasswordChallengeStatus(status)
         }
     }
@@ -149,12 +148,12 @@ final class MasterPasswordResetActivationViewModel: ObservableObject, SessionSer
         private func toggleValueWithAnimation(_ on: Bool) {
         withAnimation { isToggleOn = on }
     }
-}
+    }
 
 extension MasterPasswordResetActivationViewModel {
 
     static var mock: MasterPasswordResetActivationViewModel {
-        MasterPasswordResetActivationViewModel(session: .mock,
+        MasterPasswordResetActivationViewModel(masterPassword: "Azerty12",
                                                resetMasterPasswordService: ResetMasterPasswordServiceMock(),
                                                lockService: LockServiceMock(),
                                                actionHandler: { _ in })

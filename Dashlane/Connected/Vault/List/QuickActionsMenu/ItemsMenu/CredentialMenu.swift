@@ -10,7 +10,7 @@ struct CredentialMenu: View {
 
     var body: some View {
         if !credential.password.isEmpty {
-            CopyMenuButton(L10n.Localizable.copyPassword, icon: FiberAsset.copyItem) {
+            CopyMenuButton(L10n.Localizable.copyPassword) {
                 copyAction(.password, credential.password)
             }
         }

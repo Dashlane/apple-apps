@@ -1,3 +1,4 @@
+import DesignSystem
 import SwiftUI
 import CorePersonalData
 import UIDelight
@@ -42,11 +43,10 @@ struct BreachesList<Model: BreachesListViewModelProtocol>: View {
             .hidden(self.viewModel.securedItems.isEmpty)
         }
         .onAppear {
-            self.viewModel.logDisplay()
             self.viewModel.breachesViewed()
         }
         .listStyle(GroupedListStyle())
-        .background(Color(asset: FiberAsset.appBackground))
+        .background(Color.ds.background.default)
         .navigationTitle(L10n.Localizable.dwmOnboardingFixBreachesMainTitle)
     }
 
@@ -60,14 +60,14 @@ struct BreachesList<Model: BreachesListViewModelProtocol>: View {
             .padding(.horizontal, 20)
             Spacer()
         }
-        .background(Color(asset: FiberAsset.appBackground))
+        .background(Color.ds.background.default)
         .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
     }
 
     private var securedSectionHeader: some View {
         Text(L10n.Localizable.dwmOnboardingFixBreachesMainInYourVault)
             .font(.body)
-            .background(Color(asset: FiberAsset.appBackground))
+            .background(Color.ds.background.default)
     }
 
     private var footer: some View {
@@ -79,7 +79,7 @@ struct BreachesList<Model: BreachesListViewModelProtocol>: View {
                 .padding(.horizontal, 20)
             Spacer()
         }
-        .background(Color(asset: FiberAsset.appBackground))
+        .background(Color.ds.background.default)
         .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
     }
 
@@ -87,12 +87,12 @@ struct BreachesList<Model: BreachesListViewModelProtocol>: View {
         HStack {
             Text(L10n.Localizable.dwmOnboardingFixBreachesMainAllClear)
                 .font(.headline)
-                .foregroundColor(Color(asset: FiberAsset.buttonBackgroundIncreasedContrast))
+                .foregroundColor(.ds.text.brand.standard)
                 .padding(.vertical, 20)
                 .padding(.horizontal, 16)
             Spacer()
         }
-        .background(Color(asset: FiberAsset.iconPlaceholderBackground))
+        .background(Color.ds.container.expressive.positive.quiet.idle)
         .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
     }
 
@@ -128,7 +128,6 @@ struct DWMBreachesList_Previews: PreviewProvider {
             BreachViewModel.mock(for: credential)
         }
 
-        func logDisplay() {}
         func breachesViewed() {}
         func select(_ breach: DWMSimplifiedBreach) {}
         func select(_ credential: Credential) {}

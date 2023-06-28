@@ -11,9 +11,9 @@ public struct RoundedButton<Content: View>: View {
     private var contentScale = 100 
 
     let content: Content
-    let action: () -> Void
+    let action: @MainActor () -> Void
 
-    init(action: @escaping () -> Void, @ViewBuilder content: @escaping () -> Content) {
+    init(action: @escaping @MainActor () -> Void, @ViewBuilder content: @escaping () -> Content) {
         self.content = content()
         self.action = action
     }

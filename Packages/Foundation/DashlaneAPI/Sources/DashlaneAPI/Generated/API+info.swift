@@ -1,11 +1,11 @@
 import Foundation
 
 extension AppAPIClient {
-    public static let version = "2023-01-16T15:44:53.304Z"
+    public static let version = "2023-05-15T07:40:48.130Z"
 }
 
 extension UserDeviceAPIClient {
-    public static let version = "2023-01-16T15:44:53.304Z"
+    public static let version = "2023-05-15T07:40:48.130Z"
 }
 
 extension APIConfiguration.Environment {

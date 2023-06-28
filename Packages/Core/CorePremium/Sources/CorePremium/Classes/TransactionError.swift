@@ -14,7 +14,7 @@ public enum TransactionError: Error {
     case receiptInvalid
     case unknown
     case sessionUnavailable
-    
+
     public var code: Int {
         switch self {
         case .clientInvalid:

@@ -3,6 +3,8 @@ import DashTypes
 import CorePremium
 import CorePersonalData
 import PremiumKit
+import LoginKit
+import VaultKit
 
 enum DeepLink {
     enum Parameter: String {
@@ -21,6 +23,7 @@ enum DeepLink {
     case importMethod(ImportMethodDeeplink)
     case notifications(NotificationCategory?)
     case settings(SettingsDeepLinkComponent)
+	case mplessLogin(qrCode: String)
 
     init?(pathComponents: [String], queryParameters: [String: String]? = nil, origin: String?) {
         let pathComponent = pathComponents[0]
@@ -69,6 +72,10 @@ enum DeepLink {
             return
         }
 
+                if url.absoluteString.contains("mplesslogin") {
+			self = .mplessLogin(qrCode: url.absoluteString)
+            return
+         }
                 let components = url.pathComponents.filter {
             return $0 != "/" && !DashTypes.Email($0).isValid
         }
@@ -105,12 +112,13 @@ enum SettingsDeepLinkComponent {
 
     enum SecurityComponent {
         case enableResetMasterPassword
+        case recoveryKey
     }
 
     init?(pathComponents: [String], queryParameters: [String: String]?) {
         var components = pathComponents
         guard !components.isEmpty, components.removeFirst() == "settings" else { return nil }
-        guard let firstComponent = components.last else {
+        guard let firstComponent = components.first else {
             self = .root
             return
         }
@@ -198,6 +206,8 @@ extension DeepLink {
             }
         case let .settings(component):
             link = component.rawValue
+        case let .mplessLogin(info):
+            link = info.replacingOccurrences(of: "dashlane:///", with: "")
         }
 
         guard let unwrapped = link else { return nil }

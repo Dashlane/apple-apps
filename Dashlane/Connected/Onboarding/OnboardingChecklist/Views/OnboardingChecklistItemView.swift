@@ -75,7 +75,7 @@ struct OnboardingChecklistItemView: View {
     var leadingView: some View {
         VStack(alignment: .center) {
             if completed {
-                Image(asset: FiberAsset.checklistCheckmark)
+                Image.ds.feedback.success.outlined
                     .foregroundColor(.ds.text.neutral.quiet)
                     .padding(.top, 3)
                     .padding(.leading, 2)
@@ -156,14 +156,14 @@ private extension OnboardingChecklistAction {
             return L10n.Localizable.onboardingChecklistAccessibilityHintFixBreachedAccounts
         case .seeScanResult:
             return L10n.Localizable.onboardingChecklistAccessibilityHintSeeScanResult
-        case .m2d:
+        case .mobileToDesktop:
             return L10n.Localizable.onboardingChecklistAccessibilityHintM2W
         }
     }
 }
 
 private struct OnboardingButtonStyle: ButtonStyle {
-    let backgroundColor: Color = Color(asset: SharedAsset.buttonBackgroundIncreasedContrast)
+    let backgroundColor: Color = .ds.container.expressive.brand.catchy.idle
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
@@ -183,13 +183,13 @@ struct OnboardingChecklistItemView_Previews: PreviewProvider {
             Group {
                 OnboardingChecklistItemView(action: .addFirstPasswordsManually, ctaAction: nil)
                 OnboardingChecklistItemView(action: .activateAutofill, ctaAction: nil)
-                OnboardingChecklistItemView(action: .m2d, ctaAction: nil)
+                OnboardingChecklistItemView(action: .mobileToDesktop, ctaAction: nil)
                 OnboardingChecklistItemView(showDetails: true, action: .addFirstPasswordsManually, ctaAction: nil)
                 OnboardingChecklistItemView(showDetails: true, action: .activateAutofill, ctaAction: nil)
-                OnboardingChecklistItemView(showDetails: true, action: .m2d, ctaAction: nil)
+                OnboardingChecklistItemView(showDetails: true, action: .mobileToDesktop, ctaAction: nil)
                 OnboardingChecklistItemView(completed: true, action: .addFirstPasswordsManually, ctaAction: nil)
                 OnboardingChecklistItemView(completed: true, action: .activateAutofill, ctaAction: nil)
-                OnboardingChecklistItemView(completed: true, action: .m2d, ctaAction: nil)
+                OnboardingChecklistItemView(completed: true, action: .mobileToDesktop, ctaAction: nil)
             }
         }
         .background(Color.black)

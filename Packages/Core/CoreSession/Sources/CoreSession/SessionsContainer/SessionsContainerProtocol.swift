@@ -17,22 +17,22 @@ public protocol SessionsContainerProtocol {
         func removeSessionDirectory(for login: Login) throws
 
         func info(for login: Login) throws -> SessionInfo
-    
+
         func prepareMigration(of currentSession: Session,
                           to newConfiguration: SessionConfiguration,
                           cryptoConfig: CryptoRawConfig) throws -> MigratingSession
-    
+
         func prepareMigration(of currentSession: Session,
                           to newMasterKey: MasterKey,
                           remoteKey: Data?,
                           cryptoConfig: CryptoRawConfig,
                           accountMigrationType: AccountMigrationType,
                           loginOTPOption: ThirdPartyOTPOption?) throws -> MigratingSession
- 
+
         func finalizeMigration(using migrateSession: MigratingSession) throws -> Session
-    
+
         func update(_ session: Session, with analyticsId: AnalyticsIdentifiers) throws -> Session
-    
+
     func localMigration(of session: Session, ssoKey: Data, remoteKey: Data, config: CryptoRawConfig) throws -> Session
 
         func localAccountsInfo() throws -> [(Login, SessionInfo?)]
@@ -48,7 +48,6 @@ public struct MigratingSession {
     public let source: Session
     public let target: Target
 }
-
 
 public extension MigratingSession.Target {
     func encryptedRemoteKey() throws -> Data? {

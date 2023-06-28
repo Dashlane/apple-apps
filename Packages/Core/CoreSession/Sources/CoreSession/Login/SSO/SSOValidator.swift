@@ -1,14 +1,15 @@
 import Foundation
 import SwiftTreats
+import DashlaneAPI
 
 public protocol SSOValidator {
     var cryptoEngineProvider: CryptoEngineProvider { get }
-    var accountAPIClient: AccountAPIClientProtocol { get }
+    var apiClient: AppAPIClient { get }
     var serviceProviderUrl: URL { get }
     var isNitroProvider: Bool { get }
     func validateSSOTokenAndGetKeys(_ token: String, serviceProviderKey: String) async throws -> SSOKeys
     func authTicket(token: String, login: String, completion: @escaping CompletionBlock<String, Swift.Error>)
-    func decipherRemoteKey(serviceProviderKey: String, remoteKey: RemoteKey?, ssoServerKey: String?, authTicket: String) throws -> SSOKeys
+    func decipherRemoteKey(serviceProviderKey: String, remoteKey: RemoteKey?, ssoServerKey: String?, authTicket: AuthTicket) throws -> SSOKeys
 }
 
 public extension SSOValidator {
@@ -16,7 +17,7 @@ public extension SSOValidator {
     func authTicket(token: String, login: String, completion: @escaping CompletionBlock<String, Swift.Error>) {
         Task {
             do {
-                let verificationResponse = try await accountAPIClient.performVerification(with: PerformSSOVerificationRequest(login: login, ssoToken: token))
+                let verificationResponse = try await apiClient.authentication.performSsoVerification(login: login, ssoToken: token)
                 await MainActor.run {
                     completion(.success(verificationResponse.authTicket))
                 }
@@ -25,28 +26,28 @@ public extension SSOValidator {
                     completion(.failure(error))
                 }
             }
-            
+
         }
     }
-    
+
     func decipherRemoteKey(serviceProviderKey: String,
                            remoteKey: RemoteKey?,
                            ssoServerKey: String?,
-                           authTicket: String) throws -> SSOKeys {
+                           authTicket: AuthTicket) throws -> SSOKeys {
         guard let remoteKey = remoteKey,
               let ssoServerKey = ssoServerKey else {
             throw SSOAccountError.userDataNotFetched
         }
-        
+
         guard let serverKeyData = Data(base64Encoded: ssoServerKey),
               let serviceProviderKeyData = Data(base64Encoded: serviceProviderKey),
               let remoteKeyData = Data(base64Encoded: remoteKey.key) else {
             throw SSOAccountError.invalidServiceProviderKey
         }
-        
+
         let ssoKey = serverKeyData ^ serviceProviderKeyData
         let cryptoCenter = try? cryptoEngineProvider.cryptoEngine(for: ssoKey)
-        
+
         guard let decipheredRemoteKey = cryptoCenter?.decrypt(data: remoteKeyData) else {
             throw SSOAccountError.invalidServiceProviderKey
         }

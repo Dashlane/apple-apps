@@ -1,6 +1,5 @@
 import Foundation
 
-
 public protocol StyxDataAPIClientEngine {
         func post(_ endpoint: Endpoint, data: Data, signer: RequestSigner, isTestEnvironment: Bool) async throws
 }
@@ -10,12 +9,10 @@ public struct StyxError: Error {
     public let statusCode: Int
 }
 
-
 struct StyxResponse: Codable {
     let success: Bool
     let error: String?
 }
-
 
 struct StyxDataAPIClientEngineImpl: StyxDataAPIClientEngine {
     let session: URLSession
@@ -26,7 +23,7 @@ struct StyxDataAPIClientEngineImpl: StyxDataAPIClientEngine {
 
     public init(apiURL: URL,
                 apiClientEngine: APIClientEngine,
-                additionalHeaders: [String : String],
+                additionalHeaders: [String: String],
                 session: URLSession = URLSession(configuration: .ephemeral)) {
         self.apiURL = apiURL
         self.apiClientEngine = apiClientEngine

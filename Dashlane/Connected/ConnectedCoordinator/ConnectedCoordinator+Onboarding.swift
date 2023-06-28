@@ -2,6 +2,7 @@ import Foundation
 import DashlaneAppKit
 import SwiftTreats
 import SwiftUI
+import UIComponents
 
 extension ConnectedCoordinator {
     func showOnboarding() {
@@ -56,7 +57,7 @@ extension ConnectedCoordinator {
     }
 
     func showFastLocalSetup(for biometry: Biometry?) {
-        let model = sessionServices.viewModelFactory.makeFastLocalSetupInLoginViewModel(masterPassword: sessionServices.session.configuration.masterKey.masterPassword, biometry: biometry) { [weak self] result in
+        let model = sessionServices.viewModelFactory.makeFastLocalSetupInLoginViewModel(masterPassword: sessionServices.session.authenticationMethod.userMasterPassword, biometry: biometry) { [weak self] result in
             guard let self = self else { return }
             switch result {
             case .next:

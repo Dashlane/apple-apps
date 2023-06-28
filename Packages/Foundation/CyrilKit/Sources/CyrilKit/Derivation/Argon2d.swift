@@ -11,12 +11,12 @@ public struct Argon2d: DerivationFunction {
         self.parallelism = parallelism
         self.derivedKeyLength = derivedKeyLength
     }
-    
+
     public let timeCost: UInt32        
     public let memoryCost: UInt32      
     public let parallelism: UInt32     
     public let derivedKeyLength: Int
-    
+
     public func derivateKey<V: ContiguousBytes, S: ContiguousBytes>(from password: V, salt: S) throws -> Data {
         return try password.withUnsafeBytes { passwordBytes throws -> Data in
             try salt.withUnsafeBytes { saltBytes throws -> Data in
@@ -30,7 +30,7 @@ public struct Argon2d: DerivationFunction {
                                            saltBytes.count,
                                            &derivedKey,
                                            derivedKeyLength)
-                
+
                 switch ret {
                     case ARGON2_OK.rawValue:
                         return .init(bytes: derivedKey, count: derivedKeyLength)

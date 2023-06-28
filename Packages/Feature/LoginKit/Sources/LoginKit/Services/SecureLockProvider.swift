@@ -26,18 +26,18 @@ public struct SecureLockProvider: SecureLockProviderProtocol {
     private var isBiometricSetIntact: Bool? {
         return try? settings.isBiometricSetIntact()
     }
-    
+
     public init(login: Login, settings: LocalSettingsStore, keychainService: AuthenticationKeychainServiceProtocol) {
         let settings = settings.keyed(by: UserLockSettingsKey.self)
         self.init(login: login, settings: settings, keychainService: keychainService)
     }
-    
+
     public init(login: Login, settings: UserLockSettings, keychainService: AuthenticationKeychainServiceProtocol) {
         self.login = login
         self.keychainService = keychainService
         self.settings = settings
     }
-    
+
     public func secureLockMode(checkIsBiometricSetIntact: Bool = true) -> SecureLockMode {
         let masterKeyStatus = keychainService.masterKeyStatus(for: login)
 
@@ -60,22 +60,26 @@ public struct SecureLockProvider: SecureLockProviderProtocol {
                     return .masterKey
                 }
 
+                let lock = SecureLockMode.PinCodeLock(code: pin, attempts: pinCodeAttempts, masterKey: masterKey)
+
                                 guard let biometry = Device.biometryType else {
-                    return .pincode(code: pin, attempts: pinCodeAttempts, masterKey: masterKey)
-                }
-                
-                if checkIsBiometricSetIntact && isBiometricSetIntact == false {
-                    return .pincode(code: pin, attempts: pinCodeAttempts, masterKey: masterKey)
+                    return .pincode(lock)
                 }
 
-                return .biometryAndPincode(biometry: biometry, code: pin, attempts: pinCodeAttempts, masterKey: masterKey)
+                if checkIsBiometricSetIntact && isBiometricSetIntact == false {
+                    return .pincode(lock)
+                }
+
+                return .biometryAndPincode(biometry: biometry, pinCodeLock: lock)
             case (false, true):
                 guard let masterKey = try? keychainService.masterKey(for: login), let pin = try? keychainService.pincode(for: login) else {
                     assertionFailure("Unexpected state")
                     return .masterKey
                 }
 
-                return .pincode(code: pin, attempts: pinCodeAttempts, masterKey: masterKey)
+                let lock = SecureLockMode.PinCodeLock(code: pin, attempts: pinCodeAttempts, masterKey: masterKey)
+
+                return .pincode(lock)
             case (true, false):
                 assertionFailure("For biometry only, accessMode is expected to be afterBiometricAuthentication")
                 return .masterKey
@@ -123,5 +127,11 @@ public extension UserLockSettings {
         let hasChanged = (latestBiometricSetData != storedBiometricSetData)
 
         return !hasChanged
+    }
+}
+
+extension SecureLockProvider {
+    public var mock: SecureLockProvider {
+        SecureLockProvider(login: Login("_"), settings: .mock(), keychainService: .fake)
     }
 }

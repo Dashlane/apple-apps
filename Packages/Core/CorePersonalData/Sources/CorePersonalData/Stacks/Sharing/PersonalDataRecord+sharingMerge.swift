@@ -7,11 +7,11 @@ extension PersonalDataRecord {
         guard !sharedValues.isEmpty else {
             return false
         }
-        
+
         for (key, value) in sharedValues {
             content[key] = value
         }
-        
+
         return true
     }
 }

@@ -2,6 +2,8 @@ import SwiftUI
 import CorePersonalData
 import UIDelight
 import VaultKit
+import IconLibrary
+import DesignSystem
 
 struct DarkWebMonitoringBreachView<Model: BreachViewModel>: View {
 
@@ -19,7 +21,7 @@ struct DarkWebMonitoringBreachView<Model: BreachViewModel>: View {
         .padding(.leading, 16)
         .frame(maxWidth: .infinity, alignment: .leading)
         .frame(height: 61)
-        .background(Color(asset: FiberAsset.cellBackground))
+        .background(Color.ds.container.agnostic.neutral.supershy)
     }
 
     @ViewBuilder
@@ -27,7 +29,7 @@ struct DarkWebMonitoringBreachView<Model: BreachViewModel>: View {
         HStack(spacing: 0) {
             Group {
                 Circle()
-                    .foregroundColor(Color(asset: FiberAsset.errorRed))
+                    .foregroundColor(.ds.text.danger.quiet)
                     .frame(width: 8, height: 9)
                     .padding(4)
                     .hidden(model.hasBeenViewed)
@@ -38,14 +40,15 @@ struct DarkWebMonitoringBreachView<Model: BreachViewModel>: View {
                 }
             }
             .font(.body)
-            .foregroundColor(Color(asset: FiberAsset.mainCopy))
+            .foregroundColor(.ds.text.neutral.catchy)
             .lineLimit(1)
         }
     }
 
     @ViewBuilder
     private var info: some View {
-        Text(model.displayDate).foregroundColor(Color(asset: FiberAsset.errorRed))
+        Text(model.displayDate)
+            .foregroundColor(.ds.text.danger.standard)
     }
 }
 

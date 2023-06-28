@@ -1,7 +1,6 @@
 import Foundation
 import DashTypes
 import CorePasswords
-import DashlaneReportKit
 import Logger
 
 struct MaverickNonAuthenticatedRequestHandler: MaverickRequestHandler, SessionServicesInjecting {
@@ -32,10 +31,6 @@ struct MaverickNonAuthenticatedRequestHandler: MaverickRequestHandler, SessionSe
             handlerResponse = try DisableReactivationHandler(maverickOrderMessage: order.message, settings: appServices.appSettings).makeResponse()
         case .getAnalysisEnabledStatusOnUrl:
             handlerResponse = try GetAnalysisEnabledStatusOnUrlHandler(maverickOrderMessage: order.message, sessionState: .loggedOut).makeResponse()
-        case .installerLog:
-            handlerResponse = try MaverickInstallerLogHandler(maverickOrderMessage: order.message, maverickInstallerLogger: MaverickInstallerLogger(logEngine: appServices.logEngine)).makeResponse()
-        case .perfLog:
-            handlerResponse = try MaverickPerformanceLogHandler(maverickOrderMessage: order.message, exceptionLogService: KibanaLogger(webService: appServices.nonAuthenticatedWebService, outputLevel: .info, origin: .safari), logEngine: appServices.logEngine).makeResponse()
         }
 
         guard let content = handlerResponse?.jsonRepresentation else {

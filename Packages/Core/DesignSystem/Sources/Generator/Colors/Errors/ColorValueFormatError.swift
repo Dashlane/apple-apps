@@ -5,7 +5,7 @@ enum ColorValueFormatError: Error, CustomStringConvertible {
     case greenValueOutsideExpectedBounds
     case blueValueOutsideExpectedBounds
     case alphaValueOutsideExpectedBounds
-    
+
     var description: String {
         switch self {
         case .redValueOutsideExpectedBounds:

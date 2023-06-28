@@ -1,4 +1,5 @@
 import Foundation
+import VaultKit
 
 enum NavigationStyle {
     case tabBar
@@ -32,7 +33,7 @@ class SessionCoordinatorsContainer {
         ]
     }
 
-        var sidebarElements: [SectionItem] {
+            var sidebarElements: [SectionItem] {
         [
             .init(title: nil,
                   items: [.home, .notifications]),
@@ -59,9 +60,9 @@ extension SessionCoordinatorsContainer {
         case .settings:
             return SettingsCoordinator(sessionServices: sessionServices)
         case .notifications:
-            return NotificationCoordinator(sessionServices: sessionServices)
+            return sessionServices.makeNotificationsFlowViewModel(notificationCenterService: sessionServices.makeNotificationCenterService())
         case .passwordGenerator:
-            return sessionServices.makePasswordGeneratorToolsFlowViewModel()
+            return sessionServices.makePasswordGeneratorToolsFlowViewModel(pasteboardService: PasteboardService(userSettings: sessionServices.userSettings))
         }
     }
 
@@ -133,8 +134,8 @@ private extension SessionCoordinatorsContainer {
     }
 }
 
-private extension SessionCoordinatorsContainer {
+ private extension SessionCoordinatorsContainer {
     func toolsNavigationItems(sessionServices: SessionServicesContainer) -> [NavigationItem] {
-        sessionServices.toolsService.displayableItems().map({ .tools($0.item) })
+        sessionServices.toolsService.availableNavigationToolItems().map({ .tools($0) })
     }
-}
+ }

@@ -5,49 +5,50 @@ import DashTypes
 extension PersonalDataRecord {
         func makeXML() throws -> Data {
         let type = XMLDataType(metadata.contentType)
+        let exceptions = metadata.contentType.personalDataType.xmlRuleExceptions
         let data = """
-        <?xml version=\"1.0\" encoding=\"UTF-8\"?><root><\(type.rawValue)>\(content.makeXML())</\(type.rawValue)></root>
+        <?xml version=\"1.0\" encoding=\"UTF-8\"?><root><\(type.rawValue)>\(content.makeXML(exceptions: exceptions))</\(type.rawValue)></root>
         """.data(using: .utf8)
-        
+
         guard let data = data else {
             throw PersonalDataRecord.TransactionError.cannotCreateUTF8DataFromXML
         }
-        
+
         return data
     }
 }
 
 extension Sequence where Element == PersonalDataRecord {
         func makeXML() throws -> Data {
-        let objects = self.map {
-           PersonalDataObject(type: .init($0.metadata.contentType), content: $0.content)
-        }
-        let list = PersonalDataValue.list(PersonalDataList(objects))
-        
+        let items = self.map { item in
+            let type = XMLDataType(item.metadata.contentType)
+            let exceptions = item.metadata.contentType.personalDataType.xmlRuleExceptions
+
+            return "<\(type.rawValue)>\(item.content.makeXML(exceptions: exceptions))</\(type.rawValue)>"
+        }.joined()
+
         let data = """
-        <?xml version=\"1.0\" encoding=\"UTF-8\"?><root>\(list.makeXML())</root>
+        <?xml version=\"1.0\" encoding=\"UTF-8\"?><root><KWDataList>\(items)</KWDataList></root>
         """.data(using: .utf8)
-        
+
         guard let data = data else {
             throw PersonalDataRecord.TransactionError.cannotCreateUTF8DataFromXML
         }
-        
+
         return data
     }
 }
 
 extension PersonalDataValue {
     func makeSuffix(for key: String?) -> String {
-        guard var key = key else {
+        guard let key = key else {
             return ""
         }
-        
-        key = key == "accountCreationDatetime" ? key : key.capitalizingFirstLetter()
-        
+
         return #" key="\#(key)""#
     }
-    
-    func makeXML(key: String? = nil) -> String {
+
+    func makeXML(key: String? = nil, keyCase: XMLKeyCase) -> String {
         let key = makeSuffix(for: key)
 
         switch self {
@@ -55,45 +56,48 @@ extension PersonalDataValue {
                 return """
                     <KWDataItem\(key)><![CDATA[\(item)]]></KWDataItem>
                     """
-                
+
             case let .list(list):
                 return """
-                    <KWDataList\(key)>\(list.makeXML())</KWDataList>
+                    <KWDataList\(key)>\(list.makeXML(keyCase: keyCase))</KWDataList>
                     """
 
             case let .collection(dict):
                 return """
-                    <KWDataCollection\(key)>\(dict.makeXML())</KWDataCollection>
+                    <KWDataCollection\(key)>\(dict.makeXML(keyCase: keyCase))</KWDataCollection>
                     """
-                
+
             case let .object(object):
                 return """
-                    <\(object.$type)\(key)>\(object.content.makeXML())</\(object.$type)>
+                    <\(object.$type)\(key)>\(object.content.makeXML(keyCase: keyCase))</\(object.$type)>
                     """
         }
     }
 }
 
-
 fileprivate extension PersonalDataCollection {
-                        static let ignoredKeys: [String] = [
-        Credential.CodingKeys.manualAssociatedDomains.stringValue
-    ]
-    
-    func makeXML() -> String {
+    func makeXML(exceptions: [String: XMLRuleException]) -> String {
         self.compactMap { key, value in
-            guard !Self.ignoredKeys.contains(key) else {
+            let exception = exceptions[key]
+            guard exception != .skip else {
                 return nil
             }
-            return value.makeXML(key: key)
+
+            return value.makeXML(key: key.applying(exception?.keyCase ?? .default), keyCase: exception?.childKeyCase ?? .default)
+        }.joined()
+    }
+
+    func makeXML(keyCase: XMLKeyCase) -> String {
+        self.compactMap { key, value in
+            return value.makeXML(key: key.applying(keyCase), keyCase: keyCase)
         }.joined()
     }
 }
 
 fileprivate extension PersonalDataList {
-    func makeXML() -> String {
+    func makeXML(keyCase: XMLKeyCase) -> String {
          self.map { value in
-            value.makeXML()
+            value.makeXML(keyCase: keyCase)
         }.joined()
     }
 }

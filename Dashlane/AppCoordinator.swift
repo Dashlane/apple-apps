@@ -1,18 +1,20 @@
 import UIKit
 import SwiftUI
+import Combine
 import CoreNetworking
 import CoreSession
-import Combine
+import CoreUserTracking
 import CorePersonalData
-import DashlaneReportKit
+import CoreFeature
 import DashTypes
 import UIDelight
 import Logger
 import DashlaneAppKit
 import SwiftTreats
-import CoreUserTracking
 import DesignSystem
 import UIComponents
+import LoginKit
+import AuthenticatorKit
 
 @MainActor
 class AppCoordinator: Coordinator {
@@ -76,7 +78,7 @@ class AppCoordinator: Coordinator {
 
         window.rootViewController = navigator
         window.makeKeyAndVisible()
-        if LocalDataRemover.shouldDeleteLocalData {
+        if PreAccountCreationOnboardingViewModel.shouldDeleteLocalData {
                         showOnboarding()
         } else {
                         createSessionFromSavedLogin()
@@ -105,10 +107,7 @@ class AppCoordinator: Coordinator {
     }
 
     func logAppLaunch() {
-        appServices.installerLogService.app.logAppLaunch()
-
-                        appServices.installerLogService.trackInstall()
-        if appServices.globalSettings.isFirstLaunch {
+                        if appServices.globalSettings.isFirstLaunch {
             appServices.activityReporter.trackInstall()
         }
     }
@@ -117,24 +116,23 @@ class AppCoordinator: Coordinator {
         guard isFirstLaunch ?? true else {
             return
         }
-
-        appServices.activityReporter.report(UserEvent.PasswordManagerLaunch(authenticatorOtpCodesCount: appServices.authenticatorDatabaseService.codes.count,
-                                                                            hasAuthenticatorInstalled: hasAuthenticatorApp(),
-                                                                            isFirstLaunch: true))
-        isFirstLaunch = false
-    }
-
-    func hasAuthenticatorApp() -> Bool {
-      return UIApplication.shared.canOpenURL(DashlaneURLFactory.authenticator)
+        let authenticatorDatabaseService = AuthenticatorDatabaseService(logger: self.appServices.rootLogger[.localCommunication])
+        authenticatorDatabaseService.codesPublisher.sinkOnce { [weak self] codes in
+            guard let self = self else {
+                return
+            }
+            self.appServices.activityReporter.report(UserEvent.PasswordManagerLaunch(authenticatorOtpCodesCount: codes.count,
+                                                                                     hasAuthenticatorInstalled: Authenticator.isOnDevice,
+                                                                                     isFirstLaunch: true))
+            self.isFirstLaunch = false
+        }
     }
 
         func configureAdTracking() {
         Task.detached(priority: .background) { [appServices] in
             guard let appServices = appServices else { return }
             AdTracking.start()
-            AdjustService.startTracking(usingAnonymousDeviceId: appServices.globalSettings.anonymousDeviceId,
-                                        installationID: appServices.activityReporter.installationId,
-                                        isFirstLaunch: appServices.globalSettings.isFirstLaunch)
+            AdjustService.startTracking(installationID: appServices.activityReporter.installationId)
         }
     }
 
@@ -160,8 +158,7 @@ class AppCoordinator: Coordinator {
     }
 
         func showOnboarding() {
-        onboardingCoordinator = PreAccountCreationOnboardingCoordinator(navigator: navigator,
-                                                                        appServices: appServices) { [weak self] nextStep in
+        let onboardingViewModel = PreAccountCreationOnboardingViewModel(keychainService: appServices.keychainService, logger: appServices.rootLogger) { [weak self] nextStep in
             guard let `self` = self else { return }
             switch nextStep {
             case .accountCreation:
@@ -170,36 +167,49 @@ class AppCoordinator: Coordinator {
                 self.login()
             }
         }
-        onboardingCoordinator?.start()
 
+        navigator.viewControllers = [UIHostingController(rootView: PreAccountCreationOnboardingView(model: onboardingViewModel))]
         window.rootViewController = navigator
+
+        showVersionValidityAlertIfNeeded()
     }
 
-    func createAccount() {
-        let accountCreationHandler = AccountCreationHandler(apiClient: appServices.appAPIClient)
-        currentSubCoordinator = AccountCreationCoordinator(navigator: navigator,
-                                                           isEmailMarketingOptInRequired: appServices.userCountryProvider.userCountry.isEu,
-                                                           logger: sessionLogger,
-                                                           accountCreationHandler: accountCreationHandler,
-                                                           appServices: appServices,
-                                                           completion: { [weak self] result in
-                                                            DispatchQueue.main.async {
-                                                                guard let self = self else {
-                                                                    return
-                                                                }
+        private func showVersionValidityAlertIfNeeded() {
+        appServices.versionValidityService.shouldShowAlertPublisher().receive(on: DispatchQueue.main).sink { [weak self] status in
+            guard let self = self else { return }
+            let alertDismissed = { self.appServices.versionValidityService.messageDismissed(for: status) }
+            guard let alert = VersionValidityAlert(status: status, alertDismissed: alertDismissed).makeAlert() else {
+                return
+            }
 
-                                                                switch result {
-                                                                case .finished(let sessionServices):
-                                                                    AdTracking.registerAccountCreation()
-                                                                    self.startConnectedCoordinator(using: sessionServices)
-                                                                case .login(let login):
-                                                                    self.login(with: login)
-                                                                case .cancel:
-                                                                    self.showOnboarding()
-                                                                }
-                                                            }
-        })
-        currentSubCoordinator?.start()
+            self.navigator.present(alert, animated: true)
+            self.appServices.versionValidityService.messageShown(for: status)
+        }.store(in: &cancellables)
+    }
+
+    @MainActor
+    func createAccount() {
+        let model = appServices.makeAccountCreationFlowViewModel { [weak self] (result: AccountCreationFlowViewModel.CompletionResult) in
+            guard let self = self else {
+                return
+            }
+            switch result {
+            case .finished(let sessionServices):
+                AdTracking.registerAccountCreation()
+                self.startConnectedCoordinator(using: sessionServices)
+
+            case .login(let login):
+                self.login(with: login)
+
+            case let .startSSO(email: email, info: info):
+                self.startSSOAccountCreation(for: email,
+                                             initialStep: .authenticate(info.serviceProviderURL),
+                                             isNitroProvider: info.isNitroProvider)
+            case .cancel:
+                self.showOnboarding()
+            }
+        }
+        navigator.push(AccountCreationFlow(model: model))
     }
 
     func login(with login: Login? = nil) {
@@ -223,9 +233,7 @@ class AppCoordinator: Coordinator {
                                                             self.startConnectedCoordinator(using: sessionServices)
                                                         case let .ssoAccountCreation(login, info):
 
-                                                            let accountCreationHandler = AccountCreationHandler(apiClient: self.appServices.appAPIClient)
-                                                            self.startSSOAccountCreation(for: login,
-                                                                                         accountCreationHandler: accountCreationHandler,
+                                                            self.startSSOAccountCreation(for: DashTypes.Email(login.email),
                                                                                          initialStep: .authenticate(info.serviceProviderURL),
                                                                                          isNitroProvider: info.isNitroProvider)
                                                         }
@@ -244,6 +252,7 @@ class AppCoordinator: Coordinator {
 
     private func makeLoginHandler() -> LoginHandler {
         return LoginHandler(sessionsContainer: appServices.sessionContainer,
+                            appApiClient: self.appServices.appAPIClient,
                             apiClient: self.appServices.appAPIClient,
                             deviceInfo: DeviceInfo.default,
                             logger: sessionLogger,
@@ -251,19 +260,16 @@ class AppCoordinator: Coordinator {
                             removeLocalDataHandler: appServices.sessionCleaner.removeLocalData)
     }
 
-    func startSSOAccountCreation(for login: Login,
-                                 accountCreationHandler: AccountCreationHandler,
+    func startSSOAccountCreation(for email: DashTypes.Email,
                                  initialStep: SSOAccountCreationCoordinator.Step,
                                  isNitroProvider: Bool) {
 
-        currentSubCoordinator = SSOAccountCreationCoordinator(email: DashTypes.Email(login.email),
+        currentSubCoordinator = SSOAccountCreationCoordinator(email: email,
                                                               appServices: appServices,
                                                               navigator: navigator,
-                                                              accountCreationHandler: accountCreationHandler,
                                                               isEmailMarketingOptInRequired: appServices.userCountryProvider.userCountry.isEu,
                                                               logger: sessionLogger,
                                                               initialStep: initialStep,
-                                                              ssoLogger: appServices.installerLogService.sso,
                                                               isNitroProvider: isNitroProvider,
                                                               completion: { [weak self] result in
                                                                     DispatchQueue.main.async {

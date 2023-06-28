@@ -1,6 +1,8 @@
 import SwiftUI
 import CorePersonalData
 import UIDelight
+import VaultKit
+import CoreLocalization
 
 struct PassportDetailView: View {
 
@@ -11,7 +13,7 @@ struct PassportDetailView: View {
         DetailContainerView(service: model.service) {
             Section {
                                 if model.mode.isEditing {
-                    PickerDetailField(title: L10n.Localizable.KWPassportIOS.localeFormat,
+                    PickerDetailField(title: CoreLocalization.L10n.Core.KWPassportIOS.localeFormat,
                                       selection: $model.item.country,
                                       elements: CountryCodeNamePair.countries,
                                       content: { country in
@@ -19,11 +21,11 @@ struct PassportDetailView: View {
                     })
                 } else {
                     Text(model.item.country?.name ?? CountryCodeNamePair.defaultCountry.name)
-                        .labeled(L10n.Localizable.KWPassportIOS.localeFormat)
+                        .labeled(CoreLocalization.L10n.Core.KWPassportIOS.localeFormat)
                 }
 
                                 if model.mode.isEditing {
-                    PickerDetailField(title: L10n.Localizable.KWPassportIOS.linkedIdentity,
+                    PickerDetailField(title: CoreLocalization.L10n.Core.KWPassportIOS.linkedIdentity,
                                       selection: $model.item.linkedIdentity,
                                       elements: model.identities,
                                       allowEmptySelection: true,
@@ -33,46 +35,49 @@ struct PassportDetailView: View {
                 }
 
                                 if !model.mode.isEditing {
-                    Text(model.displayFullName).labeled(L10n.Localizable.KWPassportIOS.fullname)
+                    Text(model.displayFullName).labeled(CoreLocalization.L10n.Core.KWPassportIOS.fullname)
                 }
 
                 if model.item.linkedIdentity == nil {
                     if model.mode.isEditing {
-                                                TextDetailField(title: L10n.Localizable.KWPassportIOS.fullname,
+                                                TextDetailField(title: CoreLocalization.L10n.Core.KWPassportIOS.fullname,
                                         text: $model.item.fullname)
 
-                                                PickerDetailField(title: L10n.Localizable.KWPassportIOS.sex,
+                                                PickerDetailField(title: CoreLocalization.L10n.Core.KWPassportIOS.sex,
                                           selection: $model.item.sex,
                                           elements: Gender.allCases,
                                           content: { gender in
                                             Text(gender?.localized ?? "")
                         })
                     } else if model.item.sex != nil {
-                        Text(model.item.genderString).labeled(L10n.Localizable.KWPassportIOS.sex)
+                        Text(model.item.genderString).labeled(CoreLocalization.L10n.Core.KWPassportIOS.sex)
                     }
 
-                                        DateDetailField(title: L10n.Localizable.KWPassportIOS.dateOfBirth,
+                                        DateDetailField(title: CoreLocalization.L10n.Core.KWPassportIOS.dateOfBirth,
                                     date: $model.item.dateOfBirth,
                                     range: .past)
                 }
 
                                 if model.mode.isEditing || !model.item.number.isEmpty {
-                    TextDetailField(title: L10n.Localizable.KWPassportIOS.number,
-                                    text: $model.item.number)
-                        .actions([.copy(model.copy)])
-                        .fiberFieldType(.number)
+                    TextDetailField(
+                        title: CoreLocalization.L10n.Core.KWPassportIOS.number,
+                        text: $model.item.number,
+                        actions: [.copy(model.copy)]
+                    )
+                    .actions([.copy(model.copy)])
+                    .fiberFieldType(.number)
                 }
 
                                 if model.mode.isEditing || !model.item.deliveryPlace.isEmpty {
-                    TextDetailField(title: L10n.Localizable.KWPassportIOS.deliveryPlace,
+                    TextDetailField(title: CoreLocalization.L10n.Core.KWPassportIOS.deliveryPlace,
                                     text: $model.item.deliveryPlace)
                 }
 
-                                DateDetailField(title: L10n.Localizable.KWPassportIOS.deliveryDate,
+                                DateDetailField(title: CoreLocalization.L10n.Core.KWPassportIOS.deliveryDate,
                                 date: $model.item.deliveryDate,
                                 range: .past)
 
-                                DateDetailField(title: L10n.Localizable.KWPassportIOS.expireDate,
+                                DateDetailField(title: CoreLocalization.L10n.Core.KWPassportIOS.expireDate,
                                 date: $model.item.expireDate,
                                 range: .future)
             }

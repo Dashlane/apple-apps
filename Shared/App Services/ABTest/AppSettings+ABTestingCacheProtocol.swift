@@ -1,6 +1,7 @@
 import Foundation
 import CoreFeature
 import DashlaneAppKit
+import CoreSettings
 
 extension AppSettings: ABTestingCacheProtocol {
     public func storeTests(_ data: Data) {

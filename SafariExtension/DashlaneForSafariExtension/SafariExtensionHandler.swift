@@ -1,5 +1,4 @@
 import SafariServices
-import DashlaneForSafariFramework
 
 class SafariExtensionHandler: SFSafariExtensionHandler {
     

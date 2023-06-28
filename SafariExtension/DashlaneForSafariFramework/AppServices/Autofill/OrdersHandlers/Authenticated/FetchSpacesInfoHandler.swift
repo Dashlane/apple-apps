@@ -1,6 +1,7 @@
 import Foundation
 import CorePremium
 import DashTypes
+import CoreLocalization
 
 struct FetchSpacesInfoHandler: MaverickOrderHandleable, SessionServicesInjecting {
 
@@ -63,7 +64,7 @@ extension FetchSpacesInfoHandler.MaverickSpace {
     init(space: Space) {
         self.spaceId = space.teamId
         self.isSSOUser = space.isSSOUser ?? false
-        self.displayName = space.teamName ?? L10n.Localizable.teamSpacesPersonalSpaceName
+        self.displayName = space.teamName ?? CoreLocalization.L10n.Core.teamSpacesPersonalSpaceName
         self.letter = space.letter
         let domains: [String]
         if let forcedDomainsEnabled = space.info.forcedDomainsEnabled, forcedDomainsEnabled,

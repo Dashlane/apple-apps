@@ -4,7 +4,7 @@ import CoreUserTracking
 import DashlaneCrypto
 
 public extension OTPInfo {
-    
+
     var authenticatorIssuerId: String? {
         let issuer = configuration.issuer ?? configuration.title
         if let hash = SHA.hash(text: issuer, using: .sha256) {
@@ -12,9 +12,15 @@ public extension OTPInfo {
         }
         return nil
     }
-    
+
     var logSpecifications: Definition.OtpSpecifications {
-        return Definition.OtpSpecifications(durationOtpValidity: configuration.type.period, encryptionAlgorithm: configuration.algorithm.logAlgorithm, otpCodeSize: configuration.digits, otpIncrementCount: configuration.type.counter, otpType: Definition.OtpType(rawValue: configuration.type.rawValue)!)
+        return Definition.OtpSpecifications(
+            durationOtpValidity: configuration.type.period,
+            encryptionAlgorithm: configuration.algorithm.logAlgorithm,
+            otpCodeSize: configuration.digits,
+            otpIncrementCount: configuration.type.counter,
+            otpType: Definition.OtpType(rawValue: configuration.type.rawValue)!
+        )
     }
 }
 

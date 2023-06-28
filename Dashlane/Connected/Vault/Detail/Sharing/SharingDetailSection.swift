@@ -1,5 +1,7 @@
 import SwiftUI
 import CoreFeature
+import UIComponents
+import VaultKit
 
 @MainActor
 struct SharingDetailSection: View {

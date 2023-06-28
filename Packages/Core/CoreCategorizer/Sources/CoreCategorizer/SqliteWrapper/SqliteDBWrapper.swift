@@ -3,7 +3,7 @@ import SQLite3
 
 public class SqliteDBWrapper {
     var dbPointer: OpaquePointer
-    
+
             init(dbPath: String) throws {
         var dbPointer: OpaquePointer?
         let openStatus = sqlite3_open_v2(dbPath, &dbPointer, SQLITE_OPEN_READONLY|SQLITE_OPEN_FULLMUTEX, nil)
@@ -12,22 +12,22 @@ public class SqliteDBWrapper {
         }
         self.dbPointer = dbPointer!
     }
-    
+
         func query(statement: String) throws -> QueryResult {
-        var queryStatement: OpaquePointer? = nil
-        
+        var queryStatement: OpaquePointer?
+
         let status = sqlite3_prepare_v2(dbPointer, statement, -1, &queryStatement, nil)
         defer {
                         sqlite3_finalize(queryStatement)
         }
         guard status == SQLITE_OK else { throw SQLiteError.query(errorCode: status, message: errorMessage()) }
-        
+
         let columnNames: [String] = getColumnNames(preparedStatement: queryStatement)
         let columnCount = columnNames.count
         var rows = [[String: String]]()
-        
-        while (sqlite3_step(queryStatement) == SQLITE_ROW) {
-            
+
+        while sqlite3_step(queryStatement) == SQLITE_ROW {
+
             var rowDictionary = [String: String]()
             for columnIndex in 0..<columnCount {
                 if let value = sqlite3_column_text(queryStatement, Int32(columnIndex)) {
@@ -39,7 +39,7 @@ public class SqliteDBWrapper {
         }
         return QueryResult(rows: rows, columnNames: columnNames)
     }
-    
+
     deinit {
         sqlite3_close(dbPointer)
     }
@@ -53,12 +53,12 @@ extension SqliteDBWrapper {
         }
         return ""
     }
-    
+
         private func getColumnNames(preparedStatement: OpaquePointer?) -> [String] {
         let columnCount = sqlite3_column_count(preparedStatement)
         return (0..<columnCount).compactMap { columnIndex in
             return String(cString: sqlite3_column_name(preparedStatement, columnIndex))
         }
     }
-    
+
 }

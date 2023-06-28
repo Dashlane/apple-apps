@@ -26,7 +26,7 @@ extension Phone: VaultItem {
     public static var addTitle: String {
         L10n.Core.kwadddatakwPhoneIOS
     }
-    
+
     public static var nativeMenuAddTitle: String {
         L10n.Core.addPhoneNumber
     }
@@ -68,12 +68,12 @@ extension Phone.NumberType {
 
 extension CountryCodeNamePair {
     public static let countries: [CountryCodeNamePair] = {
-        Locale.isoRegionCodes
+        Locale.Region.isoRegions
             .compactMap { code -> CountryCodeNamePair? in
-                guard let name = Locale.current.localizedString(forRegionCode: code) else {
+                guard let name = Locale.current.localizedString(forRegionCode: code.identifier) else {
                     return nil
                 }
-                return CountryCodeNamePair(code: code, name: name)
+                return CountryCodeNamePair(code: code.identifier, name: name)
             }
             .sorted { $0.name < $1.name }
     }()

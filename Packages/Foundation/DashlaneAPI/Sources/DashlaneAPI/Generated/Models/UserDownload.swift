@@ -8,6 +8,19 @@ public struct UserDownload: Codable, Equatable {
         case sharingKeys = "sharingKeys"
     }
 
+    private enum CodingKeys: String, CodingKey {
+        case userId = "userId"
+        case alias = "alias"
+        case referrer = "referrer"
+        case permission = "permission"
+        case acceptSignature = "acceptSignature"
+        case groupKey = "groupKey"
+        case proposeSignature = "proposeSignature"
+        case proposeSignatureUsingAlias = "proposeSignatureUsingAlias"
+        case rsaStatus = "rsaStatus"
+        case status = "status"
+    }
+
     public let userId: String
 
     public let alias: String

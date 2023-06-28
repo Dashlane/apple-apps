@@ -4,11 +4,11 @@ import Cocoa
 import CoreNetworking
 import CoreRegion
 import CoreCategorizer
+import CorePersonalData
 import DomainParser
 import CoreSettings
 import CoreSession
 import CorePasswords
-import DashlaneReportKit
 import SafariServices
 import DashlaneCrypto
 import CoreFeature
@@ -18,6 +18,7 @@ import SwiftTreats
 import CoreKeychain
 import LoginKit
 import CoreUserTracking
+import VaultKit
 
 class SafariExtensionAppServices: DependenciesContainer {
     
@@ -29,7 +30,7 @@ class SafariExtensionAppServices: DependenciesContainer {
 
     let regionInformationService: RegionInformationService
     let categorizer: Categorizer
-    let personalDataURLDecoder: DashlaneAppKit.PersonalDataURLDecoder
+    let personalDataURLDecoder: PersonalDataURLDecoderProtocol
     let rootLogger: Logger
     let remoteLogger: KibanaLogger
     let crashReporterService: CrashReporterService
@@ -62,7 +63,7 @@ class SafariExtensionAppServices: DependenciesContainer {
                                                         sessionStoreProvider: SessionStoreProvider())
         
         self.spiegelSettingsManager = SettingsManager(logger: rootLogger)
-        self.communicationService = MainApplicationCommunicationService(logger: ConsoleLogger())
+        self.communicationService = MainApplicationCommunicationService(logger: rootLogger[.localCommunication])
         self.sessionSharing = MainApplicationSessionSharing(communicationService: communicationService)
         self.crashReporterService = CrashReporterService(target: .safari)
         self.activityReporter = UserTrackingAppActivityReporter(logger: rootLogger[.userTrackingLogs],
@@ -80,14 +81,6 @@ class SafariExtensionAppServices: DependenciesContainer {
 
         self.keychainService = AuthenticationKeychainService(cryptoEngine: CryptoCenter(from: CryptoRawConfig.keyBasedDefault.parametersHeader)!, keychainSettingsDataProvider: spiegelSettingsManager, accessGroup: ApplicationGroup.keychainAccessGroup)
 
-        let logEngine = LogEngine(reportLogInfo: InstallerLogInfo(anonymouscomputerid: AppSettings().anonymousDeviceId,
-                                                      version: Application.version(),
-                                                      os: System.platform,
-                                                      osversion: System.version,
-                                                      lang: System.language,
-                                                      country: System.country,
-                                                      platform: System.platform), uploadWebService: nonAuthenticatedUKIBasedWebService)
-
         let autofillServicesContainer = AutofillAppServicesContainer(communicationService: communicationService,
                                                                      passwordEvaluator: passwordEvaluator,
                                                                      domainParser: domainParser,
@@ -95,8 +88,7 @@ class SafariExtensionAppServices: DependenciesContainer {
                                                                      personalDataURLDecoder: personalDataURLDecoder,
                                                                      logger: rootLogger[.autofill],
                                                                      appSettings: globalSettings,
-                                                                     nonAuthenticatedWebService: LegacyWebServiceImpl(logger: rootLogger[.autofill]),
-                                                                     logEngine: logEngine)
+                                                                     nonAuthenticatedWebService: LegacyWebServiceImpl(logger: rootLogger[.autofill]))
 
         self.autofillService = AutofillService(services: autofillServicesContainer)
         killSwitchService = KillSwitchService(apiClient: appAPIClient, logger: rootLogger)

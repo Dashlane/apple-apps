@@ -1,7 +1,6 @@
 import SwiftUI
 
 struct RoundedButtonStyle: ButtonStyle {
-
     @Environment(\.style)
     private var style
 
@@ -16,6 +15,7 @@ struct RoundedButtonStyle: ButtonStyle {
 
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
+            .textStyle(.component.button.standard)
         #if targetEnvironment(macCatalyst)
             .tintColor(.tint(for: style, isEnabled: isEnabled))
         #else
@@ -40,7 +40,6 @@ struct RoundedButtonStyle_Previews: PreviewProvider {
 }
 
 private extension Color {
-
     static func background(for style: Style, isPressed: Bool, isEnabled: Bool) -> Color {
         switch style.mood {
         case .neutral:

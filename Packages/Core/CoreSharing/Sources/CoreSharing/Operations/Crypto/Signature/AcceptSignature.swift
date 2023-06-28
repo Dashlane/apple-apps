@@ -5,13 +5,13 @@ import DashTypes
 struct AcceptSignatureMessage {
     let id: String
     let groupKey: SymmetricKey
-    
+
     func data() throws -> Data {
         guard case let message = id + "-accepted-" + groupKey.base64EncodedString(),
               let messageData = message.data(using: .utf8) else {
-            throw SignatureError(kind: .accept, reason: .unknown)
+            throw SharingGroupError.invalidSignature(.accept, reason: .unknown)
         }
-        
+
         return messageData
     }
 }
@@ -20,7 +20,7 @@ struct AcceptSignature {
     let groupId: Identifier
     let groupKey: SymmetricKey
     let messageSigner: MessageSigner
-    
+
         func base64EncodedString() throws -> String {
         let message = try AcceptSignatureMessage(id: groupId.rawValue, groupKey: groupKey).data()
         let signature = try messageSigner.sign(message)
@@ -43,12 +43,12 @@ extension SharingGroupMember {
             throw SharingGroupError.invalidSignature(.accept, reason: .emptyOrInvalidBase64)
         }
         let expectedMessageData = try AcceptSignatureMessage(id: parentGroupId.rawValue, groupKey: groupKey).data()
-        
+
         guard verifier.verify(expectedMessageData, with: signature) else {
             throw SharingGroupError.invalidSignature(.accept, reason: .notValid)
         }
     }
-    
+
         func createAcceptSignature(using signer: MessageSigner, groupKey: SymmetricKey) throws -> String {
         try signer.create(forGroupId: parentGroupId, groupKey: groupKey)
     }

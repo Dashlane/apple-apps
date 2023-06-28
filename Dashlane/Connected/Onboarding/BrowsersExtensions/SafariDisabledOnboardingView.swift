@@ -4,6 +4,7 @@ import SwiftUI
 import UIComponents
 import UIDelight
 import DesignSystem
+import CoreLocalization
 
 struct SafariDisabledOnboardingView: View {
 
@@ -21,7 +22,7 @@ struct SafariDisabledOnboardingView: View {
         }
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                Button(action: completion, title: L10n.Localizable.kwButtonClose)
+                Button(action: completion, title: CoreLocalization.L10n.Core.kwButtonClose)
                     .foregroundColor(.ds.text.brand.standard)
             }
         }

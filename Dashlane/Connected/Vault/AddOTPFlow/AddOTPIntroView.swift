@@ -7,6 +7,8 @@ import UIComponents
 import UIDelight
 import DesignSystem
 import CoreUserTracking
+import VaultKit
+import CoreLocalization
 
 struct AddOTPIntroView: View {
 
@@ -15,24 +17,25 @@ struct AddOTPIntroView: View {
 
     enum Action {
         case scanQRCode
-        case enterToken(Credential)
+        case enterToken(Credential?)
         case cancel
     }
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
-            Image(asset: FiberAsset.paywallIconShield)
+            Image.ds.healthPositive.outlined
                 .resizable()
                 .foregroundColor(.ds.text.brand.standard)
                 .aspectRatio(contentMode: .fit)
                 .frame(width: 80)
+                .fiberAccessibilityHidden(true)
 
             Text(title)
                 .font(.custom(GTWalsheimPro.medium.name, size: 26, relativeTo: .title).weight(.medium))
             Text(L10n.Localizable._2faSetupIntroSubtitle).font(.body)
                 .minimumScaleFactor(0.6)
                 .foregroundColor(.ds.text.neutral.standard)
-            explaination.fixedSize(horizontal: false, vertical: true)
+            explanation.fixedSize(horizontal: false, vertical: true)
                 .foregroundColor(.ds.text.neutral.standard)
             learnMore
             Spacer()
@@ -42,7 +45,7 @@ struct AddOTPIntroView: View {
         .navigationBarBackButtonHidden(true)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
-                NavigationBarButton(L10n.Localizable.cancel) {
+                NavigationBarButton(CoreLocalization.L10n.Core.cancel) {
                     completion(.cancel)
                 }
             }
@@ -53,25 +56,26 @@ struct AddOTPIntroView: View {
 
     private var title: String {
         guard let credentialTitle = credential?.displayTitle else {
-            return L10n.Localizable._2faSetupCta
+            return CoreLocalization.L10n.Core._2faSetupCta
         }
         return L10n.Localizable._2faSetupIntroTitle(credentialTitle)
     }
 
     private var actions: some View {
         VStack(alignment: .leading, spacing: 16) {
-            RoundedButton(L10n.Localizable._2faSetupIntroScanQRCode,
-                          action: { completion(.scanQRCode) })
-            .roundedButtonLayout(.fill)
-            if let credential = credential {
-                Button(action: {
-                    completion(.enterToken(credential))
-                }, title: L10n.Localizable._2faSetupIntroSetupWithCode).buttonStyle(BorderlessActionButtonStyle())
+            if !Device.isMac {
+                RoundedButton(L10n.Localizable._2faSetupIntroScanQRCode,
+                              action: { completion(.scanQRCode) })
+                .roundedButtonLayout(.fill)
             }
+            Button(action: {
+                completion(.enterToken(credential))
+            }, title: L10n.Localizable._2faSetupIntroSetupWithCode).buttonStyle(BorderlessActionButtonStyle())
+
         }
     }
 
-    private var explaination: some View {
+    private var explanation: some View {
         struct Line: Hashable {
             let prefix: String
             let content: String
@@ -104,6 +108,7 @@ struct AddOTPIntroView: View {
                 .foregroundColor(.ds.text.brand.quiet)
                     .multilineTextAlignment(.leading)
         }
+        .accessibilityAddTraits(.isLink)
     }
 
 }

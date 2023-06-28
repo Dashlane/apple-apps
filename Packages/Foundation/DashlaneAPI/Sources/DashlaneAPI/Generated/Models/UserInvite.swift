@@ -2,6 +2,15 @@ import Foundation
 
 public struct UserInvite: Codable, Equatable {
 
+    private enum CodingKeys: String, CodingKey {
+        case userId = "userId"
+        case alias = "alias"
+        case permission = "permission"
+        case proposeSignature = "proposeSignature"
+        case groupKey = "groupKey"
+        case proposeSignatureUsingAlias = "proposeSignatureUsingAlias"
+    }
+
         public let userId: String
 
         public let alias: String

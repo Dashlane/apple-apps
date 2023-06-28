@@ -24,5 +24,5 @@ public enum PersonalDataContentType: String, Codable, Hashable, CaseIterable {
     case socialSecurityInfo = "SOCIALSECURITYSTATEMENT"
     case taxNumber = "FISCALSTATEMENT"
     case website = "PERSONALWEBSITE"
+    case passkey = "PASSKEY"
 }
-

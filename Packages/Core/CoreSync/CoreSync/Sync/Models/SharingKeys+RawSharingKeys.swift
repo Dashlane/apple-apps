@@ -10,7 +10,7 @@ extension SharingKeys {
               !publicKey.isEmpty else {
                   return nil
               }
-        
+
         self.init(publicKey: publicKey, encryptedPrivateKey: privateKey)
     }
 }

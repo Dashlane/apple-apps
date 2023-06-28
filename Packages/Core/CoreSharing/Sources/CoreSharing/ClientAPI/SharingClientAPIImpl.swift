@@ -3,7 +3,6 @@ import DashTypes
 import SwiftTreats
 import DashlaneAPI
 
-
 public struct SharingClientAPIImpl: SharingClientAPI {
     let apiClient: UserDeviceAPIClient.SharingUserdevice
 

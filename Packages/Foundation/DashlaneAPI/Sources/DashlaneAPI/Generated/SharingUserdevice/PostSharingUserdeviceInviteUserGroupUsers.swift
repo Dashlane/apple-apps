@@ -1,12 +1,16 @@
 import Foundation
 extension UserDeviceAPIClient.SharingUserdevice {
-        public struct InviteUserGroupUsers {
+        public struct InviteUserGroupUsers: APIRequest {
         public static let endpoint: Endpoint = "/sharing-userdevice/InviteUserGroupUsers"
 
         public let api: UserDeviceAPIClient
 
                 public func callAsFunction(provisioningMethod: ProvisioningMethod, revision: Int, groupId: String, users: [InviteUserGroupUserUpload], timeout: TimeInterval? = nil) async throws -> Response {
             let body = Body(provisioningMethod: provisioningMethod, revision: revision, groupId: groupId, users: users)
+            return try await api.post(Self.endpoint, body: body, timeout: timeout)
+        }
+
+        public func callAsFunction(_ body: Body, timeout: TimeInterval? = nil) async throws -> Response {
             return try await api.post(Self.endpoint, body: body, timeout: timeout)
         }
     }
@@ -17,7 +21,14 @@ extension UserDeviceAPIClient.SharingUserdevice {
 }
 
 extension UserDeviceAPIClient.SharingUserdevice.InviteUserGroupUsers {
-        struct Body: Encodable {
+        public struct Body: Encodable {
+
+        private enum CodingKeys: String, CodingKey {
+            case provisioningMethod = "provisioningMethod"
+            case revision = "revision"
+            case groupId = "groupId"
+            case users = "users"
+        }
 
         public let provisioningMethod: ProvisioningMethod
 

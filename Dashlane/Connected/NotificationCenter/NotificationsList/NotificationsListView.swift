@@ -1,3 +1,4 @@
+import DesignSystem
 import SwiftUI
 import SwiftTreats
 import UIDelight
@@ -21,7 +22,6 @@ struct NotificationsListView: View {
                 NotificationsCategoryListView(model: model)
             }
         }
-        .navigationViewStyle(.stack)
         .accentColor(.ds.text.neutral.standard)
     }
 
@@ -50,9 +50,9 @@ struct NotificationsListView: View {
     var placeholder: some View {
         VStack(spacing: 35) {
             Image(asset: FiberAsset.iconNotificationLarge)
-                .foregroundColor(Color(asset: FiberAsset.emptyStateIconTintColor))
+                .foregroundColor(.ds.text.neutral.quiet)
             Text(L10n.Localizable.actionItemCenterEmptyMessage)
-                .foregroundColor(Color(asset: FiberAsset.neutralText))
+                .foregroundColor(.ds.text.neutral.standard)
             Spacer()
         }
         .padding(.top, 100)

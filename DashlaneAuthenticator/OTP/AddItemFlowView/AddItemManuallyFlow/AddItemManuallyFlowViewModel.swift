@@ -32,7 +32,7 @@ class AddItemManuallyFlowViewModel: ObservableObject, AuthenticatorServicesInjec
     private let mode: AddItemMode
     private let didCreate: (OTPInfo, Definition.OtpAdditionMode) -> Void
     let isFirstToken: Bool
-    
+
     init(databaseService: AuthenticatorDatabaseServiceProtocol,
          chooseWebSiteViewModelFactory: ChooseWebsiteViewModel.Factory,
          addLoginDetailsViewModelFactory: AddLoginDetailsViewModel.Factory,
@@ -41,7 +41,7 @@ class AddItemManuallyFlowViewModel: ObservableObject, AuthenticatorServicesInjec
          tokenRowViewModelFactory: TokenRowViewModel.Factory,
          mode: AddItemMode,
          isFirstToken: Bool,
-         didCreate : @escaping (OTPInfo, Definition.OtpAdditionMode) -> Void) {
+         didCreate: @escaping (OTPInfo, Definition.OtpAdditionMode) -> Void) {
         self.chooseWebSiteViewModelFactory = chooseWebSiteViewModelFactory
         self.addLoginDetailsViewModelFactory = addLoginDetailsViewModelFactory
         self.scanCodeViewModelFactory = scanCodeViewModelFactory
@@ -66,7 +66,7 @@ class AddItemManuallyFlowViewModel: ObservableObject, AuthenticatorServicesInjec
                     }
                     return
                 }
-                
+
                 let matchingAction = await self.mode.matchingAction(forWebsite: website)
                 await MainActor.run {
                     switch matchingAction {
@@ -82,14 +82,14 @@ class AddItemManuallyFlowViewModel: ObservableObject, AuthenticatorServicesInjec
         })
         self.steps.append(.manuallyChooseWebsite(viewModel))
     }
-    
+
     private func updateStepToMatchingCredentialSelection(forWebsite website: String, matchingCredentials: [Credential]) {
         let viewModel = matchingCredentialListViewModelFactory.make(website: website, matchingCredentials: matchingCredentials) { action in
             self.matchingCredentialsToAddLoginDetails(website: website, userAction: action)
         }
         self.steps.append(.credentialsMatchingWebsite(viewModel))
     }
-    
+
     private func matchingCredentialsToAddLoginDetails(website: String, userAction: MatchingCredentialListViewModel.Completion) {
         let detailsModel: AddLoginDetailsViewModel
         switch userAction {
@@ -102,10 +102,11 @@ class AddItemManuallyFlowViewModel: ObservableObject, AuthenticatorServicesInjec
         }
         self.steps.append(.addLoginDetailsForm(detailsModel))
     }
-    
+
     private func makeAddLoginDetailsViewModel(website: String, credential: Credential?) -> AddLoginDetailsViewModel {
         addLoginDetailsViewModelFactory.make(website: website,
-                                             credential: credential) { otpInfo in
+                                             credential: credential,
+                                             supportDashlane2FA: true) { otpInfo in
             do {
                 if let credential = credential,
                    credential.email == otpInfo.configuration.login,
@@ -121,13 +122,13 @@ class AddItemManuallyFlowViewModel: ObservableObject, AuthenticatorServicesInjec
                         self.complete(otpInfo, mode: .textCode)
                     }
                 }))
-                
+
             } catch {
                 self.steps.append(.failedToAddItem(otpInfo.configuration.issuerOrTitle))
             }
         }
     }
-    
+
             func startScanCodeFlow() {
         let viewModel = scanCodeViewModelFactory.make(otpInfo: nil, mode: mode, isFirstToken: isFirstToken, didCreate: { [weak self] otpInfo, mode in
             if otpInfo.isDashlaneOTP {

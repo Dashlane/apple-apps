@@ -11,20 +11,20 @@ public struct LoggerLocation {
 }
 public protocol Logger {
     typealias Location = LoggerLocation
-    
+
             func debug(_ message: @escaping () -> String, location: Location)
 
                 func info(_ message: @escaping () -> String, location: Location)
 
             func warning(_ message: @escaping () -> String, location: Location)
             func warning(_ message: @escaping () -> String, error: Error, location: Location)
-    
+
         func error(_ message: @escaping () -> String, location: Location)
         func error(_ message: @escaping () -> String, error: Error, location: Location)
-    
+
             func fatal(_ message: @escaping () -> String, location: Location)
             func fatal(_ message: @escaping () -> String, error: Error, location: Location)
-    
+
                 func sublogger(for identifier: LoggerIdentifier) -> Logger
 }
 
@@ -53,11 +53,11 @@ public extension Logger {
             func warning(file: StaticString = #file, line: Int = #line, function: StaticString = #function, _ message: @escaping () -> String) {
         warning(message, location: Location(file: file, line: line, function: function))
     }
-    
+
         func warning(_ message: @escaping @autoclosure () -> String, error: Error, file: StaticString = #file, line: Int = #line, function: StaticString = #function) {
         self.warning(message, error: error, location: Location(file: file, line: line, function: function))
     }
-    
+
         func warning(_ message: @escaping () -> String, error: Error, location: Location) {
         self.warning({
             makeDefaultErrorMessage(message: message(), error: error)
@@ -69,15 +69,15 @@ public extension Logger {
         func error(_ message: @escaping @autoclosure () -> String, file: StaticString = #file, line: Int = #line, function: StaticString = #function) {
         error(message, location: Location(file: file, line: line, function: function))
     }
-    
+
         func error(file: StaticString = #file, line: Int = #line, function: StaticString = #function, _ message: @escaping () -> String) {
         error(message, location: Location(file: file, line: line, function: function))
     }
-    
+
         func error(_ message: @escaping @autoclosure () -> String, error: Error, file: StaticString = #file, line: Int = #line, function: StaticString = #function) {
         self.error(message, error: error, location: Location(file: file, line: line, function: function))
     }
-    
+
         func error(_ message: @escaping () -> String, error: Error, location: Location) {
         self.error({
             makeDefaultErrorMessage(message: message(), error: error)
@@ -92,18 +92,17 @@ public extension Logger {
             func fatal(file: StaticString = #file, line: Int = #line, function: StaticString = #function, _ message: @escaping () -> String) {
         fatal(message, location: Location(file: file, line: line, function: function))
     }
-    
+
         func fatal(_ message: @escaping @autoclosure () -> String, error: Error, file: StaticString = #file, line: Int = #line, function: StaticString = #function) {
         self.fatal(message, error: error, location: Location(file: file, line: line, function: function))
     }
-    
+
         func fatal(_ message: @escaping () -> String, error: Error, location: Location) {
         self.fatal({
             makeDefaultErrorMessage(message: message(), error: error)
         }, location: location)
     }
 }
-
 
 private extension Logger {
     func makeDefaultErrorMessage(message: String, error: Error) -> String {

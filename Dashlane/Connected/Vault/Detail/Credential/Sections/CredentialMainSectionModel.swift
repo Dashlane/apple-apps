@@ -3,7 +3,6 @@ import CorePersonalData
 import CoreSettings
 import CoreUserTracking
 import DashlaneAppKit
-import DashlaneReportKit
 import DashTypes
 import Foundation
 import SwiftUI
@@ -31,6 +30,7 @@ class CredentialMainSectionModel: DetailViewModelProtocol, SessionServicesInject
     private var sharingService: SharedVaultHandling {
         service.sharingService
     }
+
     private var vaultItemsService: VaultItemsServiceProtocol {
         service.vaultItemsService
     }

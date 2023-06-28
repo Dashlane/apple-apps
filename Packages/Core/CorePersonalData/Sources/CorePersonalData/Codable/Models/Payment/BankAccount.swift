@@ -22,7 +22,7 @@ public struct BankAccount: PersonalDataCodable, Equatable, Identifiable, DatedPe
         case spaceId
         case attachments
     }
-    
+
     public let id: Identifier
     public var anonId: String
     public let metadata: RecordMetadata
@@ -54,8 +54,18 @@ public struct BankAccount: PersonalDataCodable, Equatable, Identifiable, DatedPe
         country = CountryCodeNamePair.systemCountryCode
         creationDatetime = Date()
     }
-    
-    init(id: Identifier, anonId: String, name: String, bank: BankCodeNamePair? = nil, bic: String, iban: String, owner: String, country: CountryCodeNamePair? = nil, creationDatetime: Date? = nil, userModificationDatetime: Date? = nil, spaceId: String? = nil) {
+
+    init(id: Identifier = .init(),
+         anonId: String = UUID().uuidString,
+         name: String = "",
+         bank: BankCodeNamePair? = nil,
+         bic: String,
+         iban: String,
+         owner: String = "",
+         country: CountryCodeNamePair? = nil,
+         creationDatetime: Date? = nil,
+         userModificationDatetime: Date? = nil,
+         spaceId: String? = nil) {
         self.id = id
         self.anonId = anonId
         metadata = RecordMetadata(id: .temporary, contentType: Self.contentType)
@@ -80,12 +90,11 @@ public struct BankAccount: PersonalDataCodable, Equatable, Identifiable, DatedPe
     }
 }
 
-
 extension BankAccount: Searchable {
     private var bankName: String {
         return bank?.name ?? ""
     }
-    
+
     public var searchableKeyPaths: [KeyPath<BankAccount, String>] {
         [
             \BankAccount.owner,
@@ -100,5 +109,15 @@ extension BankAccount {
             return false
         }
         return ["GB", "US", "FR"].contains(code)
+    }
+}
+
+extension BankAccount: Deduplicable {
+
+    public var deduplicationKeyPaths: [KeyPath<Self, String>] {
+        [
+            \BankAccount.iban,
+             \BankAccount.bic
+        ]
     }
 }

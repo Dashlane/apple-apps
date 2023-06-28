@@ -7,10 +7,10 @@ public protocol DatabaseDriver {
         var syncTriggerPublisher: PassthroughSubject<Void, Never> { get }
 
     func read<T>(_ reader: (DatabaseReader) throws -> T) throws -> T
-    
+
     @discardableResult
     func write<T>(shouldSyncChange: Bool, _ writer: (inout DatabaseWriter) throws -> T) throws -> T
-    
+
     func publisher(with id: Identifier) -> AnyPublisher<PersonalDataRecord?, Error>
     func metadataPublisher(with id: Identifier) -> AnyPublisher<RecordMetadata?, Error>
 }

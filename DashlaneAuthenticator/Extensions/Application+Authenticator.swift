@@ -1,6 +1,6 @@
 import Foundation
 import DashTypes
 
-extension Application {    
+extension Application {
     static var mainApplicationBundleIdentifier: String { "com.dashlane.authenticator" }
 }

@@ -1,7 +1,7 @@
 import SwiftUI
 
 struct RoundedButtonIconOnlyLabelStyle: LabelStyle {
-    @ScaledMetric private var iconDimension = 16
+    @ScaledMetric private var iconDimension = 20
     @ScaledMetric private var contentScale = 100
 
     @Environment(\.controlSize) private var controlSize
@@ -39,7 +39,6 @@ struct RoundedButtonTitleOnlyLabelStyle: LabelStyle {
     func makeBody(configuration: Configuration) -> some View {
         configuration.title
             .foregroundColor(tintColor ?? .accentColor)
-            .font(.system(.body).weight(.medium))
             .padding(padding)
     }
 
@@ -74,7 +73,7 @@ struct RoundedButtonTitleAndIconLabelStyle: LabelStyle {
     @Environment(\.controlSize) private var controlSize
     @Environment(\.tintColor) private var tintColor
 
-    @ScaledMetric private var iconDimension = 16
+    @ScaledMetric private var iconDimension = 20
     @ScaledMetric private var contentScale = 100
 
     func makeBody(configuration: Configuration) -> some View {
@@ -84,7 +83,6 @@ struct RoundedButtonTitleAndIconLabelStyle: LabelStyle {
             }
             configuration.title
                 .foregroundColor(tintColor ?? .accentColor)
-                .font(.system(.body).weight(.medium))
             if iconAlignment == .trailing {
                 iconView(for: configuration)
             }

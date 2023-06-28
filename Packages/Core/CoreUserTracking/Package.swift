@@ -3,14 +3,14 @@ import PackageDescription
 let package = Package(
     name: "CoreUserTracking",
     platforms: [
-        .macOS(.v12),
-        .iOS(.v15)
+        .macOS(.v13),
+        .iOS(.v16)
     ],
     products: [
                 .library(
             name: "CoreUserTracking",
             targets: ["CoreUserTracking"]
-        ),
+        )
     ],
     dependencies: [
                 .package(path: "../../Foundation/DashTypes"),
@@ -21,8 +21,9 @@ let package = Package(
             name: "CoreUserTracking",
             dependencies: [
                 .product(name: "DashTypes", package: "DashTypes"),
-                .product(name: "DashlaneAPI", package: "DashlaneAPI"),
+                .product(name: "DashlaneAPI", package: "DashlaneAPI")
             ]
-        )
+        ),
+        .testTarget(name: "CoreUserTrackingTests", dependencies: ["CoreUserTracking"])
     ]
 )

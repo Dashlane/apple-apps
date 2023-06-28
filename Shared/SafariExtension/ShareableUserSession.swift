@@ -11,7 +11,7 @@ public struct ShareableUserSession: Codable {
     init(_ session: Session) {
         login = session.login.email
 
-        switch session.configuration.masterKey {
+        switch session.authenticationMethod.sessionKey {
         case let .masterPassword(masterPassword, serverKey):
             self.masterPassword = masterPassword
             self.serverKey = serverKey
@@ -25,7 +25,7 @@ public struct ShareableUserSession: Codable {
 }
 
 extension ShareableUserSession: Equatable {
-    public static func ==(lhs: ShareableUserSession, rhs: ShareableUserSession) -> Bool {
+    public static func == (lhs: ShareableUserSession, rhs: ShareableUserSession) -> Bool {
         return lhs.login == rhs.login
             && lhs.masterPassword == rhs.masterPassword
             && lhs.remoteKey == rhs.remoteKey

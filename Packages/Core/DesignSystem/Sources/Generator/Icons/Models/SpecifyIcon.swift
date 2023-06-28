@@ -4,9 +4,35 @@ struct SpecifyIcon: Decodable {
     let name: String
     var image: Data?
 
-    var nameComponents: [String] {
+    private var _nameComponents: [String] {
         name.components(separatedBy: "/")
             .map { $0.dropFirst().lowercased().replacingOccurrences(of: " ", with: "") }
+    }
+
+    private var penultimateNameComponent: String? {
+        _nameComponents.dropLast().last
+    }
+
+        var nameComponents: [String] {
+        guard isPlatformSpecific else { return _nameComponents }
+        guard let lastComponent = _nameComponents.last,
+              let penultimateComponent = penultimateNameComponent,
+              let separatorIndex = penultimateComponent.firstIndex(of: "#")
+        else { return _nameComponents }
+
+        var components = _nameComponents.dropLast(2)
+        components.append(String(penultimateComponent.prefix(upTo: separatorIndex)))
+        components.append(lastComponent)
+        return Array(components)
+    }
+
+    private var isPlatformSpecific: Bool {
+        return penultimateNameComponent?.range(of: "#") != nil
+    }
+
+            var shouldBeProcessed: Bool {
+        guard isPlatformSpecific else { return true }
+        return penultimateNameComponent?.range(of: "#apple") != nil
     }
 
     private let fetchImageTask: Task<Data, Error>?

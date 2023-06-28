@@ -29,21 +29,21 @@ public struct UserTrackingAppActivityReporter: ActivityReporterProtocol {
 
     }
 
-    public func reportPageShown(_ page: Page) {
+    public func reportPageShown(_ page: @autoclosure @escaping @Sendable () -> Page) {
         Task.detached(priority: .utility) {
-            await self.logEngine.reportPageShown(page, using: nil)
+            await self.logEngine.reportPageShown(page(), using: nil)
         }
     }
 
-    public func report<Event>(_ event: Event) where Event : UserEventProtocol {
+    public func report<Event>(_ event: @autoclosure @escaping @Sendable () -> Event) where Event: UserEventProtocol {
         Task.detached(priority: .utility) {
-            await self.logEngine.report(event, using: nil)
+            await self.logEngine.report(event(), using: nil)
         }
     }
 
-    public func report<Event>(_ event: Event) where Event : AnonymousEventProtocol {
+    public func report<Event>(_ event: @autoclosure @escaping @Sendable () -> Event) where Event: AnonymousEventProtocol {
         Task.detached(priority: .utility) {
-            await self.logEngine.report(event)
+            await self.logEngine.report(event())
         }
     }
 

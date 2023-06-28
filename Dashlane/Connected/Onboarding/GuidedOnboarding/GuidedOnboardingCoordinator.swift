@@ -1,4 +1,5 @@
 import UIKit
+import UIComponents
 
 class GuidedOnboardingCoordinator: NSObject, Coordinator, SubcoordinatorOwner {
 
@@ -21,7 +22,6 @@ class GuidedOnboardingCoordinator: NSObject, Coordinator, SubcoordinatorOwner {
     private let sessionServices: SessionServicesContainer
     private let animator = GuidedOnboardingAnimator()
     private let interactionController: UIPercentDrivenInteractiveTransition
-    private var logService: GuidedOnboardingLogsService
 
     init(navigator: DashlaneNavigationController? = nil, sessionServices: SessionServicesContainer,
          completion: ((CompletionResult) -> Void)? = nil) {
@@ -30,7 +30,6 @@ class GuidedOnboardingCoordinator: NSObject, Coordinator, SubcoordinatorOwner {
         self.navigator.modalPresentationStyle = .fullScreen
         self.completion = completion
         self.sessionServices = sessionServices
-        self.logService = GuidedOnboardingLogsService(usageLogService: sessionServices.activityReporter.legacyUsage)
         self.guidedOnboardingService = GuidedOnboardingService(dataProvider: GuidedOnboardingSettingsProvider(userSettings: sessionServices.spiegelUserSettings))
         self.dwmOnboardingService = sessionServices.dwmOnboardingService
         self.interactionController = UIPercentDrivenInteractiveTransition()
@@ -48,38 +47,38 @@ class GuidedOnboardingCoordinator: NSObject, Coordinator, SubcoordinatorOwner {
     private func move(to step: Step) {
         switch step {
         case .survey(let surveyStep):
-            self.logService.log(.displayed(question: surveyStep.question))
             navigator.push(makeGuidedOnboardingView(step: surveyStep))
         case .darkWebMonitoringOnboarding:
-            startDarkWebMonitoringOnboarding()
+            navigator.push(makeDarkWebMonitoringOnboardingFlow())
         case .creatingPlan:
-            self.logService.log(.planScreenShown)
             navigator.setRootNavigation(makeCreatingPlanView())
         }
     }
 
-    private func startDarkWebMonitoringOnboarding() {
-        let transitionHandler = GuidedOnboardingTransitionHandler(navigationController: navigator, interactionController: interactionController) { [weak self] in
+    private func makeDarkWebMonitoringOnboardingFlow() -> DWMOnboardingFlow {
+        let transitionHandler = GuidedOnboardingTransitionHandler(
+            navigationController: navigator,
+            interactionController: interactionController
+        ) { [weak self] in
             self?.completion?(.finished)
         }
-        let darkWebMonitoringOnboarding = DWMOnboardingCoordinator(context: .guidedOnboarding, navigator: navigator, transitionHandler: transitionHandler, sessionServices: sessionServices) { [weak self] result in
-            switch result {
-            case .back:
-                self?.navigator.pop(animated: true)
-                self?.subcoordinator = nil
-            case .skip:
-                self?.move(to: .creatingPlan)
-                self?.subcoordinator = nil
-            case .unexpectedError:
-                self?.move(to: .creatingPlan)
-                self?.subcoordinator = nil
+        let viewModel = sessionServices
+            .viewModelFactory
+            .makeDWMOnboardingFlowViewModel(transitionHandler: transitionHandler) { [weak self] result in
+                switch result {
+                case .back:
+                    self?.navigator.pop(animated: true)
+                case .skip:
+                    self?.move(to: .creatingPlan)
+                case .unexpectedError:
+                    self?.move(to: .creatingPlan)
+                }
             }
-        }
-        subcoordinator = darkWebMonitoringOnboarding
-        subcoordinator?.start()
+
+        return DWMOnboardingFlow(viewModel: viewModel)
     }
 
-    func makeGuidedOnboardingView(step: GuidedOnboardingSurveyStep) -> GuidedOnboardingView<GuidedOnboardingViewModel> {
+    func makeGuidedOnboardingView(step: GuidedOnboardingSurveyStep) -> GuidedOnboardingView {
         let viewModel = sessionServices.viewModelFactory.makeGuidedOnboardingViewModel(guidedOnboardingService: guidedOnboardingService,
                                                                                        step: step,
                                                                                        completion: { [weak self] result in
@@ -99,6 +98,8 @@ class GuidedOnboardingCoordinator: NSObject, Coordinator, SubcoordinatorOwner {
                 }
             case .previousStep:
                 self?.navigator.pop(animated: true)
+            case .skip:
+                self?.move(to: .creatingPlan)
             }
         })
 
@@ -107,7 +108,6 @@ class GuidedOnboardingCoordinator: NSObject, Coordinator, SubcoordinatorOwner {
 
     func makeCreatingPlanView() -> GuidedOnboardingPlanView {
         return GuidedOnboardingPlanView(transitionHandler: GuidedOnboardingTransitionHandler(navigationController: navigator, interactionController: interactionController) { [weak self] in
-            self?.logService.log(.planScreenDismissed)
             self?.completion?(.finished)
         })
     }

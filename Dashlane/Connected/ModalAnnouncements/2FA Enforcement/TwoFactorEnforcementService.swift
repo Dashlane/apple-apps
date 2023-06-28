@@ -2,11 +2,12 @@ import Foundation
 import Combine
 import CoreSession
 import CorePremium
+import DashlaneAPI
 
 struct TwoFAEnforcementService {
 
     let space: Space
-        let accountAPIClient: AuthenticatedAccountAPIClient
+        let userApiClient: UserDeviceAPIClient
     let otp2Enabled: Bool
 
         var shouldPresent2FAEnforcement: AnyPublisher<Bool, Never> {
@@ -27,7 +28,7 @@ struct TwoFAEnforcementService {
                 .eraseToAnyPublisher()
         }
 
-        let isOTP1EnabledPublisher = accountAPIClient.twoFactorStatus().map { status -> Bool in
+        let isOTP1EnabledPublisher = userApiClient.twoFactorStatus().map { status -> Bool in
             return status.type == .totpDeviceRegistration
         }.ignoreError()
             .eraseToAnyPublisher()
@@ -35,11 +36,18 @@ struct TwoFAEnforcementService {
     }
 }
 
-private extension AuthenticatedAccountAPIClient {
+private extension UserDeviceAPIClient {
 
-    func twoFactorStatus() -> AnyPublisher<TwoFactorStatusResponse, Error> {
-        return Future<TwoFactorStatusResponse, Error> { promise in
-            twoFAStatus(completion: promise)
+    func twoFactorStatus() -> AnyPublisher<UserDeviceAPIClient.Authentication.Get2FAStatus.Response, Error> {
+        return Future<UserDeviceAPIClient.Authentication.Get2FAStatus.Response, Error> { promise in
+            Task {
+                do {
+                    let status = try await authentication.get2FAStatus()
+                    promise(.success(status))
+                } catch {
+                    promise(.failure(error))
+                }
+            }
         }.eraseToAnyPublisher()
     }
 }

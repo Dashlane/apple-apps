@@ -2,12 +2,11 @@ import Foundation
 import DashTypes
 import SwiftTreats
 
-public enum SyncLoopError: Swift.Error {
-    case noResultFromImport
+public enum SyncError: Swift.Error {
     case unknownUserDevice
     case offline
-    case sync(SyncError)
-    case unknown(Error)
+    case sync(Error)
+    case syncAlreadyInProgress
 }
 
 public actor SyncLoop<Database: SyncableDatabase> {
@@ -32,7 +31,7 @@ public actor SyncLoop<Database: SyncableDatabase> {
                   uploadAPIClient: apiClient,
                   logger: logger)
     }
-    
+
     init(database: Database,
          sharingKeysStore: SharingKeysStore,
          downloadAPIClient: DeprecatedCustomAPIClient,
@@ -40,24 +39,24 @@ public actor SyncLoop<Database: SyncableDatabase> {
          logger: Logger) {
         self.download = SyncDownloader(apiClient: downloadAPIClient,
                                                   logger: logger)
-        
+
         self.processDownloadedData = DownloadedDataProcessor(database: database,
                                                              logger: logger)
         self.handleSharingKeys = SharingKeysHandler(sharingKeysStore: sharingKeysStore, apiClient: uploadAPIClient)
         self.upload = SyncUploader(database: database,
                                    apiClient: uploadAPIClient,
                                    logger: logger)
-        
+
         self.treatSyncProblems = SyncProblemsTreater(database: database,
                                                      logger: logger)
         self.logger = logger
-        
+
         self.sharingKeysStore = sharingKeysStore
     }
-    
+
                     public func sync(from timestamp: Timestamp, sharingSummary: inout SharingSummaryInfo?) async throws -> SyncOutput {
         guard !isInProgress else {
-            throw SyncError.inProgress
+            throw SyncError.syncAlreadyInProgress
         }
 
         isInProgress = true
@@ -81,27 +80,22 @@ public actor SyncLoop<Database: SyncableDatabase> {
             syncReport.updateDuration()
             logger.info("Sync did succeed - timestamp: \(timestamp)")
             return SyncOutput(timestamp: timestamp, syncReport: syncReport)
-        } catch SyncError.uploadData(error: UploadContentService.Error.conflictingUpload, timestamp: let timestamp) where attempt < 5 { 
+        } catch let error as SyncUploadConflictError where attempt < 5 { 
             logger.warning("Another client uploaded transactions before we managed to upload, re-run the sync")
             try await Task.sleep(nanoseconds: 1_000_000_000)
-            return try await sync(from: timestamp, sharingSummary: &sharingSummary, attempt: attempt + 1)
-        } catch let SyncError.downloadLatest(error as APIErrorResponse) where error.containsUnknownDeviceError(),
-                let SyncError.uploadData(error as APIErrorResponse, _) where error.containsUnknownDeviceError() {
-            logger.error("Device unknown")
-            throw SyncLoopError.unknownUserDevice
-        } catch let SyncError.downloadLatest(error as URLError) where error.isOffline,
-                let SyncError.uploadData(error as URLError, _) where error.isOffline {
-            logger.warning("Device is Offline")
-            throw SyncLoopError.offline
-        } catch let error as SyncError {
-            logger.error("Sync failed", error: error)
-            throw SyncLoopError.sync(error)
+            return try await sync(from: error.timestamp, sharingSummary: &sharingSummary, attempt: attempt + 1)
+        } catch let error as APIErrorResponse where error.containsUnknownDeviceError() {
+            logger.warning("Device is unknown")
+            throw SyncError.unknownUserDevice
+        } catch let error as URLError where error.isNetworkIssue {
+            logger.warning("Sync is Offline")
+            throw SyncError.offline
         } catch {
-            logger.error("Sync failed", error: error)
-            throw SyncLoopError.unknown(error)
+            logger.fatal("Sync failed", error: error)
+            throw SyncError.sync(error)
         }
     }
-    
+
                                     internal func performSync(from timestamp: Timestamp,
                               transactionIdsToDownload: [Identifier] = [],
                               needsKeys: Bool = false,
@@ -109,18 +103,18 @@ public actor SyncLoop<Database: SyncableDatabase> {
                               sharingSummary: inout SharingSummaryInfo?,
                               report: inout SyncReport) async throws -> Timestamp {
         logger.info("Starting sync from timestamp \(timestamp) - shouldTreatProblems \(shouldTreatProblems)")
-        
+
         let transactions = try await download(from: timestamp,
                                               needsKeys: needsKeys,
                                               missingTransactions: transactionIdsToDownload,
                                               report: &report)
                 let isInitialLoad = timestamp == 0
         var output = try await processDownloadedData(transactions, shouldMerge: !isInitialLoad)
-        
+
         if let summary = output.sharingData?.sharingInfo {
             sharingSummary = summary
         }
-        
+
                 if let rawSharingKeys = output.sharingData?.keys,
            let timestamp = try await handleSharingKeys(rawSharingKeys, syncTimestamp: output.timestamp) {
             output.timestamp = timestamp
@@ -130,7 +124,7 @@ public actor SyncLoop<Database: SyncableDatabase> {
             output.timestamp = uploadOutput.timestamp
             output.remoteTransactionsTimestamp = uploadOutput.remoteTransactionsTimestamp ?? output.remoteTransactionsTimestamp
         }
-        
+
                 if shouldTreatProblems, let remoteDataSummary = output.remoteTransactionsTimestamp {
             let problems = try treatSyncProblems(forRemoteSummary: remoteDataSummary,
                                                  problems: &previousProblems,
@@ -149,15 +143,26 @@ public actor SyncLoop<Database: SyncableDatabase> {
     }
 }
 
-
 extension APIErrorResponse {
     func containsUnknownDeviceError() -> Bool {
         return errors.contains(where: { $0.code == "unknown_userdevice_key" })
     }
 }
 
-extension URLError {
-    var isOffline: Bool {
-        return code == URLError.Code.notConnectedToInternet
+private extension URLError {
+    var isNetworkIssue: Bool {
+        switch self.code {
+            case .badServerResponse,
+                 .cancelled,
+                 .networkConnectionLost,
+                 .notConnectedToInternet,
+                 .redirectToNonExistentLocation,
+                 .timedOut,
+                 .unknown:
+                return true
+            default:
+                return false
+
+        }
     }
 }

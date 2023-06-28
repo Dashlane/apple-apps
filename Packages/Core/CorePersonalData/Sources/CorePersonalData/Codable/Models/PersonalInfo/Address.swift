@@ -33,7 +33,6 @@ public struct Address: PersonalDataCodable, Equatable, Identifiable, Hashable, D
         case userModificationDatetime
     }
 
-
     public enum Mode {
         case europe
         case europeWithState
@@ -98,8 +97,30 @@ public struct Address: PersonalDataCodable, Equatable, Identifiable, Hashable, D
         creationDatetime = Date()
         _attachments = .init(nil)
     }
-    
-    init(id: Identifier, anonId: String, name: String, addressFull: String, streetNumber: String, streetName: String, zipCode: String, city: String, state: StateCodeNamePair? = nil, country: CountryCodeNamePair? = nil, localeFormat: CountryCodeNamePair? = nil, linkedPhone: Identifier? = nil, receiver: String, building: String, stairs: String, floor: String, door: String, digitCode: String, creationDatetime: Date? = nil, userModificationDatetime: Date? = nil, spaceId: String? = nil) {
+
+    init(
+        id: Identifier,
+        anonId: String,
+        name: String,
+        addressFull: String,
+        streetNumber: String,
+        streetName: String,
+        zipCode: String,
+        city: String,
+        state: StateCodeNamePair? = nil,
+        country: CountryCodeNamePair? = nil,
+        localeFormat: CountryCodeNamePair? = nil,
+        linkedPhone: Identifier? = nil,
+        receiver: String,
+        building: String,
+        stairs: String,
+        floor: String,
+        door: String,
+        digitCode: String,
+        creationDatetime: Date? = nil,
+        userModificationDatetime: Date? = nil,
+        spaceId: String? = nil
+    ) {
         self.id = id
         self.anonId = anonId
         metadata = RecordMetadata(id: .temporary, contentType: Self.contentType)
@@ -125,7 +146,7 @@ public struct Address: PersonalDataCodable, Equatable, Identifiable, Hashable, D
         _attachments = .init(nil)
     }
 
-                mutating func link(with phone: Phone) -> Void {
+                mutating func link(with phone: Phone) {
         self.linkedPhone = phone.id
     }
 }
@@ -152,7 +173,7 @@ extension Address: Searchable {
             \Address.streetName,
             \Address.streetNumber,
             \Address.zipCode,
-            \Address.city,
+            \Address.city
         ]
     }
 }
@@ -166,17 +187,16 @@ extension Address {
             streetName = ""
             streetNumber = ""
         }
-        
+
         localeFormat = country
     }
 }
-
 
 extension CountryCodeNamePair {
     var addressMode: Address.Mode {
         if ["AT", "DK", "FR", "LU"].contains(code) {
             return .europe
-        }  else if ["AR", "BE", "CH", "CL", "CO", "DE", "ES", "IT", "NL", "NO", "PE", "PT", "SE", "MX"].contains(code) {
+        } else if ["AR", "BE", "CH", "CL", "CO", "DE", "ES", "IT", "NL", "NO", "PE", "PT", "SE", "MX"].contains(code) {
             return .europeWithState
         } else if ["JP"].contains(code) {
             return .japan
@@ -191,14 +211,13 @@ extension CountryCodeNamePair {
     }
 }
 
-
 public extension Address {
     var displayAddress: String {
         let address = CNMutablePostalAddress(address: self)
         let formatter = CNPostalAddressFormatter()
         return formatter.string(from: address)
     }
-    
+
     var hasStairs: Bool {
         guard let code = country?.code else { return false }
         return !["GB", "US"].contains(code)

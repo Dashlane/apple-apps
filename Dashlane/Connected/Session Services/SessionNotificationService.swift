@@ -3,7 +3,6 @@ import Combine
 import CoreNetworking
 import DashTypes
 import CoreSession
-import DashlaneReportKit
 import DashlaneAppKit
 import CoreSettings
 import UIKit
@@ -13,16 +12,14 @@ class SessionNotificationService {
     let settings: UserSettings
     let login: Login
     let logger: Logger
-    let usageLogService: UsageLogServiceProtocol
     let notificationService: NotificationService
     let webService: LegacyWebService
 
-    var subcriptions = Set<AnyCancellable>()
+    var subscriptions = Set<AnyCancellable>()
 
     @MainActor
     init(login: Login,
          notificationService: NotificationService,
-         usageLogService: UsageLogServiceProtocol,
          syncService: SyncServiceProtocol,
          brazeService: BrazeServiceProtocol,
          settings: UserSettings,
@@ -30,7 +27,6 @@ class SessionNotificationService {
          logger: Logger) {
         self.login = login
         self.notificationService = notificationService
-        self.usageLogService = usageLogService
         self.settings = settings
         self.webService = webService
         self.logger = logger
@@ -43,7 +39,7 @@ class SessionNotificationService {
                 }
                 syncService.sync(triggeredBy: .push)
                 notification.completionHandler(.noData) 
-            }.store(in: &subcriptions)
+            }.store(in: &subscriptions)
         }
 
         notificationService.remoteDeviceTokenPublisher()
@@ -57,7 +53,7 @@ class SessionNotificationService {
                     self.sendToken(token)
                     brazeService.registerForNotifications(deviceToken: token)
                 }
-            }.store(in: &subcriptions)
+            }.store(in: &subscriptions)
     }
 }
 
@@ -129,11 +125,6 @@ extension SessionNotificationService {
                     completionHandler()
                     return nil
                 }
-                if let template = response.notification.userInfo["template"] as? String,
-                   let notificationType = UsageLogCode50Notifications.TypeType(rawValue: template) {
-                    self.usageLogService.post(UsageLogCode50Notifications(action: .click,
-                                                                          type: notificationType))
-                }
                 return event
             }
 
@@ -147,7 +138,6 @@ extension SessionNotificationService {
     static var fakeService: SessionNotificationService {
         .init(login: .init("_"),
               notificationService: .init(logger: LoggerMock()),
-              usageLogService: UsageLogService.fakeService,
               syncService: SyncServiceMock(),
               brazeService: BrazeService.mock,
               settings: .mock,

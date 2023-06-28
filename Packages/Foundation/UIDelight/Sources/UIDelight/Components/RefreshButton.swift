@@ -3,18 +3,18 @@ import Combine
 
 public struct RefreshButton: View {
     public let action: () -> Void
-    
+
     @StateObject
     private var executor = ThrottledExecutor()
     @State
     private var animationAmount = 0.0
-    
+
     private let impactGenerator = UserFeedbackGenerator.makeImpactGenerator()
 
     public init(action: @escaping () -> Void) {
         self.action = action
     }
-    
+
     public var body: some View {
         Button(action: {
             executor.perform(action: performAction)
@@ -47,7 +47,6 @@ private class ThrottledExecutor: ObservableObject {
     }
 }
 
-
 struct RefreshButton_Previews: PreviewProvider {
     static var previews: some View {
         RefreshButton {
@@ -57,4 +56,3 @@ struct RefreshButton_Previews: PreviewProvider {
         .previewLayout(.sizeThatFits)
     }
 }
-

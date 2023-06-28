@@ -12,5 +12,3 @@ public class FakeNotificationKitAutofillService: NotificationKitAutofillServiceP
 
     public var notificationKitActivationStatus: Published<AutofillActivationStatus>.Publisher { $status }
 }
-
-

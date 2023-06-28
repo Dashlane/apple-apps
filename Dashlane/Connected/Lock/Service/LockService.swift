@@ -31,13 +31,13 @@ class LockService: Mockable {
                                                         keychainService: keychainService,
                                                         settings: self.settings)
 
-        biometricSetUpdatesService = BiometricSetUpdatesService(login: session.login,
-                                                                            settings: self.settings,
-                                                                            keychainService: keychainService,
-                                                                            featureService: featureService,
-                                                                            configurator: secureLockConfigurator,
-                                                                            teamSpaceService: teamSpaceService,
-                                                                            resetMasterPasswordService: resetMasterPasswordService)
+        biometricSetUpdatesService = BiometricSetUpdatesService(session: session,
+                                                                settings: self.settings,
+                                                                keychainService: keychainService,
+                                                                featureService: featureService,
+                                                                configurator: secureLockConfigurator,
+                                                                teamSpaceService: teamSpaceService,
+                                                                resetMasterPasswordService: resetMasterPasswordService)
 
         secureLockProvider = SecureLockProvider(login: session.login,
                                                 settings: settings,
@@ -46,7 +46,7 @@ class LockService: Mockable {
         #if targetEnvironment(macCatalyst)
                 locker = .automaticLogout(SessionInactivityAutomaticLogout(teamSpaceService: teamSpaceService, sessionLifeCycleHandler: sessionLifeCycleHandler))
         #else
-        locker = .screenLock(ScreenLocker(masterKey: session.configuration.masterKey,
+        locker = .screenLock(ScreenLocker(masterKey: session.authenticationMethod.sessionKey,
                                           secureLockProvider: secureLockProvider,
                                           settings: settings,
                                           teamSpaceService: teamSpaceService,

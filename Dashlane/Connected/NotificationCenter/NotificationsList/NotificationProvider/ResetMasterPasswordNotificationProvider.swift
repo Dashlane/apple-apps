@@ -7,6 +7,7 @@ import CoreSettings
 import CoreKeychain
 import LoginKit
 import SwiftUI
+import CoreSession
 
 class ResetMasterPasswordNotificationProvider: NotificationProvider {
     private let settingsPrefix: String = "reset-master-password-action-item-identifier"
@@ -16,22 +17,23 @@ class ResetMasterPasswordNotificationProvider: NotificationProvider {
     private let userSettings: UserSettings
     private let teamSpaceService: TeamSpacesService
     private let settings: NotificationSettings
+    private let authenticationMethod: AuthenticationMethod
 
-    init(keychainService: AuthenticationKeychainServiceProtocol,
+    init(session: Session,
+         keychainService: AuthenticationKeychainServiceProtocol,
          featureService: FeatureServiceProtocol,
          resetMasterPasswordService: ResetMasterPasswordServiceProtocol,
          userSettings: UserSettings,
          teamSpaceService: TeamSpacesService,
-         settingsStore: LocalSettingsStore,
-         logger: NotificationCenterLogger) {
+         settingsStore: LocalSettingsStore) {
+        self.authenticationMethod = session.authenticationMethod
         self.featureService = featureService
         self.keychainService = keychainService
         self.resetMasterPasswordService = resetMasterPasswordService
         self.userSettings = userSettings
         self.teamSpaceService = teamSpaceService
         self.settings = NotificationSettings(prefix: settingsPrefix,
-                                             settings: settingsStore,
-                                             logger: logger)
+                                             settings: settingsStore)
     }
 
         public func notificationPublisher() -> AnyPublisher<[DashlaneNotification], Never> {
@@ -50,7 +52,7 @@ class ResetMasterPasswordNotificationProvider: NotificationProvider {
 
     private var shouldBeDisplayed: Bool {
         guard canAuthenticateUsingBiometrics else { return false }
-        guard !teamSpaceService.isSSOUser else { return false }
+        guard case .masterPassword = authenticationMethod else { return false }
         guard featureService.isEnabled(.masterPasswordResetIsAvailable) else { return false }
         return !resetMasterPasswordService.isActive
     }

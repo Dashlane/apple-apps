@@ -4,7 +4,6 @@ public struct ResetMasterPasswordIntroViewModel: HomeAnnouncementsServicesInject
 
     let deepLinkingService: NotificationKitDeepLinkingServiceProtocol
 
-
     public init(deepLinkingService: NotificationKitDeepLinkingServiceProtocol) {
         self.deepLinkingService = deepLinkingService
     }

@@ -3,11 +3,11 @@ import PackageDescription
 let package = Package(
     name: "CoreSync",
     platforms: [
-        .iOS(.v15),
-        .macOS(.v12)
+        .iOS(.v16),
+        .macOS(.v13)
     ],
     products: [
-        .library(name: "CoreSync", targets: ["CoreSync"]),
+        .library(name: "CoreSync", targets: ["CoreSync"])
     ],
     dependencies: [
         .package(path: "../../Foundation/DashTypes"),

@@ -4,6 +4,8 @@ import CorePersonalData
 import DashlaneAppKit
 import SwiftTreats
 import CoreUserTracking
+import VaultKit
+import CoreLocalization
 
 struct VaultListView<FilterFooterView: View>: View {
     @ObservedObject
@@ -32,7 +34,7 @@ struct VaultListView<FilterFooterView: View>: View {
         VaultSearchView(model: model.searchViewModel)
             .searchHeaderHeight(bannerHeight)
             .searchFiltersView(filtersView)
-            .navigationTitle(title ?? model.activeFilter.category?.title ?? L10n.Localizable.mainMenuHomePage)
+            .navigationTitle(title ?? model.activeFilter.category?.title ?? CoreLocalization.L10n.Core.mainMenuHomePage)
             .reportPageAppearance(model.activeFilter.page)
             .navigationBarTitleDisplayMode(Device.isIpadOrMac ? .inline : .automatic)
     }
@@ -55,9 +57,9 @@ struct VaultListView<FilterFooterView: View>: View {
     }
 }
 
-private extension VaultListFilter {
+private extension VaultItemsSection {
     var supportIndexes: Bool {
-        let categoriesWithoutIndexes: [VaultListFilter] = [.payments, .ids, .personalInfo]
+        let categoriesWithoutIndexes: [VaultItemsSection] = [.payments, .ids, .personalInfo]
         return !categoriesWithoutIndexes.contains(self)
     }
 }
@@ -85,7 +87,7 @@ extension VaultListView where FilterFooterView == EmptyView {
     }
 }
 
-extension VaultListFilter {
+extension VaultItemsSection {
     var page: Page {
         switch self {
         case .payments:

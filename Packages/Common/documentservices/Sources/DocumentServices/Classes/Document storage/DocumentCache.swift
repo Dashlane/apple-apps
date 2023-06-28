@@ -69,7 +69,7 @@ public struct DocumentCache {
     }
 
                     public func urlOfDecryptedDirectory(with fileComponent: String? = nil,
-                                 isUnique: Bool = false) throws -> URL {
+                                        isUnique: Bool = false) throws -> URL {
         let decryptedFilesURL = try self.decryptedFilesURL()
         let url = isUnique ?
             decryptedFilesURL.appendingPathComponent(UUID().uuidString, isDirectory: true) :
@@ -94,9 +94,9 @@ public struct DocumentCache {
 
                                                     @discardableResult
     public func write(_ data: Data,
-               to scope: CacheScope,
-               filename: String,
-               isUnique: Bool = false) throws -> URL {
+                      to scope: CacheScope,
+                      filename: String,
+                      isUnique: Bool = false) throws -> URL {
         var destination = try self.destination(scope: scope, filename: filename, isUnique: isUnique)
         try? FileManager.default.removeItem(at: destination)
         try data.write(to: destination, options: [.atomic])
@@ -106,9 +106,9 @@ public struct DocumentCache {
 
                                                     @discardableResult
     public func move(_ url: URL,
-              to scope: CacheScope,
-              filename: String,
-              isUnique: Bool = false) throws -> URL {
+                     to scope: CacheScope,
+                     filename: String,
+                     isUnique: Bool = false) throws -> URL {
         let destination = try self.destination(scope: scope, filename: filename, isUnique: isUnique)
         try? FileManager.default.removeItem(at: destination)
         try FileManager.default.moveItem(at: url, to: destination)
@@ -117,9 +117,9 @@ public struct DocumentCache {
 
                                                     @discardableResult
     public func copy(_ url: URL,
-              to scope: CacheScope,
-              filename: String,
-              isUnique: Bool = false) throws -> URL {
+                     to scope: CacheScope,
+                     filename: String,
+                     isUnique: Bool = false) throws -> URL {
         let destination = try self.destination(scope: scope, filename: filename, isUnique: isUnique)
         try? FileManager.default.removeItem(at: destination)
         try FileManager.default.copyItem(at: url, to: destination)

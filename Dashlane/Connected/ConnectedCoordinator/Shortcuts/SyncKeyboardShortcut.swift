@@ -2,6 +2,7 @@ import Foundation
 import Combine
 import UIKit
 import DashlaneAppKit
+import UIComponents
 
 class SyncKeyboardShortcut {
 

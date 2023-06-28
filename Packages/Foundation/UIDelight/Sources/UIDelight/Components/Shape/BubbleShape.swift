@@ -8,7 +8,7 @@ public enum BubbleShapeDirection {
 public struct BubbleShape: Shape {
     static let arrowSize = CGFloat(10*sqrt(2))
 
-    let direction : BubbleShapeDirection
+    let direction: BubbleShapeDirection
 
     public init(direction: BubbleShapeDirection = .down) {
         self.direction = direction
@@ -72,7 +72,7 @@ public struct BubbleShape: Shape {
         path.addLine(to: CGPoint(x: 0, y: radius))
         path.addArc(center: CGPoint(x: radius, y: radius), radius: radius, startAngle: Angle(degrees: 180), endAngle: Angle(degrees: 270), clockwise: false)
 
-                path.addLines([CGPoint(x: width, y: height/2-5),CGPoint(x: width + Self.arrowSize*0.3, y: height/2),CGPoint(x: width, y: height/2+5)])
+                path.addLines([CGPoint(x: width, y: height/2-5), CGPoint(x: width + Self.arrowSize*0.3, y: height/2), CGPoint(x: width, y: height/2+5)])
 
         return path
     }

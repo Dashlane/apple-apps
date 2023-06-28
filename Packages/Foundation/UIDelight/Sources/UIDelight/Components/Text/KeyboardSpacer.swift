@@ -33,7 +33,7 @@ public struct KeyboardSpacer: View {
     public init() {
         self.keyboardAppearancePublisher = self.showPublisher.merge(with: self.hidePublisher).receive(on: DispatchQueue.main).eraseToAnyPublisher()
     }
-    
+
     public var body: some View {
         Spacer()
             .frame(height: self.spacerHeight)

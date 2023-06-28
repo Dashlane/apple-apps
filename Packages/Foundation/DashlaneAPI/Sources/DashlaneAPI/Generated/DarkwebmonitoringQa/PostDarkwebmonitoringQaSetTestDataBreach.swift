@@ -1,6 +1,6 @@
 import Foundation
 extension AppAPIClient.DarkwebmonitoringQa {
-        public struct SetTestDataBreach {
+        public struct SetTestDataBreach: APIRequest {
         public static let endpoint: Endpoint = "/darkwebmonitoring-qa/SetTestDataBreach"
 
         public let api: AppAPIClient
@@ -17,12 +17,23 @@ extension AppAPIClient.DarkwebmonitoringQa {
 }
 
 extension AppAPIClient.DarkwebmonitoringQa.SetTestDataBreach {
-        struct Body: Encodable {
+        public struct Body: Encodable {
+
+        private enum CodingKeys: String, CodingKey {
+            case databreach = "databreach"
+        }
 
         public let databreach: Databreach
     }
 
         public struct Databreach: Codable, Equatable {
+
+        private enum CodingKeys: String, CodingKey {
+            case uuid = "uuid"
+            case breachDateUnix = "breachDateUnix"
+            case details = "details"
+            case domain = "domain"
+        }
 
         public let uuid: String
 
@@ -51,6 +62,19 @@ extension AppAPIClient.DarkwebmonitoringQa.SetTestDataBreach {
             case live = "live"
             case pending = "pending"
             case hidden = "hidden"
+        }
+
+        private enum CodingKeys: String, CodingKey {
+            case breachId = "breachId"
+            case livemode = "livemode"
+            case domain = "domain"
+            case breachDateUnix = "breachDateUnix"
+            case details = "details"
+            case status = "status"
+            case uri = "uri"
+            case creationDateUnix = "creationDateUnix"
+            case updateDateUnix = "updateDateUnix"
+            case uuid = "uuid"
         }
 
         public let breachId: Int

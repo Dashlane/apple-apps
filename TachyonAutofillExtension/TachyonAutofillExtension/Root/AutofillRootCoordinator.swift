@@ -7,16 +7,20 @@ import CoreSession
 import CoreUserTracking
 import SwiftUI
 import SwiftTreats
+import AutofillKit
+import UIComponents
+import LoginKit
 
 class AutofillRootCoordinator: Coordinator, SubcoordinatorOwner {
 
     let context: ASCredentialProviderExtensionContext
     let appServices: AppServicesContainer
+    let loginKitServices: LoginKitServicesContainer
+    
     unowned var rootNavigationController: DashlaneNavigationController!
     var subcoordinator: Coordinator?
         var persistedSessionServices: SessionServicesContainer?
-    var logger: TachyonLogger? { return appServices.installerLogService.tachyonLogger }
-    
+
         var allAppMessages: [AppExtensionCommunicationCenter.Message] = []
 
     init(context: ASCredentialProviderExtensionContext,
@@ -27,12 +31,13 @@ class AutofillRootCoordinator: Coordinator, SubcoordinatorOwner {
         self.context = context
         self.rootNavigationController = rootViewController
         self.persistedSessionServices = sharedSessionServices
+        self.loginKitServices = appServices.makeLoginKitServicesContainer()
     }
     
     func start() {}
 
         func handleAppExtensionCommunication(completion: @escaping Completion<Void>) {
-        let messagesReceived = appServices.appExtensionCommunication.consumeMessages()
+        let messagesReceived: Set<AppExtensionCommunicationCenter.Message> = appServices.appExtensionCommunication.consumeMessages()
         
         self.allAppMessages += messagesReceived
 
@@ -41,8 +46,7 @@ class AutofillRootCoordinator: Coordinator, SubcoordinatorOwner {
             return
         }
 
-                        if messagesReceived.contains(.userDidLogout) ||
-            messagesReceived.contains(.dataMutated) ||
+                if messagesReceived.contains(.userDidLogout) ||
             messagesReceived.contains(.premiumStatusDidUpdate) {
             self.persistedSessionServices = nil
             SessionServicesContainer.shared = nil
@@ -57,13 +61,6 @@ class AutofillRootCoordinator: Coordinator, SubcoordinatorOwner {
         handleAppExtensionCommunication { [weak self] _ in
             guard let self = self else { return }
             if let sessionServices = self.persistedSessionServices {
-                                                if fromQuickbar && self.allAppMessages.contains(.dataMutated) {
-                    self.persistedSessionServices = nil
-                    SessionServicesContainer.shared = nil
-                    Task { @MainActor in
-                        await self.startAuthentication(completion: completion)
-                    }
-                }
                                                 sessionServices.syncService.sync(triggeredBy: .periodic)
                 completion(.success(self.makeConnectedCoordinator(with: sessionServices, locked: true)))
             } else {
@@ -77,7 +74,8 @@ class AutofillRootCoordinator: Coordinator, SubcoordinatorOwner {
     @MainActor
     func startAuthentication(completion: @escaping (Result<AutofillConnectedCoordinator, Error>) -> Void) async {
         let authenticationCoordinator = AuthenticationCoordinator(appServices: appServices,
-                                                                  navigator: rootNavigationController) {[weak self] result in
+                                                                  navigator: rootNavigationController,
+                                                                  localLoginFlowViewModelFactory: .init( loginKitServices.makeLocalLoginFlowViewModel)) {[weak self] result in
                                                                     guard let self = self else { return }
                                                                     self.postAuthentication(sessionServicesResult: result,
                                                                                             completion: completion)
@@ -113,8 +111,7 @@ class AutofillRootCoordinator: Coordinator, SubcoordinatorOwner {
         return connectedCoordinator
     }
 
-    private func cancelRequest() {
-        logger?.log(LifeCycleLogEvent.failed(userInteractionRequired: false))
+    fileprivate func cancelRequest() {
         context.cancelRequest(withError: ASExtensionError.userCanceled.nsError)
         self.persistedSessionServices = nil
     }
@@ -124,7 +121,6 @@ class AutofillRootCoordinator: Coordinator, SubcoordinatorOwner {
             cancelRequest()
             return
         }
-        logger?.log(LifeCycleLogEvent.completed(selection))
         context.completeRequest(withSelectedCredential: ASPasswordCredential(credential: selection.credential)) { _ in }
         self.persistedSessionServices = nil
     }
@@ -132,19 +128,33 @@ class AutofillRootCoordinator: Coordinator, SubcoordinatorOwner {
     @MainActor
     private func displayErrorStateOrCancelRequest(error: Error) async {
         if case let  AuthenticationCoordinator.AuthError.noUserConnected(details) = error {
-            let errorStateCoordinator = ErrorStateCoordinator(rootNavigationController: self.rootNavigationController, error: .noUserConnected(details: details), tachyonLogger: appServices.installerLogService.tachyonLogger, completion: { [weak self] closed in
-                self?.cancelRequest()
-            })
-            startSubcoordinator(errorStateCoordinator)
+            let view = AutofillErrorView(with: self, error: .noUserConnected(details: details))
+            rootNavigationController.viewControllers = [UIHostingController(rootView: view)]
         } else if case AuthenticationCoordinator.AuthError.ssoUserWithNoAccountCreated = error {
-                let errorStateCoordinator = ErrorStateCoordinator(rootNavigationController: self.rootNavigationController, error: .ssoUserWithNoConvenientLoginMethod, tachyonLogger: appServices.installerLogService.tachyonLogger, completion: { [weak self] closed in
-                    self?.cancelRequest()
-                })
-            startSubcoordinator(errorStateCoordinator)
+            let view = AutofillErrorView(with: self, error: .ssoUserWithNoConvenientLoginMethod)
+            rootNavigationController.viewControllers = [UIHostingController(rootView: view)]
+        }
+        else {
+            cancelRequest()
+        }
+    }
+}
+
+extension AutofillRootCoordinator: AutofillURLOpener {
+    func openUrl(_ url: URL) {
+        self.openURL(url)
+    }
+
+    @discardableResult
+    @objc private func openURL(_ url: URL) -> Bool {
+        var responder: UIResponder? = rootNavigationController
+        while responder != nil {
+            if let application = responder as? UIApplication {
+                return application.perform(#selector(openURL(_:)), with: url) != nil
             }
-            else {
-                cancelRequest()
-            }
+            responder = responder?.next
+        }
+        return false
     }
 }
 
@@ -152,7 +162,7 @@ extension AutofillRootCoordinator: CredentialProvider {
     func prepareInterfaceForExtensionConfiguration() {
         let configurationViewController: UIViewController
         #if !targetEnvironment(macCatalyst)
-        configurationViewController = StoryboardScene.TachyonInterface.configurationScreen.instantiate(input: CredentialProviderConfigurationViewController.Input(completion: { [weak context] in
+        configurationViewController = UIHostingController(rootView: CredentialProviderConfigurationView(completion: { [weak context] in
             context?.completeExtensionConfigurationRequest()
         }))
         rootNavigationController.present(configurationViewController, animated: false, completion: nil)
@@ -162,16 +172,11 @@ extension AutofillRootCoordinator: CredentialProvider {
         }))
         rootNavigationController.setViewControllers([configurationViewController], animated: true)
         #endif
-        logger?.log(ConfigurationScreenLogEvent.displayed)
 
 
     }
     
     func prepareCredentialList(for serviceIdentifiers: [ASCredentialServiceIdentifier]) {
-        logger?.log(LifeCycleLogEvent.started(domain: serviceIdentifiers.first?.identifier,
-                                                     preselectedCredential: false,
-                                                     alreadyAuthenticated: persistedSessionServices != nil))
-
         retrieveConnectedCoordinator { [weak self, context] result in
             do {
                 let sessionCoordinator = try result.get()
@@ -188,10 +193,6 @@ extension AutofillRootCoordinator: CredentialProvider {
     }
 
         func prepareInterfaceToProvideCredential(for credentialIdentity: ASPasswordCredentialIdentity) {
-        logger?.log(LifeCycleLogEvent.started(domain: credentialIdentity.serviceIdentifier.identifier,
-                                                     preselectedCredential: true,
-                                                     alreadyAuthenticated: persistedSessionServices != nil))
-
         retrieveConnectedCoordinator(fromQuickbar: true) { [weak self, context] result in
             guard let self = self else { return }
             switch result {
@@ -218,14 +219,7 @@ extension AutofillRootCoordinator: CredentialProvider {
         func provideCredentialWithoutUserInteraction(for credentialIdentity: ASPasswordCredentialIdentity) {
         handleAppExtensionCommunication {[weak self] _ in
             guard let self = self else { return }
-            self.logger?.log(LifeCycleLogEvent.started(domain: credentialIdentity.serviceIdentifier.identifier,
-                                                              preselectedCredential: true,
-                                                              alreadyAuthenticated: self.persistedSessionServices != nil))
             guard let sesssionServices = self.persistedSessionServices else {
-                self.logger?.log(LifeCycleLogEvent.failed(userInteractionRequired: true))
-                if self.allAppMessages.contains(.dataMutated) {
-                    self.appServices.appExtensionCommunication.write(message: .dataMutated)
-                }
                 self.context.cancelRequest(withError: ASExtensionError.userInteractionRequired.nsError)
                 return
             }
@@ -243,3 +237,13 @@ extension AutofillRootCoordinator: CredentialProvider {
     }
 }
 
+fileprivate extension AutofillErrorView {
+    @MainActor init(with coordinator: AutofillRootCoordinator,
+                    error: AutofillError) {
+        self.init(error: error,
+                  cancelAction: { [coordinator] in
+            coordinator.cancelRequest()
+        },
+                  urlOpener: coordinator)
+    }
+}

@@ -7,6 +7,11 @@ public struct ItemForEmailing: Codable, Equatable {
         case note = "note"
     }
 
+    private enum CodingKeys: String, CodingKey {
+        case name = "name"
+        case type = "type"
+    }
+
         public let name: String
 
         public let type: `Type`

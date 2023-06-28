@@ -31,7 +31,7 @@ class VPNMainViewModel: ObservableObject, SessionServicesInjecting {
     private var subscriptions = Set<AnyCancellable>()
     private var copyActionSubscription: AnyCancellable?
     private let accessControl: AccessControlProtocol
-    private lazy var itemPasteboard = ItemPasteboard(accessControl: accessControl, userSettings: userSettings)
+    private let itemPasteboard: ItemPasteboard
     private let userSettings: UserSettings
     private let activityReporter: ActivityReporterProtocol
 
@@ -70,6 +70,7 @@ class VPNMainViewModel: ObservableObject, SessionServicesInjecting {
          activityReporter: ActivityReporterProtocol,
          accessControl: AccessControlProtocol,
          iconService: IconServiceProtocol,
+         pasteboardService: PasteboardServiceProtocol,
          actionPublisher: PassthroughSubject<VPNAvailableToolsFlowViewModel.Action, Never>? = nil) {
         self.mode = mode
         self.actionPublisher = actionPublisher
@@ -79,7 +80,7 @@ class VPNMainViewModel: ObservableObject, SessionServicesInjecting {
         self.userSettings = userSettings
         self.activityReporter = activityReporter
         self.accessControl = accessControl
-
+        self.itemPasteboard = ItemPasteboard(accessControl: accessControl, pasteboardService: pasteboardService)
         self.vaultItemsService.$credentials
             .receive(on: DispatchQueue.main)
             .map { $0.filter { $0.url?.host == VPNService.vpnCredentialURL.host } }
@@ -140,9 +141,10 @@ class VPNMainViewModel: ObservableObject, SessionServicesInjecting {
 
         return VPNMainViewModel(mode: mode,
                                 vaultItemsService: container.vaultItemsService,
-                                userSettings: KeyedSettings(internalStore: InMemoryLocalSettingsStore()),
+                                userSettings: KeyedSettings(internalStore: .mock()),
                                 activityReporter: .fake,
                                 accessControl: FakeAccessControl(accept: true),
-                                iconService: IconServiceMock())
+                                iconService: IconServiceMock(),
+                                pasteboardService: .mock())
     }
 }

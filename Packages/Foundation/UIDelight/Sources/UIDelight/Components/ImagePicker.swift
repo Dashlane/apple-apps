@@ -12,7 +12,7 @@ public struct ImagePicker: UIViewControllerRepresentable {
     var imageData: ImageData?
 
     let sourceType: UIImagePickerController.SourceType
-    
+
     public init(imageData: Binding<ImageData?>, sourceType: UIImagePickerController.SourceType) {
         self._imageData = imageData
         self.sourceType = sourceType
@@ -46,7 +46,7 @@ public struct ImagePicker: UIViewControllerRepresentable {
         }
 
         public func imagePickerController(_ picker: UIImagePickerController,
-                                   didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
+                                          didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey: Any]) {
 
             picker.dismiss(animated: true) {
                 switch picker.sourceType {

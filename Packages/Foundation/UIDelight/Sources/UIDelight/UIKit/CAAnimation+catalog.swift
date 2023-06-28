@@ -4,7 +4,7 @@ import Foundation
 import UIKit
 
 public extension CAAnimation {
-    func delayed(by delay: TimeInterval) -> CAAnimation {
+        func delayed(by delay: TimeInterval) -> CAAnimation {
         let animation = self.copy() as! CAAnimation
         animation.beginTime = delay
         animation.fillMode = CAMediaTimingFillMode.both

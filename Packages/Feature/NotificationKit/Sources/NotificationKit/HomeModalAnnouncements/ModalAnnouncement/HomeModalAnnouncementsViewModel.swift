@@ -18,6 +18,8 @@ public class HomeModalAnnouncementsViewModel: ObservableObject, HomeAnnouncement
                 self.sheet = sheet
             case let .overScreen(over):
                 self.overFullScreen = over
+            case let .alert(alert):
+                self.alert = alert
             }
         }
     }
@@ -30,6 +32,9 @@ public class HomeModalAnnouncementsViewModel: ObservableObject, HomeAnnouncement
 
     @Published
     var overFullScreen: HomeOverFullScreenAnnouncement?
+
+    @Published
+    var alert: HomeAlertAnnouncement?
 
     var cancellables = Set<AnyCancellable>()
 
@@ -59,17 +64,16 @@ public class HomeModalAnnouncementsViewModel: ObservableObject, HomeAnnouncement
                 trigger
             .filter({ _ in self.sheet == nil })
             .receive(on: DispatchQueue.global(qos: .background))
-            .compactMap({ trigger in
-                return self.scheduler.evaluate(for: trigger)
-            })
+            .compactMap { self.scheduler.evaluate(for: $0) }
             .receive(on: DispatchQueue.main)
             .sink(receiveValue: { [weak self] announcement in
-                guard let self else { return }
-                guard self.presentedAnnouncement == nil else {
-                                        return
+                    guard let self else { return }
+                    guard self.presentedAnnouncement == nil else {
+                                                return
+                    }
+                    self.presentedAnnouncement = announcement
                 }
-                self.presentedAnnouncement = announcement
-            })
+            )
             .store(in: &cancellables)
     }
 
@@ -84,7 +88,8 @@ extension HomeModalAnnouncementsScheduler {
               rateAppModalAnnouncement: .init({ .mock }),
               freeTrialAnnouncement: .init({ .mock }),
               planRecommandationAnnouncement: .init({ .mock }),
-              autofillActivationAnnouncement: .init({ .mock }))
+              autofillActivationAnnouncement: .init({ .mock }),
+              updateOperatingSystemAnnouncement: .init({ _, _ in .mock() }))
     }
 }
 

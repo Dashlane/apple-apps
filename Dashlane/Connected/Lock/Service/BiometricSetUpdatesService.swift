@@ -10,7 +10,7 @@ import CoreSettings
 import CoreFeature
 
 struct BiometricSetUpdatesService {
-    let login: Login
+    let session: Session
     let settings: UserLockSettings
     let keychainService: AuthenticationKeychainService
     let featureService: FeatureServiceProtocol
@@ -25,19 +25,15 @@ struct BiometricSetUpdatesService {
         return settings[.biometricEnrolmentChanged] == true
     }
 
-    var reactivationNeededForMasterPasswordReset: Bool {
-        return settings[.resetMasterPasswordWithBiometricsReactivationNeeded] == true && !teamSpaceService.isSSOUser
-    }
-
     enum Setup {
         case biometry
-        case biometryAndMasterPasswordReset
+        case biometryAndMasterPasswordReset(_ masterPassword: String)
     }
 
     func setupToReactivate() -> Setup? {
-        if reactivationNeededForMasterPasswordReset {
+        if let password = reactivationNeededForMasterPasswordReset() {
             assert(reactivationNeededForBiometry)
-            return .biometryAndMasterPasswordReset
+            return .biometryAndMasterPasswordReset(password)
         }
 
         if reactivationNeededForBiometry {
@@ -45,6 +41,13 @@ struct BiometricSetUpdatesService {
         }
 
         return nil
+    }
+
+    func reactivationNeededForMasterPasswordReset() -> String? {
+        guard settings[.resetMasterPasswordWithBiometricsReactivationNeeded] == true, case let AuthenticationMethod.masterPassword(password, _) = session.authenticationMethod else {
+            return nil
+        }
+        return password
     }
 
         func checkForUpdatesInBiometricSet() {

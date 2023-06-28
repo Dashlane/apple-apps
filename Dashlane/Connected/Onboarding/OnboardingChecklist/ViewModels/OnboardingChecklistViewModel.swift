@@ -10,6 +10,9 @@ import DashTypes
 import UIComponents
 import CorePremium
 import NotificationKit
+import VaultKit
+import AutofillKit
+import CoreSession
 
 enum OnboardingChecklistDismissability: String {
     case nonDismissable
@@ -27,10 +30,9 @@ class OnboardingChecklistViewModel: ObservableObject, SessionServicesInjecting {
     let autofillService: AutofillService
     private let featureService: FeatureServiceProtocol
     private let capabilityService: CapabilityServiceProtocol
-    private let logsService: OnboardingChecklistLogsService
     private let activityReporter: ActivityReporterProtocol
     var cancellables = Set<AnyCancellable>()
-    let userSwitcherViewModel: UserSpaceSwitcherViewModel
+    let userSpaceSwitcherViewModelFactory: UserSpaceSwitcherViewModel.Factory
 
     var isSecureNoteDisabled: Bool {
         featureService.isEnabled(.disableSecureNotes)
@@ -59,13 +61,7 @@ class OnboardingChecklistViewModel: ObservableObject, SessionServicesInjecting {
     var selectedAction: OnboardingChecklistAction?
 
     @Published
-    var dismissability: OnboardingChecklistDismissability = .nonDismissable {
-        didSet {
-            if oldValue != dismissability {
-                logsService.log(.checklistDismissabilityUpdate(dismissability: dismissability))
-            }
-        }
-    }
+    var dismissability: OnboardingChecklistDismissability = .nonDismissable
 
     @Published
     var dismissButtonCTA: String?
@@ -86,11 +82,10 @@ class OnboardingChecklistViewModel: ObservableObject, SessionServicesInjecting {
     var secureNoteState: SecureNoteState
 
     let action: (OnboardingChecklistFlowViewModel.Action) -> Void
+    private let session: Session
 
-    let modalAnnouncementsViewModel: HomeModalAnnouncementsViewModel
-    let lockService: LockServiceProtocol
-
-    init(userSettings: UserSettings,
+    init(session: Session,
+         userSettings: UserSettings,
          dwmOnboardingSettings: DWMOnboardingSettings,
          dwmOnboardingService: DWMOnboardingService,
          vaultItemsService: VaultItemsServiceProtocol,
@@ -98,13 +93,10 @@ class OnboardingChecklistViewModel: ObservableObject, SessionServicesInjecting {
          featureService: FeatureServiceProtocol,
          onboardingService: OnboardingService,
          autofillService: AutofillService,
-         logsService: OnboardingChecklistLogsService,
-         lockService: LockServiceProtocol,
          activityReporter: ActivityReporterProtocol,
-         userSwitcherViewModel: @escaping () -> UserSpaceSwitcherViewModel,
          action: @escaping (OnboardingChecklistFlowViewModel.Action) -> Void,
-         homeModalAnnouncementsViewModelFactory: HomeModalAnnouncementsViewModel.Factory
-    ) {
+         userSpaceSwitcherViewModelFactory: UserSpaceSwitcherViewModel.Factory) {
+        self.session = session
         self.userSettings = userSettings
         self.featureService = featureService
         self.dwmOnboardingSettings = dwmOnboardingSettings
@@ -112,15 +104,12 @@ class OnboardingChecklistViewModel: ObservableObject, SessionServicesInjecting {
         self.vaultItemsService = vaultItemsService
         self.onboardingService = onboardingService
         self.autofillService = autofillService
-        self.logsService = logsService
         self.activityReporter = activityReporter
         self.capabilityService = capabilityService
-        self.userSwitcherViewModel = userSwitcherViewModel()
+        self.userSpaceSwitcherViewModelFactory = userSpaceSwitcherViewModelFactory
         self.action = action
         self.secureNoteState = SecureNoteState(isSecureNoteDisabled: featureService.isEnabled(.disableSecureNotes),
                                                isSecureNoteLimited: capabilityService.state(of: .secureNotes) == .needsUpgrade)
-        modalAnnouncementsViewModel = homeModalAnnouncementsViewModelFactory.make()
-        self.lockService = lockService
         setupSubscriptions()
         setupChecklist()
         updateDismissability()
@@ -153,12 +142,10 @@ class OnboardingChecklistViewModel: ObservableObject, SessionServicesInjecting {
         self.userSettings[.hasUserDismissedOnboardingChecklist] = true
 
                 if allDone() {
-            logsService.log(.checklistDismissed(dismissal: .allDone))
             showDismissAnimation {
                 self.dismiss()
             }
         } else {
-            logsService.log(.checklistDismissed(dismissal: .timeOver))
             self.dismiss()
         }
     }
@@ -168,9 +155,11 @@ class OnboardingChecklistViewModel: ObservableObject, SessionServicesInjecting {
 
                 self.actions.append(checklistFirstAction())
 
-                self.actions.append(contentsOf: [.activateAutofill, .m2d])
+                self.actions.append(.activateAutofill)
 
-        logsService.log(.checklistDisplayed(actions: actions))
+                if session.configuration.info.accountType != .invisibleMasterPassword {
+            self.actions.append(.mobileToDesktop)
+        }
         setupSelectedAction()
     }
 
@@ -212,7 +201,7 @@ class OnboardingChecklistViewModel: ObservableObject, SessionServicesInjecting {
             return hasAtLeastOnePassword ? .completed : .todo
         case .activateAutofill:
             return isAutofillActivated ? .completed : .todo
-        case .m2d:
+        case .mobileToDesktop:
             return hasFinishedM2WAtLeastOnce ? .completed : .todo
         case .fixBreachedAccounts:
             return hasSeenDWMExperience ? .completed : .todo
@@ -227,12 +216,12 @@ class OnboardingChecklistViewModel: ObservableObject, SessionServicesInjecting {
     }
 
     func start(_ checklistAction: OnboardingChecklistAction) {
-        logsService.log(.checklistActionSelected(action: checklistAction))
         action(.ctaTapped(action: checklistAction))
     }
 
     func updateOnAppear() {
         action(.onAppear)
+        preLoadAnimation()
     }
 
     func preLoadAnimation() {
@@ -280,7 +269,7 @@ class OnboardingChecklistViewModel: ObservableObject, SessionServicesInjecting {
     }
 
     private func secureNoteStatePublisher() -> AnyPublisher<SecureNoteState, Never> {
-        return capabilityService.statePublisher(of: .secureNotes).map { state -> SecureNoteState in
+        return capabilityService.statePublisher(of: .secureNotes).eraseToAnyPublisher().map { state -> SecureNoteState in
             SecureNoteState(isSecureNoteDisabled: self.isSecureNoteDisabled,
                             isSecureNoteLimited: state == .needsUpgrade)
         }
@@ -291,20 +280,18 @@ class OnboardingChecklistViewModel: ObservableObject, SessionServicesInjecting {
 extension OnboardingChecklistViewModel {
     static var mock: OnboardingChecklistViewModel {
         OnboardingChecklistViewModel(
+            session: .mock,
             userSettings: .mock,
-            dwmOnboardingSettings: .init(internalStore: InMemoryLocalSettingsStore()),
+            dwmOnboardingSettings: .init(internalStore: .mock()),
             dwmOnboardingService: .mock,
             vaultItemsService: MockVaultConnectedContainer().vaultItemsService,
-            capabilityService: CapabilityService.mock,
+            capabilityService: .mock(),
             featureService: .mock(),
             onboardingService: .mock,
             autofillService: .fakeService,
-            logsService: .init(usageLogService: UsageLogService.fakeService),
-            lockService: LockServiceMock(),
             activityReporter: .fake,
-            userSwitcherViewModel: { .mock },
             action: { _ in },
-            homeModalAnnouncementsViewModelFactory: .init { .mock }
+            userSpaceSwitcherViewModelFactory: .init({ .mock })
         )
     }
 }

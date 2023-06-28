@@ -27,7 +27,7 @@ public struct Phone: PersonalDataCodable, Equatable, Identifiable, Hashable, Dat
         public var id: String {
             return self.rawValue
         }
-        
+
         case mobile = "PHONE_TYPE_MOBILE"
         case fax = "PHONE_TYPE_FAX"
         case landline = "PHONE_TYPE_LANDLINE"
@@ -36,7 +36,7 @@ public struct Phone: PersonalDataCodable, Equatable, Identifiable, Hashable, Dat
         case workFax = "PHONE_TYPE_WORK_FAX"
         case none = "PHONE_TYPE_ANY"
     }
-    
+
     public let id: Identifier
     public var anonId: String
     public let metadata: RecordMetadata
@@ -66,7 +66,7 @@ public struct Phone: PersonalDataCodable, Equatable, Identifiable, Hashable, Dat
         country = nil
         _attachments = .init(nil)
     }
-    
+
     init(id: Identifier,
          anonId: String,
          name: String,
@@ -92,7 +92,7 @@ public struct Phone: PersonalDataCodable, Equatable, Identifiable, Hashable, Dat
         self.spaceId = spaceId
         _attachments = .init(nil)
     }
-    
+
     public func validate() throws {
         if number.isEmptyOrWhitespaces() {
             throw ItemValidationError(invalidProperty: \Phone.number)
@@ -101,7 +101,7 @@ public struct Phone: PersonalDataCodable, Equatable, Identifiable, Hashable, Dat
 }
 
 extension Phone: Searchable {
-    
+
     public var searchableKeyPaths: [KeyPath<Phone, String>] {
         let keyPathsList: [KeyPath<Phone, String>] = [
             \Phone.name,

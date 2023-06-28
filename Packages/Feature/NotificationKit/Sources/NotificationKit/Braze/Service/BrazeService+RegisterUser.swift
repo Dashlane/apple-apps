@@ -27,8 +27,6 @@ extension BrazeService {
 
     }
 
-    
-
     private func updateUser(login: Login, publicUserId: String) {
 #if DEBUG
                 if login.isTest {

@@ -1,6 +1,6 @@
 import Foundation
 extension AppAPIClient.Authentication {
-        public struct PerformDashlaneAuthenticatorVerification {
+        public struct PerformDashlaneAuthenticatorVerification: APIRequest {
         public static let endpoint: Endpoint = "/authentication/PerformDashlaneAuthenticatorVerification"
 
         public let api: AppAPIClient
@@ -17,7 +17,12 @@ extension AppAPIClient.Authentication {
 }
 
 extension AppAPIClient.Authentication.PerformDashlaneAuthenticatorVerification {
-        struct Body: Encodable {
+        public struct Body: Encodable {
+
+        private enum CodingKeys: String, CodingKey {
+            case login = "login"
+            case deviceName = "deviceName"
+        }
 
                 public let login: String
 

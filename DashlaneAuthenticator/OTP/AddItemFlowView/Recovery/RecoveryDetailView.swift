@@ -3,15 +3,20 @@ import SwiftUI
 struct RecoveryDetailView: View {
     @Binding
     var recoveryCodes: [String]
-    
+
     var body: some View {
         ScrollView {
             VStack(spacing: 10) {
                 ForEach(Array(recoveryCodes.enumerated()), id: \.element) { index, code in
-                    RecoveryCodeRowView(code: code, index: index, action: { UIPasteboard.general.string = code }) {
-                        Image(asset: AuthenticatorAsset.copyIcon)
-                            .foregroundColor(.accentColor)
-                    }
+                    RecoveryCodeRowView(
+                        code: code,
+                        index: index,
+                        action: { UIPasteboard.general.string = code },
+                        content: {
+                            Image(asset: AuthenticatorAsset.copyIcon)
+                                .foregroundColor(.accentColor)
+                        }
+                    )
                 }
             }
             .padding(.top, 20)

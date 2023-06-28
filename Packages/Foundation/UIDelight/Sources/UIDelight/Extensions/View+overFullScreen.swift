@@ -7,6 +7,7 @@ struct OverFullScreenPresenter<Item, Content: View>: UIViewControllerRepresentab
     var item: Item?
     let content: (Item) -> Content
 
+    @MainActor
     class PresentationControllerDelegate: NSObject, UIAdaptivePresentationControllerDelegate, UIViewControllerTransitioningDelegate {
 
         let parent: OverFullScreenPresenter<Item, Content>
@@ -26,7 +27,7 @@ struct OverFullScreenPresenter<Item, Content: View>: UIViewControllerRepresentab
             parent.item = nil
         }
 
-        func animationController(forDismissed dismissed: UIViewController) ->  UIViewControllerAnimatedTransitioning? {
+        func animationController(forDismissed dismissed: UIViewController) -> UIViewControllerAnimatedTransitioning? {
             parent.item = nil
             return FadeOutAnimator()
         }

@@ -28,3 +28,22 @@ public enum SessionState {
         }
     }
 }
+
+public class FakeSessionLifeCycleHandler: SessionLifeCycleHandler {
+
+    public init() {}
+    public var sessionState: SessionState = .disconnected
+
+    public func automaticLogout() {
+
+    }
+
+    public func logout(clearAutoLoginData: Bool) {
+
+    }
+
+    public func logoutAndPerform(action: PostLogoutAction) {
+
+    }
+
+}

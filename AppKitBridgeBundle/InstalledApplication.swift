@@ -1,7 +1,7 @@
 import Foundation
 import AppKit
 
-@objc class InstalledApplication: NSObject, InstalledApplicationProtocol {    
+@objc class InstalledApplication: NSObject, InstalledApplicationProtocol {
     
     func defaultBrowser() -> String? {
         guard let url = NSWorkspace.shared.urlForApplication(toOpen: URL(string: "_")!) else {

@@ -63,7 +63,7 @@ public struct PasswordGeneratorPreferences: Codable, DataConvertible, Equatable 
         try container.encode(shouldContainSymbols, forKey: .shouldContainSymbols)
         try container.encode(allowSimilarCharacters, forKey: .allowSimilarCharacters)
     }
-    
+
     public init(length: Int = 16,
                 shouldContainLetters: Bool = true,
                 shouldContainDigits: Bool = true,

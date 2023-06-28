@@ -11,14 +11,14 @@ public struct ItemGroup: Codable, Hashable, Identifiable {
                 public var itemKeyPairs: [ItemKeyPair]
         public var users: [User]
         public var userGroupMembers: [UserGroupMember]
-    
+
     public init(info: ItemGroupInfo, itemKeyPairs: [ItemKeyPair], users: [User], userGroupMembers: [UserGroupMember]) {
         self.info = info
         self.itemKeyPairs = itemKeyPairs
         self.users = users
         self.userGroupMembers = userGroupMembers
     }
-    
+
     public init(_ itemGroupDownload: ItemGroupDownload) {
         let info = ItemGroupInfo(itemGroupDownload)
         self.info = info
@@ -40,8 +40,8 @@ extension Collection where Element == ItemGroup {
             $0.itemKeyPairs.contains { ids.contains($0.id) }
         }
     }
-    
-    func union(_ groups: [ItemGroup]) -> [ItemGroup]{
+
+    func union(_ groups: [ItemGroup]) -> [ItemGroup] {
         return Array(Dictionary(values: self).merging(Dictionary(values: groups)) { group, _ in
             group
         }.values)
@@ -52,7 +52,7 @@ public struct ItemGroupInfo: Codable, Hashable, Identifiable {
         public let id: Identifier
             public var revision: SharingRevision
         public var teamId: Int?
-    
+
     public init(id: Identifier = Identifier(), revision: Int = 1, teamId: Int? = nil) {
         self.id = id
         self.revision = revision
@@ -68,12 +68,11 @@ extension ItemGroupInfo {
     }
 }
 
-public struct ItemKeyPair:  Codable, Hashable, Identifiable {
+public struct ItemKeyPair: Codable, Hashable, Identifiable {
         public let id: Identifier
         public let itemGroupId: Identifier
         public var encryptedKey: String
 }
-
 
 extension ItemKeyPair {
     init(_ itemKey: ItemGroupDownload.Items, itemGroupId: Identifier) {
@@ -90,7 +89,7 @@ extension ItemKeyPair {
               let encryptedKey = Data(base64Encoded: encryptedKeyBase64) else {
             throw SharingGroupError.missingKey(.itemKey)
         }
-        
+
         return try encryptedKey.decrypt(using: engine)
     }
 }

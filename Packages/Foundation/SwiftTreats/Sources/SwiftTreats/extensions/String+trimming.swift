@@ -10,7 +10,7 @@ public extension String {
         let range = Range(uncheckedBounds: (lower: from, upper: to))
         return String(self[range])
     }
-    
+
     func trimCurlyBraces() -> String {
         guard first == "{" else {
             return self
@@ -18,4 +18,3 @@ public extension String {
         return stringWithFirstAndLastCharacterRemoved()
     }
 }
-

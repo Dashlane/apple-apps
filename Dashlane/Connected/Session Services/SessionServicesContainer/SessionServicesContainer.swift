@@ -13,18 +13,22 @@ import SwiftTreats
 import DocumentServices
 import LoginKit
 import VaultKit
+import AutofillKit
 import CoreSync
 import CoreSharing
 import NotificationKit
 import CoreUserTracking
 import DashlaneAPI
+import AuthenticatorKit
+import CoreActivityLogs
+import CorePasswords
 
 struct SessionServicesContainer: DependenciesContainer {
 
     let loadingContext: SessionLoadingContext
     let session: Session
     let appServices: AppServicesContainer
-    let iconService: IconService
+    let iconService: IconServiceProtocol
     let spiegelLocalSettingsStore: LocalSettingsStore
     let spiegelUserSettings: UserSettings
     let spiegelUserEncryptedSettings: UserEncryptedSettings
@@ -58,11 +62,14 @@ struct SessionServicesContainer: DependenciesContainer {
     let onboardingService: OnboardingService
     let dwmOnboardingService: DWMOnboardingService
     let darkWebMonitoringService: DarkWebMonitoringService
-    let capabilityService: CapabilityServiceProtocol
-    let authenticatorAppCommunicator: AuthenticatorService
+    let authenticatorAppCommunicator: AuthenticatorAppCommunicationService
     let toolsService: ToolsService
     let sharingLinkService: SharingLinkService
     let activityReporter: SessionReporterService
+    let otpDatabaseService: OTPDatabaseService
+    let passwordEvaluator: PasswordEvaluatorProtocol
+    let activityLogsService: ActivityLogsServiceProtocol
+    let pasteboardService: PasteboardServiceProtocol
 
         private var subscriptions = Set<AnyCancellable>()
 
@@ -110,7 +117,18 @@ struct SessionServicesContainer: DependenciesContainer {
         self.featureService = await FeatureService(session: session,
                                                    apiClient: userDeviceAPIClient.features,
                                                    logger: logger[.features])
-        
+
+        self.premiumService = try await PremiumService(session: session,
+                                                       userEncryptedSettings: spiegelUserEncryptedSettings,
+                                                       legacyWebService: ukiBasedWebService,
+                                                       apiClient: userDeviceAPIClient,
+                                                       logger: logger[.session])
+
+        self.activityLogsService = ActivityLogsService(premiumService: premiumService,
+                                                 featureService: featureService,
+                                                 apiClient: userDeviceAPIClient.teams.storeActivityLogs,
+                                                 cryptoEngine: session.localCryptoEngine,
+                                                 logger: appServices.rootLogger[.activityLogs])
         let sharingKeysStore = await SharingKeysStore(session: session, logger: appServices.rootLogger[.sync])
 
         self.sharingService = try await SharingService(session: session,
@@ -119,8 +137,11 @@ struct SessionServicesContainer: DependenciesContainer {
                                                        personalDataURLDecoder: appServices.personalDataURLDecoder,
                                                        databaseDriver: databaseDriver,
                                                        sharingKeysStore: sharingKeysStore,
+                                                       activityLogsService: activityLogsService,
                                                        logger: logger[.sharing],
-                                                       activityReporter: activityReporter)
+                                                       activityReporter: activityReporter,
+                                                       autoRevokeUsersWithInvalidProposeSignature: featureService.isEnabled(.autoRevokeInvalidSharingSignatureEnabled),
+                                                       buildTarget: .app)
 
         self.syncService = try await SyncService(apiClient: userDeviceAPIClient,
                                                  activityReporter: activityReporter,
@@ -130,7 +151,7 @@ struct SessionServicesContainer: DependenciesContainer {
                                                  session: session,
                                                  syncLogger: logger[.sync],
                                                  target: .app)
-        
+
         self.database = ApplicationDBStack(driver: databaseDriver,
                                            historyUserInfo: .init(session: session),
                                            codeDecoder: appServices.regionInformationService,
@@ -139,35 +160,15 @@ struct SessionServicesContainer: DependenciesContainer {
     
         self.syncedSettings = try SyncedSettingsService(logger: logger[.personalData],
                                                         database: database)
-
-        let usageLogService = UsageLogService(logDirectory: try session.directory.storeURL(for: .usageLogs, in: .current),
-                                              cryptoService: session.localCryptoEngine,
-                                              nonAuthenticatedLegacyWebService: appServices.nonAuthenticatedUKIBasedWebService,
-                                              apiClient: appServices.appAPIClient,
-                                              syncedSettings: syncedSettings,
-                                              loginUsageLogService: appServices.loginUsageLogService,
-                                              userSettings: spiegelUserSettings,
-                                              anonymousDeviceId: appServices.globalSettings.anonymousDeviceId,
-                                              login: session.login,
-                                              logger: logger[.usageLogs])
         
         self.authenticatedABTestingService = await AuthenticatedABTestingService(userSettings: spiegelUserSettings,
                                                                                  logger: logger[.abTesting],
                                                                                  login: session.login,
                                                                                  loadingContext: loadingContext,
-                                                                                 authenticatedAPIClient: userDeviceAPIClient,
-                                                                                 usageLogService: usageLogService)
-        
-        self.premiumService = try await PremiumService(session: session,
-                                                       userEncryptedSettings: spiegelUserEncryptedSettings,
-                                                       legacyWebService: ukiBasedWebService,
-                                                       apiClient: userDeviceAPIClient,
-                                                       logger: logger[.session],
-                                                       usageLogService: usageLogService)
+                                                                                 authenticatedAPIClient: userDeviceAPIClient)
 
         self.notificationService = await SessionNotificationService(login: session.login,
                                                                     notificationService: appServices.notificationService,
-                                                                    usageLogService: usageLogService,
                                                                     syncService: syncService,
                                                                     brazeService: appServices.brazeService,
                                                                     settings: spiegelUserSettings,
@@ -175,7 +176,6 @@ struct SessionServicesContainer: DependenciesContainer {
                                                                     logger: logger[.remoteNotifications])
         
         self.teamSpacesService = TeamSpacesService(database: database,
-                                                   usageLogService: usageLogService,
                                                    premiumService: premiumService,
                                                    syncedSettings: syncedSettings,
                                                    networkEngine: legacyWebService,
@@ -191,7 +191,8 @@ struct SessionServicesContainer: DependenciesContainer {
                                                          teamSpacesService: teamSpacesService,
                                                          featureService: featureService,
                                                          settings: syncedSettings,
-                                                         logger: logger[.session])
+                                                         logger: logger[.session],
+                                                         userDeviceApiClient: userDeviceAPIClient)
 
         self.vaultItemsService = await VaultItemsService(logger: logger[.personalData],
                                                          login: session.login,
@@ -203,7 +204,8 @@ struct SessionServicesContainer: DependenciesContainer {
                                                          sharingService: sharingService,
                                                          database: database,
                                                          teamSpacesService: teamSpacesService,
-                                                         featureService: featureService)
+                                                         featureService: featureService,
+                                                         activityLogsService: activityLogsService)
 
         self.lockService = LockService(session: session,
                                        appSettings: appServices.globalSettings,
@@ -219,12 +221,13 @@ struct SessionServicesContainer: DependenciesContainer {
                                            teamSpaceService: teamSpacesService,
                                            secureLockProvider: lockService.secureLockProvider,
                                            activityReporter: activityReporter)
+        self.pasteboardService = PasteboardService(userSettings: spiegelUserSettings)
         
         self.documentStorageService = DocumentStorageService(database: database,
-                                                             logger: usageLogService.documentLogger,
                                                              webservice: ukiBasedWebService,
                                                              login: session.login)
 
+        self.passwordEvaluator = featureService.isEnabled(.swiftZXCVBNEnabled) ? try PasswordEvaluator(useSwiftImplementationIfPossible: true) : appServices.passwordEvaluator
         self.identityDashboardService = IdentityDashboardService(session: session,
                                                                  settings: spiegelLocalSettingsStore,
                                                                  webservice: ukiBasedWebService,
@@ -248,17 +251,7 @@ struct SessionServicesContainer: DependenciesContainer {
                                                                         anonymousDeviceId: appServices.globalSettings.anonymousDeviceId)
         
         self.watchAppCommunicator = AppWatchAppCommunicator(vaultItemsService: vaultItemsService)
-
-
-        let aggregatedLogService = AggregatedLogService(vaultItemsService: vaultItemsService,
-                                                        syncedSettings: syncedSettings,
-                                                        usageLogService: usageLogService,
-                                                        teamSpaceService: teamSpacesService,
-                                                        identityDashboardService: identityDashboardService,
-                                                        userSettings: spiegelUserSettings,
-                                                        resetMasterPasswordService: resetMasterPasswordService,
-                                                        autofillService: autofillService)
-       
+        
         self.darkWebMonitoringService = DarkWebMonitoringService(iconService: iconService,
                                                                  identityDashboardService: identityDashboardService,
                                                                  personalDataURLDecoder: appServices.personalDataURLDecoder,
@@ -277,6 +270,7 @@ struct SessionServicesContainer: DependenciesContainer {
                                                           logger: logger[.dwmOnboarding])
         
         self.onboardingService = OnboardingService(loadingContext: loadingContext,
+                                                   accountType: session.configuration.info.accountType,
                                                    userSettings: spiegelUserSettings,
                                                    vaultItemsService: vaultItemsService,
                                                    dwmOnboardingSettings: dwmOnboardingSettings,
@@ -295,40 +289,55 @@ struct SessionServicesContainer: DependenciesContainer {
                                                                     autofillService: autofillService,
                                                                     session: session)
 
-        self.capabilityService = CapabilityService(featureService: featureService,
-                                                   premiumService: premiumService)
-        
-        
-        self.authenticatorAppCommunicator = AuthenticatorService(session: session,
-                                                                 keychainService: appServices.keychainService,
-                                                                 vaultItemService: vaultItemsService,
-                                                                 accountAPIClient: AuthenticatedAccountAPIClient(apiClient: userDeviceAPIClient),
-                                                                 authenticatorDatabase: appServices.authenticatorDatabaseService,
-                                                                 lockSettings: spiegelLocalSettingsStore,
-                                                                 logger: logger,
-                                                                 loadingContext: loadingContext)
+        self.authenticatorAppCommunicator = AuthenticatorAppCommunicationService(session: session,
+                                                                                 keychainService: appServices.keychainService,
+                                                                                 vaultItemService: vaultItemsService,
+                                                                                 userAPIClient: userDeviceAPIClient,
+                                                                                 lockSettings: spiegelLocalSettingsStore,
+                                                                                 logger: logger[.localCommunication],
+                                                                                 loadingContext: loadingContext)
 
         self.vpnService = VPNService(networkEngine: userDeviceAPIClient,
-                                     capabilityService: capabilityService,
+                                     capabilityService: premiumService,
                                      featureService: featureService,
                                      premiumService: premiumService,
                                      vaultItemsService: vaultItemsService,
-                                     userSettings: spiegelUserSettings,
-                                     usageLogService: usageLogService)
+                                     userSettings: spiegelUserSettings)
 
         self.activityReporter = SessionReporterService(activityReporter: activityReporter,
-                                                       deviceInformation: deviceInformationReporting,
-                                                       legacyAggregated: aggregatedLogService,
-                                                       legacyUsage: usageLogService)
-        
+                                                       loginMetricsReporter: appServices.loginMetricsReporter,
+                                                       deviceInformation: deviceInformationReporting)
+
+        self.otpDatabaseService = OTPDatabaseService(vaultItemsService: vaultItemsService,
+                                                     activityReporter: activityReporter)
+
         
         
                 self.toolsService = ToolsService(featureService: featureService,
-                                         capabilityService: capabilityService)
+                                         capabilityService: premiumService)
         
         self.sharingLinkService = SharingLinkService(networkEngine: legacyWebService)
-
+        appServices.rootLogger[.session].info("Session Services loaded")
+    }
+             func postLoad() async {
         await updateGlobalSessionEnvironment()
+
+        activityReporter.postLoadConfigure(using: self, loadingContext: loadingContext)
+        configureBraze()
+        authenticatedABTestingService.reportClientControlledTests()
+                Task {
+            if loadingContext.isAccountRecoveryLogin && session.configuration.info.accountType != .masterPassword {
+                activityReporter.report(UserEvent.UseAccountRecoveryKey(flowStep: .complete))
+                do {
+                    try await accountRecoveryKeyService.deactivateAccountRecoveryKey(for: .keyUsed)
+                } catch {
+                    logger.fatal("Account Recovery Key auto disabling failed", error: error)
+                }
+            }
+        }
+        #if targetEnvironment(macCatalyst)
+        appServices.safariExtensionService.currentSession = session
+        #endif
     }
 
     @MainActor
@@ -336,6 +345,15 @@ struct SessionServicesContainer: DependenciesContainer {
         let activeEnvironment = GlobalEnvironmentValues.pushNewEnvironment()
         activeEnvironment.report = ReportAction(reporter: activityReporter)
         activeEnvironment.enabledAtLoginFeatures = featureService.enabledFeatures()
+    }
+
+    private func configureBraze() {
+        Task.detached(priority: .low) {
+            await appServices.brazeService.registerLogin(session.login,
+                                                         using: spiegelUserSettings,
+                                                         webservice: legacyWebService,
+                                                         featureService: featureService)
+        }
     }
 }
 
@@ -347,6 +365,11 @@ extension SessionServicesContainer {
     }
 }
 
-extension VaultItemIconViewModel: SessionServicesInjecting { }
+extension AddAttachmentButtonViewModel: SessionServicesInjecting { }
+extension AttachmentRowViewModel: SessionServicesInjecting { }
+extension AttachmentsListViewModel: SessionServicesInjecting { }
+extension AttachmentsSectionViewModel: SessionServicesInjecting { }
 extension PasswordGeneratorViewModel: SessionServicesInjecting { }
 extension PremiumAnnouncementsViewModel: SessionServicesInjecting { }
+extension VaultItemIconViewModel: SessionServicesInjecting { }
+

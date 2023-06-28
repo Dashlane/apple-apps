@@ -11,12 +11,12 @@ import CoreSettings
 import VaultKit
 import SwiftUI
 import DashTypes
+import DesignSystem
 
   class SharingUserGroupNotificationProvider: NotificationProvider {
     private let sharingService: SharingServiceProtocol
     private let settingsStore: LocalSettingsStore
     private let session: Session
-    private let logger: NotificationCenterLogger
 
     @Published
     private var sharingNotificationInfo: Set<SharingNotificationInfo> = []
@@ -24,12 +24,10 @@ import DashTypes
     init(session: Session,
          sharingService: SharingServiceProtocol,
          featureService: FeatureServiceProtocol,
-         settingsStore: LocalSettingsStore,
-         logger: NotificationCenterLogger) {
+         settingsStore: LocalSettingsStore) {
         self.sharingService = sharingService
         self.session = session
         self.settingsStore = settingsStore
-        self.logger = logger
 
         setupPublisher()
     }
@@ -63,7 +61,7 @@ import DashTypes
     }
 
     private func publisher(for info: SharingNotificationInfo) -> AnyPublisher<DashlaneNotification, Never> {
-        let settings = NotificationSettings(prefix: info.settingsPrefix, settings: settingsStore, logger: logger)
+        let settings = NotificationSettings(prefix: info.settingsPrefix, settings: settingsStore)
 
         return settings
             .settingsChangePublisher()
@@ -100,7 +98,7 @@ struct SharingNotificationInfo: Hashable {
 
 struct SharingRequestNotification: DashlaneNotification {
     let state: NotificationCenterService.Notification.State
-    let icon = Image(asset: FiberAsset.sharingActionItemIcon)
+    let icon = Image.ds.action.share.outlined
     let title: String = L10n.Localizable.actionItemSharingTitle
     let description: String
     let category: NotificationCategory = .sharing

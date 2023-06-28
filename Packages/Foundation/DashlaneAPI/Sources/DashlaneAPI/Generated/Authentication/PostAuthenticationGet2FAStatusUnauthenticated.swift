@@ -1,6 +1,6 @@
 import Foundation
 extension AppAPIClient.Authentication {
-        public struct Get2FAStatusUnauthenticated {
+        public struct Get2FAStatusUnauthenticated: APIRequest {
         public static let endpoint: Endpoint = "/authentication/Get2FAStatusUnauthenticated"
 
         public let api: AppAPIClient
@@ -17,7 +17,11 @@ extension AppAPIClient.Authentication {
 }
 
 extension AppAPIClient.Authentication.Get2FAStatusUnauthenticated {
-        struct Body: Encodable {
+        public struct Body: Encodable {
+
+        private enum CodingKeys: String, CodingKey {
+            case login = "login"
+        }
 
                 public let login: String
     }
@@ -28,12 +32,25 @@ extension AppAPIClient.Authentication.Get2FAStatusUnauthenticated {
 
         public struct DataType: Codable, Equatable {
 
+        private enum CodingKeys: String, CodingKey {
+            case type = "type"
+            case isDuoEnabled = "isDuoEnabled"
+            case hasDashlaneAuthenticator = "hasDashlaneAuthenticator"
+            case ssoInfo = "ssoInfo"
+        }
+
         public let type: AuthenticationGet2FAStatusType
+
+                public let isDuoEnabled: Bool
+
+                public let hasDashlaneAuthenticator: Bool
 
         public let ssoInfo: AuthenticationSsoInfo?
 
-        public init(type: AuthenticationGet2FAStatusType, ssoInfo: AuthenticationSsoInfo? = nil) {
+        public init(type: AuthenticationGet2FAStatusType, isDuoEnabled: Bool, hasDashlaneAuthenticator: Bool, ssoInfo: AuthenticationSsoInfo? = nil) {
             self.type = type
+            self.isDuoEnabled = isDuoEnabled
+            self.hasDashlaneAuthenticator = hasDashlaneAuthenticator
             self.ssoInfo = ssoInfo
         }
     }

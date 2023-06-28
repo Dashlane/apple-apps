@@ -2,7 +2,7 @@ import Foundation
 import SwiftUI
 import AuthenticatorKit
 import CorePersonalData
-import AuthenticatorKit
+import VaultKit
 
 protocol SessionCredentialsProvider {
     var credentialsPublisher: Published<[Credential]>.Publisher { get }
@@ -15,7 +15,7 @@ extension SessionCredentialsProvider {
         let issuer = otpInfo.configuration.issuer ?? otpInfo.configuration.title
         return await matchingCredentialsFor(issuer)
     }
-    
+
     func matchingCredentialsFor(_ website: String) async -> [Credential] {
         guard !website.isEmpty else {
                         return []
@@ -23,25 +23,25 @@ extension SessionCredentialsProvider {
         let credentials = await self.credentialsWithFullRights()
             .matchingCredentials(forDomain: website)
             .filterCredentialsHavingOTPSet()
-        
+
         return credentials
     }
 }
 
 class CredentialsProviderMock: SessionCredentialsProvider {
-    
+
     @Published
     var credentials = PersonalDataMock.Credentials.all
-    
+
     var credentialsPublisher: Published<[Credential]>.Publisher {
         $credentials
     }
-    
+
     func credentialsWithFullRights() async -> [Credential] {
         return credentials
     }
-    
+
     func link(_ otpInfo: OTPInfo, to credential: Credential) throws {
-        
+
     }
 }

@@ -89,7 +89,11 @@ struct PlanCapabilitiesView: View {
         }
 
         if set.secureWiFi.enabled {
-            Row(L10n.Core.benefitVpn)
+            if kind == .family {
+                Row(L10n.Core.benefitVpnFamily)
+            } else {
+                Row(L10n.Core.benefitVpn)
+            }
         }
 
         if set.secureFiles.enabled,

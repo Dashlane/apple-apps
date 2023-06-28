@@ -10,27 +10,27 @@ import AuthenticatorKit
 class TokenListViewModel: ObservableObject {
     @Published
     var tokens = [OTPInfo]()
-    
+
     @Published
     var favorites = [OTPInfo]()
-    
+
     @Published
-    var popoverItem: OTPInfo? = nil
+    var popoverItem: OTPInfo?
 
     var cancellables = Set<AnyCancellable>()
-    
+
     let databaseService: AuthenticatorDatabaseServiceProtocol
     let didDelete: (OTPInfo) -> Void
     let tokenRowViewModelFactory: TokenRowViewModel.Factory
-    
+
     @Published
     var steps: [Step] = []
-    
+
     enum Step: Identifiable {
         case list
         case detail(OTPInfo)
         case help
-        
+
         var id: String {
             switch self {
             case .list:
@@ -42,7 +42,7 @@ class TokenListViewModel: ObservableObject {
             }
         }
     }
-    
+
     init(databaseService: AuthenticatorDatabaseServiceProtocol,
          tokenRowViewModelFactory: TokenRowViewModel.Factory,
          didDelete: @escaping (OTPInfo) -> Void) {
@@ -51,7 +51,7 @@ class TokenListViewModel: ObservableObject {
         self.didDelete = didDelete
         databaseService.codesPublisher
             .map({ $0.sortedByIssuer() })
-            .map { $0.seprateByIsFavorite() }
+            .map { $0.separateByIsFavorite() }
             .sink(receiveValue: { codes in
                 self.tokens = codes[false] ?? []
                 self.favorites = codes[true] ?? []
@@ -63,7 +63,7 @@ class TokenListViewModel: ObservableObject {
     func makeTokenRowViewModel(for token: OTPInfo) -> TokenRowViewModel {
         return tokenRowViewModelFactory.make(token: token, dashlaneTokenCaption: L10n.Localizable.dashlanePairedTitle)
     }
-    
+
     func delete(item: OTPInfo) {
         do {
             try databaseService.delete(item)
@@ -72,7 +72,7 @@ class TokenListViewModel: ObservableObject {
                         assertionFailure()
         }
     }
-    
+
     func update(item: OTPInfo) {
         do {
             try databaseService.update(item)
@@ -80,16 +80,27 @@ class TokenListViewModel: ObservableObject {
                         assertionFailure()
         }
     }
-    
+
     func showHelp() {
         steps.append(.help)
     }
 }
 
 extension [OTPInfo] {
-    func seprateByIsFavorite() -> [Bool: [OTPInfo]] {
+    func separateByIsFavorite() -> [Bool: [OTPInfo]] {
         self.reduce(into: [Bool: [OTPInfo]]()) { partialResult, otpInfo in
             partialResult[otpInfo.isFavorite, default: []].append(otpInfo)
+        }
+    }
+}
+
+extension TokenListViewModel: AuthenticatorServicesInjecting { }
+extension TokenListViewModel: AuthenticatorMockInjecting { }
+
+extension TokenListViewModel {
+    static func mock() -> TokenListViewModel {
+        AuthenticatorMockContainer().makeTokenListViewModel { _ in
+
         }
     }
 }

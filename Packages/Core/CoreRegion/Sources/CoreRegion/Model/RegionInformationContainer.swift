@@ -20,4 +20,3 @@ public extension Collection where Element: RegionInformationProtocol {
 public struct RegionContainer<T: Decodable>: Decodable {
     let regions: [RegionInformationContainer<T>]
 }
-

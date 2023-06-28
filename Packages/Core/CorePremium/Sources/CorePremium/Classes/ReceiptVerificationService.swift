@@ -51,15 +51,14 @@ public enum VerificationFailure: Error, Equatable {
     case unknown
     case receiptRefreshRequired(reason: Reason? = nil)
 
-
 }
 
 public final class ReceiptVerificationService {
-    
+
     private enum Endpoint: String {
         case status = "/3/premium/verifyReceipt"
     }
-    
+
     private enum Key: String {
         case receipt
         case transactionIdentifier
@@ -69,26 +68,24 @@ public final class ReceiptVerificationService {
         case price = "amount"
         case currencyCode = "currency"
     }
-    
+
     private struct Constants {
                 static let origin = "ios"
     }
-    
+
     private let webservice: LegacyWebService
 
         public init(webservice: LegacyWebService) {
         self.webservice = webservice
     }
-    
 
-    
     public func verify(_ receipt: Data,
-                                          transactionId: String? = "",
-                                          planName: String? = "",
-                                          regionCode: String? = nil,
-                                          price: Double? = 0,
-                                          currencyCode: String? = "",
-                                          completion handler: @escaping (Result<VerificationResult, Error>) -> Void) {
+                       transactionId: String? = "",
+                       planName: String? = "",
+                       regionCode: String? = nil,
+                       price: Double? = 0,
+                       currencyCode: String? = "",
+                       completion handler: @escaping (Result<VerificationResult, Error>) -> Void) {
         var parameters: [String: Encodable] = [Key.receipt.rawValue: receipt.base64EncodedString(),
                                                Key.transactionIdentifier.rawValue: transactionId ?? "",
                                                Key.origin.rawValue: Constants.origin,

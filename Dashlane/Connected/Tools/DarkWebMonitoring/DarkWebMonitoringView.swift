@@ -46,7 +46,7 @@ struct DarkWebMonitoringView: View {
                 .fontWeight(.medium)
                 .padding(.leading, 16)
                 .padding(.top, 24)
-                .foregroundColor(Color(asset: FiberAsset.grey01))
+                .foregroundColor(.ds.text.neutral.quiet)
 
             DarkWebMonitoringBreachListView(viewModel: model.listViewModelFactory.make(actionPublisher: model.actionPublisher))
         }.background(.ds.background.default.edgesIgnoringSafeArea(.top))

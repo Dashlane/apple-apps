@@ -2,6 +2,8 @@ import Foundation
 import SwiftUI
 import SwiftTreats
 import DashTypes
+import LoginKit
+import CoreLocalization
 
 struct TwoFASetupView: View {
 
@@ -45,7 +47,7 @@ struct TwoFASetupView: View {
             .toolbar(content: {
                 ToolbarItem(placement: .navigationBarTrailing) {
                     Button(action: completion, label: {
-                        Text(L10n.Localizable.cancel)
+                        Text(CoreLocalization.L10n.Core.cancel)
                             .foregroundColor(.ds.text.neutral.standard)
                     })
                 }

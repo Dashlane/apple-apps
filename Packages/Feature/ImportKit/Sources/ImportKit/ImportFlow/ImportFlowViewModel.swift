@@ -5,6 +5,7 @@ public enum ImportFlowKind {
     case dash
     case keychain
     case chrome
+    case lastpass
 }
 
 public enum ImportFlowStep {
@@ -30,6 +31,7 @@ public enum ImportDismissAction {
     case dismiss
 }
 
+@MainActor
 public protocol ImportFlowViewModel: ObservableObject {
 
     associatedtype AnyImportViewModel: ImportViewModel, ObservableObject
@@ -38,7 +40,9 @@ public protocol ImportFlowViewModel: ObservableObject {
     var steps: [ImportFlowStep] { get set }
     var dismissPublisher: AnyPublisher<ImportDismissAction, Never> { get }
     var showPasswordView: Bool { get set }
-    var shouldDisplayRootBackButton: Bool { get }
+    var isDroppingFileEnabled: Bool { get }
+    var isLoading: Bool { get set }
+    var fileData: Data? { get set }
 
     func handleIntroAction(_ action: ImportInformationView.Action)
     func handleInstructionsAction(_ action: ImportInformationView.Action)
@@ -50,6 +54,8 @@ public protocol ImportFlowViewModel: ObservableObject {
 }
 
 extension ImportFlowViewModel {
+
+    public var isDroppingFileEnabled: Bool { false }
 
     public func handleInstructionsAction(_ action: ImportInformationView.Action) {
         assertionFailure("Inadmissible action for this kind (\(kind)) of import flow")
@@ -95,7 +101,7 @@ extension ImportFlowKind {
                 return []
             }
             return [secureArchiveType]
-        case .keychain:
+        case .keychain, .lastpass:
             return [.commaSeparatedText]
         case .chrome:
             return []

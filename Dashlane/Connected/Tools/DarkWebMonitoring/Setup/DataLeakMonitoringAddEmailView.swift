@@ -3,6 +3,7 @@ import UIComponents
 import DesignSystem
 import UIDelight
 import LoginKit
+import CoreLocalization
 
 struct DataLeakMonitoringAddEmailView: View {
 
@@ -28,14 +29,12 @@ struct DataLeakMonitoringAddEmailView: View {
                                   alignment: .leading, spacing: 20)
                 .toolbar {
                     ToolbarItem(placement: .navigationBarLeading) {
-                        Button(L10n.Localizable.cancel) {
-                            viewModel.logger.cancel()
+                        Button(CoreLocalization.L10n.Core.cancel) {
                             dismiss()
                         }
                     }
                 }
                 .onAppear {
-                    viewModel.logger.show()
                     isTextFieldFocused = true
                 }
             case .success:
@@ -53,8 +52,10 @@ struct DataLeakMonitoringAddEmailView: View {
 
     var emailField: some View {
         LoginFieldBox {
-            TextInput(L10n.Localizable.kwEmailTitle,
-                      text: $viewModel.emailToMonitor)
+            DS.TextField(
+                CoreLocalization.L10n.Core.kwEmailTitle,
+                text: $viewModel.emailToMonitor
+            )
             .focused($isTextFieldFocused)
             .onSubmit {
                 startMonitoring()
@@ -64,7 +65,8 @@ struct DataLeakMonitoringAddEmailView: View {
             .submitLabel(.next)
             .textInputAutocapitalization(.never)
             .textContentType(.emailAddress)
-            .disableAutocorrection(true)
+            .padding(.horizontal)
+            .autocorrectionDisabled()
         }
         .bubbleErrorMessage(text: $viewModel.errorMessage)
     }
@@ -83,8 +85,7 @@ struct DataLeakMonitoringAddEmailView: View {
     }
 
     var successView: some View {
-        DataLeakMonitoringAddEmailSuccessView(dismiss: dismiss, monitoredEmail: viewModel.emailToMonitor,
-                                              logger: DataLeakMonitoringSuccessLogger(usageLogService: viewModel.usageLogService))
+        DataLeakMonitoringAddEmailSuccessView(dismiss: dismiss, monitoredEmail: viewModel.emailToMonitor)
     }
 }
 

@@ -6,7 +6,7 @@ public struct PartlyModifiedText: View {
     let toBeModifiedModifier: (Text) -> Text
     let truncateString: Bool
     let range: Range<String.Index>
-    
+
     public init(text: String,
                 toBeModified: String,
                 truncateString: Bool = false,
@@ -28,7 +28,7 @@ public struct PartlyModifiedText: View {
         self.textModifier = textModifier
         self.toBeModifiedModifier = toBeModifiedModifier
     }
-    
+
     @ViewBuilder
     public var body: some View {
         textModifier(Text(text[..<range.lowerBound]))
@@ -51,10 +51,10 @@ extension PartlyModifiedText {
 }
 
 extension PartlyModifiedText: Hashable {
-    public static func ==(lhs: PartlyModifiedText, rhs: PartlyModifiedText) -> Bool {
+    public static func == (lhs: PartlyModifiedText, rhs: PartlyModifiedText) -> Bool {
         lhs.text == rhs.text
     }
-    
+
     public func hash(into hasher: inout Hasher) {
         hasher.combine(text)
     }

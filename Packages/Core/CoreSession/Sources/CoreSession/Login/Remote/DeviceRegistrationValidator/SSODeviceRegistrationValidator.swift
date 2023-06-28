@@ -1,19 +1,21 @@
 import Foundation
 import DashTypes
 import SwiftTreats
+import DashlaneAPI
 
 public class SSODeviceRegistrationValidator: DeviceRegistrationValidator, SSOValidator {
+    public var deviceRegistrationValidatorDidFetch: ((DeviceRegistrationData) -> Void)?
+
     public let cryptoEngineProvider: CryptoEngineProvider
-    public let accountAPIClient: AccountAPIClientProtocol
+    public let apiClient: AppAPIClient
     public let login: Login
-    weak public var delegate: DeviceRegistrationValidatorDelegate?
     private let deviceInfo: DeviceInfo
     public let serviceProviderUrl: URL
     public let isNitroProvider: Bool
-    
-    public init(login: Login, serviceProviderUrl: URL, deviceInfo: DeviceInfo, accountAPIClient: AccountAPIClientProtocol, cryptoEngineProvider: CryptoEngineProvider, isNitroProvider: Bool) {
+
+    public init(login: Login, serviceProviderUrl: URL, deviceInfo: DeviceInfo, apiClient: AppAPIClient, cryptoEngineProvider: CryptoEngineProvider, isNitroProvider: Bool) {
         self.login = login
-        self.accountAPIClient = accountAPIClient
+        self.apiClient = apiClient
         self.deviceInfo = deviceInfo
         self.serviceProviderUrl = serviceProviderUrl
         self.cryptoEngineProvider = cryptoEngineProvider
@@ -21,9 +23,9 @@ public class SSODeviceRegistrationValidator: DeviceRegistrationValidator, SSOVal
     }
 
     public func validateSSOTokenAndGetKeys(_ token: String, serviceProviderKey: String) async throws -> SSOKeys {
-        let verificationResponse = try await self.accountAPIClient.performVerification(with: PerformSSOVerificationRequest(login: login.email, ssoToken: token))
+        let verificationResponse = try await self.apiClient.authentication.performSsoVerification(login: login.email, ssoToken: token)
 
-        let deviceRegistrationResponse = try await  self.accountAPIClient.registerDevice(with: CompleteDeviceRegistrationRequest(device: self.deviceInfo, login: self.login.email, authTicket: verificationResponse.authTicket))
+        let deviceRegistrationResponse = try await  self.apiClient.authentication.completeDeviceRegistrationWithAuthTicket(device: self.deviceInfo, login: self.login.email, authTicket: verificationResponse.authTicket)
         let deviceRegistrationData = DeviceRegistrationData(
             initialSettings: deviceRegistrationResponse.settings.content,
             deviceAccessKey: deviceRegistrationResponse.deviceAccessKey,
@@ -34,8 +36,8 @@ public class SSODeviceRegistrationValidator: DeviceRegistrationValidator, SSOVal
             ssoServerKey: deviceRegistrationResponse.ssoServerKey,
             authTicket: verificationResponse.authTicket
         )
-        self.delegate?.deviceRegistrationValidatorDidFetch(deviceRegistrationData)
-        let ssoKeys = try self.decipherRemoteKey(serviceProviderKey: serviceProviderKey, remoteKey: deviceRegistrationData.remoteKeys?.ssoRemoteKey(), ssoServerKey: deviceRegistrationResponse.ssoServerKey, authTicket: verificationResponse.authTicket)
+        self.deviceRegistrationValidatorDidFetch?(deviceRegistrationData)
+        let ssoKeys = try self.decipherRemoteKey(serviceProviderKey: serviceProviderKey, remoteKey: deviceRegistrationData.remoteKeys?.ssoRemoteKey(), ssoServerKey: deviceRegistrationResponse.ssoServerKey, authTicket: AuthTicket(value: verificationResponse.authTicket))
         return ssoKeys
     }
 }
@@ -64,7 +66,7 @@ public struct SSOCallbackInfos {
             self.exists = queryItems.filter({ $0.name == "exists" }).first?.value?.boolValue ?? false
         }
     }
-    
+
     public init(ssoToken: String, serviceProviderKey: String, exists: Bool) {
         self.ssoToken = ssoToken
         self.serviceProviderKey = serviceProviderKey
@@ -74,7 +76,7 @@ public struct SSOCallbackInfos {
 
 extension URL {
     func fragments() -> [String: String]? {
-        var result = [String:String]()
+        var result = [String: String]()
         guard let fragments = self.fragment?.components(separatedBy: "&") else {
             return nil
         }

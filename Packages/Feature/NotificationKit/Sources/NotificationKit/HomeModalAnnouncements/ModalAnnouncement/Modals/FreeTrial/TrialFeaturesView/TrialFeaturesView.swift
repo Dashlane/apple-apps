@@ -11,14 +11,16 @@ public struct TrialFeaturesView: View {
 
     let viewModel: TrialFeaturesViewModel
 
-        let dismiss: DismissAction
+        let dismissFlow: DismissAction?
+
+    @Environment(\.dismiss) private var dismissView
 
     @State
     private var showAlert = false
 
-    public init(viewModel: TrialFeaturesViewModel, dismiss: DismissAction) {
+    public init(viewModel: TrialFeaturesViewModel, dismissFlow: DismissAction? = nil) {
         self.viewModel = viewModel
-        self.dismiss = dismiss
+        self.dismissFlow = dismissFlow
     }
 
     public var body: some View {
@@ -122,6 +124,14 @@ public struct TrialFeaturesView: View {
             EmptyView()
         }
     }
+
+    private func dismiss() {
+        if let dismissFlow = dismissFlow {
+            dismissFlow()
+        } else {
+            dismissView()
+        }
+    }
 }
 
 struct CapabilityMoreInfo {
@@ -144,13 +154,13 @@ extension CapabilityServiceProtocol {
 struct TrialFeaturesView_Previews: PreviewProvider {
 
     struct ContainerView: View {
-        @Environment(\.dismiss) var dismiss
+        @Environment(\.dismiss) var dismissFlow
 
         var body: some View {
-            TrialFeaturesView(viewModel: .init(capabilityService: CapabilityServiceMock(),
+            TrialFeaturesView(viewModel: .init(capabilityService: .mock(),
                                                deepLinkingService: NotificationKitDeepLinkingServiceMock(),
                                                activityReporter: .fake),
-                              dismiss: dismiss)
+                              dismissFlow: dismissFlow)
         }
     }
 

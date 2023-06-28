@@ -18,7 +18,7 @@ final class BreachesEntriesServiceFetcher {
 
     func fetch() async throws -> Set<Breach> {
         let request = URLRequest(url: url)
-        
+
         let dataAndResponse = try await urlSession.data(for: request)
         let data = dataAndResponse.0
         let decoder = JSONDecoder()

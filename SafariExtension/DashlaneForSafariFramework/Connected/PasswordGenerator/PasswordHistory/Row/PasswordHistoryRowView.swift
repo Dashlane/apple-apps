@@ -2,6 +2,7 @@ import SwiftUI
 import CorePersonalData
 import UIDelight
 import IconLibrary
+import VaultKit
 
 struct PasswordHistoryRowView: View {
 

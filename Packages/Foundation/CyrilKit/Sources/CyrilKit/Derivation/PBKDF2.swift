@@ -9,11 +9,11 @@ public struct PBKDF2: DerivationFunction {
         case sha384
         case sha512
     }
-    
+
     public let algorithm: Algorithm
     public let derivedKeyLength: Int
     public let numberOfIterations: UInt32
-    
+
     public init(algorithm: Algorithm = .sha512,
                 derivedKeyLength: Int = 32,
                 numberOfIterations: UInt32 = 200000) {
@@ -21,12 +21,12 @@ public struct PBKDF2: DerivationFunction {
         self.derivedKeyLength = derivedKeyLength
         self.numberOfIterations = numberOfIterations
     }
-    
+
     public func derivateKey<V: ContiguousBytes, S: ContiguousBytes>(from password: V, salt: S) throws -> Data {
         var derivedKey = [UInt8](repeating: 0, count: derivedKeyLength)
         derivedKey.withUnsafeMutableBytes { bytes -> Void in
             password.withUnsafeBytes { passwordBytes -> Void in
-                salt.withUnsafeBytes { saltBytes  -> Void in
+                salt.withUnsafeBytes { saltBytes -> Void in
                     CCKeyDerivationPBKDF(CCPBKDFAlgorithm(kCCPBKDF2),
                                          passwordBytes.bindMemory(to: CChar.self).baseAddress,
                                          passwordBytes.count,
@@ -39,11 +39,10 @@ public struct PBKDF2: DerivationFunction {
                 }
             }
         }
-     
+
         return Data(bytes: derivedKey, count: derivedKeyLength)
     }
 }
-
 
 private extension PBKDF2.Algorithm {
     var CCValue: CCPseudoRandomAlgorithm {

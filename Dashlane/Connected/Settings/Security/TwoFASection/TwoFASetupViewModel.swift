@@ -2,6 +2,7 @@ import Foundation
 import LoginKit
 import CoreSession
 import CoreNetworking
+import CoreFeature
 import Logger
 import DashTypes
 import UIKit
@@ -28,17 +29,10 @@ class TwoFASetupViewModel: ObservableObject, SessionServicesInjecting {
         lockService.secureLockMode() != .masterKey
     }
 
-    var hasAuthenticatorApp: Bool {
-        guard UIApplication.shared.canOpenURL(DashlaneURLFactory.authenticator) else {
-            return false
-        }
-        return true
-    }
-
     var activationAction: ActivationAction {
-        if self.hasAuthenticatorApp && self.hasLock {
+        if Authenticator.isOnDevice && self.hasLock {
             return .setupTwoFA
-        } else if self.hasAuthenticatorApp {
+        } else if Authenticator.isOnDevice {
                         return .enableLock
         } else {
             return .downloadAuthApp

@@ -5,6 +5,7 @@ import CoreSession
 import StoreKit
 import TOTPGenerator
 import AuthenticatorKit
+import SwiftTreats
 
 struct PairedView<Content: View>: View {
 
@@ -15,10 +16,10 @@ struct PairedView<Content: View>: View {
     var showAnnouncement: Bool
 
     let announcementContent: () -> Content
-    
+
     @State
     var isInBackGround = false
-    
+
     init(model: @autoclosure @escaping () -> PairedViewModel,
          showAnnouncement: Binding<Bool>,
          @ViewBuilder announcementContent: @escaping () -> Content) {
@@ -26,7 +27,7 @@ struct PairedView<Content: View>: View {
         _showAnnouncement = showAnnouncement
         self.announcementContent = announcementContent
     }
-    
+
     var body: some View {
         content
             .sheet(item: $model.displayedSheet, onDismiss: nil) { sheet in
@@ -91,7 +92,7 @@ struct PairedView<Content: View>: View {
                         guard !ProcessInfo.isTesting else {
                             return
                         }
-                        if model.requestRating, let windowScene = UIApplication.shared.windows.first?.windowScene {
+                        if model.requestRating, let windowScene = UIApplication.shared.keyWindowScene {
                             SKStoreReviewController.requestReview(in: windowScene)
                             model.didFinishRating()
                         }

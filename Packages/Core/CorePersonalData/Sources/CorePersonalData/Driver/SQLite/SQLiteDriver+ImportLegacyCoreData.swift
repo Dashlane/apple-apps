@@ -14,14 +14,14 @@ extension SQLiteDriver {
                         guard try db.count(for: .settings) == 0 else {
                 return
             }
-            
+
             let storeData = try Data(contentsOf: url)
                 .decrypt(using: cryptoEngine)
-            
+
             guard let nodes = try JSONSerialization.jsonObject(with: storeData, options: []) as? [NSDictionary] else {
                 throw ImportCoreDataError.expectingArrayOfDictionary
             }
-            
+
             for node in nodes {
                                                                                 guard let object = try PersonalDataObject(coreDataNode: node),
                       let id = object.id.map({ Identifier($0) }),
@@ -29,20 +29,20 @@ extension SQLiteDriver {
                       let contentType = PersonalDataContentType(xmlDataType: xmlType) else {
                           continue
                       }
-                
+
                                 let metadata = try RecordMetadata(id: id,
                                                   contentType: contentType,
                                                   coreDataCollection: object.content)
-                
+
                 let record = PersonalDataRecord(metadata: metadata,
                                                 content: object.content.filter {
                     !CoreDataMetadataKeys.contains($0.key) 
                 })
-                
+
                                 let shouldCreateSnapshot: Bool
                 if let previousValues = object.content[.unsyncedValues]?.collection {
                     var snapshot = PersonalDataSnapshot(id: id, content: record.content)
-                    snapshot.content = record.content.merging(previousValues, uniquingKeysWith: { current, snapshot in
+                    snapshot.content = record.content.merging(previousValues, uniquingKeysWith: { _, snapshot in
                         snapshot
                     })
                     try db.insert(snapshot)
@@ -50,7 +50,7 @@ extension SQLiteDriver {
                 } else {
                     shouldCreateSnapshot = true
                 }
-                
+
                                 try db.insert(record, shouldCreateSnapshot: shouldCreateSnapshot)
             }
         }
@@ -70,7 +70,7 @@ private extension PersonalDataObject {
               !id.isEmpty else {
                   return nil
               }
-        
+
         let content = try PersonalDataCollection(propertyCache: propertyCache)
         self.init(type: .init(rawValue: entityName), content: content)
     }
@@ -81,7 +81,6 @@ private extension NSDictionary {
         return self[key.rawValue]
     }
 }
-
 
 private protocol PropertyKey: RawRepresentable { }
 
@@ -94,13 +93,13 @@ private extension PropertyKey {
 private extension PersonalDataCollection {
         init(propertyCache: NSDictionary) throws {
         self.init(minimumCapacity: propertyCache.count)
-        
+
         for (key, value) in propertyCache {
             guard let keyString = key as? String else {
                 throw ImportCoreDataError.expectingStringDictionaryKey
             }
             let key = keyString.lowercasingFirstLetter()
-            
+
             if let dict = value as? NSDictionary {
                 guard let object = try PersonalDataObject(coreDataNode: dict) else {
                     continue
@@ -110,13 +109,13 @@ private extension PersonalDataCollection {
                 let values: [PersonalDataValue] = try array
                     .compactMap { try PersonalDataObject(coreDataNode: $0) }
                     .map { .object($0) }
-                
+
                 self[key] = .list(values)
             } else if let value = value as? String, !value.isEmpty, let parsed: PersonalDataValue = try? .make(propertyKey: key, coreDataValue: value) {
                 self[key] = parsed
             }
         }
-        
+
                 if let unknownDataString = self[.unknownData]?.item {
             let xmlParser = PersonalDataXMLParser()
                         guard let xmlData = """
@@ -129,10 +128,10 @@ private extension PersonalDataCollection {
                        """.data(using: .utf8) else {
                            return
                        }
-            
+
             let object = try xmlParser.parse(xmlData)
-            
-            self.merge(object.content) { existingValue, newValue in
+
+            self.merge(object.content) { existingValue, _ in
                 existingValue
             }
         }
@@ -148,16 +147,16 @@ extension PersonalDataList {
               }) else {
                   return nil
               }
-        
+
         self = list
     }
-    
+
         init?(jsonStringArray: String) {
         guard let jsonData = jsonStringArray.data(using: .utf8),
               let stringArray = try? JSONSerialization.jsonObject(with: jsonData, options: []) as? [String] else {
                   return nil
               }
-        
+
         self = stringArray.map { string in
                 .item(string)
         }
@@ -170,7 +169,7 @@ extension PersonalDataCollection {
               let dictionary = try? JSONSerialization.jsonObject(with: jsonData, options: []) as? NSDictionary else {
                   return nil
               }
-        
+
         try? self.init(propertyCache: dictionary)
     }
 }
@@ -179,35 +178,35 @@ private extension PersonalDataValue {
         enum JSONCollectionListKeys: String, PropertyKey {
         case trustedUrlGroup
     }
-    
+
         enum JSONStringListKeys: String, PropertyKey {
         case changedProperties
         case banishedUrlsList
     }
-    
+
         enum JSONCollectionKeys: String, PropertyKey {
         case currentData
         case unsyncedValues
     }
-    
+
             static func make(propertyKey: String, coreDataValue value: String) throws -> PersonalDataValue {
         if JSONCollectionListKeys.contains(propertyKey) {
             guard let list = PersonalDataList(jsonDictionaryArray: value) else {
                 throw ImportCoreDataError.cannotDecodeJsonProperty(key: propertyKey)
             }
-            
+
             return .list(list)
         } else if JSONStringListKeys.contains(propertyKey) {
             guard let list = PersonalDataList(jsonStringArray: value) else {
                 throw ImportCoreDataError.cannotDecodeJsonProperty(key: propertyKey)
             }
-            
+
             return .list(list)
         } else if JSONCollectionKeys.contains(propertyKey) {
             guard let collection = PersonalDataCollection(jsonDictionary: value) else {
                 throw ImportCoreDataError.cannotDecodeJsonProperty(key: propertyKey)
             }
-            
+
             return .collection(collection)
         } else {
             return .item(value)
@@ -225,7 +224,7 @@ private extension RecordMetadata {
         let lastLocalSearchDate: Date?
         let sharedObject: Bool
         let objectId: String?
-        
+
         var lastSyncTimestamp: Timestamp? {
             guard let backupDate = backupDate, !backupDate.isEmpty else {
                 return nil
@@ -233,13 +232,13 @@ private extension RecordMetadata {
             return Timestamp(string: backupDate)
         }
     }
-    
+
         init(id: Identifier,
          contentType: PersonalDataContentType,
          coreDataCollection: PersonalDataCollection) throws {
         let decoder = PersonalDataDecoder()
         let localMetadata = try decoder.decode(CoreDataMetadata.self, from: .collection(coreDataCollection))
-        
+
         self.init(id: id,
                   contentType: contentType,
                   lastSyncTimestamp: localMetadata.lastSyncTimestamp,

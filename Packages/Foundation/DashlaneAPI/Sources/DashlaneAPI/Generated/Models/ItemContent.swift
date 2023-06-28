@@ -2,6 +2,12 @@ import Foundation
 
 public struct ItemContent: Codable, Equatable {
 
+    private enum CodingKeys: String, CodingKey {
+        case itemId = "itemId"
+        case content = "content"
+        case timestamp = "timestamp"
+    }
+
     public let itemId: String
 
     public let content: String

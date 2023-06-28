@@ -2,10 +2,10 @@ import Foundation
 
 public class CreditCardNumberFormatter: Formatter {
     var obfuscate = false
-    var obfucatingString = "•"
-    public init(obfuscate: Bool = false, obfucatingString: String = "•") {
+    var obfuscatingString = "•"
+    public init(obfuscate: Bool = false, obfuscatingString: String = "•") {
         self.obfuscate = obfuscate
-        self.obfucatingString = obfucatingString
+        self.obfuscatingString = obfuscatingString
         super.init()
     }
 
@@ -33,7 +33,7 @@ public class CreditCardNumberFormatter: Formatter {
 
             var obfuscatedString = String(formattedNumber[...lastSpaceIndex])
             obfuscatedString = obfuscatedString.map {
-                $0 == " " ? " " : obfucatingString
+                $0 == " " ? " " : obfuscatingString
             }.joined()
 
             let indexAfterLastSpace = formattedNumber.index(after: lastSpaceIndex)
@@ -59,10 +59,10 @@ public class CreditCardNumberFormatter: Formatter {
 
         return intIndices.sorted(by: >).map { number.index(number.startIndex, offsetBy: $0) }
     }
-    
+
     override public func getObjectValue(_ obj: AutoreleasingUnsafeMutablePointer<AnyObject?>?, for string: String, errorDescription error: AutoreleasingUnsafeMutablePointer<NSString?>?) -> Bool {
         obj?.pointee = string as NSString
         return true
     }
-    
+
 }

@@ -5,8 +5,6 @@ import DashlaneCrypto
 import CoreKeychain
 import Combine
 
-
-
 public class ResetMasterPasswordService: ResetMasterPasswordServiceProtocol {
 
     enum ResetMasterPasswordServiceError: Error {
@@ -103,5 +101,16 @@ extension KeyedSettings where Key == ResetMasterPasswordSettingsKey {
     var activated: Bool {
         get { return self[Key.activated] ?? false }
         nonmutating set { self[Key.activated] = newValue }
+    }
+}
+
+extension ResetMasterPasswordService {
+    
+    static var mock: ResetMasterPasswordServiceProtocol {
+        ResetMasterPasswordService(
+            login: Login("_"),
+            settings: .mock(),
+            keychainService: .fake
+        )
     }
 }

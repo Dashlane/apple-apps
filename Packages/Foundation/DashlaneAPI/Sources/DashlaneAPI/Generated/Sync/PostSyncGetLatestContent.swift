@@ -1,12 +1,16 @@
 import Foundation
 extension UserDeviceAPIClient.Sync {
-        public struct GetLatestContent {
+        public struct GetLatestContent: APIRequest {
         public static let endpoint: Endpoint = "/sync/GetLatestContent"
 
         public let api: UserDeviceAPIClient
 
                 public func callAsFunction(timestamp: Int, transactions: [String], needsKeys: Bool, teamAdminGroups: Bool, timeout: TimeInterval? = nil) async throws -> Response {
             let body = Body(timestamp: timestamp, transactions: transactions, needsKeys: needsKeys, teamAdminGroups: teamAdminGroups)
+            return try await api.post(Self.endpoint, body: body, timeout: timeout)
+        }
+
+        public func callAsFunction(_ body: Body, timeout: TimeInterval? = nil) async throws -> Response {
             return try await api.post(Self.endpoint, body: body, timeout: timeout)
         }
     }
@@ -17,7 +21,14 @@ extension UserDeviceAPIClient.Sync {
 }
 
 extension UserDeviceAPIClient.Sync.GetLatestContent {
-        struct Body: Encodable {
+        public struct Body: Encodable {
+
+        private enum CodingKeys: String, CodingKey {
+            case timestamp = "timestamp"
+            case transactions = "transactions"
+            case needsKeys = "needsKeys"
+            case teamAdminGroups = "teamAdminGroups"
+        }
 
                 public let timestamp: Int
 
@@ -33,6 +44,17 @@ extension UserDeviceAPIClient.Sync.GetLatestContent {
     public typealias Response = DataType
 
         public struct DataType: Codable, Equatable {
+
+        private enum CodingKeys: String, CodingKey {
+            case transactions = "transactions"
+            case timestamp = "timestamp"
+            case sharing2 = "sharing2"
+            case syncAllowed = "syncAllowed"
+            case uploadEnabled = "uploadEnabled"
+            case summary = "summary"
+            case fullBackup = "fullBackup"
+            case keys = "keys"
+        }
 
                 public let transactions: [Transactions]
 
@@ -51,6 +73,15 @@ extension UserDeviceAPIClient.Sync.GetLatestContent {
                 public let keys: Keys?
 
                 public struct Transactions: Codable, Equatable {
+
+            private enum CodingKeys: String, CodingKey {
+                case action = "action"
+                case backupDate = "backupDate"
+                case identifier = "identifier"
+                case time = "time"
+                case type = "type"
+                case content = "content"
+            }
 
             public let action: SyncContentAction
 
@@ -76,6 +107,12 @@ extension UserDeviceAPIClient.Sync.GetLatestContent {
 
                 public struct Sharing2: Codable, Equatable {
 
+            private enum CodingKeys: String, CodingKey {
+                case itemGroups = "itemGroups"
+                case items = "items"
+                case userGroups = "userGroups"
+            }
+
             public let itemGroups: [SyncGetLatestContentGroups]
 
             public let items: [Items]
@@ -83,6 +120,11 @@ extension UserDeviceAPIClient.Sync.GetLatestContent {
             public let userGroups: [SyncGetLatestContentGroups]
 
                         public struct Items: Codable, Equatable {
+
+                private enum CodingKeys: String, CodingKey {
+                    case id = "id"
+                    case timestamp = "timestamp"
+                }
 
                 public let id: String
 
@@ -102,6 +144,11 @@ extension UserDeviceAPIClient.Sync.GetLatestContent {
         }
 
                 public struct Keys: Codable, Equatable {
+
+            private enum CodingKeys: String, CodingKey {
+                case publicKey = "publicKey"
+                case privateKey = "privateKey"
+            }
 
             public let publicKey: String
 

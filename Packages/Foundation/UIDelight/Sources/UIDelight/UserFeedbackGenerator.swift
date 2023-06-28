@@ -14,14 +14,14 @@ public protocol ImpactFeedbackGenerator {
 }
 
 public struct UserFeedbackGenerator {
-    public static func makeSelectionFeedbackGenerator() ->  SelectionFeedbackGenerator? {
+    public static func makeSelectionFeedbackGenerator() -> SelectionFeedbackGenerator? {
         #if os(iOS)
         return UISelectionFeedbackGenerator()
         #else
         return nil
         #endif
     }
-    
+
     public static func makeImpactGenerator() -> ImpactFeedbackGenerator? {
         #if os(iOS)
         return UIImpactFeedbackGenerator()
@@ -30,7 +30,6 @@ public struct UserFeedbackGenerator {
         #endif
     }
 }
-
 
 #if os(iOS)
 extension UISelectionFeedbackGenerator: SelectionFeedbackGenerator { }

@@ -2,7 +2,7 @@ import Foundation
 import SwiftUI
 
 public struct AuthenticationRequest: Decodable, Identifiable, Hashable {
-    
+
     enum CodingKeys: String, CodingKey {
         case requestId = "id"
         case login
@@ -15,7 +15,7 @@ public struct AuthenticationRequest: Decodable, Identifiable, Hashable {
         }
         let startDate: Date
         let expireDate: Date
-        init?(validity: [AnyHashable : Any]) {
+        init?(validity: [AnyHashable: Any]) {
             guard let start = validity[CodingKeys.startDate.stringValue] as? TimeInterval,
                   let expire = validity[CodingKeys.expireDate.stringValue] as? TimeInterval else {
                 return nil
@@ -27,15 +27,15 @@ public struct AuthenticationRequest: Decodable, Identifiable, Hashable {
     public var id: String {
         return requestId
     }
-    
+
     let requestId: String
     let login: String
     let validity: Validity
-    
-    init?(userInfo: [AnyHashable : Any]) {
+
+    init?(userInfo: [AnyHashable: Any]) {
         guard let requestId = userInfo[CodingKeys.requestId.stringValue] as? String,
               let login = userInfo[CodingKeys.login.stringValue] as? String,
-              let validityDate = userInfo[CodingKeys.validity.stringValue] as? [AnyHashable : Any],
+              let validityDate = userInfo[CodingKeys.validity.stringValue] as? [AnyHashable: Any],
               let validity = Validity(validity: validityDate) else {
                   return nil
               }
@@ -43,7 +43,7 @@ public struct AuthenticationRequest: Decodable, Identifiable, Hashable {
         self.login = login
         self.validity = validity
     }
-    
+
     var isExpired: Bool {
         return validity.expireDate < Date()
     }

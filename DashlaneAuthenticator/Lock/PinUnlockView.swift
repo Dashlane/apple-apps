@@ -8,13 +8,13 @@ struct PinUnlockView: View {
 
     @StateObject
     var model: PinUnlockViewModel
-    
+
     @State var openContactSupport = false
-    
+
     init(model: @autoclosure @escaping () -> PinUnlockViewModel) {
         _model = .init(wrappedValue: model())
     }
-    
+
     var body: some View {
         mainView
             .backgroundColorIgnoringSafeArea(.ds.background.alternate)
@@ -31,7 +31,7 @@ struct PinUnlockView: View {
                 .safariSheet(isPresented: $openContactSupport, .troubleshooting)
             }
     }
-    
+
     var mainView: some View {
         VStack {
             topView
@@ -40,17 +40,17 @@ struct PinUnlockView: View {
             Spacer()
         }.padding()
     }
-    
+
     var topView: some View {
         VStack {
             Image(asset: AuthenticatorAsset.logoLockUp)
-                .foregroundColor(Color(asset: AuthenticatorAsset.oddityBrand))
+                .foregroundColor(.ds.text.brand.quiet)
             Text(model.login.email)
                 .foregroundColor(.ds.text.neutral.standard)
                 .font(.body)
         }
     }
-    
+
     var centerView: some View {
         PinCodeView(pinCode: $model.enteredPincode,
                     errorMessage: $model.errorMessage,

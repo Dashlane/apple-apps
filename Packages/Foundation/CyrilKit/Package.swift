@@ -3,8 +3,8 @@ import PackageDescription
 let package = Package(
     name: "CyrilKit",
     platforms: [
-        .iOS(.v15),
-        .macOS(.v12)
+        .iOS(.v16),
+        .macOS(.v13)
     ],
     products: [
                 .library(
@@ -26,6 +26,6 @@ let package = Package(
             dependencies: ["Argon2"]),
         .testTarget(
             name: "CyrilKitTests",
-            dependencies: ["CyrilKit"]),
+            dependencies: ["CyrilKit"])
     ]
 )

@@ -2,16 +2,16 @@ import Foundation
 
 public protocol ActivityReporterProtocol {
 
-    func reportPageShown(_ page: Page)
-    func report<Event: UserEventProtocol>(_ event: Event)
-    func report<Event: AnonymousEventProtocol>(_ event: Event)
+    func reportPageShown(_ page: @autoclosure @escaping @Sendable () -> Page)
+    func report<Event: UserEventProtocol>(_ event: @autoclosure @escaping @Sendable () -> Event)
+    func report<Event: AnonymousEventProtocol>(_ event: @autoclosure @escaping @Sendable () -> Event)
     func flush()
 }
 
 public struct FakeActivityReporter: ActivityReporterProtocol {
-    public func report<Event>(_ event: Event) where Event : AnonymousEventProtocol { }
-    public func reportPageShown(_ page: Page) {}
-    public func report<Event>(_ event: Event) where Event : UserEventProtocol {}
+    public func reportPageShown(_ page: @autoclosure @escaping @Sendable () -> Page) {}
+    public func report<Event: UserEventProtocol>(_ event: @autoclosure @escaping @Sendable () -> Event) {}
+    public func report<Event: AnonymousEventProtocol>(_ event: @autoclosure @escaping @Sendable () -> Event) {}
     public func flush() {}
     public init() {}
 }

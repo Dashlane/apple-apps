@@ -29,7 +29,7 @@ struct KeychainInstructionsView: View {
                         Image(systemName: "xmark.circle.fill").foregroundColor(Color(asset: FiberAsset.grey01))
                     }
                     .padding(10)
-                    .background(Color(asset: FiberAsset.grey06))
+                    .background(Color.ds.container.expressive.neutral.quiet.idle)
                     .cornerRadius(10)
                     .padding(.top, 57)
 
@@ -68,7 +68,7 @@ struct KeychainInstructionsView: View {
 }
 
 extension KeychainInstructionsView: NavigationBarStyleProvider {
-    var navigationBarStyle: NavigationBarStyle {
+    var navigationBarStyle: UIComponents.NavigationBarStyle {
         return .transparent(tintColor: FiberAsset.dashGreenCopy.color, statusBarStyle: .default)
     }
 }

@@ -3,8 +3,8 @@ import PackageDescription
 let package = Package(
     name: "ImportKit",
     platforms: [
-        .iOS(.v15),
-        .macOS(.v12)
+        .iOS(.v16),
+        .macOS(.v13)
     ],
     products: [
         .library(
@@ -22,9 +22,12 @@ let package = Package(
         .package(path: "../../Core/UIComponents"),
         .package(path: "../../Core/DesignSystem"),
         .package(path: "../../Plugins/swiftgen-plugin"),
+        .package(path: "../../Plugins/sourcery-plugin"),
         .package(path: "../LoginKit"),
         .package(path: "../VaultKit"),
-        .package(name: "CoreUserTracking", path: "../../Core/CoreUserTracking")
+        .package(path: "../../Core/IconLibrary"),
+        .package(name: "CoreUserTracking", path: "../../Core/CoreUserTracking"),
+        .package(name: "CoreFeature", path: "../../Core/CoreFeature")
     ],
     targets: [
         .target(
@@ -43,7 +46,8 @@ let package = Package(
                 .product(name: "LoginKit", package: "LoginKit"),
                 .product(name: "VaultKit", package: "VaultKit"),
                 .product(name: "CoreSession", package: "CoreSession"),
-                .product(name: "UIComponents", package: "UIComponents")
+                .product(name: "UIComponents", package: "UIComponents"),
+                .product(name: "IconLibrary", package: "IconLibrary")
             ],
             resources: [.process("Resources")]
         ),
@@ -53,6 +57,10 @@ let package = Package(
             resources: [
                 .process("Resources")
             ]
+        ),
+        .testTarget(
+            name: "ImportKitTests",
+            dependencies: ["CSVParser", "ImportKit"]
         )
     ]
 )

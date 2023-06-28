@@ -1,6 +1,5 @@
 import Foundation
 import DashTypes
-import struct DashTypes.Login
 import Combine
 
 public enum UserSettingsKey: String, CaseIterable, LocalSettingsKey {
@@ -11,7 +10,6 @@ public enum UserSettingsKey: String, CaseIterable, LocalSettingsKey {
     case clipboardOverrideEnabled = "CLIPBOARD_OVERRIDE_ENABLED"
     case hasSeenSecureWifiOnboarding
     case resetMasterPasswordWithBiometricsReactivationNeeded = "ResetMasterPasswordWithBiometricsReactivationNeeded"
-    case vaultItemSorting
     case deviceTokenForRemoteNotifications
     case guidedOnboardingData
     case hasSkippedGuidedOnboarding
@@ -29,13 +27,13 @@ public enum UserSettingsKey: String, CaseIterable, LocalSettingsKey {
     case rateAppLastDisplayedDate
     case rateAppDidDisplay
     case passwordGeneratorPreferences
-    case hasSentDeduplicationAudit
     case fastLocalSetupForRemoteLoginDisplayed
     case hasUsedPasswordChanger
     case automaticallyLoggedOut
     case hasSeenDWMExperience
     case safariIsSaveCredentialDisabled
     case trialStartedHasBeenShown
+    case lastpassImportPopupHasBeenShown
     case autofillActivationPopUpHasBeenShown
     case hasSeenBrowsersExtensionsOnboarding
     case hasSeenSafariDisabledOnboarding
@@ -44,6 +42,7 @@ public enum UserSettingsKey: String, CaseIterable, LocalSettingsKey {
     case hasCreatedAtLeastOneItem
     case hasDismissedNewVPNProviderMessage
     case ssoAuthenticationRequested
+    case lastAggregatedLogsUploadDate
 
     public var type: Any.Type {
         switch self {
@@ -60,12 +59,12 @@ public enum UserSettingsKey: String, CaseIterable, LocalSettingsKey {
              .hasSeenAutofillDemo,
              .hasSeenBiometricsOrPinOnboarding,
              .rateAppDidDisplay,
-             .hasSentDeduplicationAudit,
              .fastLocalSetupForRemoteLoginDisplayed,
              .hasUsedPasswordChanger,
              .automaticallyLoggedOut,
              .hasSeenDWMExperience,
              .trialStartedHasBeenShown,
+             .lastpassImportPopupHasBeenShown,
              .autofillActivationPopUpHasBeenShown,
              .hasSeenBrowsersExtensionsOnboarding,
              .hasSeenSafariDisabledOnboarding,
@@ -82,14 +81,13 @@ public enum UserSettingsKey: String, CaseIterable, LocalSettingsKey {
              .rateAppLastVersion:
             return String.self
         case .rateAppInstallDate,
-            .rateAppLastDisplayedDate:
+            .rateAppLastDisplayedDate,
+            .lastAggregatedLogsUploadDate:
             return Date.self
         case .hiddenTeamSpaces:
             return [String].self
         case .clipboardExpirationDelay:
             return TimeInterval.self
-        case .vaultItemSorting:
-            return VaultItemSorting.self
         case .guidedOnboardingData:
             return [GuidedOnboardingSettingsData].self
         case .rateAppDeclineResponseCount:
@@ -114,6 +112,6 @@ extension LocalSettingsFactory {
 
 public extension KeyedSettings where Key == UserSettingsKey {
     static var mock: UserSettings {
-        .init(internalStore: InMemoryLocalSettingsStore())
+        .init(internalStore: .mock())
     }
 }

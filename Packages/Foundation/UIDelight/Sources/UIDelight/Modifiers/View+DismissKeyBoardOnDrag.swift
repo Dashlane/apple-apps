@@ -12,7 +12,6 @@ struct DismissKeyBoardOnDragModifier: ViewModifier {
     }
 }
 
-
 public extension View {
     func dismissKeyboardOnDrag() -> some View {
         self.modifier(DismissKeyBoardOnDragModifier())

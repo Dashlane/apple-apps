@@ -23,7 +23,6 @@ extension UserTrackingAppActivityReporter {
     }
 }
 
-
 extension UserTrackingAppActivityReporter {
     enum Key: String {
         case analyticsInstallationId

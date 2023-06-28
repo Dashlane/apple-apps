@@ -5,10 +5,12 @@ struct DesignSystemDemoApp: App {
     private enum Mode: String, CaseIterable {
         case infobox
         case buttons
-        case textInputs
+        case textFields
         case badges
+        case toggles
+        case tags
     }
-    
+
     private var mode: Mode? {
         return Mode.allCases.first { ProcessInfo.processInfo.environment["\($0.rawValue)Configuration"] != nil }
     }
@@ -17,16 +19,20 @@ struct DesignSystemDemoApp: App {
         WindowGroup {
             VStack(spacing: 0) {
                 switch mode {
-                case .infobox:
-                    InfoboxView()
-                case .buttons:
-                    ButtonsView()
-                case .textInputs:
-                    TextInputView()
-                case .badges:
-                    BadgesView()
-                case .none:
-                    EmptyView()
+                    case .infobox:
+                        InfoboxView()
+                    case .buttons:
+                        ButtonsView()
+                    case .badges:
+                        BadgesView()
+                    case .textFields:
+                        TextFieldsView()
+                    case .toggles:
+                        TogglesView()
+                    case .tags:
+                        TagsView()
+                    case .none:
+                        EmptyView()
                 }
             }
             .statusBar(hidden: true)

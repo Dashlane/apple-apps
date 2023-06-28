@@ -6,16 +6,15 @@ extension SharingOperationsDatabase {
         if let user = group.user(with: userId) {
             members.append(user)
         }
-        
+
         for userGroupMember in group.userGroupMembers {
                         guard let userGroupPair = try fetchUserGroupUserPair(withGroupId: userGroupMember.id, userId: userId), userGroupPair.user.status == .accepted else {
                 continue
             }
-            
+
             members.append(userGroupMember)
         }
-        
+
         return members
     }
 }
-

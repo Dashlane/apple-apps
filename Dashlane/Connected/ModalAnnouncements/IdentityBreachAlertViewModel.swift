@@ -9,15 +9,12 @@ class IdentityBreachAlertViewModel: SessionServicesInjecting {
     private let deepLinkingService: DeepLinkingService
     private let identityDashboardService: IdentityDashboardServiceProtocol
     private let featureService: FeatureServiceProtocol
-    let logger: SecurityBreachLogger
 
     init(breachesToPresent: [PopupAlertProtocol],
          identityDashboardService: IdentityDashboardServiceProtocol,
-         usageLogService: UsageLogServiceProtocol,
          deepLinkingService: DeepLinkingService,
          featureService: FeatureServiceProtocol) {
         self.breaches = breachesToPresent
-        self.logger = SecurityBreachLogger(usageLogService: usageLogService)
         self.deepLinkingService = deepLinkingService
         self.identityDashboardService = identityDashboardService
         self.featureService = featureService
@@ -56,27 +53,10 @@ class IdentityBreachAlertViewModel: SessionServicesInjecting {
             }
 
         }
-        logAction(for: button, on: popup)
     }
 
     func showDarkWebMonitoringSection() {
         let origin = PasswordHealthFlowViewModel.Origin.popupAlert.rawValue
         deepLinkingService.handleLink(.tool(.darkWebMonitoring, origin: origin))
     }
-
-    private func logAction(for button: AlertButton, on popup: PopupAlertProtocol) {
-        switch button {
-        case .close, .cancel:
-            logger.popup(with: popup, and: .close)
-        case .later, .dismiss:
-            logger.popup(with: popup, and: .later)
-        case .view, .takeAction:
-            logger.popup(with: popup, and: .view)
-        case .upgrade:
-            logger.popup(with: popup, and: .upgrade)
-        case .viewDetails:
-            logger.popup(with: popup, and: .view)
-        }
-    }
-
 }

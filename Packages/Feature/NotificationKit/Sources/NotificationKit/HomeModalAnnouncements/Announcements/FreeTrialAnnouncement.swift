@@ -19,9 +19,9 @@ public class FreeTrialAnnouncement: HomeModalAnnouncement, HomeAnnouncementsServ
         self.userSettings = userSettings
         self.syncedSettings = syncedSettings
         self.premiumService = premiumService
-        
+
     }
-    
+
     func shouldDisplay() -> Bool {
                 guard premiumService.status?.statusCode == .freeTrial else {
             return false

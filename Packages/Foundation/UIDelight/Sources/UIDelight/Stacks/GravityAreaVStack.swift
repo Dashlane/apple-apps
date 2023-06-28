@@ -18,15 +18,11 @@ public struct GravityAreaVStack<Top: View, Center: View, Bottom: View>: View {
     public var body: some View {
         VStack(alignment: alignment, spacing: spacing) {
             top
-                .frame(maxHeight: .infinity,
-                       alignment: .top)
+                .frame(maxHeight: .infinity, alignment: .top)
             center
                 .frame(alignment: .center)
-
             bottom
-                .frame(maxHeight: .infinity,
-                       alignment: .bottom)
-
+                .frame(maxHeight: .infinity,alignment: .bottom)
         }
     }
 }

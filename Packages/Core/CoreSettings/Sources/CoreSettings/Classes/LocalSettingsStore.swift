@@ -23,11 +23,11 @@ extension SettingRegistration {
     }
 }
 
-extension DataConvertible where Self: RawRepresentable, Self.RawValue == String  {
+extension DataConvertible where Self: RawRepresentable, Self.RawValue == String {
     public var binaryData: Data {
         return self.rawValue.binaryData
     }
-    
+
     public init?(binaryData: Data) {
         guard let string = String(binaryData: binaryData) else {
             return nil
@@ -36,7 +36,7 @@ extension DataConvertible where Self: RawRepresentable, Self.RawValue == String 
     }
 }
 
-extension DataConvertible where Self: RawRepresentable, Self.RawValue == Int  {
+extension DataConvertible where Self: RawRepresentable, Self.RawValue == Int {
     public var binaryData: Data {
         return self.rawValue.binaryData
     }
@@ -49,28 +49,33 @@ extension DataConvertible where Self: RawRepresentable, Self.RawValue == Int  {
     }
 }
 
-public class InMemoryLocalSettingsStore: LocalSettingsStore {
+public class LocalSettingsStoreMock: LocalSettingsStore {
 
-    
     var data: [String: Any]
-    
-    public init() {
-      data = [:]
+
+    public init(data: [String: Any] = [:]) {
+        self.data = data
     }
-    
-    public func set<T>(value: T?, forIdentifier identifier: LocalSettingsStore.Identifier) where T : DataConvertible {
+
+    public func set<T>(value: T?, forIdentifier identifier: LocalSettingsStore.Identifier) where T: DataConvertible {
         data[identifier] = value
     }
-    
-    public func value<T>(for identifier: LocalSettingsStore.Identifier) -> T? where T : DataConvertible {
+
+    public func value<T>(for identifier: LocalSettingsStore.Identifier) -> T? where T: DataConvertible {
         return data[identifier] as? T
     }
-    
+
     public func delete(_ identifier: LocalSettingsStore.Identifier) {
         data.removeValue(forKey: identifier)
     }
-    
+
     public func registerIfneeded(_ settingRegistrations: [SettingRegistration]) {
-        
+
+    }
+}
+
+public extension LocalSettingsStore where Self == LocalSettingsStoreMock {
+    static func mock(data: [String: Any] = [:]) -> LocalSettingsStore {
+        LocalSettingsStoreMock(data: data)
     }
 }

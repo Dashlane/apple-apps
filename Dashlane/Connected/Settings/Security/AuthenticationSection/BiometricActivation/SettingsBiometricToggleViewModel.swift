@@ -6,6 +6,7 @@ import DashlaneAppKit
 import LoginKit
 import DashTypes
 import CoreFeature
+import CoreSession
 
 final class SettingsBiometricToggleViewModel: ObservableObject, SessionServicesInjecting {
     typealias Confirmed = Bool
@@ -18,17 +19,16 @@ final class SettingsBiometricToggleViewModel: ObservableObject, SessionServicesI
     }
 
     enum Action {
-        case enableMasterPasswordReset
+        case enableMasterPasswordReset(_ masterPassword: String)
         case disableRememberMasterPassword
         case disablePinCode
-        case disableResetMasterPassword
+        case disableResetMasterPassword(_ masterPassword: String)
     }
 
+    let authenticationMethod: AuthenticationMethod
     let lockService: LockServiceProtocol
     let featureService: FeatureServiceProtocol
-    let teamSpaceService: TeamSpacesService
     let resetMasterPasswordService: ResetMasterPasswordServiceProtocol
-    let usageLogService: UsageLogServiceProtocol
 
     @Published
     var isToggleOn: Bool
@@ -38,20 +38,16 @@ final class SettingsBiometricToggleViewModel: ObservableObject, SessionServicesI
 
     private let actionHandler: (Action) -> Void
 
-    init(lockService: LockServiceProtocol,
+    init(session: Session,
+         lockService: LockServiceProtocol,
          featureService: FeatureServiceProtocol,
-         teamSpaceService: TeamSpacesService,
          resetMasterPasswordService: ResetMasterPasswordServiceProtocol,
-         usageLogService: UsageLogServiceProtocol,
          actionHandler: @escaping (SettingsBiometricToggleViewModel.Action) -> Void) {
+        self.authenticationMethod = session.authenticationMethod
         self.lockService = lockService
         self.featureService = featureService
-        self.teamSpaceService = teamSpaceService
         self.resetMasterPasswordService = resetMasterPasswordService
-        self.usageLogService = usageLogService
-
         self.actionHandler = actionHandler
-
         isToggleOn = lockService.secureLockConfigurator.isBiometricActivated
     }
 
@@ -73,8 +69,8 @@ final class SettingsBiometricToggleViewModel: ObservableObject, SessionServicesI
             }
         case (false, _):
             warnAboutResetMasterPasswordDeactivation { [weak self] confirmed in
-                if confirmed {
-                    self?.actionHandler(.disableResetMasterPassword)
+                if confirmed, let password = self?.authenticationMethod.userMasterPassword {
+                    self?.actionHandler(.disableResetMasterPassword(password))
                     do {
                         try self?.disableBiometry()
                     } catch {
@@ -89,7 +85,7 @@ final class SettingsBiometricToggleViewModel: ObservableObject, SessionServicesI
     }
 
     private func activateBiometry() {
-                if teamSpaceService.isSSOUser || lockService.secureLockConfigurator.isPincodeActivated {
+                if authenticationMethod.userMasterPassword == nil || lockService.secureLockConfigurator.isPincodeActivated {
             do {
                 try enableBiometry()
                 if isResetMasterPasswordContainerAvailable && featureService.isEnabled(.masterPasswordResetIsAvailable) {
@@ -124,8 +120,8 @@ final class SettingsBiometricToggleViewModel: ObservableObject, SessionServicesI
 
     private func suggestActivatingResetMasterPassword() {
         activeAlert = .masterPasswordResetActivationSuggestion(completion: { [weak self] confirmation in
-            guard let self = self, confirmation else { return }
-            self.actionHandler(.enableMasterPasswordReset)
+            guard let self = self, confirmation, let password = self.authenticationMethod.userMasterPassword else { return }
+            self.actionHandler(.enableMasterPasswordReset(password))
         })
     }
 
@@ -148,13 +144,11 @@ final class SettingsBiometricToggleViewModel: ObservableObject, SessionServicesI
     func enableBiometry() throws {
         try lockService.secureLockConfigurator.enableBiometry()
         setToggleOnWithAnimation(true)
-        usageLogService.securitySettings.logBiometryStatus(isEnabled: true, origin: SecuritySettingsLogger.Origin.securitySettings)
     }
 
     func disableBiometry() throws {
         try lockService.secureLockConfigurator.disableBiometry()
         setToggleOnWithAnimation(false)
-        usageLogService.securitySettings.logBiometryStatus(isEnabled: false, origin: SecuritySettingsLogger.Origin.securitySettings)
     }
 
         private func setToggleOnWithAnimation(_ on: Bool) {
@@ -162,9 +156,8 @@ final class SettingsBiometricToggleViewModel: ObservableObject, SessionServicesI
             isToggleOn = on
         }
     }
-
-    private var isResetMasterPasswordContainerAvailable: Bool {
-        Device.biometryType != nil && !teamSpaceService.isSSOUser
+        private var isResetMasterPasswordContainerAvailable: Bool {
+        Device.biometryType != nil && authenticationMethod.userMasterPassword != nil
     }
 
     private var isResetMasterPasswordActivated: Bool {
@@ -179,11 +172,10 @@ final class SettingsBiometricToggleViewModel: ObservableObject, SessionServicesI
 extension SettingsBiometricToggleViewModel {
 
     static var mock: SettingsBiometricToggleViewModel {
-        SettingsBiometricToggleViewModel(lockService: LockServiceMock(),
+        SettingsBiometricToggleViewModel(session: .mock,
+                                         lockService: LockServiceMock(),
                                          featureService: .mock(),
-                                         teamSpaceService: .mock(),
                                          resetMasterPasswordService: ResetMasterPasswordServiceMock(),
-                                         usageLogService: UsageLogService.fakeService,
                                          actionHandler: { _ in })
     }
 }

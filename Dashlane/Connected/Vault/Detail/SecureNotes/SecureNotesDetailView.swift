@@ -12,6 +12,8 @@ import UIComponents
 import CoreFeature
 import UIKit
 import DesignSystem
+import VaultKit
+import CoreLocalization
 
 struct SecureNotesDetailView: View {
 
@@ -42,6 +44,7 @@ struct SecureNotesDetailView: View {
             mainContent
                 .padding(.bottom, toolbarHeight)
         }
+        .navigationBarBackButtonHidden(true)
         .overlay(toolbar, alignment: .bottom)
         .userActivity(.viewItem, isActive: model.advertiseUserActivity) { activity in
             activity.update(with: model.item)
@@ -64,7 +67,7 @@ struct SecureNotesDetailView: View {
                 items: model.availableUserSpaces,
                 selectionDidChange: model.saveIfViewing
             )
-            .navigationTitle(L10n.Localizable.KWSecureNoteIOS.spaceId)
+            .navigationTitle(CoreLocalization.L10n.Core.KWSecureNoteIOS.spaceId)
             .navigationBarTitleDisplayMode(.inline)
         }
         .navigation(isActive: $showDocumentStorage) {
@@ -97,7 +100,7 @@ struct SecureNotesDetailView: View {
             .background(Color.ds.container.expressive.neutral.quiet.active)
             .edgesIgnoringSafeArea(.all)
             .fiberAccessibilityElement(children: .combine)
-            .fiberAccessibilityLabel(Text(L10n.Localizable.kwDelete))
+            .fiberAccessibilityLabel(Text(CoreLocalization.L10n.Core.kwDelete))
         }
     }
 
@@ -149,7 +152,7 @@ struct SecureNotesDetailView: View {
                 Text(color.localizedName)
             }
         }
-        .navigationTitle(L10n.Localizable.KWSecureNoteIOS.colorTitle)
+        .navigationTitle(CoreLocalization.L10n.Core.KWSecureNoteIOS.colorTitle)
     }
 
         @ViewBuilder

@@ -1,7 +1,7 @@
 import SwiftUI
 
 public extension String {
-    
+
     func passwordColored(text: String) -> Text {
         guard let textRange = self.range(of: text) else {
             return Text(self)

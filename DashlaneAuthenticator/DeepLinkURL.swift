@@ -8,7 +8,7 @@ enum DeeplinkURL {
     case dashlanepasswordAppAccountCreation
     case securitySettings
     case vaultItemEdition(String)
-    
+
     var rawValue: String {
         switch self {
         case .passwordApp:

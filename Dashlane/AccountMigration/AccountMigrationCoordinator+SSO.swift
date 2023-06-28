@@ -15,48 +15,41 @@ extension AccountMigrationCoordinator {
             func createMasterPasswordChangerService(withNewMasterPassword newMasterPassword: String,
                                             sessionServices: SessionServicesContainer,
                                             newVerification: Verification?,
-                                            authTicket: AuthTicket?,
-                                            type: AccountMigrationType,
-                                            completion: @escaping (Result<AccountCryptoChangerService, Error>) -> Void) {
+                                            authTicket: CoreSync.AuthTicket?,
+                                            type: AccountMigrationType) async throws -> AccountCryptoChangerService {
 
         let masterPasswordBasedConfig = CryptoRawConfig.masterPasswordBasedDefault
 
         if type == .masterPasswordToMasterPassword {
-            completion(Result {
-                return try self.createMasterPasswordChangerService(withNewMasterPassword: newMasterPassword,
-                                                                   sessionServices: sessionServices,
-                                                                   newVerification: newVerification,
-                                                                   authTicket: authTicket,
-                                                                   type: type,
-                                                                   cryptoConfig: masterPasswordBasedConfig)
-            })
+            return try self.createMasterPasswordChangerService(withNewMasterPassword: newMasterPassword,
+                                                               sessionServices: sessionServices,
+                                                               newVerification: newVerification,
+                                                               authTicket: authTicket,
+                                                               type: type,
+                                                               cryptoConfig: masterPasswordBasedConfig)
         } else {
-            Task {
-                let cryptoUserPayload = try? await fetchTeamSpaceCryptoConfigHeader()
-                completion(Result {
-                    let config = CryptoRawConfig(fixedSalt: masterPasswordBasedConfig.fixedSalt,
-                                                 userParametersHeader: masterPasswordBasedConfig.parametersHeader,
-                                                 teamSpaceParametersHeader: cryptoUserPayload)
-                    return try self.createMasterPasswordChangerService(withNewMasterPassword: newMasterPassword,
-                                                                       sessionServices: sessionServices,
-                                                                       newVerification: newVerification,
-                                                                       authTicket: authTicket,
-                                                                       type: type,
-                                                                       cryptoConfig: config)
-                })
-            }
+            let cryptoUserPayload = try? await fetchTeamSpaceCryptoConfigHeader()
+            let config = CryptoRawConfig(fixedSalt: masterPasswordBasedConfig.fixedSalt,
+                                         userParametersHeader: masterPasswordBasedConfig.parametersHeader,
+                                         teamSpaceParametersHeader: cryptoUserPayload)
+            return try self.createMasterPasswordChangerService(withNewMasterPassword: newMasterPassword,
+                                                               sessionServices: sessionServices,
+                                                               newVerification: newVerification,
+                                                               authTicket: authTicket,
+                                                               type: type,
+                                                               cryptoConfig: config)
         }
     }
 
         private func createMasterPasswordChangerService(withNewMasterPassword newMasterPassword: String,
                                                     sessionServices: SessionServicesContainer,
                                                     newVerification: Verification?,
-                                                    authTicket: AuthTicket?,
+                                                    authTicket: CoreSync.AuthTicket?,
                                                     type: AccountMigrationType,
                                                     cryptoConfig: CryptoRawConfig) throws -> AccountCryptoChangerService {
 
         let session = sessionServices.session
-        let currentMasterKey = session.configuration.masterKey
+        let currentMasterKey = session.authenticationMethod.sessionKey
 
         let migratingSession = try sessionServices.appServices.sessionContainer.prepareMigration(of: session,
                                                                                                  to: .masterPassword(newMasterPassword, serverKey: currentMasterKey.serverKey), remoteKey: nil,
@@ -67,7 +60,7 @@ extension AccountMigrationCoordinator {
                                                                   resetMasterPasswordService: sessionServices.resetMasterPasswordService,
                                                                   syncService: sessionServices.syncService)
 
-        let reportedType: Definition.CryptoMigrationType = migratingSession.source.configuration.info.isPartOfSSOCompany ? .ssoToMasterPassword : .masterPasswordChange
+        let reportedType: Definition.CryptoMigrationType = migratingSession.source.configuration.info.accountType == .sso ? .ssoToMasterPassword : .masterPasswordChange
         return try AccountCryptoChangerService(reportedType: reportedType,
                                                migratingSession: migratingSession,
                                                syncService: sessionServices.syncService,

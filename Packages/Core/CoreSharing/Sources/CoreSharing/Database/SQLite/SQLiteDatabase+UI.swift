@@ -17,7 +17,7 @@ extension SQLiteDatabase: SharingUIDatabase {
                     .including(all: ItemGroupInfo.users.order([Column.id]))
             .including(all: ItemGroupInfo.userGroupMembers.order(Column.name))
             .asRequest(of: ItemSharingMembers.self)
-        
+
         return ValueObservation.tracking { db in
             return try ItemSharingMembers.fetchOne(db, request)
         }.values(in: pool)
@@ -32,7 +32,7 @@ extension SQLiteDatabase: SharingUIDatabase {
                     .including(all: ItemGroupInfo.userGroupMembers.filter(status: [.pending, .accepted]).forKey(FetchedUItemGroup<User>.CodingKeys.members))
                     .including(all: ItemGroupInfo.itemIds.forKey(FetchedUItemGroup<UserGroupMember>.CodingKeys.itemIds))
             .asRequest(of: FetchedUItemGroup<UserGroupMember>.self)
-        
+
         return ValueObservation.tracking { db in
             let userGroups = try UserGroup.fetchAll(db, userGroupRequest).map { userGroup in
                 SharingItemsUserGroup(id: userGroup.id,
@@ -41,7 +41,7 @@ extension SQLiteDatabase: SharingUIDatabase {
                                       users: userGroup.users)
             }
             var userGroupsById = Dictionary(values: userGroups)
-            
+
             let itemGroups = try FetchedUItemGroup<UserGroupMember>.fetchAll(db, itemGroupsRequest)
 
                         for group in itemGroups {
@@ -55,16 +55,16 @@ extension SQLiteDatabase: SharingUIDatabase {
             }
         }.values(in: pool)
     }
-    
+
         public func sharingUsers(for currentUserId: UserId) -> SharingItemsUserSequence {
                 let request = ItemGroupInfo.havingAcceptedUser(with: currentUserId)
                     .including(all: ItemGroupInfo.users.filterOut(id: currentUserId).filter(status: [.pending, .accepted]).forKey(FetchedUItemGroup<User>.CodingKeys.members))
                     .including(all: ItemGroupInfo.itemIds.forKey(FetchedUItemGroup<User>.CodingKeys.itemIds))
             .asRequest(of: FetchedUItemGroup<User>.self)
-        
+
         return ValueObservation.tracking { db in
             let groups = try FetchedUItemGroup<User>.fetchAll(db, request)
-            
+
                         var sharingItemsUserByIds = [UserId: SharingItemsUser]()
             for group in groups {
                 for user in group.members {
@@ -72,7 +72,7 @@ extension SQLiteDatabase: SharingUIDatabase {
                         .items += group.sharedItems(for: user)
                 }
             }
-            
+
                         return sharingItemsUserByIds.values
                 .filter {
                     !$0.items.isEmpty
@@ -82,7 +82,7 @@ extension SQLiteDatabase: SharingUIDatabase {
             }
         }.values(in: pool)
     }
-    
+
         public func pendingItemGroups(for userId: UserId) -> PendingItemGroupsSequence {
         let request = ItemGroupInfo
             .orderByPrimaryKey()
@@ -90,12 +90,12 @@ extension SQLiteDatabase: SharingUIDatabase {
                     .including(all: ItemGroupInfo.itemIds.forKey(PendingItemGroup.CodingKeys.itemIds))
                     .including(all: ItemGroupInfo.users.filter(id: userId).select(Column(PendingItemGroup.CodingKeys.referrer)).forKey(PendingItemGroup.CodingKeys.referrer))
             .asRequest(of: PendingItemGroup.self)
-        
+
         return ValueObservation.tracking { db in
             return try PendingItemGroup.fetchAll(db, request).filter { !$0.itemIds.isEmpty }
         }.values(in: pool)
     }
-    
+
         public func pendingUserGroups(for userId: UserId) -> PendingUserGroupsSequence {
         let request = UserGroupInfo
             .order(Column.name)
@@ -119,21 +119,20 @@ extension AssociationToMany {
     }
 }
 
-fileprivate struct FetchedUItemGroup<Member: SharingGroupMember & Decodable & Identifiable>: Decodable, FetchableRecord {
+private struct FetchedUItemGroup<Member: SharingGroupMember & Decodable & Identifiable>: Decodable, FetchableRecord {
     enum CodingKeys: String, CodingKey {
         case itemGroupInfo
         case members
         case itemIds
     }
-    
+
     let itemGroupInfo: ItemGroupInfo
     let members: [Member]
     let itemIds: [Identifier]
 }
 
-fileprivate extension FetchedUItemGroup {
-    func sharedItems<Member: SharingGroupMember>(for recipient: Member) -> [SharedItemInfo<Member>]{
+extension FetchedUItemGroup {
+    func sharedItems<Member: SharingGroupMember>(for recipient: Member) -> [SharedItemInfo<Member>] {
          itemIds.map { .init(id: $0, group: itemGroupInfo, recipient: recipient) }
     }
 }
-

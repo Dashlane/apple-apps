@@ -24,6 +24,7 @@ struct TimeshiftProvider {
 
     func fetch() async throws -> TimeInterval {
         var urlRequest = URLRequest(endpoint: Request.endpoint,
+                                    timeoutInterval: 1.0,
                                     configuration: configuration)
         urlRequest.setHeaders(additionalHeaders)
 

@@ -16,7 +16,7 @@ public struct TACSharingTestService<UIDatabase: SharingUIDatabase> {
     }
 
         struct CreateUserGroupRequest: Encodable {
-        enum ProvisioningMethodSchema: String, Codable,Equatable, CaseIterable {
+        enum ProvisioningMethodSchema: String, Codable, Equatable, CaseIterable {
             case user = "USER"
             case tac = "TAC"
             case ad = "AD"
@@ -71,16 +71,16 @@ public struct TACSharingTestService<UIDatabase: SharingUIDatabase> {
                                                    publicKey: try groupKeyPair.publicKey.rsaPemString(),
                                                    privateKey: privateKey.base64EncodedString(),
                                                    users: (users + [author]).map(Invite.init))
-        
+
         let _: Empty =  try await apiClient.sendRequest(to: "v1/sharing-userdevice/CreateUserGroup",
                                                                  using: .post,
                                                                  input: createRequest)
-        
+
         return groupId
     }
 }
 
-fileprivate struct Empty: Decodable {}
+private struct Empty: Decodable {}
 
 extension TACSharingTestService.Invite {
     init(_ invite: UserUpload) {

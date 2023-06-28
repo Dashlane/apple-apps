@@ -95,7 +95,7 @@ extension SharingToolView {
 
     private var navigationBarTitleView: some View {
         Text(L10n.Localizable.tabContactsTitle)
-            .foregroundColor(.primary)
+            .foregroundColor(.ds.text.neutral.catchy)
             .font(.headline)
             .lineLimit(1)
             .fixedSize(horizontal: true, vertical: false)

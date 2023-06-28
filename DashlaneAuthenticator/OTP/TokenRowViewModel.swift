@@ -15,11 +15,11 @@ struct TokenRowViewModel {
     let subtitle: String
     let isDashlaneToken: Bool
     let dashlaneTokenCaption: String
-    
+
     private let domainIconLibrary: DomainIconLibraryProtocol
     private let databaseService: AuthenticatorDatabaseServiceProtocol
     private let domain: Domain?
-    
+
     init(token: OTPInfo,
          dashlaneTokenCaption: String = "",
          domainIconLibrary: DomainIconLibraryProtocol,
@@ -38,11 +38,11 @@ struct TokenRowViewModel {
             domain = nil
         }
     }
-    
+
     func makeDomainIconViewModel() -> DomainIconViewModel {
         return DomainIconViewModel(domain: domain, size: .small, iconLibrary: domainIconLibrary)
     }
-    
+
     func makeGeneratedOTPCodeRowViewModel() -> GeneratedOTPCodeRowViewModel {
         GeneratedOTPCodeRowViewModel(token: token, databaseService: databaseService)
     }
@@ -53,6 +53,6 @@ extension TokenRowViewModel {
         TokenRowViewModel(token: .mock,
                           domainIconLibrary: IconServiceMock().domain,
                           databaseService: AuthenticatorDatabaseServiceMock(),
-                          domainParser: DomainParserMock())
+                          domainParser: FakeDomainParser())
     }
 }

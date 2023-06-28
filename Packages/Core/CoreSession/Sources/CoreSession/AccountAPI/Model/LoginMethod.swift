@@ -1,4 +1,5 @@
 import Foundation
+import DashlaneAPI
 
 public enum ThirdPartyOTPOption: String, Codable, Hashable {
     case totp
@@ -13,8 +14,4 @@ public enum LoginMethod: Hashable {
     case authenticator
 }
 
-public enum SSOMigrationType: String, Codable, Hashable {
-    case ssoUserToMasterPasswordAdmin = "sso_member_to_admin"
-    case ssoUserToMasterPasswordUser = "sso_member_to_mp_user"
-    case masterPasswordUserToSSOUser = "mp_user_to_sso_member"
-}
+public typealias SSOMigrationType = AuthenticationMigration

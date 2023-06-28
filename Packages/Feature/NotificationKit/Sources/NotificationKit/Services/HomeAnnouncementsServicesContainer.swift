@@ -19,5 +19,5 @@ public protocol HomeAnnouncementsServicesContainer: DependenciesContainer {
     var capabilityService: CapabilityServiceProtocol { get }
     var userSettings: UserSettings { get }
     var notificationKitAutofillService: NotificationKitAutofillServiceProtocol { get }
-    var abTestingService: ABTestingServiceProtocol { get }
+    var notificationKitFeatureService: FeatureServiceProtocol { get }
 }

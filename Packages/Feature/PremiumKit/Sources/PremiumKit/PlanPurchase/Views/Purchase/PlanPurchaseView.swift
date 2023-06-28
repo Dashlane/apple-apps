@@ -1,6 +1,5 @@
 #if canImport(UIKit)
 
-
 import Foundation
 import SwiftUI
 import CorePremium
@@ -25,7 +24,7 @@ struct PlanPurchaseView: View {
 
     let action: (Action) -> Void
 
-    @State private var showingTermsAndConfitionsSheet = false
+    @State private var showingTermsAndConditionsSheet = false
 
     var body: some View {
         VStack(alignment: .leading) {
@@ -109,9 +108,9 @@ struct PlanPurchaseView: View {
             Spacer()
         }
         .onTapGesture {
-            self.showingTermsAndConfitionsSheet.toggle()
+            self.showingTermsAndConditionsSheet.toggle()
         }
-        .actionSheet(isPresented: $showingTermsAndConfitionsSheet) {
+        .actionSheet(isPresented: $showingTermsAndConditionsSheet) {
             ActionSheet(title: Text(L10n.Core.kwCreateAccountTermsConditions),
                         buttons: [
                             .default(Text(L10n.Core.kwCreateAccountTermsConditions)) {

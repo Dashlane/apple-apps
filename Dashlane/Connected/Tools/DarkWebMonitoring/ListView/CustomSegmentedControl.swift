@@ -1,3 +1,4 @@
+import DesignSystem
 import SwiftUI
 
 struct SegmentTag: View {
@@ -20,10 +21,12 @@ struct SegmentTag: View {
     @ViewBuilder
     private var background: some View {
         switch type {
-            case .outline:
-                Circle().stroke(Color(UIColor.lightGray), lineWidth: 1.0)
-            case .full:
-                Circle().foregroundColor(Color(asset: FiberAsset.secondaryRed))
+        case .outline:
+            Circle()
+                .stroke(Color(UIColor.lightGray), lineWidth: 1.0)
+        case .full:
+            Circle()
+                .foregroundColor(.ds.text.danger.quiet)
         }
     }
 
@@ -69,12 +72,8 @@ struct CustomSegmentedControl: View {
             ZStack(alignment: .bottom) {
                 HStack(spacing: 0) {
                     ForEach(options.indices, id: \.self) { index in
-                        if #available(iOS 16, *) {
-                            segment(options[index], currentIndex: index)
-                                .padding(.bottom, 12)
-                        } else {
-                            segment(options[index], currentIndex: index)
-                        }
+                        segment(options[index], currentIndex: index)
+                            .padding(.bottom, 12)
                     }
                 }
 
@@ -97,7 +96,7 @@ struct CustomSegmentedControl: View {
                 Spacer()
                 Text(value.title)
                     .font(.system(.body))
-                    .foregroundColor(selectedIndex == currentIndex ? Color(asset: FiberAsset.midGreen) : Color(UIColor.label))
+                    .foregroundColor(selectedIndex == currentIndex ? .ds.text.brand.standard : Color(UIColor.label))
                 value.segmentTag
                 Spacer()
             }

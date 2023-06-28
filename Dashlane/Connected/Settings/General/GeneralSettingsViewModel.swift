@@ -1,7 +1,6 @@
 import Foundation
 import Combine
 import DashlaneAppKit
-import DashlaneReportKit
 import SwiftUI
 import CoreSettings
 import UniformTypeIdentifiers
@@ -11,14 +10,15 @@ import CoreUserTracking
 import ImportKit
 import DashTypes
 import VaultKit
+import DomainParser
 
+@MainActor
 final class GeneralSettingsViewModel: ObservableObject, SessionServicesInjecting {
 
     static let pasteboardExpirationDelay: TimeInterval = 300
 
     let userSettings: UserSettings
-    let usageLogService: UsageLogServiceProtocol
-    let importFlowViewModel: DashImportFlowViewModel
+        let importFlowViewModel: DashImportFlowViewModel
     let databaseDriver: DatabaseDriver
     let activityReporter: ActivityReporterProtocol
 
@@ -37,7 +37,8 @@ final class GeneralSettingsViewModel: ObservableObject, SessionServicesInjecting
     @Published
     var showImportPasswordView: Bool
 
-    var displayImportFlow = PassthroughSubject<Void, Never>()
+    @Published
+    var showImportFlow: Bool = false
 
     var importContentTypes: [UTType] {
         return ImportFlowKind.dash.contentTypes
@@ -47,22 +48,18 @@ final class GeneralSettingsViewModel: ObservableObject, SessionServicesInjecting
 
     let exportSecureArchiveViewModelFactory: ExportSecureArchiveViewModel.Factory
 
-    init(personalDataURLDecoder: DashlaneAppKit.PersonalDataURLDecoder,
-         applicationDatabase: ApplicationDatabase,
+    init(applicationDatabase: ApplicationDatabase,
          databaseDriver: DatabaseDriver,
          iconService: IconServiceProtocol,
          activityReporter: ActivityReporterProtocol,
          userSettings: UserSettings,
-         usageLogService: UsageLogServiceProtocol,
-         exportSecureArchiveViewModelFactory: ExportSecureArchiveViewModel.Factory) {
+         exportSecureArchiveViewModelFactory: ExportSecureArchiveViewModel.Factory,
+         dashImportFlowViewModelFactory: DashImportFlowViewModel.SecondFactory) {
         self.userSettings = userSettings
-        self.usageLogService = usageLogService
-        self.importFlowViewModel = DashImportFlowViewModel(initialStep: nil,
-                                                           personalDataURLDecoder: personalDataURLDecoder,
-                                                           applicationDatabase: applicationDatabase,
-                                                           databaseDriver: databaseDriver,
-                                                           iconService: iconService,
-                                                           activityReporter: activityReporter)
+        self.importFlowViewModel = dashImportFlowViewModelFactory.make(shouldHaveInitialStep: false,
+                                                                       applicationDatabase: applicationDatabase,
+                                                                       databaseDriver: databaseDriver)
+
         self.showImportPasswordView = false
         self.databaseDriver = databaseDriver
         self.activityReporter = activityReporter
@@ -73,9 +70,16 @@ final class GeneralSettingsViewModel: ObservableObject, SessionServicesInjecting
 
         _isUniversalClipboardEnabled = UserSetting(key: .isUniversalClipboardEnabled, settings: userSettings, defaultValue: false)
         _isAdvancedSystemIntegrationEnabled = UserSetting(key: .advancedSystemIntegration, settings: userSettings, defaultValue: false)
-        _isClipboardOverridden = UserSetting(key: .clipboardOverrideEnabled, settings: userSettings, defaultValue: false) { value in
-            usageLogService.post(UsageLogCode35UserActionsMobile(type: "settings", action: "clipboardOverride\(value ? "On" : "Off")"))
-        }
+        _isClipboardOverridden = UserSetting(key: .clipboardOverrideEnabled, settings: userSettings, defaultValue: false)
+
+        importFlowViewModel.dismissPublisher.sink { [weak self] action in
+            switch action {
+            case .dismiss:
+                self?.showImportFlow = false
+            case .popToRootView:
+                break 
+            }
+        }.store(in: &subscriptions)
 
         $isClipboardExpirationEnabled.sink { newValue in
             userSettings[.clipboardExpirationDelay] = newValue ? Self.pasteboardExpirationDelay : nil
@@ -84,7 +88,7 @@ final class GeneralSettingsViewModel: ObservableObject, SessionServicesInjecting
     }
 
         func handleImportFile(_ file: Data) {
-        importFlowViewModel.makeImportViewModel(withSecureArchiveData: file)
+                importFlowViewModel.makeImportViewModel(withSecureArchiveData: file)
         showImportPasswordView = true
     }
 
@@ -93,7 +97,7 @@ final class GeneralSettingsViewModel: ObservableObject, SessionServicesInjecting
         self.showImportPasswordView = false
         switch action {
         case .extracted, .extractionError:
-            self.displayImportFlow.send(())
+            self.showImportFlow = true
         case .cancel:
             break
         }
@@ -103,13 +107,12 @@ final class GeneralSettingsViewModel: ObservableObject, SessionServicesInjecting
 extension GeneralSettingsViewModel {
     static var mock: GeneralSettingsViewModel {
         return GeneralSettingsViewModel(
-            personalDataURLDecoder: .init(domainParser: DomainParserMock(), linkedDomainService: LinkedDomainService()),
             applicationDatabase: ApplicationDBStack.mock(),
             databaseDriver: InMemoryDatabaseDriver(),
             iconService: IconServiceMock(),
             activityReporter: .fake,
-            userSettings: UserSettings(internalStore: InMemoryLocalSettingsStore()),
-            usageLogService: UsageLogService.fakeService,
-            exportSecureArchiveViewModelFactory: .init({ .mock }))
+            userSettings: UserSettings(internalStore: .mock()),
+            exportSecureArchiveViewModelFactory: .init({ .mock }),
+            dashImportFlowViewModelFactory: .init({ _, _, _  in .mock() }))
     }
 }

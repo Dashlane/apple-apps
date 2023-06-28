@@ -1,6 +1,5 @@
 import SwiftUI
 import Combine
-import DashlaneReportKit
 import CoreKeychain
 import CoreUserTracking
 import DashlaneAppKit
@@ -8,6 +7,9 @@ import SwiftTreats
 import LoginKit
 import CoreSettings
 import DashTypes
+import DashlaneAPI
+import CoreSession
+import CorePersonalData
 
 typealias ChangeMasterPasswordLauncher = () -> Void
 
@@ -18,6 +20,8 @@ class LockViewModel: ObservableObject, SessionServicesInjecting {
         case masterPassword(MasterPasswordLocalViewModel)
         case biometry(BiometryViewModel)
         case pinCode(LockPinCodeAndBiometryViewModel)
+        case sso(Login)
+        case passwordLessRecovery(recoverFromFailure: Bool)
     }
 
     @Published
@@ -26,19 +30,32 @@ class LockViewModel: ObservableObject, SessionServicesInjecting {
     @Published
     var mode: Mode = .privacyShutter
 
+    @Published
+    var newMasterPassword: String?
+
+    private let session: Session
     private let locker: ScreenLocker
     private let keychainService: AuthenticationKeychainService
     private let userSettings: UserSettings
     private let resetMasterPasswordService: ResetMasterPasswordService
     private let pinCodeAttempts: PinCodeAttempts
-    let installerLogService: InstallerLogServiceProtocol
-    private let usageLogService: UsageLogServiceProtocol
     private let teamspaceService: TeamSpacesService
-    private let loginUsageLogService: LoginUsageLogServiceProtocol
+    private let loginMetricsReporter: LoginMetricsReporterProtocol
     private let lockService: LockServiceProtocol
     private weak var sessionLifeCycleHandler: SessionLifeCycleHandler?
     private var subscriptions: Set<AnyCancellable> = .init()
     private var initialBiometry: Biometry?
+    private let appAPIClient: AppAPIClient
+    private let loginKitServices: LoginKitServicesContainer
+    private let accountType: AccountType
+    private let appservices: AppServicesContainer
+    private let syncService: SyncServiceProtocol
+    private let sessionCryptoUpdater: SessionCryptoUpdater
+    private let userDeviceAPIClient: UserDeviceAPIClient
+    private let syncedSettings: SyncedSettingsService
+    private let databaseDriver: DatabaseDriver
+    private let logger: Logger
+    private let postARKChangeMasterPasswordViewModelFactory: PostARKChangeMasterPasswordViewModel.Factory
     var changeMasterPasswordLauncher: ChangeMasterPasswordLauncher
 
     var canAutomaticallyPromptQuickLoginScreen: Bool
@@ -47,30 +64,50 @@ class LockViewModel: ObservableObject, SessionServicesInjecting {
         lazy var mainAuthenticationMode: Definition.Mode = teamspaceService.isSSOUser ? .sso : .masterPassword
 
     init(locker: ScreenLocker,
+         session: Session,
+         appServices: AppServicesContainer,
+         appAPIClient: AppAPIClient,
+         userDeviceAPIClient: UserDeviceAPIClient,
          keychainService: AuthenticationKeychainService,
          userSettings: UserSettings,
          resetMasterPasswordService: ResetMasterPasswordService,
-         installerLogService: InstallerLogServiceProtocol,
-         usageLogService: UsageLogServiceProtocol,
          activityReporter: ActivityReporterProtocol,
          teamspaceService: TeamSpacesService,
-         loginUsageLogService: LoginUsageLogServiceProtocol,
+         loginMetricsReporter: LoginMetricsReporterProtocol,
          lockService: LockServiceProtocol,
          sessionLifeCycleHandler: SessionLifeCycleHandler?,
-         changeMasterPasswordLauncher: @escaping ChangeMasterPasswordLauncher) {
+         syncService: SyncServiceProtocol,
+         sessionCryptoUpdater: SessionCryptoUpdater,
+         syncedSettings: SyncedSettingsService,
+         databaseDriver: DatabaseDriver,
+         logger: Logger,
+         newMasterPassword: String? = nil,
+         changeMasterPasswordLauncher: @escaping ChangeMasterPasswordLauncher,
+         postARKChangeMasterPasswordViewModelFactory: PostARKChangeMasterPasswordViewModel.Factory) {
+        self.session = session
         self.locker = locker
+        self.accountType = session.configuration.info.accountType
         self.keychainService = keychainService
         self.userSettings = userSettings
         self.resetMasterPasswordService = resetMasterPasswordService
         self.changeMasterPasswordLauncher = changeMasterPasswordLauncher
         self.pinCodeAttempts = PinCodeAttempts(internalStore: userSettings.internalStore)
-        self.usageLogService = usageLogService
         self.teamspaceService = teamspaceService
-        self.loginUsageLogService = loginUsageLogService
+        self.loginMetricsReporter = loginMetricsReporter
         self.lockService = lockService
-        self.installerLogService = installerLogService
         self.sessionLifeCycleHandler = sessionLifeCycleHandler
         self.activityReporter = activityReporter
+        self.appAPIClient = appAPIClient
+        self.syncService = syncService
+        self.userDeviceAPIClient = userDeviceAPIClient
+        self.syncedSettings = syncedSettings
+        self.databaseDriver = databaseDriver
+        self.appservices = appServices
+        self.sessionCryptoUpdater = sessionCryptoUpdater
+        self.logger = logger
+        self.newMasterPassword = newMasterPassword
+        self.loginKitServices = appServices.makeLoginKitServicesContainer()
+        self.postARKChangeMasterPasswordViewModelFactory = postARKChangeMasterPasswordViewModelFactory
                 canAutomaticallyPromptQuickLoginScreen = !Device.isMac
         lock = locker.lock
         updateMode(with: lock)
@@ -92,26 +129,33 @@ class LockViewModel: ObservableObject, SessionServicesInjecting {
             .store(in: &subscriptions)
     }
 
-    func updateMode(with lock: ScreenLocker.Lock?) {
+    func updateMode(with lock: ScreenLocker.Lock?, recoverFromFailure: Bool = false) {
         switch lock {
         case .privacyShutter, .none:
             self.mode = .privacyShutter
         case let .secure(secureMode):
             switch secureMode {
             case .masterKey:
-                self.mode = .masterPassword(makeMasterPasswordViewModel())
+                switch accountType {
+                case .masterPassword:
+                    self.mode = .masterPassword(makeMasterPasswordViewModel())
+                case .invisibleMasterPassword:
+                    self.mode = .passwordLessRecovery(recoverFromFailure: recoverFromFailure)
+                case .sso:
+                    self.mode = .sso(locker.login)
+                }
             case .biometry(let type):
                 guard canShow(secureMode) else { return }
                 self.mode = .biometry(makeBiometryViewModel(biometryType: type))
-            case .pincode(let code, let attempts, let masterKey):
+            case .pincode(let lock):
                 guard canShow(secureMode) else { return }
-                guard !attempts.tooManyAttempts else { break }
-                let model = makePincodeAndBiometryViewModel(masterKey: masterKey, pincode: code)
+                guard !lock.attempts.tooManyAttempts else { break }
+                let model = makePincodeAndBiometryViewModel(lock: lock)
                 self.mode = .pinCode(model)
-            case .biometryAndPincode(let biometry, let code, let attempts, let masterKey):
+            case .biometryAndPincode(let biometry, let lock):
                 guard canShow(secureMode) else { return }
-                guard !attempts.tooManyAttempts else { break }
-                let model = makePincodeAndBiometryViewModel(masterKey: masterKey, pincode: code, biometryType: biometry)
+                guard !lock.attempts.tooManyAttempts else { break }
+                let model = makePincodeAndBiometryViewModel(lock: lock, biometryType: biometry)
                 self.mode = .pinCode(model)
             default:
                 break
@@ -126,24 +170,25 @@ class LockViewModel: ObservableObject, SessionServicesInjecting {
     }
 
     func makeMasterPasswordViewModel() -> MasterPasswordLocalViewModel {
-        MasterPasswordLocalViewModel(login: locker.login,
-                                     reason: .unlockApp,
-                                     biometry: initialBiometry,
-                                     usageLogService: loginUsageLogService,
-                                     activityReporter: activityReporter,
-                                     unlocker: locker,
-                                     userSettings: userSettings,
-                                     resetMasterPasswordService: resetMasterPasswordService,
-                                     sessionLifeCycleHandler: sessionLifeCycleHandler,
-                                     installerLogService: installerLogService,
-                                     isSSOUser: teamspaceService.isSSOUser,
-                                     isExtension: false) { [weak self] completionMode in
-            guard let completionMode = completionMode, let self = self else {
+        loginKitServices.makeMasterPasswordLocalViewModel(
+            login: locker.login,
+            biometry: initialBiometry,
+            authTicket: nil,
+            unlocker: locker,
+            context: .init(origin: .lock, localLoginContext: .passwordApp),
+            resetMasterPasswordService: resetMasterPasswordService,
+            userSettings: userSettings
+        ) { [weak self] completionMode in
+            guard let completionMode = completionMode else {
+                self?.sessionLifeCycleHandler?.logout(clearAutoLoginData: true)
                 return
             }
+            guard let self else { return }
             switch completionMode {
             case .biometry(let type):
-                self.activityReporter.report(UserEvent.AskUseOtherAuthentication(next: .biometric, previous: self.mainAuthenticationMode))
+                let mainAuthenticationMode = self.mainAuthenticationMode
+                self.activityReporter.report(UserEvent.AskUseOtherAuthentication(next: .biometric,
+                                                                                 previous: mainAuthenticationMode))
                 DispatchQueue.main.async {
                     self.mode = .biometry(self.makeBiometryViewModel(biometryType: type))
                 }
@@ -151,54 +196,47 @@ class LockViewModel: ObservableObject, SessionServicesInjecting {
                 self.performUnlock(self.mainAuthenticationMode)
             case .masterPasswordReset:
                 self.changeMasterPasswordLauncher()
-            case .sso:
-                self.userSettings[.ssoAuthenticationRequested] = true
-                self.sessionLifeCycleHandler?.logout(clearAutoLoginData: false)
+            case let .accountRecovered(newMasterPassword):
+                self.newMasterPassword = newMasterPassword
             }
         }
     }
 
     func makeBiometryViewModel(biometryType: Biometry) -> BiometryViewModel {
-        BiometryViewModel(login: locker.login,
-                          reason: .unlockApp,
-                          usageLogService: loginUsageLogService,
-                          activityReporter: activityReporter,
-                          settings: InMemoryLocalSettingsStore(), 
-                          biometryType: biometryType,
-                          keychainService: keychainService,
-                          unlocker: locker,
-                          installerLogService: installerLogService,
-                          manualLockOrigin: true,
-                          context: .passwordApp,
-                          completion: { [weak self] isSuccess in
+        loginKitServices.makeBiometryViewModel(login: locker.login,
+                                               biometryType: biometryType,
+                                               manualLockOrigin: true, 
+                                               unlocker: locker,
+                                               context: .init(origin: .lock, localLoginContext: .passwordApp),
+                                               userSettings: userSettings) { [weak self] isSuccess in
             guard let self = self else { return }
             guard isSuccess else {
-                self.activityReporter.report(UserEvent.AskUseOtherAuthentication(next: self.mainAuthenticationMode, previous: .biometric))
+                let mainAuthenticationMode = self.mainAuthenticationMode
+                self.activityReporter.report(UserEvent.AskUseOtherAuthentication(next: mainAuthenticationMode, previous: .biometric))
                 self.lock = .secure(.masterKey)
                 self.updateMode(with: self.lock)
                 return
             }
             self.performUnlock(.biometric)
-        })
+        }
     }
 
-    func makePincodeAndBiometryViewModel(masterKey: MasterKey, pincode: String, biometryType: Biometry? = nil) -> LockPinCodeAndBiometryViewModel {
+    func makePincodeAndBiometryViewModel(lock: SecureLockMode.PinCodeLock, biometryType: Biometry? = nil) -> LockPinCodeAndBiometryViewModel {
         LockPinCodeAndBiometryViewModel(login: locker.login,
-                                        reason: .unlockApp,
-                                        usageLogService: loginUsageLogService,
-                                        activityReporter: activityReporter,
-                                        pinCodeAttempts: pinCodeAttempts,
-                                        masterKey: masterKey,
-                                        pincode: pincode,
-                                        unlocker: locker,
+                                        accountType: accountType,
+                                        pinCodeLock: lock,
                                         biometryType: biometryType,
-                                        installerLogService: installerLogService) { [weak self] result in
+                                        context: .init(origin: .lock, localLoginContext: .passwordApp),
+                                        unlocker: locker,
+                                        loginMetricsReporter: loginMetricsReporter,
+                                        activityReporter: activityReporter) { [weak self] result in
             guard let self = self else { return }
             switch result {
             case .failure, .cancel:
-                self.activityReporter.report(UserEvent.AskUseOtherAuthentication(next: self.mainAuthenticationMode, previous: .pin))
+                let mainAuthenticationMode = self.mainAuthenticationMode
+                self.activityReporter.report(UserEvent.AskUseOtherAuthentication(next: mainAuthenticationMode, previous: .pin))
                 self.lock = .secure(.masterKey)
-                self.updateMode(with: self.lock)
+                self.updateMode(with: self.lock, recoverFromFailure: result == .failure)
                 return
             default:
                 self.performUnlock(.pin)
@@ -206,12 +244,29 @@ class LockViewModel: ObservableObject, SessionServicesInjecting {
         }
     }
 
+    func makePasswordLessRecoveryViewModel(recoverFromFailure: Bool) -> PasswordLessRecoveryViewModel {
+        PasswordLessRecoveryViewModel(login: locker.login,
+                                      recoverFromFailure: recoverFromFailure) { completion in
+            switch completion {
+            case .logout:
+                self.sessionLifeCycleHandler?.logout(clearAutoLoginData: true)
+            case .cancel:
+                self.performUnlock(.pin)
+            }
+        }
+    }
+
+    func unlockWithSSO() {
+        self.userSettings[.ssoAuthenticationRequested] = true
+        self.sessionLifeCycleHandler?.logout(clearAutoLoginData: false)
+    }
+
     private func performUnlock(_ mode: Definition.Mode) {
         activityReporter.logSuccessfulUnlock(mode)
-        if let performanceLogInfo = usageLogService.getPerformanceLogInfo() {
+        if let performanceLogInfo = loginMetricsReporter.getPerformanceLogInfo(.login) {
             activityReporter.report(performanceLogInfo.performanceUserEvent(for: .timeToUnlock))
         }
-        usageLogService.logDidUnlock()
+        loginMetricsReporter.resetTimer(.login)
         locker.unlock()
     }
 }
@@ -235,5 +290,49 @@ fileprivate extension ScreenLocker.Lock {
 private extension ActivityReporterProtocol {
     func logSuccessfulUnlock(_ mode: Definition.Mode) {
         report(UserEvent.Login(isFirstLogin: false, mode: mode, status: .success))
+    }
+}
+
+extension LockViewModel {
+    func makePostARKChangeMasterPasswordViewModel(newMasterPassword: String) -> PostARKChangeMasterPasswordViewModel {
+        let cryptoConfig = CryptoRawConfig.masterPasswordBasedDefault
+        let currentMasterKey = session.authenticationMethod.sessionKey
+
+        let migratingSession = try? appservices.sessionContainer.prepareMigration(of: session,
+                                                                                  to: .masterPassword(newMasterPassword, serverKey: currentMasterKey.serverKey),
+                                                                                  remoteKey: nil,
+                                                                                  cryptoConfig: cryptoConfig,
+                                                                                  accountMigrationType: .masterPasswordToMasterPassword,
+                                                                                  loginOTPOption: session.configuration.info.loginOTPOption)
+
+        let postCryptoChangeHandler = PostMasterKeyChangerHandler(keychainService: keychainService,
+                                                                  resetMasterPasswordService: resetMasterPasswordService,
+                                                                  syncService: syncService)
+
+        let accountCryptoChangerService =  try? AccountCryptoChangerService(reportedType: .masterPasswordChange,
+                                                                            migratingSession: migratingSession!,
+                                                                            syncService: syncService,
+                                                                            sessionCryptoUpdater: sessionCryptoUpdater,
+                                                                            activityReporter: activityReporter,
+                                                                            sessionsContainer: appservices.sessionContainer,
+                                                                            databaseDriver: databaseDriver,
+                                                                            postCryptoChangeHandler: postCryptoChangeHandler,
+                                                                            apiNetworkingEngine: userDeviceAPIClient,
+                                                                            logger: logger,
+                                                                            cryptoSettings: cryptoConfig)
+        let model = postARKChangeMasterPasswordViewModelFactory.make(accountCryptoChangerService: accountCryptoChangerService!,
+                                                         completion: { [weak self] result in
+            guard let self = self else {
+                return
+            }
+            switch result {
+            case let .finished(session):
+                self.sessionLifeCycleHandler?.logoutAndPerform(action: .startNewSession(session, reason: .masterPasswordChangedForARK))
+            case .cancel:
+                self.newMasterPassword = nil
+            }
+        })
+        return model
+
     }
 }

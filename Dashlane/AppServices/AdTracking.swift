@@ -17,6 +17,6 @@ private extension SKAdNetwork {
     }
 
         static func updateConversionValue(_ conversionValue: ConversionValue) {
-        SKAdNetwork.updateConversionValue(conversionValue.rawValue)
+        SKAdNetwork.updatePostbackConversionValue(conversionValue.rawValue) {_ in }
     }
 }

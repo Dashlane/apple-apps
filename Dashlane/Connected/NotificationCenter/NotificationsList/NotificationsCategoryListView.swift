@@ -6,7 +6,7 @@ class NotificationsCategoryListViewModel {
     let notificationCenterService: NotificationCenterServiceProtocol
 
     private let authenticatorNotificationFactory: (DashlaneNotification) -> AuthenticatorNotificationRowViewModel
-    private let resetMasterPasswordNotificationFactory: (DashlaneNotification) -> ResetMasterPasswordNotificationRowViewModel
+    private let resetMasterPasswordNotificationFactory: @MainActor (DashlaneNotification) -> ResetMasterPasswordNotificationRowViewModel
     private let trialPeriodNotificationFactory: (DashlaneNotification) -> TrialPeriodNotificationRowViewModel
     private let secureLockNotificationFactory: (DashlaneNotification) -> SecureLockNotificationRowViewModel
     private let sharingItemNotificationFactory: (DashlaneNotification) ->
@@ -16,7 +16,7 @@ class NotificationsCategoryListViewModel {
     init(section: NotificationDataSection,
          notificationCenterService: NotificationCenterServiceProtocol,
          authenticatorNotificationFactory: @escaping (DashlaneNotification) -> AuthenticatorNotificationRowViewModel,
-         resetMasterPasswordNotificationFactory: @escaping (DashlaneNotification) -> ResetMasterPasswordNotificationRowViewModel,
+         resetMasterPasswordNotificationFactory: @MainActor @escaping (DashlaneNotification) -> ResetMasterPasswordNotificationRowViewModel,
          trialPeriodNotificationFactory: @escaping (DashlaneNotification) -> TrialPeriodNotificationRowViewModel,
          secureLockNotificationFactory: @escaping (DashlaneNotification) -> SecureLockNotificationRowViewModel,
          sharingItemNotificationFactory: @escaping (DashlaneNotification) -> SharingRequestNotificationRowViewModel,

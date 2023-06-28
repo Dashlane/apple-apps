@@ -27,8 +27,8 @@ public protocol LegacyWebService {
                                                 needsAuthentication: Bool,
                                                 responseParser: R,
                                                 timeout: TimeInterval?,
-                                                completion:  @escaping (Result<R.ParsedResponse, Error>) -> Void)
-    
+                                                completion: @escaping (Result<R.ParsedResponse, Error>) -> Void)
+
     func sendRequest<R: ResponseParserProtocol>(to endpoint: Endpoint,
                                                 using method: HTTPMethod,
                                                 params: [String: Encodable],
@@ -45,7 +45,7 @@ public extension LegacyWebService {
                                                 contentFormat: ContentFormat,
                                                 needsAuthentication: Bool,
                                                 responseParser: R,
-                                                completion:  @escaping (Result<R.ParsedResponse, Error>) -> Void) {
+                                                completion: @escaping (Result<R.ParsedResponse, Error>) -> Void) {
         sendRequest(to: endpoint, using: method, params: params, contentFormat: contentFormat, needsAuthentication: needsAuthentication, responseParser: responseParser, timeout: nil, completion: completion)
     }
 
@@ -57,14 +57,13 @@ public extension LegacyWebService {
                                                 responseParser: R) async throws -> R.ParsedResponse {
         try await sendRequest(to: endpoint, using: method, params: params, contentFormat: contentFormat, needsAuthentication: needsAuthentication, responseParser: responseParser, timeout: nil)
     }
-    
+
 }
 
-
 public extension LegacyWebService {
-    
+
      func sendSynchronousRequest<R>(to endpoint: Endpoint, using method: DashTypes.HTTPMethod, params: [String: Encodable], contentFormat: DashTypes.ContentFormat, needsAuthentication: Bool, responseParser: R, timeout: TimeInterval? = nil) throws -> R.ParsedResponse where R: ResponseParserProtocol {
-        
+
         let semaphore = DispatchSemaphore(value: 0)
         var parsedResult: Result<R.ParsedResponse, Error>!
         self.sendRequest(to: endpoint, using: method, params: params, contentFormat: contentFormat, needsAuthentication: needsAuthentication, responseParser: responseParser, timeout: timeout) { result in
@@ -77,7 +76,7 @@ public extension LegacyWebService {
 }
 
 public extension LegacyWebService {
-    
+
     func sendRequest<R: ResponseParserProtocol>(to endpoint: Endpoint,
                                                 using method: HTTPMethod,
                                                 params: [String: Encodable],
@@ -91,23 +90,40 @@ public extension LegacyWebService {
             }
         }
     }
-    
+
 }
 
 public class MockWebService: LegacyWebService {
 
     public var response: String
+    public var receivedParams: [String: Encodable]?
 
     public init(response: String = "") {
         self.response = response
     }
 
-    public func sendRequest<R>(to endpoint: Endpoint, using method: HTTPMethod, params: [String : Encodable], contentFormat: ContentFormat, needsAuthentication: Bool, responseParser: R, timeout: TimeInterval?, completion: @escaping (Result<R.ParsedResponse, Error>) -> Void) where R : ResponseParserProtocol {
+    public func sendRequest<R>(
+        to endpoint: Endpoint,
+        using method: HTTPMethod,
+        params: [String: Encodable],
+        contentFormat: ContentFormat,
+        needsAuthentication: Bool,
+        responseParser: R,
+        timeout: TimeInterval?,
+        completion: @escaping (Result<R.ParsedResponse, Error>) -> Void
+    ) where R: ResponseParserProtocol {
         do {
+            receivedParams = params
             let result = try responseParser.parse(data: response.data(using: .utf8)!)
             completion(.success(result))
         } catch {
             completion(.failure(error))
         }
+    }
+}
+
+extension LegacyWebService where Self == MockWebService {
+    public static func mock(response: String) -> MockWebService {
+        MockWebService(response: response)
     }
 }

@@ -7,6 +7,13 @@ public struct ItemUpload: Codable, Equatable {
         case securenote = "SECURENOTE"
     }
 
+    private enum CodingKeys: String, CodingKey {
+        case itemId = "itemId"
+        case itemKey = "itemKey"
+        case content = "content"
+        case itemType = "itemType"
+    }
+
         public let itemId: String
 
         public let itemKey: String

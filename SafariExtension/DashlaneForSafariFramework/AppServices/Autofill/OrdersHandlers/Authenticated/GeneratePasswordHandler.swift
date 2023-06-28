@@ -51,6 +51,6 @@ struct GeneratePasswordHandler: MaverickOrderHandleable, SessionServicesInjectin
                                                   composition: request.options,
                                                   distinguishable: request.avoidAmbiguous).generate()
         let evaluation = passwordEvaluator.evaluate(generatedPassword)
-        return Response(id: actionMessageID, password: generatedPassword, strength: evaluation.strength.percentScore)
+        return Response(id: actionMessageID, password: generatedPassword, strength: evaluation.percentScore)
     }
 }

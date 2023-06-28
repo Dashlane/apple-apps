@@ -3,12 +3,6 @@ import UIKit
 
 final class LocalNotificationService {
     private var lastNotification: (localNotification: LocalNotification, date: Date)?
-
-    private var usageLogService: UsageLogService?
-    
-    init(usageLogService: UsageLogService?) {
-        self.usageLogService = usageLogService
-    }
     
     func send(_ localNotification: LocalNotification) {
         
@@ -22,15 +16,6 @@ final class LocalNotificationService {
             guard error == nil else { return }
             
             self?.lastNotification = (localNotification, Date())
-            self?.log(localNotification)
-        }
-    }
-}
-
-private extension LocalNotificationService {
-    func log(_ localNotification: LocalNotification) {
-        if let notification = localNotification as? OTPLocalNotification {
-            usageLogService?.reportOTPNotificationSent(for: notification.domain)
         }
     }
 }

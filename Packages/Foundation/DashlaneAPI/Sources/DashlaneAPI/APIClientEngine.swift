@@ -60,13 +60,11 @@ actor APIClientEngineImpl: APIClientEngine {
         var urlRequest = URLRequest(endpoint: endpoint,
                                     timeoutInterval: timeout,
                                     configuration: configuration)
-        
+
         try urlRequest.updateBody(body, using: encoder)
 
         return try await perform(urlRequest, signer: signer)
     }
-
-
 
     func get<Response: Decodable>(_ endpoint: Endpoint,
                                   timeout: TimeInterval?,
@@ -77,7 +75,6 @@ actor APIClientEngineImpl: APIClientEngine {
         return try await perform(urlRequest, signer: signer)
     }
 
-
     func perform<Response: Decodable>(_ request: URLRequest, signer: RequestSigner) async throws -> Response {
         var urlRequest = request
         try urlRequest.sign(with: signer, timeshift: try await timeshift)
@@ -85,5 +82,3 @@ actor APIClientEngineImpl: APIClientEngine {
         return try await session.response(from: urlRequest, using: decoder)
     }
 }
-
-

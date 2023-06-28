@@ -56,8 +56,8 @@ struct CountryFlagList: View {
 struct CountryFlagList_Previews: PreviewProvider {
 
     static var countryList: [Country] = {
-        var codes = Locale.isoRegionCodes.compactMap { code in
-          return Country(code: code)
+        var codes = Locale.Region.isoRegions.compactMap { code in
+            return Country(code: code.identifier)
         }
        return codes
             .sorted {

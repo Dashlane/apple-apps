@@ -114,6 +114,14 @@ internal enum L10n {
         internal static let actionItemsCenterTitle = L10n.tr("Localizable", "ACTION_ITEMS_CENTER_TITLE", fallback: "Notification Center")
         internal static let actionResend = L10n.tr("Localizable", "ACTION_RESEND", fallback: "Resend code")
         internal static let activateSSOButtonTitle = L10n.tr("Localizable", "activateSSOButtonTitle", fallback: "Log in with SSO")
+        internal static let addNewDeviceCompleted = L10n.tr("Localizable", "ADD_NEW_DEVICE_COMPLETED", fallback: "We loaded your account info on your new device!")
+        internal static let addNewDeviceInProgress = L10n.tr("Localizable", "ADD_NEW_DEVICE_IN_PROGRESS", fallback: "Loading account info on new device...")
+        internal static let addNewDeviceMessage1 = L10n.tr("Localizable", "ADD_NEW_DEVICE_MESSAGE_1", fallback: "Open Dashlane on your new device and select **Log in with QR code**")
+        internal static let addNewDeviceMessage2 = L10n.tr("Localizable", "ADD_NEW_DEVICE_MESSAGE_2", fallback: "Return here, then scan the QR code on your new device")
+        internal static let addNewDeviceMessage3 = L10n.tr("Localizable", "ADD_NEW_DEVICE_MESSAGE_3", fallback: "Follow the prompts on your new device to finish logging in")
+        internal static let addNewDeviceScanCta = L10n.tr("Localizable", "ADD_NEW_DEVICE_SCAN_CTA", fallback: "Scan QR code")
+        internal static let addNewDeviceSettingsTitle = L10n.tr("Localizable", "ADD_NEW_DEVICE_SETTINGS_TITLE", fallback: "Add new mobile device")
+        internal static let addNewDeviceTitle = L10n.tr("Localizable", "ADD_NEW_DEVICE_TITLE", fallback: "Log in on your new mobile device with a QR code")
         internal static let addAddress = L10n.tr("Localizable", "addAddress", fallback: "Add address")
         internal static let addBankAccount = L10n.tr("Localizable", "addBankAccount", fallback: "Add bank account")
         internal static let addCompany = L10n.tr("Localizable", "addCompany", fallback: "Add company")
@@ -285,6 +293,7 @@ internal enum L10n {
         internal static let copyCity = L10n.tr("Localizable", "copyCity", fallback: "Copy city")
         internal static let copyClabe = L10n.tr("Localizable", "copyClabe", fallback: "Copy CLABE")
         internal static let copyEmail = L10n.tr("Localizable", "copyEmail", fallback: "Copy email")
+        internal static let copyError = L10n.tr("Localizable", "copyError", fallback: "Copy error")
         internal static let copyFirstname = L10n.tr("Localizable", "copyFirstname", fallback: "Copy first name")
         internal static let copyFullName = L10n.tr("Localizable", "copyFullName", fallback: "Copy full name")
         internal static let copyIBAN = L10n.tr("Localizable", "copyIBAN", fallback: "Copy IBAN")
@@ -448,7 +457,7 @@ internal enum L10n {
         internal static let dataleakmonitoringSetupTitleNew = L10n.tr("Localizable", "DATALEAKMONITORING_SETUP_TITLE_NEW", fallback: "Start a dark web scan ")
         internal static let dataleakmonitoringSuccessCloseButton = L10n.tr("Localizable", "DATALEAKMONITORING_SUCCESS_CLOSE_BUTTON", fallback: "Close")
                 internal static func dataleakmonitoringSuccessDescription(_ p1: Any) -> String {
-      return L10n.tr("Localizable", "DATALEAKMONITORING_SUCCESS_DESCRIPTION", String(describing: p1), fallback: "_")
+      return L10n.tr("Localizable", "DATALEAKMONITORING_SUCCESS_DESCRIPTION", String(describing: p1), fallback: "_\nThis link will expire in 24 hours.")
     }
         internal static let dataleakmonitoringSuccessTitle = L10n.tr("Localizable", "DATALEAKMONITORING_SUCCESS_TITLE", fallback: "Check your email to view your scan results")
         internal static let deleteLocalDataAlertDeleteCta = L10n.tr("Localizable", "DELETE_LOCAL_DATA_ALERT_DELETE_CTA", fallback: "Yes, delete")
@@ -503,7 +512,7 @@ internal enum L10n {
         internal static let dwmDetailViewDeleteConfirmTitle = L10n.tr("Localizable", "dwm_DetailView_DeleteConfirmTitle", fallback: "Delete this alert?")
         internal static let dwmDetailViewEmailAffected = L10n.tr("Localizable", "dwm_DetailView_EmailAffected", fallback: "Email affected")
         internal static let dwmDetailViewOtherDataAffected = L10n.tr("Localizable", "dwm_DetailView_OtherDataAffected", fallback: "Other data affected")
-        internal static let dwmDetailViewSubtitle = L10n.tr("Localizable", "dwm_DetailView_Subtitle", fallback: "This account is affected by a hack or breach. Let’s act now.")
+        internal static let dwmDetailViewSubtitle = L10n.tr("Localizable", "dwm_DetailView_Subtitle", fallback: "This account is affected by a hack or breach.")
         internal static func dwmHeaderViewSpotsAvailable(_ p1: Int) -> String {
       return L10n.tr("Localizable", "dwm_HeaderView_SpotsAvailable", p1, fallback: "**%1$d spots** available")
     }
@@ -526,7 +535,7 @@ internal enum L10n {
         internal static let dwmOnboardingCardWSIDListAccountSettings = L10n.tr("Localizable", "DWMOnboarding_Card_WSID_List_AccountSettings", fallback: "Go to the account settings to change your password. You can use our Password Generator to make a strong one.")
         internal static let dwmOnboardingCardWSIDListGoBackToDashlane = L10n.tr("Localizable", "DWMOnboarding_Card_WSID_List_GoBackToDashlane", fallback: "Come back to Dashlane and save your new password. Next time we’ll log you in!")
             internal static func dwmOnboardingCardWSIDListLogInDomain(_ p1: Any) -> String {
-      return L10n.tr("Localizable", "DWMOnboarding_Card_WSID_List_LogInDomain", String(describing: p1), fallback: "_")
+      return L10n.tr("Localizable", "DWMOnboarding_Card_WSID_List_LogInDomain", String(describing: p1), fallback: "_Log in if you’re not already.")
     }
         internal static let dwmOnboardingCardWSIDLoginTitle = L10n.tr("Localizable", "DWMOnboarding_Card_WSID_LoginTitle", fallback: "YOUR LOGIN INFO")
         internal static let dwmOnboardingCardWSIDShowDetailedInstructions = L10n.tr("Localizable", "DWMOnboarding_Card_WSID_ShowDetailedInstructions", fallback: "Show instructions")
@@ -1006,7 +1015,7 @@ internal enum L10n {
         internal static let kwEssentialsFeature = L10n.tr("Localizable", "KW_ESSENTIALS_FEATURE", fallback: "Dashlane Essentials")
         internal static let kwExtSomethingWentWrong = L10n.tr("Localizable", "KW_EXT_SOMETHING_WENT_WRONG", fallback: "Something went wrong. Please retry.")
                 internal static func kwFeedbackEmailBody(_ p1: Any) -> String {
-      return L10n.tr("Localizable", "KW_FEEDBACK_EMAIL_BODY", String(describing: p1), fallback: "_")
+      return L10n.tr("Localizable", "KW_FEEDBACK_EMAIL_BODY", String(describing: p1), fallback: "\n\n_")
     }
         internal static let kwFeedbackEmailSubject = L10n.tr("Localizable", "KW_FEEDBACK_EMAIL_SUBJECT", fallback: "iOS App Feedback")
         internal static let kwFileUploadedSuccessfully = L10n.tr("Localizable", "KW_FILE_UPLOADED_SUCCESSFULLY", fallback: "Upload complete")
@@ -1026,7 +1035,7 @@ internal enum L10n {
     }
         internal static let kwInvalidAddressTitle = L10n.tr("Localizable", "KW_INVALID_ADDRESS_TITLE", fallback: "Invalid email address")
                         internal static func kwInviteEmailBody(_ p1: Any) -> String {
-      return L10n.tr("Localizable", "KW_INVITE_EMAIL_BODY", String(describing: p1), fallback: "_")
+      return L10n.tr("Localizable", "KW_INVITE_EMAIL_BODY", String(describing: p1), fallback: "Hi! I've been using Dashlane for a while and I like it a lot. Dashlane is a free password manager and secure digital wallet. It keeps track of all your passwords and login details, and autofills all forms including logins and checkouts. Check it out:\n\n_\nCheers!")
     }
         internal static let kwInviteFriends = L10n.tr("Localizable", "KW_INVITE_FRIENDS", fallback: "Invite friends")
         internal static let kwIosIntegrationSettingsSectionFooter = L10n.tr("Localizable", "KW_IOS_INTEGRATION_SETTINGS_SECTION_FOOTER", fallback: "Access Dashlane items from convenient places across your device such as Spotlight search, the Dashlane widget in your Today View, and get proactive suggestions. Your data is made available to you strictly locally, and is never shared with Apple or third party apps.  ")
@@ -1068,13 +1077,13 @@ internal enum L10n {
         internal static let kwOtpAddSecret = L10n.tr("Localizable", "KW_OTP_ADD_SECRET", fallback: "Generate with Dashlane")
         internal static let kwOtpDashlaneSecretRead = L10n.tr("Localizable", "KW_OTP_DASHLANE_SECRET_READ", fallback: "Your Dashlane Password Manager app cannot be used as a mobile authenticator app for your Dashlane account.")
         internal static let kwOtpMessage = L10n.tr("Localizable", "KW_OTP_MESSAGE", fallback: "Enter the 6-digit token from your 2-factor authentication (2FA) app to log in")
-        internal static let kwOtpPlaceholderText = L10n.tr("Localizable", "KW_OTP_PLACEHOLDER_TEXT", fallback: "Authentication code")
+        internal static let kwOtpPlaceholderText = L10n.tr("Localizable", "KW_OTP_PLACEHOLDER_TEXT", fallback: "Verification code")
         internal static let kwOtpSecretDelete = L10n.tr("Localizable", "KW_OTP_SECRET_DELETE", fallback: "Remove from Dashlane")
         internal static let kwOtpSecretRead = L10n.tr("Localizable", "KW_OTP_SECRET_READ", fallback: "You can now access 2-factor authentication (2FA) tokens for this account from your login view in Dashlane.")
         internal static let kwOtpSecretScanQrCode = L10n.tr("Localizable", "KW_OTP_SECRET_SCAN_QR_CODE", fallback: "Enable 2-factor authentication on your account for this website and scan the QR code")
         internal static let kwOtpSecretUpdate = L10n.tr("Localizable", "KW_OTP_SECRET_UPDATE", fallback: "Re-scan QR code")
         internal static let kwOtpsecretWarningConfirmButton = L10n.tr("Localizable", "KW_OTPSECRET_WARNING_CONFIRM_BUTTON", fallback: "Remove from Dashlane")
-                        internal static let kwOtpsecretWarningDeletionMessage = L10n.tr("Localizable", "KW_OTPSECRET_WARNING_DELETION_MESSAGE", fallback: "Removing this code from Dashlane will not turn off 2-factor authentication (2FA). \n\nBefore removing: \n- Ensure 2FA is turned off for your account on this website, or \n- Ensure that you have another means to generate codes.")
+                        internal static let kwOtpsecretWarningDeletionMessage = L10n.tr("Localizable", "KW_OTPSECRET_WARNING_DELETION_MESSAGE", fallback: "Removing this token from Dashlane will not turn off 2-factor authentication (2FA). \n\nBefore removing: \n- Ensure 2FA is turned off for your account on this website, or \n- Ensure that you have another means to generate tokens.")
         internal static let kwOtpsecretWarningDeletionTitle = L10n.tr("Localizable", "KW_OTPSECRET_WARNING_DELETION_TITLE", fallback: "Remove 6-digit token?")
         internal static let kwPadExtensionGenerator = L10n.tr("Localizable", "KW_PAD_EXTENSION_GENERATOR", fallback: "Generator")
         internal static let kwPadExtensionGeneratorDigits = L10n.tr("Localizable", "KW_PAD_EXTENSION_GENERATOR_DIGITS", fallback: "Digits (e.g. 345)")
@@ -1181,7 +1190,7 @@ internal enum L10n {
         internal static let kwSharingLimitedUserPermission = L10n.tr("Localizable", "KW_SHARING_LIMITED_USER_PERMISSION", fallback: "Member")
         internal static let kwSharingMember = L10n.tr("Localizable", "KW_SHARING_MEMBER", fallback: "Limited rights")
                         internal static func kwSharingMissingPublicKeyErrorMessage(_ p1: Any) -> String {
-      return L10n.tr("Localizable", "KW_SHARING_MISSING_PUBLIC_KEY_ERROR_MESSAGE", String(describing: p1), fallback: "_")
+      return L10n.tr("Localizable", "KW_SHARING_MISSING_PUBLIC_KEY_ERROR_MESSAGE", String(describing: p1), fallback: "Cannot share with:\n\n_\nIf your recipient(s) have Dashlane, please check the correct address and try again.")
     }
         internal static let kwSharingMissingPublicKeyErrorTitle = L10n.tr("Localizable", "KW_SHARING_MISSING_PUBLIC_KEY_ERROR_TITLE", fallback: "You can only share with existing Dashlane accounts")
         internal static let kwSharingNoEmailAccount = L10n.tr("Localizable", "KW_SHARING_NO_EMAIL_ACCOUNT", fallback: "You don't have an email account configured on this device.")
@@ -1234,7 +1243,7 @@ internal enum L10n {
         internal static let kwTimeSeconds = L10n.tr("Localizable", "KW_TIME_SECONDS", fallback: "seconds")
         internal static let kwTitle = L10n.tr("Localizable", "KW_TITLE", fallback: "Create account")
         internal static let kwTokenMsg = L10n.tr("Localizable", "KW_TOKEN_MSG", fallback: "We just sent your verification code by email. (If you don't see it, check Spam/Junk)")
-        internal static let kwTokenPlaceholderText = L10n.tr("Localizable", "KW_TOKEN_PLACEHOLDER_TEXT", fallback: "Authentication code")
+        internal static let kwTokenPlaceholderText = L10n.tr("Localizable", "KW_TOKEN_PLACEHOLDER_TEXT", fallback: "Verification code")
         internal static let kwTools = L10n.tr("Localizable", "KW_TOOLS", fallback: "Tools")
         internal static let kwUpgrade = L10n.tr("Localizable", "KW_UPGRADE", fallback: "Upgrade")
         internal static let kwUpgradeSettings = L10n.tr("Localizable", "KW_UPGRADE_SETTINGS", fallback: "Upgrade Protection")
@@ -1329,7 +1338,7 @@ internal enum L10n {
         internal static let localPasswordChangerProgressUserPromptImageCaptchaMessage = L10n.tr("Localizable", "LocalPasswordChanger_Progress_UserPrompt_ImageCaptcha_Message", fallback: "Verify that you're human.")
         internal static let localPasswordChangerProgressUserPromptSMSMessage = L10n.tr("Localizable", "LocalPasswordChanger_Progress_UserPrompt_SMS_Message", fallback: "Please enter the code you received by text message to verify your identity.")
         internal static let localPasswordChangerProgressUserPromptTitle = L10n.tr("Localizable", "LocalPasswordChanger_Progress_UserPrompt_Title", fallback: "One last security check")
-        internal static let localPasswordChangerProgressUserPromptTokenMessage = L10n.tr("Localizable", "LocalPasswordChanger_Progress_UserPrompt_Token_Message", fallback: "Please enter the code you received on your authentication app to verify your identity.")
+        internal static let localPasswordChangerProgressUserPromptTokenMessage = L10n.tr("Localizable", "LocalPasswordChanger_Progress_UserPrompt_Token_Message", fallback: "Please enter the token you received on your authentication app to verify your identity.")
         internal static let localPasswordChangerProgressUserPromptUnknownMessage = L10n.tr("Localizable", "LocalPasswordChanger_Progress_UserPrompt_Unknown_Message", fallback: "Please enter the code you received to verify your identity.")
         internal static let localPasswordChangerSettingsNote = L10n.tr("Localizable", "LocalPasswordChanger_Settings_Note", fallback: "NEW")
         internal static let localPasswordChangerStandaloneChange = L10n.tr("Localizable", "LocalPasswordChanger_Standalone_Change", fallback: "Change")
@@ -1397,7 +1406,7 @@ internal enum L10n {
         internal static let m2WImportGenericImportErrorScreenTroubleshootingLink = L10n.tr("Localizable", "M2W_ImportGeneric_ImportErrorScreen_TroubleshootingLink", fallback: "Troubleshoot common import errors in our Help Center")
         internal static let m2WImportGenericImportErrorScreenTryAgain = L10n.tr("Localizable", "M2W_ImportGeneric_ImportErrorScreen_TryAgain", fallback: "Try again")
         internal static let m2WImportGenericImportScreenHeader = L10n.tr("Localizable", "M2W_ImportGeneric_ImportScreen_Header", fallback: "Import")
-        internal static let m2WImportGenericImportScreenImport = L10n.tr("Localizable", "M2W_ImportGeneric_ImportScreen_Import", fallback: "Import selected")
+        internal static let m2WImportGenericImportScreenImport = L10n.tr("Localizable", "M2W_ImportGeneric_ImportScreen_Import", fallback: "Import selected items")
         internal static func m2WImportGenericImportScreenPrimaryTitle(_ p1: Any) -> String {
       return L10n.tr("Localizable", "M2W_ImportGeneric_ImportScreen_PrimaryTitle", String(describing: p1), fallback: "_")
     }
@@ -1457,7 +1466,7 @@ internal enum L10n {
         internal static let mobileVpnPageFaqHotspotDetails = L10n.tr("Localizable", "Mobile_vpn_page_faq_hotspot_details", fallback: "It means you have a top-rated VPN included in your Dashlane Premium plan. You just need to set it up via Dashlane the first time. After that, you can use the VPN via the Hotspot Shield app itself.")
         internal static let mobileVpnPageFaqHotspotSummary = L10n.tr("Localizable", "Mobile_vpn_page_faq_hotspot_summary", fallback: "What does the partnership with Hotspot Shield mean for me?")
                 internal static func mobileVpnPageFaqSupportDetails(_ p1: Any, _ p2: Any) -> String {
-      return L10n.tr("Localizable", "Mobile_vpn_page_faq_support_details", String(describing: p1), String(describing: p2), fallback: "_")
+      return L10n.tr("Localizable", "Mobile_vpn_page_faq_support_details", String(describing: p1), String(describing: p2), fallback: "_\n_")
     }
         internal static let mobileVpnPageFaqSupportDetailsDashlaneFaq = L10n.tr("Localizable", "Mobile_vpn_page_faq_support_details_dashlane_faq", fallback: "Need help setting up your VPN?")
         internal static let mobileVpnPageFaqSupportDetailsFaq = L10n.tr("Localizable", "Mobile_vpn_page_faq_support_details_faq", fallback: "FAQ")
@@ -1530,9 +1539,9 @@ internal enum L10n {
         internal static let onboardingFirstPasswordThirdStepSave = L10n.tr("Localizable", "ONBOARDING_FIRST_PASSWORD_THIRD_STEP_SAVE", fallback: "Save")
         internal static let onboardingFirstPasswordTitle = L10n.tr("Localizable", "ONBOARDING_FIRST_PASSWORD_TITLE", fallback: "Welcome! Let’s get you going.")
         internal static let onboardingSafariDisabledCta = L10n.tr("Localizable", "onboarding_safari_disabled_cta", fallback: "Visit Help Center")
-                internal static let onboardingSafariDisabledSubtitle = L10n.tr("Localizable", "onboarding_safari_disabled_subtitle", fallback: "For the best experience, we recommend installing Dashlane on Google Chrome, Firefox, or Microsoft Edge.\n\nTo continue using Dashlane with limited support, update your device's autofill preferences. Visit our Help Center for step-by-step instructions.")
+        internal static let onboardingSafariDisabledSubtitle = L10n.tr("Localizable", "onboarding_safari_disabled_subtitle", fallback: "We’ve changed how Autofill works on Safari. Update your device's preferences to use Dashlane’s Autofill for your logins. Visit our Help Center for step-by-step instructions.")
         internal static let onboardingSafariDisabledSubtitleLink = L10n.tr("Localizable", "onboarding_safari_disabled_subtitle_link", fallback: "Help Center")
-        internal static let onboardingSafariDisabledTitle = L10n.tr("Localizable", "onboarding_safari_disabled_title", fallback: "This browser has limited support")
+        internal static let onboardingSafariDisabledTitle = L10n.tr("Localizable", "onboarding_safari_disabled_title", fallback: "We’ve updated our Autofill")
         internal static let onboardingChecklistAccessibilityAnotherCard = L10n.tr("Localizable", "OnboardingChecklist_Accessibility_AnotherCard", fallback: "Another onboarding card")
         internal static let onboardingChecklistAccessibilityDone = L10n.tr("Localizable", "OnboardingChecklist_Accessibility_Done", fallback: "Done")
         internal static let onboardingChecklistAccessibilityFirstCard = L10n.tr("Localizable", "OnboardingChecklist_Accessibility_FirstCard", fallback: "First onboarding card")
@@ -1597,17 +1606,17 @@ internal enum L10n {
       return L10n.tr("Localizable", "otpNotification_title", String(describing: p1), fallback: "_")
     }
             internal static func otptollItemDeletionAlertTitle(_ p1: Any) -> String {
-      return L10n.tr("Localizable", "otptoll_item_deletion_alert_title", String(describing: p1), fallback: "_")
+      return L10n.tr("Localizable", "otptoll_item_deletion_alert_title", String(describing: p1), fallback: "__")
     }
         internal static let otptollItemDeletionAlertYes = L10n.tr("Localizable", "otptoll_item_deletion_alert_yes", fallback: "Yes, remove login")
         internal static let otpTool2faCompatibleLoginsTitle = L10n.tr("Localizable", "otpTool_2faCompatibleLogins_title", fallback: "2FA-compatible logins")
-        internal static let otptool2faLoginsHeader = L10n.tr("Localizable", "otptool_2faLoginsHeader", fallback: "Logins with 2fa")
+        internal static let otptool2faLoginsHeader = L10n.tr("Localizable", "otptool_2faLoginsHeader", fallback: "Logins with 2FA")
         internal static let otptool2fasetup = L10n.tr("Localizable", "otptool_2fasetup", fallback: "Set up 2FA")
         internal static let otpTool2fasetupForAll = L10n.tr("Localizable", "otpTool_2fasetupForAll", fallback: "2FA set up for all compatible logins")
         internal static let otpTool2fasetupForAllSubtitle = L10n.tr("Localizable", "otpTool_2fasetupForAllSubtitle", fallback: "Nice work—you’ve reinforced all compatible logins with 2FA. Add more logins to see if they’re 2FA compatible.")
         internal static let otpToolAddCredentialCta = L10n.tr("Localizable", "otpTool_add_credential_cta", fallback: "Add new login")
                 internal static func otpToolAddOtpErrorMultiloginSubtitle(_ p1: Any) -> String {
-      return L10n.tr("Localizable", "otpTool_add_otp_error_multilogin_subtitle", String(describing: p1), fallback: "_")
+      return L10n.tr("Localizable", "otpTool_add_otp_error_multilogin_subtitle", String(describing: p1), fallback: "_\nChoose the correct login from your home screen. Then select Edit to set up this authentication.")
     }
         internal static func otpToolAddOtpErrorMultiloginTitle(_ p1: Any) -> String {
       return L10n.tr("Localizable", "otpTool_add_otp_error_multilogin_title", String(describing: p1), fallback: "_")
@@ -1622,7 +1631,7 @@ internal enum L10n {
         internal static let otpToolFaq = L10n.tr("Localizable", "otpTool_faq", fallback: "Frequently asked questions")
         internal static let otpToolFaq2faDescription = L10n.tr("Localizable", "otpTool_faq_2fa_description", fallback: "Setting up 2FA for your services adds an extra layer of security by asking to authenticate with a second factor in order to log in.")
         internal static let otpToolFaq2faTitle = L10n.tr("Localizable", "otpTool_faq_2fa_title", fallback: "What is 2FA for?")
-        internal static let otpToolFaqAuthenticatorDescription = L10n.tr("Localizable", "otpTool_faq_authenticator_description", fallback: "It generates authentication codes every time you log in to an app or site you’ve set up 2FA for.")
+        internal static let otpToolFaqAuthenticatorDescription = L10n.tr("Localizable", "otpTool_faq_authenticator_description", fallback: "It generates 6-digit tokens every time you log in to an app or site you’ve set up 2FA for.")
         internal static let otpToolFaqAuthenticatorTitle = L10n.tr("Localizable", "otpTool_faq_authenticator_title", fallback: "What is the Authenticator?")
         internal static let otpToolFaqHelpDescription = L10n.tr("Localizable", "otpTool_faq_help_description", fallback: "If you need more help, visit our Help Center or contact our Support team.")
         internal static let otpToolFaqHelpTitle = L10n.tr("Localizable", "otpTool_faq_help_title", fallback: "I need help")
@@ -1682,6 +1691,8 @@ internal enum L10n {
         internal static func passwordHealthSeeAll(_ p1: Int) -> String {
       return L10n.tr("Localizable", "passwordHealthSeeAll", p1, fallback: "See all (%1$d)")
     }
+        internal static let passwordHistoryHideGenerated = L10n.tr("Localizable", "passwordHistoryHideGenerated", fallback: "Hide password")
+        internal static let passwordHistoryShowGenerated = L10n.tr("Localizable", "passwordHistoryShowGenerated", fallback: "Show password")
         internal static let passwordIncorrect = L10n.tr("Localizable", "PasswordIncorrect", fallback: "The password is incorrect")
         internal static let passwordlimitAnnouncementAction = L10n.tr("Localizable", "PASSWORDLIMIT_ANNOUNCEMENT_ACTION", fallback: "Upgrade to Premium")
         internal static let passwordlimitAnnouncementBody = L10n.tr("Localizable", "PASSWORDLIMIT_ANNOUNCEMENT_BODY", fallback: "Upgrade to Premium to store unlimited logins.")
@@ -1753,10 +1764,10 @@ internal enum L10n {
             internal static let plansCguAppleId2 = L10n.tr("Localizable", "plans_cgu_apple_id_2", fallback: "• Annual subscriptions renew automatically. Cancel at any time.\n• Subscriptions may be changed via your Apple ID.")
         internal static let plansCguMore = L10n.tr("Localizable", "plans_cgu_more", fallback: "For more information on Dashlane, see our Privacy Policy and Terms of Service.")
             internal static func plansCtaMonthly(_ p1: Any) -> String {
-      return L10n.tr("Localizable", "plans_cta_monthly", String(describing: p1), fallback: "_")
+      return L10n.tr("Localizable", "plans_cta_monthly", String(describing: p1), fallback: "_for 1 month")
     }
             internal static func plansCtaYearly(_ p1: Any) -> String {
-      return L10n.tr("Localizable", "plans_cta_yearly", String(describing: p1), fallback: "_")
+      return L10n.tr("Localizable", "plans_cta_yearly", String(describing: p1), fallback: "_for 12 months")
     }
             internal static let plansEmptystateSubtitle = L10n.tr("Localizable", "plans_emptystate_subtitle", fallback: "Your purchase couldn’t be completed.\n Please try again later.")
         internal static let plansEmptystateTitle = L10n.tr("Localizable", "plans_emptystate_title", fallback: "Something went wrong")
@@ -1810,6 +1821,25 @@ internal enum L10n {
     }
         internal static let recentTitle = L10n.tr("Localizable", "RECENT_TITLE", fallback: "Recent")
         internal static let recentSearchTitle = L10n.tr("Localizable", "recentSearchTitle", fallback: "Last searched")
+        internal static let recoveryKeyActivationConfirmationError = L10n.tr("Localizable", "RECOVERY_KEY_ACTIVATION_CONFIRMATION_ERROR", fallback: "This doesn't look right. Please check the key and try again.")
+        internal static let recoveryKeyActivationConfirmationMessage = L10n.tr("Localizable", "RECOVERY_KEY_ACTIVATION_CONFIRMATION_MESSAGE", fallback: "If you didn’t make a copy of your key in the last step, go back and do that now.")
+        internal static let recoveryKeyActivationConfirmationTitle = L10n.tr("Localizable", "RECOVERY_KEY_ACTIVATION_CONFIRMATION_TITLE", fallback: "Confirm your recovery key")
+        internal static let recoveryKeyActivationFailureMessage = L10n.tr("Localizable", "RECOVERY_KEY_ACTIVATION_FAILURE_MESSAGE", fallback: "An unexpected error occurred. Please try again.")
+        internal static let recoveryKeyActivationIntroCta = L10n.tr("Localizable", "RECOVERY_KEY_ACTIVATION_INTRO_CTA", fallback: "Generate Key")
+        internal static let recoveryKeyActivationIntroMessage = L10n.tr("Localizable", "RECOVERY_KEY_ACTIVATION_INTRO_MESSAGE", fallback: "This is a single-use spare key to your vault. If you need to, you can use it to get back into your account and reset your Master Password.")
+        internal static let recoveryKeyActivationIntroTitle = L10n.tr("Localizable", "RECOVERY_KEY_ACTIVATION_INTRO_TITLE", fallback: "Your recovery key is a spare key to your vault")
+        internal static let recoveryKeyActivationPreviewCta = L10n.tr("Localizable", "RECOVERY_KEY_ACTIVATION_PREVIEW_CTA", fallback: "Continue")
+        internal static let recoveryKeyActivationPreviewMessage1 = L10n.tr("Localizable", "RECOVERY_KEY_ACTIVATION_PREVIEW_MESSAGE_1", fallback: "We recommend writing down your recovery key and keeping it with other important documents.")
+        internal static let recoveryKeyActivationPreviewMessage2 = L10n.tr("Localizable", "RECOVERY_KEY_ACTIVATION_PREVIEW_MESSAGE_2", fallback: "To double-check that you saved it, we’ll ask you to confirm your key in the next step.")
+        internal static let recoveryKeyActivationPreviewTitle = L10n.tr("Localizable", "RECOVERY_KEY_ACTIVATION_PREVIEW_TITLE", fallback: "Store this somewhere safe")
+        internal static let recoveryKeyActivationSuccessMessage = L10n.tr("Localizable", "RECOVERY_KEY_ACTIVATION_SUCCESS_MESSAGE", fallback: "Your recovery key is ready if you need it!")
+        internal static let recoveryKeyDeactivationAlertCta = L10n.tr("Localizable", "RECOVERY_KEY_DEACTIVATION_ALERT_CTA", fallback: "Yes, turn off")
+        internal static let recoveryKeyDeactivationAlertMessage = L10n.tr("Localizable", "RECOVERY_KEY_DEACTIVATION_ALERT_MESSAGE", fallback: "If you turn this off, your existing recovery key will no longer be valid.")
+        internal static let recoveryKeyDeactivationAlertTitle = L10n.tr("Localizable", "RECOVERY_KEY_DEACTIVATION_ALERT_TITLE", fallback: "Are you sure you want to turn off this recovery method?")
+        internal static let recoveryKeySettingsFooter = L10n.tr("Localizable", "RECOVERY_KEY_SETTINGS_FOOTER", fallback: "Your recovery key lets you access your vault if you forget your Master Password.")
+        internal static let recoveryKeySettingsLabel = L10n.tr("Localizable", "RECOVERY_KEY_SETTINGS_LABEL", fallback: "Recovery Key")
+        internal static let recoveryKeySettingsOffLabel = L10n.tr("Localizable", "RECOVERY_KEY_SETTINGS_OFF_LABEL", fallback: "Off")
+        internal static let recoveryKeySettingsOnLabel = L10n.tr("Localizable", "RECOVERY_KEY_SETTINGS_ON_LABEL", fallback: "On")
         internal static let rememberMpSettings = L10n.tr("Localizable", "REMEMBER_MP_SETTINGS", fallback: "Keep me logged in for 14 days")
         internal static let remindMe = L10n.tr("Localizable", "RemindMe", fallback: "Remind me")
         internal static let renewalExtendPremium = L10n.tr("Localizable", "Renewal_ExtendPremium", fallback: "Renew Premium")
@@ -1905,12 +1935,12 @@ internal enum L10n {
         internal static let secureWifiProtectYourWifiModalFreetrialCta = L10n.tr("Localizable", "secureWifi_protectYourWifiModal_freetrial_cta", fallback: "Upgrade to Premium")
         internal static let secureWifiToolsTitle = L10n.tr("Localizable", "secureWifi_toolsTitle", fallback: "VPN")
             internal static func securityAlertDataLeakPopupAffectedPasswords(_ p1: Any) -> String {
-      return L10n.tr("Localizable", "SECURITY_ALERT_DATA_LEAK_POPUP_AFFECTED_PASSWORDS", String(describing: p1), fallback: "_")
+      return L10n.tr("Localizable", "SECURITY_ALERT_DATA_LEAK_POPUP_AFFECTED_PASSWORDS", String(describing: p1), fallback: "Affected passwords:\n_")
     }
         internal static let securityAlertDataLeakPremiumplusUpsellDescription = L10n.tr("Localizable", "SECURITY_ALERT_DATA_LEAK_PREMIUMPLUS_UPSELL_DESCRIPTION", fallback: "Dashlane helps you change your passwords when your information is found on the dark web, but for enhanced protection against identity theft, consider Premium Plus. Visit your Identity Dashboard to learn more.")
         internal static let securityAlertDataLeakPremiumplusUpsellDescriptionOnlyPiis = L10n.tr("Localizable", "SECURITY_ALERT_DATA_LEAK_PREMIUMPLUS_UPSELL_DESCRIPTION_ONLY_PIIS", fallback: "Dashlane helps you change your passwords when your information is found on the dark web, but for enhanced protection against identity theft, consider Premium Plus. Visit your Identity Dashboard to learn more.")
             internal static func securityAlertDataLeakTrayAffectedPasswords(_ p1: Any) -> String {
-      return L10n.tr("Localizable", "SECURITY_ALERT_DATA_LEAK_TRAY_AFFECTED_PASSWORDS", String(describing: p1), fallback: "_")
+      return L10n.tr("Localizable", "SECURITY_ALERT_DATA_LEAK_TRAY_AFFECTED_PASSWORDS", String(describing: p1), fallback: "Affected passwords:\n_")
     }
         internal static let securityAlertDismissButton = L10n.tr("Localizable", "SECURITY_ALERT_DISMISS_BUTTON", fallback: "Dismiss")
         internal static let securityAlertLaterButton = L10n.tr("Localizable", "SECURITY_ALERT_LATER_BUTTON", fallback: "Close")
@@ -1922,15 +1952,15 @@ internal enum L10n {
         internal static let securityAlertUnresolvedGoPremium = L10n.tr("Localizable", "SECURITY_ALERT_UNRESOLVED_GO_PREMIUM", fallback: "Upgrade to Dashlane Premium to view the details of this alert and take action")
         internal static let securityAlertUnresolvedImpactedDomains = L10n.tr("Localizable", "SECURITY_ALERT_UNRESOLVED_IMPACTED_DOMAINS", fallback: "Affected websites:")
             internal static func securityAlertUnresolvedImpactedDomainsParameters(_ p1: Any) -> String {
-      return L10n.tr("Localizable", "SECURITY_ALERT_UNRESOLVED_IMPACTED_DOMAINS_PARAMETERS", String(describing: p1), fallback: "_")
+      return L10n.tr("Localizable", "SECURITY_ALERT_UNRESOLVED_IMPACTED_DOMAINS_PARAMETERS", String(describing: p1), fallback: "Affected websites:\n_")
     }
         internal static let securityAlertUnresolvedImpactedEmails = L10n.tr("Localizable", "SECURITY_ALERT_UNRESOLVED_IMPACTED_EMAILS", fallback: "Affected email address:")
             internal static func securityAlertUnresolvedImpactedEmailsParameters(_ p1: Any) -> String {
-      return L10n.tr("Localizable", "SECURITY_ALERT_UNRESOLVED_IMPACTED_EMAILS_PARAMETERS", String(describing: p1), fallback: "_")
+      return L10n.tr("Localizable", "SECURITY_ALERT_UNRESOLVED_IMPACTED_EMAILS_PARAMETERS", String(describing: p1), fallback: "Affected email address:\n_")
     }
         internal static let securityAlertUnresolvedImpactedUsernames = L10n.tr("Localizable", "SECURITY_ALERT_UNRESOLVED_IMPACTED_USERNAMES", fallback: "Affected usernames:")
             internal static func securityAlertUnresolvedImpactedUsernamesParameters(_ p1: Any) -> String {
-      return L10n.tr("Localizable", "SECURITY_ALERT_UNRESOLVED_IMPACTED_USERNAMES_PARAMETERS", String(describing: p1), fallback: "_")
+      return L10n.tr("Localizable", "SECURITY_ALERT_UNRESOLVED_IMPACTED_USERNAMES_PARAMETERS", String(describing: p1), fallback: "Affected usernames:\n_")
     }
         internal static let securityAlertUnresolvedJustnow = L10n.tr("Localizable", "SECURITY_ALERT_UNRESOLVED_JUSTNOW", fallback: "Just now")
         internal static let securityAlertUnresolvedTakeActionCta = L10n.tr("Localizable", "SECURITY_ALERT_UNRESOLVED_TAKE_ACTION_CTA", fallback: "Take action")
@@ -2008,15 +2038,15 @@ internal enum L10n {
         internal static let securityBreachIdentityStillAtRisk = L10n.tr("Localizable", "SECURITY_BREACH_IDENTITY_STILL_AT_RISK", fallback: "You may have updated your password after the breach, but if you aren't sure, make sure to update it and any other similar passwords.")
         internal static let securityBreachImpactedDomains = L10n.tr("Localizable", "SECURITY_BREACH_IMPACTED_DOMAINS", fallback: "Affected websites:")
             internal static func securityBreachImpactedDomainsParameters(_ p1: Any) -> String {
-      return L10n.tr("Localizable", "SECURITY_BREACH_IMPACTED_DOMAINS_PARAMETERS", String(describing: p1), fallback: "_")
+      return L10n.tr("Localizable", "SECURITY_BREACH_IMPACTED_DOMAINS_PARAMETERS", String(describing: p1), fallback: "Affected websites:\n_")
     }
         internal static let securityBreachImpactedEmails = L10n.tr("Localizable", "SECURITY_BREACH_IMPACTED_EMAILS", fallback: "Affected email address:")
             internal static func securityBreachImpactedEmailsParameters(_ p1: Any) -> String {
-      return L10n.tr("Localizable", "SECURITY_BREACH_IMPACTED_EMAILS_PARAMETERS", String(describing: p1), fallback: "_")
+      return L10n.tr("Localizable", "SECURITY_BREACH_IMPACTED_EMAILS_PARAMETERS", String(describing: p1), fallback: "Affected email address:\n_")
     }
         internal static let securityBreachImpactedUsernames = L10n.tr("Localizable", "SECURITY_BREACH_IMPACTED_USERNAMES", fallback: "Affected usernames:")
             internal static func securityBreachImpactedUsernamesParameters(_ p1: Any) -> String {
-      return L10n.tr("Localizable", "SECURITY_BREACH_IMPACTED_USERNAMES_PARAMETERS", String(describing: p1), fallback: "_")
+      return L10n.tr("Localizable", "SECURITY_BREACH_IMPACTED_USERNAMES_PARAMETERS", String(describing: p1), fallback: "Affected usernames:\n_")
     }
         internal static let securityBreachLaterCta = L10n.tr("Localizable", "SECURITY_BREACH_LATER_CTA", fallback: "Dismiss")
         internal static let securityBreachLeakedAddress = L10n.tr("Localizable", "SECURITY_BREACH_LEAKED_ADDRESS", fallback: "addresses")
@@ -2025,7 +2055,7 @@ internal enum L10n {
         internal static let securityBreachLeakedGeolocation = L10n.tr("Localizable", "SECURITY_BREACH_LEAKED_GEOLOCATION", fallback: "location data")
         internal static let securityBreachLeakedIp = L10n.tr("Localizable", "SECURITY_BREACH_LEAKED_IP", fallback: "IP address")
         internal static let securityBreachLeakedLogin = L10n.tr("Localizable", "SECURITY_BREACH_LEAKED_LOGIN", fallback: "usernames")
-        internal static let securityBreachLeakedPassword = L10n.tr("Localizable", "SECURITY_BREACH_LEAKED_PASSWORD", fallback: "usernames")
+        internal static let securityBreachLeakedPassword = L10n.tr("Localizable", "SECURITY_BREACH_LEAKED_PASSWORD", fallback: "password")
         internal static let securityBreachLeakedPersonalInfo = L10n.tr("Localizable", "SECURITY_BREACH_LEAKED_PERSONAL_INFO", fallback: "personal information")
         internal static let securityBreachLeakedPhoneNumber = L10n.tr("Localizable", "SECURITY_BREACH_LEAKED_PHONE_NUMBER", fallback: "phone numbers")
         internal static let securityBreachLeakedSocial = L10n.tr("Localizable", "SECURITY_BREACH_LEAKED_SOCIAL", fallback: "social network information")
@@ -2090,7 +2120,7 @@ internal enum L10n {
         internal static let shushDashlaneNoDisabledFieldsSubtitle = L10n.tr("Localizable", "SHUSH_DASHLANE_NO_DISABLED_FIELDS_SUBTITLE", fallback: "You can turn off Autofill for specific fields on this website. Learn more.")
         internal static let shushDashlaneNoDisabledFieldsSubtitleWithoutLink = L10n.tr("Localizable", "SHUSH_DASHLANE_NO_DISABLED_FIELDS_SUBTITLE_WITHOUT_LINK", fallback: "You can turn off Autofill for specific fields on this website.")
         internal static let shushDashlaneNoDisabledFieldsTitle = L10n.tr("Localizable", "SHUSH_DASHLANE_NO_DISABLED_FIELDS_TITLE", fallback: "Did you know?")
-        internal static let sidebarToolsTitle = L10n.tr("Localizable", "SIDEBAR_TOOLS_TITLE", fallback: "Security tools")
+        internal static let sidebarToolsTitle = L10n.tr("Localizable", "SIDEBAR_TOOLS_TITLE", fallback: "Tools")
         internal static let signoutAskMasterPassword = L10n.tr("Localizable", "signoutAskMasterPassword", fallback: "Make sure you remember your Master Password. We’ll ask for it when you log back in.")
         internal static let social = L10n.tr("Localizable", "social", fallback: "Social")
         internal static let specialOfferAnnouncementBody = L10n.tr("Localizable", "SpecialOffer_Announcement_body", fallback: "Half-price for 1 year!")
@@ -2284,6 +2314,7 @@ internal enum L10n {
         internal static let vaultItemCreationDateLabel = L10n.tr("Localizable", "vaultItemCreationDate_label", fallback: "Created")
         internal static let vaultItemModificationDateLabel = L10n.tr("Localizable", "vaultItemModificationDate_label", fallback: "Last updated")
         internal static let vaultItemModificationDateByYouLabel = L10n.tr("Localizable", "vaultItemModificationDateByYou_label", fallback: "Modified by you")
+        internal static let vaultItemSyncStatusPendingUpload = L10n.tr("Localizable", "vaultItemSyncStatus_PendingUpload", fallback: "Syncing...")
         internal static let vpnTeamPaywallSubtitle = L10n.tr("Localizable", "vpn_team_paywall_subtitle", fallback: "This feature has been disabled by your IT Admin.")
         internal static let vpnTeamPaywallTitle = L10n.tr("Localizable", "vpn_team_paywall_title", fallback: "VPN is disabled")
         internal static let vpnActivationViewAccountCreated = L10n.tr("Localizable", "vpnActivationView_accountCreated", fallback: "Account created")
@@ -2558,6 +2589,19 @@ internal enum L10n {
             internal static let socialSecurityFullname = L10n.tr("Localizable", "KWSocialSecurityStatementIOS.socialSecurityFullname", fallback: "Full name")
             internal static let socialSecurityNumber = L10n.tr("Localizable", "KWSocialSecurityStatementIOS.socialSecurityNumber", fallback: "Number")
     }
+    internal enum KWVault {
+      internal enum Search {
+        internal enum Collections {
+                    internal static let title = L10n.tr("Localizable", "KWVault.search.collections.title", fallback: "Category")
+        }
+        internal enum Items {
+          internal enum Title {
+                        internal static let plural = L10n.tr("Localizable", "KWVault.search.items.title.plural", fallback: "Items")
+                        internal static let singular = L10n.tr("Localizable", "KWVault.search.items.title.singular", fallback: "Item")
+          }
+        }
+      }
+    }
     internal enum KWVaultItem {
       internal enum Changes {
                 internal static let saved = L10n.tr("Localizable", "KWVaultItem.changes.saved", fallback: "Changes saved")
@@ -2565,10 +2609,17 @@ internal enum L10n {
       internal enum Collections {
                 internal static let add = L10n.tr("Localizable", "KWVaultItem.collections.add", fallback: "Add a category")
                 internal static let addAnother = L10n.tr("Localizable", "KWVaultItem.collections.addAnother", fallback: "Add another category")
+                internal static let create = L10n.tr("Localizable", "KWVaultItem.collections.create", fallback: "Create")
         internal enum Title {
                     internal static let plural = L10n.tr("Localizable", "KWVaultItem.collections.title.plural", fallback: "Categories")
                     internal static let singular = L10n.tr("Localizable", "KWVaultItem.collections.title.singular", fallback: "Category")
         }
+      }
+      internal enum UnsavedChanges {
+                internal static let keepEditing = L10n.tr("Localizable", "KWVaultItem.unsavedChanges.keepEditing", fallback: "Keep editing")
+                internal static let leave = L10n.tr("Localizable", "KWVaultItem.unsavedChanges.leave", fallback: "Leave page")
+                internal static let message = L10n.tr("Localizable", "KWVaultItem.unsavedChanges.message", fallback: "If you leave this page before selecting Save, your changes will be discarded.")
+                internal static let title = L10n.tr("Localizable", "KWVaultItem.unsavedChanges.title", fallback: "You have unsaved changes")
       }
     }
     internal enum ActivePlan {

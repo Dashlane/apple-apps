@@ -102,20 +102,20 @@ class ConicalGradientLayer: CALayer {
             let transitionsCount = colors.count - 1
             let locationStep = 1.0 / Double(transitionsCount)
 
-            for i in 0 ..< transitionsCount {
+            for index in 0 ..< transitionsCount {
                 let fromLocation, toLocation: Double
                 let fromColor, toColor: CGColor
 
                 if locations.count == colors.count {
-                    fromLocation = locations[i]
-                    toLocation = locations[i + 1]
+                    fromLocation = locations[index]
+                    toLocation = locations[index + 1]
                 } else {
-                    fromLocation = locationStep * Double(i)
-                    toLocation = locationStep * Double(i + 1)
+                    fromLocation = locationStep * Double(index)
+                    toLocation = locationStep * Double(index + 1)
                 }
 
-                fromColor = colors[i]
-                toColor = colors[i + 1]
+                fromColor = colors[index]
+                toColor = colors[index + 1]
 
                 let transition = Transition(fromLocation: fromLocation, toLocation: toLocation,
                                             fromColor: fromColor, toColor: toColor)

@@ -1,6 +1,7 @@
 import Foundation
 import DashlaneAppKit
 import CoreSettings
+import UIComponents
 
 class ChromeImportCoordinator: Coordinator {
 

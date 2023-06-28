@@ -2,10 +2,10 @@ import Foundation
 
 public protocol CapabilitySet: Decodable {
     var creditMonitoring: Capability<CreditMonitoringInfo> { get }
-    var dataLeak: Capability<ReasonInfo<DarkWebMonitoringUnavailableReason>>  { get }
-    var devicesLimit: Capability<LimitInfo>  { get }
+    var dataLeak: Capability<ReasonInfo<DarkWebMonitoringUnavailableReason>> { get }
+    var devicesLimit: Capability<LimitInfo> { get }
     var identityRestoration: Capability<NoInfo> { get }
-    var identityTheftProtection: Capability<NoInfo>  { get }
+    var identityTheftProtection: Capability<NoInfo> { get }
     var passwordsLimit: Capability<LimitInfo> { get }
     var secureFiles: Capability<FileQuotaInfo> { get }
     var secureNotes: Capability<NoInfo> { get }

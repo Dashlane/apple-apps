@@ -18,12 +18,12 @@ extension PersonalDataContentType {
                     .userSelectedUrl
                 ]
                 return Set(keys.map(\.rawValue))
-                
+
             default:
                 return []
         }
     }
-    
+
     var historyTitleKey: String? {
         switch self {
             case .credential:
@@ -33,4 +33,3 @@ extension PersonalDataContentType {
         }
     }
 }
-

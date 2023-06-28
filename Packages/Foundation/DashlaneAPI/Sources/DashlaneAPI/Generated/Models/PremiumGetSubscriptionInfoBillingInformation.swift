@@ -2,6 +2,26 @@ import Foundation
 
 public struct PremiumGetSubscriptionInfoBillingInformation: Codable, Equatable {
 
+    private enum CodingKeys: String, CodingKey {
+        case billingType = "billingType"
+        case addressCity = "address_city"
+        case addressCountry = "address_country"
+        case addressLine1 = "address_line1"
+        case addressLine1Check = "address_line1_check"
+        case addressLine2 = "address_line2"
+        case addressState = "address_state"
+        case addressZip = "address_zip"
+        case addressZipCheck = "address_zip_check"
+        case country = "country"
+        case cvcCheck = "cvc_check"
+        case expMonth = "exp_month"
+        case expYear = "exp_year"
+        case fingerprint = "fingerprint"
+        case last4 = "last4"
+        case name = "name"
+        case type = "type"
+    }
+
     public let billingType: String
 
     public let addressCity: String?

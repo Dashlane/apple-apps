@@ -7,7 +7,7 @@ extension APIConfiguration.Environment {
 #if DEBUG
         return .production
 
-                                                #else
+                #else
         return .production
 #endif
     }

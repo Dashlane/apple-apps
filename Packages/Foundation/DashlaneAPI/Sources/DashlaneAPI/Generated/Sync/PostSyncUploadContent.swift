@@ -1,6 +1,6 @@
 import Foundation
 extension UserDeviceAPIClient.Sync {
-        public struct UploadContent {
+        public struct UploadContent: APIRequest {
         public static let endpoint: Endpoint = "/sync/UploadContent"
 
         public let api: UserDeviceAPIClient
@@ -17,7 +17,13 @@ extension UserDeviceAPIClient.Sync {
 }
 
 extension UserDeviceAPIClient.Sync.UploadContent {
-        struct Body: Encodable {
+        public struct Body: Encodable {
+
+        private enum CodingKeys: String, CodingKey {
+            case timestamp = "timestamp"
+            case transactions = "transactions"
+            case sharingKeys = "sharingKeys"
+        }
 
                 public let timestamp: Int
 
@@ -27,6 +33,14 @@ extension UserDeviceAPIClient.Sync.UploadContent {
     }
 
         public struct Transactions: Codable, Equatable {
+
+        private enum CodingKeys: String, CodingKey {
+            case action = "action"
+            case identifier = "identifier"
+            case time = "time"
+            case type = "type"
+            case content = "content"
+        }
 
         public let action: SyncContentAction
 
@@ -52,6 +66,11 @@ extension UserDeviceAPIClient.Sync.UploadContent {
     public typealias Response = DataType
 
         public struct DataType: Codable, Equatable {
+
+        private enum CodingKeys: String, CodingKey {
+            case timestamp = "timestamp"
+            case summary = "summary"
+        }
 
                 public let timestamp: Int
 

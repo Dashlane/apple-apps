@@ -6,6 +6,8 @@ import SwiftTreats
 import CoreSettings
 import CorePersonalData
 import DashTypes
+import CoreSession
+import VaultKit
 
 class OnboardingService {
     private let loadingContext: SessionLoadingContext
@@ -20,12 +22,14 @@ class OnboardingService {
     private let vaultItemsService: VaultItemsServiceProtocol
     private let featureService: FeatureServiceProtocol
     private var cancellables = Set<AnyCancellable>()
+    private let accountType: AccountType
 
     private var isBiometricAuthenticationActivated: Bool {
         return lockService.secureLockConfigurator.isBiometricActivated
     }
 
     init(loadingContext: SessionLoadingContext,
+         accountType: AccountType,
          userSettings: UserSettings,
          vaultItemsService: VaultItemsServiceProtocol,
          dwmOnboardingSettings: DWMOnboardingSettings,
@@ -46,6 +50,7 @@ class OnboardingService {
         self.teamSpacesService = teamSpacesService
         self.vaultItemsService = vaultItemsService
         self.featureService = featureService
+        self.accountType = accountType
 
         unlockOnboardingIfRequired()
         setupSubscribers()
@@ -73,11 +78,12 @@ class OnboardingService {
         return !hasUserSeenAutoFillDemo && isNewUser() && !Device.isMac
     }
 
-    var shouldShowBrowsersExtensionsOnboarding: Bool {
+    func shouldShowBrowsersExtensionsOnboarding() -> Bool {
         guard Device.isMac else { return false }
+        skipSafariDisabledAnnouncementIfNeeded()
         let hasSeenBrowsersExtensionsOnboarding = userSettings[.hasSeenBrowsersExtensionsOnboarding] ?? false
         let hasSeenSafariDisabledOnboarding = userSettings[.hasSeenSafariDisabledOnboarding] ?? false
-        return !hasSeenBrowsersExtensionsOnboarding || (!hasSeenSafariDisabledOnboarding && shouldShowSafariDisabledOnboarding)
+        return (!hasSeenBrowsersExtensionsOnboarding || shouldShowSafariDisabledOnboarding) && !hasSeenSafariDisabledOnboarding
     }
 
     var shouldShowSafariDisabledOnboarding: Bool {
@@ -105,7 +111,7 @@ class OnboardingService {
             return false
         }
 
-                guard loadingContext == .accountCreation else {
+                guard case .accountCreation = loadingContext else {
             return false
         }
 
@@ -113,7 +119,12 @@ class OnboardingService {
     }
 
     var shouldShowFastLocalSetupForFirstLogin: Bool {
-        guard loadingContext == .remoteLogin else {
+
+        guard accountType != .invisibleMasterPassword else {
+            return false
+        }
+
+        guard case .remoteLogin = loadingContext else {
             return false
         }
 
@@ -166,15 +177,26 @@ class OnboardingService {
             userSettings[.hasUserUnlockedOnboardingChecklist] = true
         }
     }
+
+    func skipSafariDisabledAnnouncementIfNeeded() {
+        guard Device.isMac else { return }
+        guard loadingContext.isFirstLogin else {
+            return
+        }
+                        if featureService.isEnabled(.autofillSafariIsDisabled) {
+            userSettings[.hasSeenSafariDisabledOnboarding] = true
+        }
+    }
 }
 
  extension OnboardingService {
     static var mock: OnboardingService {
         .init(
-            loadingContext: SessionLoadingContext.localLogin,
+            loadingContext: SessionLoadingContext.localLogin(),
+            accountType: .masterPassword,
             userSettings: UserSettings.mock,
             vaultItemsService: MockServicesContainer().vaultItemsService,
-            dwmOnboardingSettings: DWMOnboardingSettings(internalStore: InMemoryLocalSettingsStore()),
+            dwmOnboardingSettings: DWMOnboardingSettings(internalStore: .mock()),
             dwmOnboardingService: DWMOnboardingService.mock,
             syncedSettings: SyncedSettingsService.mock,
             abTestService: ABTestingServiceMock.mock,

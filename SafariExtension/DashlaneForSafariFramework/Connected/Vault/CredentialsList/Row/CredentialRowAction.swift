@@ -1,4 +1,5 @@
 import Foundation
+import CoreLocalization
 
 enum CopyCredentialAction: MenuItem {
     case email
@@ -14,12 +15,12 @@ enum CopyCredentialAction: MenuItem {
     
     var title: String {
         switch self {
-        case .email: return L10n.Localizable.KWAuthentifiantIOS.email
-        case .login: return L10n.Localizable.KWAuthentifiantIOS.login
-        case .secondaryLogin: return L10n.Localizable.KWAuthentifiantIOS.secondaryLogin
-        case .password: return L10n.Localizable.KWAuthentifiantIOS.password
-        case .oneTimePassword: return L10n.Localizable.KWAuthentifiantIOS.otp
-        case .note: return L10n.Localizable.KWAuthentifiantIOS.note
+        case .email: return CoreLocalization.L10n.Core.KWAuthentifiantIOS.email
+        case .login: return CoreLocalization.L10n.Core.KWAuthentifiantIOS.login
+        case .secondaryLogin: return CoreLocalization.L10n.Core.KWAuthentifiantIOS.secondaryLogin
+        case .password: return CoreLocalization.L10n.Core.KWAuthentifiantIOS.password
+        case .oneTimePassword: return CoreLocalization.L10n.Core.KWAuthentifiantIOS.otp
+        case .note: return CoreLocalization.L10n.Core.KWAuthentifiantIOS.note
         }
     }
     

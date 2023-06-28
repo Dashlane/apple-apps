@@ -2,6 +2,7 @@ import SwiftUI
 import UIComponents
 import UIDelight
 import DesignSystem
+import CoreLocalization
 
 struct VPNActivationView: View {
 
@@ -43,29 +44,27 @@ struct VPNActivationView: View {
 
                 Text(L10n.Localizable.vpnActivationViewEmailSubtitle)
                     .font(.body)
-                    .foregroundColor(Color(asset: FiberAsset.neutralText))
+                    .foregroundColor(.ds.text.neutral.quiet)
                     .padding(.top, 8)
                 Button(action: model.contactSupport, label: {
                     Text(L10n.Localizable.shushDashlaneLearnMore)
                         .underline()
-                        .foregroundColor(Color(asset: SharedAsset.midGreen))
+                        .foregroundColor(.ds.text.brand.standard)
                 }).padding(.top, 4)
 
             }.padding(16)
 
             VStack(alignment: .leading, spacing: 4) {
-                TextInput("",
-                          text: $model.email)
-                .style(intensity: .supershy)
-                .focused($isEditingEmail)
-                .keyboardType(.emailAddress)
-                .autocapitalization(.none)
-                .padding(.horizontal, 16)
-                .textInputLabel(L10n.Localizable.kwEmailIOS)
-                                .background(Color.ds.container.agnostic.neutral.quiet.padding(.top, -8))
-                .onAppear {
-                    self.isEditingEmail = true
-                }
+                DS.TextField(CoreLocalization.L10n.Core.kwEmailIOS, text: $model.email)
+                    .textFieldAppearance(.grouped)
+                    .focused($isEditingEmail)
+                    .keyboardType(.emailAddress)
+                    .autocapitalization(.none)
+                    .padding(.horizontal, 16)
+                                        .background(Color.ds.container.agnostic.neutral.quiet.padding(.top, -8))
+                    .onAppear {
+                        self.isEditingEmail = true
+                    }
 
                 Text(L10n.Localizable.vpnActivationViewErrorWrongEmailFormat)
                     .foregroundColor(.ds.text.danger.quiet)
@@ -87,7 +86,7 @@ struct VPNActivationView: View {
 
             Spacer()
 
-            RoundedButton(L10n.Localizable.kwConfirmButton,
+            RoundedButton(CoreLocalization.L10n.Core.kwConfirmButton,
                           action: { withAnimation { model.activateEmail() } })
             .roundedButtonLayout(.fill)
             .padding(.horizontal, 16)
@@ -128,13 +127,13 @@ struct VPNActivationView: View {
 
             LottieView(.passwordChangerFail, loopMode: .playOnce)
                 .frame(width: 64, height: 64, alignment: .center)
-            Text(model.errorTitle ?? L10n.Localizable.deviceUnlinkAlertTitle)
+            Text(model.errorTitle ?? CoreLocalization.L10n.Core.deviceUnlinkAlertTitle)
                 .font(.custom(GTWalsheimPro.bold.name, size: 26, relativeTo: .title).weight(.medium))
                 .padding(.top, 25)
 
             Text(model.errorDescription ?? L10n.Localizable.vpnActivationViewGenericErrorSubtitle)
                 .font(.body)
-                .foregroundColor(Color(asset: FiberAsset.neutralText))
+                .foregroundColor(.ds.text.neutral.quiet)
                 .padding(.top, 8)
                 .multilineTextAlignment(.center)
 
@@ -146,10 +145,11 @@ struct VPNActivationView: View {
 
             Button(action: { model.contactSupport() }, label: {
                 Text(L10n.Localizable.vpnActivationViewErrorContactSupport)
-            }).buttonStyle(BorderlessActionButtonStyle())
-                .foregroundColor(Color(asset: FiberAsset.midGreen))
-
-        }.padding(.horizontal, 16)
+            })
+            .buttonStyle(BorderlessActionButtonStyle())
+            .foregroundColor(.ds.text.brand.standard)
+        }
+        .padding(.horizontal, 16)
     }
 }
 

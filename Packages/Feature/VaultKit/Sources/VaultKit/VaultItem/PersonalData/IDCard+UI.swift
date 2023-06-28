@@ -23,7 +23,7 @@ extension IDCard: VaultItem {
     public static var addTitle: String {
         L10n.Core.kwadddatakwidCardIOS
     }
-    
+
     public static var nativeMenuAddTitle: String {
         L10n.Core.addIDCard
     }
@@ -38,8 +38,6 @@ extension IDCard: CopiablePersonalData {
         return .number
     }
 }
-
-
 
 extension IDCard {
     public var genderString: String {

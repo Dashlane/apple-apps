@@ -44,14 +44,6 @@ extension Credential: VaultItem {
             team.isValueMatchingDomains($0)
         }
     }
-
-        public var logData: VaultItemUsageLogData {
-        let note: String? = self.note.isEmpty ? nil : self.note
-        return VaultItemUsageLogData(website: url?.displayDomain,
-                                     details: note,
-                                     origin: .inApp,
-                                     category: category?.name)
-    }
 }
 
 extension Credential: CopiablePersonalData {

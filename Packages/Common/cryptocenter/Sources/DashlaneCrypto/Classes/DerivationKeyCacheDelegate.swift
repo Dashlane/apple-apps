@@ -25,18 +25,18 @@ public class MemoryDerivationKeyCache: DerivationKeyCacheDelegate {
 
     public func set(value: Data, forConfig config: CryptoConfig, password: String, salt: Data) {
         let cacheKey = MemoryCacheKey(config: config, password: password, salt: salt)
-        
+
         readWriteLock.withWriteLock {
             keysCache[cacheKey] = value
         }
     }
-    
+
     public func fixedSalt(ofSize size: UInt) -> Data? {
         return readWriteLock.withReadLock {
             return saltsCache[size]
         }
     }
-    
+
     public func saveFixedSalt(_ data: Data) {
         readWriteLock.withWriteLock {
             self.saltsCache[UInt(data.count)] = data

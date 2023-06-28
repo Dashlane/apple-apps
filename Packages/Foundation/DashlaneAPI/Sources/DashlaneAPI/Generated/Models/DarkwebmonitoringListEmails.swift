@@ -2,6 +2,12 @@ import Foundation
 
 public struct DarkwebmonitoringListEmails: Codable, Equatable {
 
+    private enum CodingKeys: String, CodingKey {
+        case email = "email"
+        case state = "state"
+        case expiresIn = "expiresIn"
+    }
+
     public let email: String
 
     public let state: String

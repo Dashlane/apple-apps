@@ -2,6 +2,8 @@ import Foundation
 import SwiftUI
 import CorePersonalData
 import UIDelight
+import VaultKit
+import CoreLocalization
 
 struct CreditCardDetailView: View {
 
@@ -16,64 +18,70 @@ struct CreditCardDetailView: View {
         DetailContainerView(service: model.service) {
             Section {
                                 if model.mode.isEditing {
-                    TextDetailField(title: L10n.Localizable.KWPaymentMeanCreditCardIOS.name, text: $model.item.name)
+                    TextDetailField(title: CoreLocalization.L10n.Core.KWPaymentMeanCreditCardIOS.name, text: $model.item.name)
                         .textInputAutocapitalization(.words)
                 }
 
-                                PickerDetailField(title: L10n.Localizable.KWPaymentMeanCreditCardIOS.localeFormat,
+                                PickerDetailField(title: CoreLocalization.L10n.Core.KWPaymentMeanCreditCardIOS.localeFormat,
                                   selection: $model.selectedCountry,
                                   elements: CountryCodeNamePair.countries) { country in
                                     Text(country?.name ?? CountryCodeNamePair.defaultCountry.name)
                 }
 
-                                TextDetailField(title: L10n.Localizable.KWPaymentMeanCreditCardIOS.ownerName, text: $model.item.ownerName)
+                                TextDetailField(title: CoreLocalization.L10n.Core.KWPaymentMeanCreditCardIOS.ownerName, text: $model.item.ownerName)
                     .textInputAutocapitalization(.words)
 
-                                SecureDetailField(title: L10n.Localizable.KWPaymentMeanCreditCardIOS.cardNumber,
-                                  text: $model.item.cardNumber,
-                                  shouldReveal: $model.shouldReveal,
-                                  formatter: CreditCardNumberFormatter(),
-                                  obfuscatingFormatter: CreditCardNumberFormatter(obfuscate: true),
-                                  action: model.reveal,
-                                  usagelogSubType: .cardNumber)
-                    .actions([.copy(model.copy), .largeDisplay], accessHandler: model.requestAccess)
-                    .keyboardType(.numberPad)
-                    .fiberFieldType(.cardNumber)
+                                SecureDetailField(
+                    title: CoreLocalization.L10n.Core.KWPaymentMeanCreditCardIOS.cardNumber,
+                    text: $model.item.cardNumber,
+                    shouldReveal: $model.shouldReveal,
+                    onRevealAction: model.reveal,
+                    formatter: CreditCardNumberFormatter(),
+                    obfuscatingFormatter: CreditCardNumberFormatter(obfuscate: true),
+                    actions: [.copy(model.copy)]
+                )
+                .actions([.copy(model.copy), .largeDisplay], accessHandler: model.requestAccess)
+                .keyboardType(.numberPad)
+                .fiberFieldType(.cardNumber)
 
                                 if model.mode.isEditing || !model.item.securityCode.isEmpty {
-                    SecureDetailField(title: L10n.Localizable.KWPaymentMeanCreditCardIOS.securityCode,
-                                      text: $model.item.securityCode,
-                                      shouldReveal: $model.shouldReveal,
-                                      hasDisplayEmptyIndicator: false,
-                                      formatter: .uppercase,
-                                      obfuscatingFormatter: .obfuscatedCode,
-                                      action: model.reveal,
-                                      usagelogSubType: .securityCode)
-                        .actions([.copy(model.copy), .largeDisplay], accessHandler: model.requestAccess)
-                        .keyboardType(.numberPad)
-                        .fiberFieldType(.securityCode)
+                    SecureDetailField(
+                        title: CoreLocalization.L10n.Core.KWPaymentMeanCreditCardIOS.securityCode,
+                        text: $model.item.securityCode,
+                        shouldReveal: $model.shouldReveal,
+                        onRevealAction: model.reveal,
+                        hasDisplayEmptyIndicator: false,
+                        formatter: .uppercase,
+                        obfuscatingFormatter: .obfuscatedCode,
+                        actions: [.copy(model.copy)]
+                    )
+                    .actions([.copy(model.copy), .largeDisplay], accessHandler: model.requestAccess)
+                    .keyboardType(.numberPad)
+                    .fiberFieldType(.securityCode)
                 }
 
                                 if model.mode.isEditing || !model.item.note.isEmpty {
-                    SecureDetailField(title: L10n.Localizable.KWPaymentMeanCreditCardIOS.ccNote,
-                                      text: $model.item.note,
-                                      shouldReveal: $model.shouldReveal,
-                                      hasDisplayEmptyIndicator: false,
-                                      obfuscatingFormatter: .obfuscatedCode(max: 4),
-                                      action: model.reveal,
-                                      usagelogSubType: .note)
-                        .actions([.copy(model.copy), .largeDisplay], accessHandler: model.requestAccess)
-                        .fiberFieldType(.cCNote)
+                    SecureDetailField(
+                        title: CoreLocalization.L10n.Core.KWPaymentMeanCreditCardIOS.ccNote,
+                        text: $model.item.note,
+                        shouldReveal: $model.shouldReveal,
+                        onRevealAction: model.reveal,
+                        hasDisplayEmptyIndicator: false,
+                        obfuscatingFormatter: .obfuscatedCode(max: 4),
+                        actions: [.copy(model.copy)]
+                    )
+                    .actions([.copy(model.copy), .largeDisplay], accessHandler: model.requestAccess)
+                    .fiberFieldType(.cCNote)
                 }
 
-                                DateDetailField(title: L10n.Localizable.KWPaymentMeanCreditCardIOS.expiryDateForUi,
+                                DateDetailField(title: CoreLocalization.L10n.Core.KWPaymentMeanCreditCardIOS.expiryDateForUi,
                                 date: $model.item.editableExpireDate,
                                 formatter: CreditCard.expireDateFormatter,
                                 range: DateRange.future,
                                 mode: .monthAndYear)
 
                                 if !model.banks.isEmpty {
-                    PickerDetailField(title: L10n.Localizable.KWPaymentMeanCreditCardIOS.bank,
+                    PickerDetailField(title: CoreLocalization.L10n.Core.KWPaymentMeanCreditCardIOS.bank,
                                       selection: $model.selectedBank,
                                       elements: model.banks) { bank in
                                         Text(bank?.name ?? L10n.Localizable.kwLinkedDefaultNone)
@@ -81,13 +89,13 @@ struct CreditCardDetailView: View {
 
                 }
 
-                                PickerDetailField(title: L10n.Localizable.KWPaymentMeanCreditCardIOS.color,
+                                PickerDetailField(title: CoreLocalization.L10n.Core.KWPaymentMeanCreditCardIOS.color,
                                   selection: $model.item.color,
                                   elements: CreditCardColor.allCases) { color in
                                     Text(color.localizedName)
                 }
 
-                                PickerDetailField(title: L10n.Localizable.KWPaymentMeanCreditCardIOS.linkedBillingAddress,
+                                PickerDetailField(title: CoreLocalization.L10n.Core.KWPaymentMeanCreditCardIOS.linkedBillingAddress,
                                   selection: $model.selectedAddress,
                                   elements: model.addresses,
                                   allowEmptySelection: true) { address in

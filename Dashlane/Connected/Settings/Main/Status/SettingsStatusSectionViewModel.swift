@@ -17,7 +17,7 @@ class SettingsStatusSectionViewModel: ObservableObject, SessionServicesInjecting
          deepLinkingService: DeepLinkingServiceProtocol) {
         self.premiumService = premiumService
         self.deepLinkingService = deepLinkingService
-        premiumService.premiumStatusPublisher.assign(to: &$status)
+        premiumService.statusPublisher.assign(to: &$status)
         teamSpacesService.businessTeamsInfoPublisher.map(\.availableBusinessTeam).assign(to: &$businessTeam)
     }
 
@@ -30,7 +30,7 @@ class SettingsStatusSectionViewModel: ObservableObject, SessionServicesInjecting
 extension SettingsStatusSectionViewModel {
     static var mock: SettingsStatusSectionViewModel {
         .init(premiumService: PremiumServiceMock(),
-              teamSpacesService: TeamSpacesServiceMock(),
+              teamSpacesService: .mock(),
               deepLinkingService: DeepLinkingService.fakeService)
     }
 }

@@ -8,6 +8,7 @@ import DashlaneAppKit
 import CorePremium
 import CoreSettings
 import CoreFeature
+import VaultKit
 
 public struct VPNCredentialsResponse: Decodable {
     var password: String
@@ -31,7 +32,6 @@ class VPNService: Mockable {
     private let premiumService: PremiumService
     private let vaultItemsService: VaultItemsService
     private let userSettings: UserSettings
-    private let usageLogService: UsageLogService
 
     static let vpnCredentialTitle = "VPN Hotspot Shield"
     static let vpnCredentialURL = URL(string: "_")!
@@ -47,15 +47,13 @@ class VPNService: Mockable {
          featureService: FeatureServiceProtocol,
          premiumService: PremiumService,
          vaultItemsService: VaultItemsService,
-         userSettings: UserSettings,
-         usageLogService: UsageLogService) {
+         userSettings: UserSettings) {
         self.apiClient = networkEngine
         self.capabilityService = capabilityService
         self.featureService = featureService
         self.premiumService = premiumService
         self.vaultItemsService = vaultItemsService
         self.userSettings = userSettings
-        self.usageLogService = usageLogService
     }
 
         public var isAvailable: Bool {

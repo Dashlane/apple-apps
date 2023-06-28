@@ -23,7 +23,7 @@ extension Data {
         return decoded
     }
 
-    public func encrypt(using cryptoEngine: EncryptEngine) throws  -> Data {
+    public func encrypt(using cryptoEngine: EncryptEngine) throws -> Data {
         guard let encoded = cryptoEngine.encrypt(data: self) else {
             throw CryptoEngineError.encryptFailed
         }
@@ -34,13 +34,13 @@ extension Data {
 
 public struct FakeCryptoEngine: CryptoEngine {
     public init() {
-        
+
     }
-    
+
     public func encrypt(data: Data) -> Data? {
         return Data(data.reversed())
     }
-    
+
     public func decrypt(data: Data) -> Data? {
         return Data(data.reversed())
     }

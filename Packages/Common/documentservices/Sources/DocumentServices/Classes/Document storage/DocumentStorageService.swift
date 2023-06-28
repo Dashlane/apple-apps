@@ -7,7 +7,7 @@ import CoreNetworking
 public final class DocumentStorageService {
     @Published
     public var uploads: [DocumentUpload] = []
-    
+
     @Published
     public private(set) var downloads: [DocumentDownload] = []
 
@@ -15,19 +15,15 @@ public final class DocumentStorageService {
     public let documentDeleteService: DocumentDeleteService
     let database: ApplicationDatabase
     let webservice: ProgressableNetworkingEngine
-    let logger: DocumentStorageLogger
     let login: Login
 
     public init(database: ApplicationDatabase,
-                logger: DocumentStorageLogger,
                 webservice: ProgressableNetworkingEngine,
                 login: Login) {
         self.database = database
         self.webservice = webservice
-        self.logger = logger
         self.documentDeleteService = DocumentDeleteService(database: database,
-                                                           webservice: webservice,
-                                                           logger: logger)
+                                                           webservice: webservice)
         self.login = login
     }
 
@@ -93,8 +89,7 @@ public extension DocumentStorageService {
                                                 tag: tag,
                                                 database: database,
                                                 documentCache: documentCache,
-                                                webservice: webservice,
-                                                logger: logger)
+                                                webservice: webservice)
         try await documentUpload.encryptFile()
         add(documentUpload)
         defer {
@@ -133,7 +128,7 @@ public extension DocumentStorageService {
         }
         return true
     }
-    
+
         func fileURL(for attachment: Attachment) throws -> URL? {
         guard let downloadedFileURL = try? documentCache.urlOfEncryptedDirectory(with: attachment.id) else {
             return nil
@@ -151,7 +146,6 @@ public extension DocumentStorageService {
 public extension DocumentStorageService {
     static var mock: DocumentStorageService {
         .init(database: ApplicationDBStack.mock(),
-              logger: FakeDocumentLogger(),
               webservice: LegacyWebServiceImpl(serverConfiguration: .init(platform: .passwordManagerIphone)),
               login: .init("_"))
     }

@@ -93,7 +93,7 @@ struct PurchasePlansListView: View {
 }
 
 struct PurchasePlansListView_Previews: PreviewProvider {
-    static let esentialsPlan = PlanTier(kind: .advanced,
+    static let essentialsPlan = PlanTier(kind: .advanced,
                                         plans: [
                                             PurchasePlan(storeKitProduct: SKProduct.makeMock(identifier: "", price: "1.99", priceLocale: Locale.current),
                                                                       offer: Offer(planName: "", duration: .monthly, enabled: true),
@@ -126,7 +126,7 @@ struct PurchasePlansListView_Previews: PreviewProvider {
     static var previews: some View {
         MultiContextPreview {
             PurchasePlansListView(model: PlansListViewModel(activityReporter: .fake,
-                                                            planTiers: [esentialsPlan, premiumPlan]), firstStep: false, action: { _ in })
+                                                            planTiers: [essentialsPlan, premiumPlan]), firstStep: false, action: { _ in })
                 .backgroundColorIgnoringSafeArea(.ds.background.alternate)
         }
 

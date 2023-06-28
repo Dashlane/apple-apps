@@ -1,43 +1,43 @@
 import Foundation
 import CorePersonalData
-import DashlaneReportKit
 import SwiftUI
 import Combine
 import CoreSpotlight
 import CorePremium
 import CoreLocalization
+import CoreActivityLogs
 
 public protocol VaultItem: CorePersonalData.Displayable,
                            CorePersonalData.DatedPersonalData,
-                           CorePersonalData.DocumentAttachable {
+                           CorePersonalData.DocumentAttachable,
+                           CoreActivityLogs.ActivityLogReportableItem {
     static var localizedName: String { get }
     static var addIcon: SwiftUI.Image { get }
     static var addTitle: String { get }
     static var nativeMenuAddTitle: String { get }
         static var requireSecureAccess: Bool { get }
-    
+
     var enumerated: VaultItemEnumeration { get }
 
     var anonId: String { get set }
-    
+
     var localizedTitle: String { get }
     var localizedSubtitle: String { get }
-    
+
     var listIcon: VaultItemIcon { get }
     var icon: VaultItemIcon { get }
     var subtitleImage: SwiftUI.Image? { get }
     var subtitleFont: Font? { get }
-    
+
     var creationDatetime: Date? { get set }
     var userModificationDatetime: Date? { get set }
-    
-    var logData: VaultItemUsageLogData { get }
+
         var spaceId: String? { get set }
- 
+
     var limitedRightsAlertTitle: String { get }
-    
+
     init()
-    
+
     func matchCriteria(_ criteria: String) -> SearchMatch?
     func isAssociated(to: BusinessTeam) -> Bool
 }
@@ -46,15 +46,15 @@ extension VaultItem {
     public var displayTitle: String {
         localizedTitle
     }
-    
+
     public var displaySubtitle: String? {
         localizedSubtitle
     }
-    
+
     public var subtitleImage: SwiftUI.Image? {
         return nil
     }
-    
+
     public var subtitleFont: Font? {
         return nil
     }
@@ -87,9 +87,11 @@ extension VaultItem {
     public func isAssociated(to: BusinessTeam) -> Bool {
         return false
     }
+}
 
-    public var logData: VaultItemUsageLogData {
-        VaultItemUsageLogData()
+extension VaultItem {
+    public func reportableInfo() -> ActivityLogReportableInfo? {
+        return nil
     }
 }
 
@@ -109,6 +111,7 @@ public enum VaultItemEnumeration {
     case fiscalInformation(FiscalInformation)
     case socialSecurityInformation(SocialSecurityInformation)
     case drivingLicence(DrivingLicence)
+    case passkey(Passkey)
 }
 
 public enum VaultItemIcon: Equatable {
@@ -123,7 +126,6 @@ extension VaultItem where Self: Searchable {
     }
 }
 
-
 public extension Array where Element == VaultItem {
     func filterAndSortItemsUsingCriteria(_ criteria: String) -> [Element] {
         return self.compactMap { item -> (item: VaultItem, ranking: SearchMatch)? in
@@ -136,11 +138,11 @@ public extension Array where Element == VaultItem {
 }
 
 public extension Array where Element: VaultItem {
-    
+
     func filterAndSortItemsUsingCriteria(_ criteria: String) -> [Element] {
         return filterAndSortItems(self, criteria: criteria)
     }
-    
+
     private func filterAndSortItems<Item: VaultItem>(_ items: [Item], criteria: String) -> [Item] {
         return items.compactMap { item -> (item: Item, ranking: SearchMatch)? in
             guard let ranking: SearchMatch = item.matchCriteria(criteria) else { return nil }

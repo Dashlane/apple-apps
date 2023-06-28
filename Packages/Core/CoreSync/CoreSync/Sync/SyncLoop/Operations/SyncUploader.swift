@@ -9,7 +9,7 @@ struct SyncUploader<Database: SyncableDatabase> {
     let database: Database
     let uploadContentService: UploadContentService
     let logger: Logger
-    
+
     init(database: Database,
          apiClient: DeprecatedCustomAPIClient,
          logger: Logger) {
@@ -17,16 +17,16 @@ struct SyncUploader<Database: SyncableDatabase> {
         self.uploadContentService = UploadContentService(apiClient: apiClient)
         self.logger = logger
     }
-    
+
     func callAsFunction(from timestamp: Timestamp, report: inout SyncReport) async throws -> Output? {
         do {
             let session = try database.prepareUploadTransactionsSession()
-            
+
             guard !session.transactionsToUpload.isEmpty else {
                 logger.debug("Nothing to upload")
                 return nil
             }
-            
+
             let params = UploadContentParams(timestamp: timestamp, transactions: session.transactionsToUpload.map(UploadTransaction.init))
             let timestampSummary = try await uploadContentService.upload(params)
             let timestamps = timestampSummary.allTimestamps(withTypes: self.database.acceptedTypes)
@@ -34,9 +34,16 @@ struct SyncUploader<Database: SyncableDatabase> {
             report.update(with: session)
             return Output(timestamp: timestampSummary.timestamp,
                           remoteTransactionsTimestamp: timestamps.map(TimestampIdPair.init))
+        } catch UploadContentService.Error.conflictingUpload {
+            logger.error("Conflict Upload")
+            throw SyncUploadConflictError(timestamp: timestamp)
         } catch {
             logger.error("Upload failed", error: error)
-            throw SyncError.uploadData(error: error, timestamp: timestamp)
+            throw error
         }
     }
+}
+
+struct SyncUploadConflictError: Error {
+    let timestamp: Timestamp
 }

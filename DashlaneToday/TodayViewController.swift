@@ -1,12 +1,7 @@
 import UIKit
 import NotificationCenter
 import MobileCoreServices
-
-public protocol TodayActionLogger: AnyObject {
-    func logViewAppeared()
-    func logSelectedEntry(title: String)
-    func sendLogs()
-}
+import TOTPGenerator
 
 public protocol OTPGenerator: AnyObject {
     func generate(with info: OTPConfiguration) -> String
@@ -105,7 +100,6 @@ open class TodayViewController: UITableViewController, NCWidgetProviding {
     private var tokens = [TokenUI]()
     private var headerMode = HeaderMode.hidden
     
-    open weak var loggerDelegate: TodayActionLogger?
     open weak var otpGenerationDelegate: OTPGenerator?
     
     override open func viewDidLoad() {
@@ -133,8 +127,6 @@ open class TodayViewController: UITableViewController, NCWidgetProviding {
     
     open override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)        
-        loggerDelegate?.logViewAppeared()
-        loggerDelegate?.sendLogs()
     }
 
     open override func viewWillDisappear(_ animated: Bool) {
@@ -172,7 +164,6 @@ open class TodayViewController: UITableViewController, NCWidgetProviding {
         let title = "TODAY_COPIED_TO_CLIPBOARD".localized
         let subtitle = context.isUniversalClipboardEnabled ? "TODAY_ON_YOUR_IPHONE_AND_MAC".localized : nil
         cell.showInfo(title: title, subtitle: subtitle)
-        loggerDelegate?.logSelectedEntry(title: title)
     }
     
     private func copyToClipboard(txt: String) {

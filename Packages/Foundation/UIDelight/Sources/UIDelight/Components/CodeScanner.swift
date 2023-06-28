@@ -11,7 +11,7 @@ public struct CodeScannerView: UIViewControllerRepresentable {
     public class ScannerCoordinator: NSObject, AVCaptureMetadataOutputObjectsDelegate {
         var parent: CodeScannerView
         var canCompleteWithCodes: Bool = false
-        
+
         init(parent: CodeScannerView) {
             self.parent = parent
         }

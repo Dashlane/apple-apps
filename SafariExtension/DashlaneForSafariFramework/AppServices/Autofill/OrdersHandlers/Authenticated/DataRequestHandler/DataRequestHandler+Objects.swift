@@ -103,9 +103,7 @@ extension DataRequestHandler {
     }
     
     private func authCategories() -> [[String: Any]] {
-        vaultItemsService
-            .credentialCategories
-            .compactMap(MaverickObject.toDictionaryWithUppercaseKeys)
+                return []
     }
     
     private func generatedPasswords(forUrlString urlString: String) -> [[String: Any]] {

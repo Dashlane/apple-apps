@@ -1,6 +1,8 @@
 import SwiftUI
 import CorePersonalData
 import UIDelight
+import VaultKit
+import CoreLocalization
 
 struct FiscalInformationDetailView: View {
 
@@ -11,7 +13,7 @@ struct FiscalInformationDetailView: View {
         DetailContainerView(service: model.service) {
             Section {
                 if model.mode.isEditing {
-                    PickerDetailField(title: L10n.Localizable.KWFiscalStatementIOS.localeFormat,
+                    PickerDetailField(title: CoreLocalization.L10n.Core.KWFiscalStatementIOS.localeFormat,
                                       selection: $model.item.country,
                                       elements: CountryCodeNamePair.countries,
                                       content: { country in
@@ -19,16 +21,19 @@ struct FiscalInformationDetailView: View {
                     })
                 } else {
                     Text(model.item.country?.name ?? CountryCodeNamePair.defaultCountry.name)
-                        .labeled(L10n.Localizable.KWFiscalStatementIOS.localeFormat)
+                        .labeled(CoreLocalization.L10n.Core.KWFiscalStatementIOS.localeFormat)
                 }
 
-                TextDetailField(title: L10n.Localizable.KWFiscalStatementIOS.fiscalNumber,
-                                text: $model.item.fiscalNumber)
-                    .actions([.copy(model.copy)])
-                    .fiberFieldType(.fiscalNumber)
+                TextDetailField(
+                    title: CoreLocalization.L10n.Core.KWFiscalStatementIOS.fiscalNumber,
+                    text: $model.item.fiscalNumber,
+                    actions: [.copy(model.copy)]
+                )
+                .actions([.copy(model.copy)])
+                .fiberFieldType(.fiscalNumber)
 
                 if model.item.mode == .franceAndBelgium {
-                    TextDetailField(title: L10n.Localizable.KWFiscalStatementIOS.teledeclarantNumber,
+                    TextDetailField(title: CoreLocalization.L10n.Core.KWFiscalStatementIOS.teledeclarantNumber,
                                     text: $model.item.teledeclarationNumber)
                 }
             }.makeShortcuts(model: model)

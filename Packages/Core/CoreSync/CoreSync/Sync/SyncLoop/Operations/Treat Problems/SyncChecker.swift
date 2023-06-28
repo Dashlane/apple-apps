@@ -14,13 +14,12 @@ enum SyncProblem: Equatable, Hashable {
 }
 
 final class SyncChecker {
-    
-    
+
                                 func problems(remoteTransactions: Set<TimestampIdPair>,
                   localTransactions: Set<TimestampIdPair>,
                   existingProblems: Set<SyncProblem>) -> Set<SyncProblem> {
                 let pertinentRemoteTransactions = remoteTransactions.subtracting(localTransactions)
-        
+
                 let pertinentLocalTransactions = localTransactions.subtracting(remoteTransactions
         )
         let remoteSet = Set(pertinentRemoteTransactions.map { $0.id })
@@ -46,7 +45,7 @@ final class SyncChecker {
 }
 
 extension SyncSolution {
-    
+
     init(_ problem: SyncProblem) {
         switch problem {
         case .localObjectMoreRecent(let itemIdentifier):
@@ -59,7 +58,7 @@ extension SyncSolution {
             self = .downloadTransaction(itemIdentifier: itemIdentifier)
         }
     }
-    
+
     public var isUpload: Bool {
         switch self {
             case .uploadTransaction:
@@ -68,7 +67,7 @@ extension SyncSolution {
                 return false
         }
     }
-    
+
     public var isDownload: Bool {
         switch self {
             case .uploadTransaction:
@@ -77,7 +76,7 @@ extension SyncSolution {
                 return true
         }
     }
-    
+
     var identifier: Identifier {
         switch self {
         case .downloadTransaction(let id):
@@ -86,5 +85,5 @@ extension SyncSolution {
             return id
         }
     }
-    
+
 }

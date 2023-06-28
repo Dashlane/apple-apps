@@ -16,10 +16,10 @@ class PinUnlockViewModel: ObservableObject {
     let pinCodeAttempts: PinCodeAttempts
     let masterKey: CoreKeychain.MasterKey
     let validateMasterKey: (CoreKeychain.MasterKey) async throws -> PairedServicesContainer
-    
+
     @Published
     var showError: Bool
-    
+
     @Published
     var enteredPincode: String = "" {
         didSet {
@@ -34,7 +34,7 @@ class PinUnlockViewModel: ObservableObject {
 
     @Published
     var errorMessage: String = ""
-    
+
     @Published
     var attempts: Int = 1
 
@@ -68,7 +68,7 @@ class PinUnlockViewModel: ObservableObject {
             errorMessage = pinCodeAttempts.count == 1 ? L10n.Localizable.pincodeError : L10n.Localizable.pincodeAttemptsLeftError(3 - attempts)
         }
     }
-    
+
     func validate() async {
         if enteredPincode == pin {
             do {

@@ -1,6 +1,6 @@
 import Foundation
 extension AppAPIClient.DarkwebmonitoringQa {
-        public struct GetSubscriptionTokens {
+        public struct GetSubscriptionTokens: APIRequest {
         public static let endpoint: Endpoint = "/darkwebmonitoring-qa/GetSubscriptionTokens"
 
         public let api: AppAPIClient
@@ -17,7 +17,7 @@ extension AppAPIClient.DarkwebmonitoringQa {
 }
 
 extension AppAPIClient.DarkwebmonitoringQa.GetSubscriptionTokens {
-        struct Body: Encodable {
+        public struct Body: Encodable {
     }
 }
 
@@ -26,9 +26,18 @@ extension AppAPIClient.DarkwebmonitoringQa.GetSubscriptionTokens {
 
         public struct DataType: Codable, Equatable {
 
+        private enum CodingKeys: String, CodingKey {
+            case tokens = "tokens"
+        }
+
                 public let tokens: [Tokens]
 
                 public struct Tokens: Codable, Equatable {
+
+            private enum CodingKeys: String, CodingKey {
+                case email = "email"
+                case token = "token"
+            }
 
                         public let email: String
 

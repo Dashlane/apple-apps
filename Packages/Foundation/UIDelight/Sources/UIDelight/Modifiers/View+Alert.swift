@@ -5,33 +5,32 @@ public struct AlertContent: Identifiable {
     public enum ButtonsConfiguration {
         public struct Button {
             let title: String
-            let action: () -> ()
-            
-            public init(title: String, action: @escaping () -> () = {}) {
+            let action: () -> Void
+
+            public init(title: String, action: @escaping () -> Void = {}) {
                 self.title = title
                 self.action = action
             }
         }
-        
+
         case one(Button)
         case two(primaryButton: Button, secondaryButton: Button)
     }
-    
+
     public var id: String {
         return title + (message.map { $0 } ?? "")
     }
-    
+
     public let title: String
     public let message: String?
     public let buttons: ButtonsConfiguration?
-    
+
     public init(title: String, message: String? = nil, buttons: AlertContent.ButtonsConfiguration? = nil) {
         self.title = title
         self.message = message
         self.buttons = buttons
     }
 }
-
 
 public extension View {
     @ViewBuilder
@@ -73,4 +72,3 @@ public extension View {
         )
     }
 }
-

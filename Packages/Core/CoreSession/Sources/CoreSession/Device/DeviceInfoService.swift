@@ -11,8 +11,10 @@ public struct DeviceInfoService {
 		self.webService = webService
 	}
 
-		public func updateInformation<Information: DeviceInformationProtocol>(with information: Information,
-																		  completion: @escaping (Result<Void, Error>) -> Void) {
+		public func updateInformation<Information: DeviceInformationProtocol>(
+        with information: Information,
+        completion: @escaping (Result<Void, Error>) -> Void
+    ) {
 
 		let endpoint = "/1/devices/updateDeviceInformation"
 

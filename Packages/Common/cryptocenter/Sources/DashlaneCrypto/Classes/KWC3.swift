@@ -7,8 +7,8 @@ public struct KWC3 {
             return nil
         }
         var buffer = [hash]
-        for i in 1..<4 {
-            buffer.append(SHA.hash(data: buffer[i - 1] + passwordSalt, using: .sha1)!)
+        for index in 1..<4 {
+            buffer.append(SHA.hash(data: buffer[index - 1] + passwordSalt, using: .sha1)!)
         }
         return Data([UInt8]((buffer.flatMap { $0 })[32..<48]))
     }
@@ -30,7 +30,7 @@ public struct KWC3 {
             return nil
         }
         let salt = data[0..<DefaultValues.KWC3.saltLength]
-       
+
         let buffer = derivedKey + salt[0..<8]
         guard let iv = bytesToKey(passwordSalt: buffer) else {
             return nil

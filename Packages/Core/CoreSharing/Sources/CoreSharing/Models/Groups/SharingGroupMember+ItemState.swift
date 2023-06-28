@@ -12,7 +12,7 @@ extension Collection where Element == any SharingGroupMember {
             let permission: SharingPermission = members.contains { $0.permission == .admin } ? .admin : .limited
             return .init(isAccepted: status == .accepted, permission: permission)
         }
-        
+
         return nil
     }
 }

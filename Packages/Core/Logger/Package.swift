@@ -3,13 +3,13 @@ import PackageDescription
 let package = Package(
     name: "Logger",
     platforms: [
-        .iOS(.v15),
-        .macOS(.v12)
+        .iOS(.v16),
+        .macOS(.v13)
     ],
     products: [
                 .library(
             name: "Logger",
-            targets: ["Logger"]),
+            targets: ["Logger"])
     ],
     dependencies: [
                 .package(path: "../../Foundation/DashTypes")
@@ -17,6 +17,6 @@ let package = Package(
     targets: [
                         .target(
             name: "Logger",
-            dependencies: ["DashTypes"]),
+            dependencies: ["DashTypes"])
     ]
 )

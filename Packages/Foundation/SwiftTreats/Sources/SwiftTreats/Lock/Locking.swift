@@ -5,7 +5,6 @@ public protocol Locking {
         func unlock()
 }
 
-
 public enum LockError: Error, Equatable {
     case alreadyLocked(isCurrentInstanceOwner: Bool)
 }

@@ -9,20 +9,20 @@ extension LoginCoordinator {
             .buildSessionServices(from: migrationInfos.session,
                                   appServices: self.appServices,
                                   logger: sessionLogger,
-                                  loadingContext: .remoteLogin) { [weak self] result in
+                                  loadingContext: .remoteLogin()) { [weak self] result in
                 guard let self = self else { return }
                 switch result {
                 case let .success(sessionServices):
                     DispatchQueue.main.async {
                         switch migrationInfos.type {
-                        case .ssoUserToMasterPasswordUser, .ssoUserToMasterPasswordAdmin:
+                        case .ssoMemberToMpUser, .ssoMemberToAdmin:
                             self.startAccountMigration(for: .remoteKeyToMasterPassword(validator),
                                                        sessionServices: sessionServices,
-                                                       authTicket: migrationInfos.authTicket)
-                        case .masterPasswordUserToSSOUser:
+                                                       authTicket: migrationInfos.authTicket?.value)
+                        case .mpUserToSsoMember:
                             self.startAccountMigration(for: .masterPasswordToRemoteKey(validator),
                                                        sessionServices: sessionServices,
-                                                       authTicket: migrationInfos.authTicket)
+                                                       authTicket: migrationInfos.authTicket?.value)
                         }
                     }
                 case let .failure(error):
@@ -49,7 +49,8 @@ extension LoginCoordinator {
             case .success(.finished(let session)):
                 self.loadSessionServices(using: session,
                                          logInfo: .init(loginMode: .masterPassword, verificationMode: Definition.VerificationMode.none),
-                                         isFirstLogin: true)
+                                         isFirstLogin: true,
+                                         isRecoveryLogin: false)
             case .failure(let error):
                 self.handle(error: error)
             }

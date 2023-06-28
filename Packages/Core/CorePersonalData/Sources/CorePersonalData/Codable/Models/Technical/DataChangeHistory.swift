@@ -14,22 +14,22 @@ struct DataChangeHistory: PersonalDataCodable {
             case deviceName
             case user
         }
-        
+
         static let contentType: XMLDataType = .dataChangeSets
-        
+
         let id: Identifier
-        
+
                 let changedKeys: Set<String>
                 @Defaulted
         var previousRecordContent: PersonalDataCollection
         let modificationDate: Date?
-        
+
         let removed: Bool
-        
+
         let platform: String
         let deviceName: String
         let user: String
-        
+
         internal init(id: Identifier,
                       changedKeys: Set<String>,
                       previousRecordContent: PersonalDataCollection,
@@ -47,17 +47,17 @@ struct DataChangeHistory: PersonalDataCodable {
             self.deviceName = deviceName
             self.user = user
         }
-        
+
     }
-    
+
     static let contentType: PersonalDataContentType = .dataChangeHistory
-    
+
     let id: Identifier
     let objectId: Identifier
     var objectTitle: String?
     let objectType: PersonalDataContentType
-    
+
     let metadata: RecordMetadata
-    
+
     var changeSets: [ChangeSet]
 }

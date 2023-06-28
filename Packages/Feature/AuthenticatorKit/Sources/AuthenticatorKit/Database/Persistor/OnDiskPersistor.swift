@@ -2,17 +2,18 @@ import Foundation
 import CoreIPC
 
 struct OnDiskPersistor: Persistor {
-    
+
     let persistedURL: URL
     private let coordinator = NSFileCoordinator()
-    let coder: IPCMessageCoder
-    init(persistedURL: URL, coder: IPCMessageCoder) {
+    let coder: JSONMessageCoderProtocol
+
+    init(persistedURL: URL, coder: JSONMessageCoderProtocol) {
         self.persistedURL = persistedURL
         self.coder = coder
     }
-    
-    func load<T>(completion: (T?) -> Void) where T : Decodable, T : Encodable {
-        if (!FileManager.default.fileExists(atPath: persistedURL.path)) {
+
+    func load<T>(completion: (T?) -> Void) where T: Decodable, T: Encodable {
+        if !FileManager.default.fileExists(atPath: persistedURL.path) {
             completion(nil)
         }
         coordinator.coordinate(readingItemAt: persistedURL, options: [], error: nil) { readURL in
@@ -29,10 +30,10 @@ struct OnDiskPersistor: Persistor {
             }
         }
     }
-    
-    func save<T>(_ items: T) throws where T : Decodable, T : Encodable {
+
+    func save<T>(_ items: T) throws where T: Decodable, T: Encodable {
         var result: Result<Void, Error> = .failure(URLError(.unknown))
-        coordinator.coordinate(writingItemAt: persistedURL, options: [], error: nil, byAccessor: { url in
+        coordinator.coordinate(writingItemAt: persistedURL, options: [], error: nil, byAccessor: { _ in
             result = Result {
                 let data = try coder.encode(items)
                 try data.write(to: persistedURL)
@@ -44,7 +45,7 @@ struct OnDiskPersistor: Persistor {
 
 public struct PersistedItems<T: Codable>: Codable {
     let items: [T]
-    
+
     public init(items: [T]) {
         self.items = items
     }

@@ -12,13 +12,11 @@ extension AuthenticatedABTestingService {
                      logger: Logger,
                      login: Login,
                      loadingContext: SessionLoadingContext,
-                     authenticatedAPIClient: DeprecatedCustomAPIClient,
-                     usageLogService: UsageLogService) async {
+                     authenticatedAPIClient: DeprecatedCustomAPIClient) async {
         self.init(logger: logger,
                   userEmail: login.email,
                   authenticatedAPIClient: authenticatedAPIClient,
                   isFirstLogin: loadingContext.isFirstLogin,
-                  abTestLogger: usageLogService.abTesting,
                   testsToEvaluate: AuthenticatedABTestingService.testsToEvaluate,
                   cache: userSettings)
         await withCheckedContinuation({ continuation in

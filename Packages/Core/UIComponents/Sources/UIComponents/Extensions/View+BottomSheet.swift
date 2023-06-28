@@ -9,62 +9,29 @@ public extension View {
     func bottomSheet<Content: View>(isPresented: Binding<Bool>,
                                     detents: [BottomSheetDetents] = [.medium],
                                     @ViewBuilder content: @escaping () -> Content) -> some View {
-        if #available(iOS 16.0, *) {
-                        self
-                .sheet(isPresented: isPresented,
-                       content: {
-                    content()
-                        .presentationDetents(detents.detents)
-                })
-        } else {
-            customBottomSheet(isPresented: isPresented, content: content)
-        }
-    }
-
-    @ViewBuilder
-    func customBottomSheet<Content: View>(isPresented: Binding<Bool>,
-                                          @ViewBuilder content: @escaping () -> Content) -> some View {
-        self
-            .overlay(DimmingOverlay(isPresented: isPresented).edgesIgnoringSafeArea(.all))
-            .overlay(BottomSheetView(isPresented: isPresented, content: content), alignment: .bottom)
-            .animation(.spring(response: 0.55, dampingFraction: 0.6, blendDuration: 0), value: isPresented.wrappedValue)
+        self.sheet(
+            isPresented: isPresented,
+            content: {
+                content().presentationDetents(detents.detents)
+            }
+        )
     }
 
     @ViewBuilder
     func bottomSheet<Content: View, Item: Identifiable>(item: Binding<Item?>,
                                                         detents: [BottomSheetDetents] = [.medium],
                                                         @ViewBuilder content: @escaping (Item) -> Content) -> some View {
-        if #available(iOS 16.0, *) {
-            self
-                .sheet(item: item,
-                       content: { item in
-                    content(item)
-                        .presentationDetents(detents.detents)
-                })
-        } else {
-            ZStack {
-                if let item = item.wrappedValue {
-                    self
-                        .overlay(DimmingOverlay(isPresented: .constant(true)).edgesIgnoringSafeArea(.all))
-                        .overlay(BottomSheetView(isPresented: .constant(true), content: { content(item) }), alignment: .bottom)
-                } else {
-                    self
-
-                }
+        self.sheet(
+            item: item,
+            content: { item in
+                content(item).presentationDetents(detents.detents)
             }
-            .animation(.spring(response: 0.55, dampingFraction: 0.6, blendDuration: 0), value: false)
-        }
+        )
     }
 
     @ViewBuilder
     func bottomSheetBackground(_ color: Color) -> some View {
-        if #available(iOS 16.0, *) {
-            self
-                .backgroundColorIgnoringSafeArea(color)
-        } else {
-            self
-                .background(color)
-        }
+        self.backgroundColorIgnoringSafeArea(color)
     }
 }
 

@@ -12,4 +12,3 @@ public extension SharingGroup {
         return users.first {  $0.id == userId }
     }
 }
-

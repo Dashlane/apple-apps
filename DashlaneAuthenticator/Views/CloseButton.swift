@@ -11,7 +11,7 @@ struct CloseButton: View {
           button
        #endif
     }
-    
+
     var button: some View {
         Button(action: action, label: {
             Image(systemName: "xmark.circle.fill")

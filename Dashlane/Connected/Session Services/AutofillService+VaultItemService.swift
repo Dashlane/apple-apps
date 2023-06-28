@@ -3,6 +3,8 @@ import Combine
 import CorePersonalData
 import AuthenticationServices
 import DashlaneAppKit
+import AutofillKit
+import VaultKit
 
 extension AutofillService {
     convenience init(vaultItemsService: VaultItemsServiceProtocol) {

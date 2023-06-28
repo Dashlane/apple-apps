@@ -25,7 +25,7 @@ private struct NavigationBarCustomStyle: UIViewControllerRepresentable {
 private final class CustomNavigationBarStyleViewController: UIViewController {
     let style: NavigationBarStyle
     var previousStyle: NavigationBarStyle?
-    
+
     init(style: NavigationBarStyle) {
         self.style = style
         super.init(nibName: nil, bundle: nil)
@@ -47,7 +47,7 @@ private final class CustomNavigationBarStyleViewController: UIViewController {
     }
 
     override func viewDidAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
+        super.viewDidAppear(animated)
 
                                 guard let bar = self.navigationController?.navigationBar,
               style != bar.currentStyle else {
@@ -56,12 +56,12 @@ private final class CustomNavigationBarStyleViewController: UIViewController {
         previousStyle = bar.currentStyle
         bar.apply(style)
     }
-    
+
     override func viewWillDisappear(_ animated: Bool) {
         super.viewWillDisappear(animated)
-        
+
         guard let bar = self.navigationController?.navigationBar,
-              let previousStyle = previousStyle ,
+              let previousStyle = previousStyle,
               style == bar.currentStyle else {
             return
         }
@@ -73,14 +73,14 @@ struct NavigationViewBarStyle_Previews: PreviewProvider {
     struct SecondScreen: View {
         @Environment(\.dismiss)
         private var dismiss
-        
+
         var body: some View {
             Button("Dismiss", action: dismiss.callAsFunction)
                 .navigationTitle("Second")
                 .navigationBarStyle(.greenWhyNot)
         }
     }
-    
+
     static var previews: some View {
         NavigationView {
             NavigationLink("Push", destination: SecondScreen())

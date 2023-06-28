@@ -1,13 +1,15 @@
 import Combine
 import CorePasswords
 import CorePersonalData
+import DesignSystem
 import Foundation
 import SwiftUI
+import VaultKit
 
 class PasswordAccessorySectionModel: DetailViewModelProtocol, SessionServicesInjecting, MockVaultConnectedInjecting {
 
-    var passwordStrength: PasswordStrength {
-        passwordEvaluator.evaluate(item.password).strength
+        var passwordStrength: TextFieldPasswordStrengthFeedback.Strength {
+        passwordEvaluator.evaluate(item.password).textFieldPasswordStrengthFeedbackStrength
     }
 
     let service: DetailService<Credential>
@@ -23,11 +25,28 @@ class PasswordAccessorySectionModel: DetailViewModelProtocol, SessionServicesInj
     }
 }
 
+private extension PasswordStrength {
+    var textFieldPasswordStrengthFeedbackStrength: TextFieldPasswordStrengthFeedback.Strength {
+        switch self {
+        case .tooGuessable:
+            return .weakest
+        case .veryGuessable:
+            return .weak
+        case .somewhatGuessable:
+            return .acceptable
+        case .safelyUnguessable:
+            return .good
+        case .veryUnguessable:
+            return .strong
+        }
+    }
+}
+
 extension PasswordAccessorySectionModel {
     static func mock(service: DetailService<Credential>) -> PasswordAccessorySectionModel {
         PasswordAccessorySectionModel(
             service: service,
-            passwordEvaluator: PasswordEvaluator.mock
+            passwordEvaluator: .mock()
         )
     }
 }

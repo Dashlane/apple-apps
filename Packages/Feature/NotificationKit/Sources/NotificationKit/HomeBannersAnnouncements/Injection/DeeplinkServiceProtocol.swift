@@ -5,12 +5,14 @@ public enum DeepLinkAction {
 
     public enum Settings {
         case root
+        case recoveryKey
         case enableResetMasterPassword
     }
 
     case goToPremium
     case displayPaywall(CapabilityKey)
     case goToSettings(Settings)
+    case importFromLastPass
 }
 
 public protocol NotificationKitDeepLinkingServiceProtocol {
@@ -24,6 +26,6 @@ public struct NotificationKitDeepLinkingServiceMock: NotificationKitDeepLinkingS
 
     }
     public func handle(_ action: DeepLinkAction) {
-        
+
     }
 }

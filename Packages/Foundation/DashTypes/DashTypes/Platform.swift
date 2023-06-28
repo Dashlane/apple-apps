@@ -9,7 +9,7 @@ public enum Platform: String, Encodable {
     case passwordManagerIpad = "server_ipad"
     case passwordManagerMac = "server_catalyst"
     case authenticatorIOS = "authenticator_ios"
-    
+
     public static var passwordManager: Platform {
 #if os(macOS) || targetEnvironment(macCatalyst)
         return .passwordManagerMac

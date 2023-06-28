@@ -12,15 +12,13 @@ public struct DatabaseChange: Hashable {
         case metadataUpdated
         case deleted
     }
-    
+
     public let kind: Kind
     public let id: Identifier
 }
-
 
 extension DatabaseChange {
     init(insertedOrUpdatedRecord: PersonalDataRecord) {
         self.init(kind: .insertedOrUpdated(contentType: insertedOrUpdatedRecord.metadata.contentType), id: insertedOrUpdatedRecord.metadata.id)
     }
 }
-

@@ -7,51 +7,53 @@ import DashTypes
 import DashlaneAppKit
 import CoreSettings
 import CoreNetworking
-import DashlaneReportKit
 import UIDelight
 import CoreFeature
 import NotificationKit
+import LoginKit
 
+@MainActor
 final class MainSettingsViewModel: ObservableObject, SessionServicesInjecting {
 
     let session: Session
-    private let premiumService: PremiumServiceProtocol
-    private let teamSpacesService: TeamSpacesService
-    private let deepLinkingService: DeepLinkingServiceProtocol
-    private let lockService: LockServiceProtocol
-    private let usageLogService: UsageLogServiceProtocol
-    private let sharingLinkService: SharingLinkServiceProtocol
-    let userSettings: UserSettings
-    private let labsService: LabsService
-    let featureService: FeatureServiceProtocol
-
-    let deepLinkPublisher: AnyPublisher<SettingsDeepLinkComponent, Never>
 
     let settingsStatusSectionViewModelFactory: SettingsStatusSectionViewModel.Factory
+	let addNewDeviceFactory: AddNewDeviceViewModel.Factory
+
+        let userSettings: UserSettings
+    private let sessionCryptoEngineProvider: CryptoEngineProvider
+    private let premiumService: PremiumServiceProtocol
+    private let teamSpacesService: TeamSpacesService
+    private let lockService: LockServiceProtocol
+    private let sharingLinkService: SharingLinkServiceProtocol
+    private let labsService: LabsService
+    private let featureService: FeatureServiceProtocol
+    private let userApiClient: UserDeviceAPIClient
 
     init(session: Session,
+         sessionCryptoEngineProvider: SessionCryptoEngineProvider,
          premiumService: PremiumServiceProtocol,
          teamSpacesService: TeamSpacesService,
-         deepLinkingService: DeepLinkingServiceProtocol,
          lockService: LockServiceProtocol,
-         usageLogService: UsageLogServiceProtocol,
          sharingLinkService: SharingLinkServiceProtocol,
          userSettings: UserSettings,
          labsService: LabsService,
          featureService: FeatureServiceProtocol,
-         settingsStatusSectionViewModelFactory: SettingsStatusSectionViewModel.Factory) {
+         userApiClient: UserDeviceAPIClient,
+         settingsStatusSectionViewModelFactory: SettingsStatusSectionViewModel.Factory,
+         addNewDeviceFactory: AddNewDeviceViewModel.Factory) {
         self.session = session
         self.premiumService = premiumService
         self.teamSpacesService = teamSpacesService
-        self.deepLinkingService = deepLinkingService
         self.lockService = lockService
-        self.usageLogService = usageLogService
         self.sharingLinkService = sharingLinkService
         self.userSettings = userSettings
         self.labsService = labsService
         self.featureService = featureService
         self.settingsStatusSectionViewModelFactory = settingsStatusSectionViewModelFactory
-        deepLinkPublisher = deepLinkingService.settingsComponentPublisher()
+        self.userApiClient = userApiClient
+        self.sessionCryptoEngineProvider = sessionCryptoEngineProvider
+		self.addNewDeviceFactory = addNewDeviceFactory
     }
 
     @Published
@@ -72,7 +74,6 @@ final class MainSettingsViewModel: ObservableObject, SessionServicesInjecting {
             let url =  "_\(System.language)/im/\(sharingID)"
 
             let inviteText = L10n.Localizable.kwInviteEmailBody(url)
-            self?.usageLogService.post(UsageLogCode75GeneralActions(type: "invite", action: "open"))
 
             DispatchQueue.main.async {
                 self?.activityItem = ActivityItem(items: inviteText)
@@ -84,31 +85,21 @@ final class MainSettingsViewModel: ObservableObject, SessionServicesInjecting {
         labsService.isLabsAvailable && featureService.isEnabled(.labs)
     }
 
+    func makeAddNewDeviceViewModel() -> AddNewDeviceViewModel {
+        return addNewDeviceFactory.make()
+    }
+
         static func mock() -> MainSettingsViewModel {
         return MainSettingsViewModel(session: Session.mock,
+                                     sessionCryptoEngineProvider: SessionCryptoEngineProvider(logger: LoggerMock()),
                                      premiumService: PremiumServiceMock(),
                                      teamSpacesService: .mock(),
-                                     deepLinkingService: DeepLinkingService.fakeService,
                                      lockService: LockServiceMock(),
-                                     usageLogService: UsageLogService.fakeService,
                                      sharingLinkService: SharingLinkService.mock,
-                                     userSettings: UserSettings(internalStore: InMemoryLocalSettingsStore()),
+                                     userSettings: UserSettings(internalStore: .mock()),
                                      labsService: LabsService(),
                                      featureService: .mock(),
-                                     settingsStatusSectionViewModelFactory: .init({ .mock }))
-    }
-}
-
-extension PremiumServiceProtocol {
-    public var shouldDisplayRenewSoon: Bool {
-        guard isPremium,
-            status?.statusCode != .freeTrial,
-            let premiumStatus = status,
-            let endDate = premiumStatus.endDate,
-            premiumStatus.autoRenewal == false,
-            let remainingDays = Calendar.current.dateComponents([Calendar.Component.day], from: Date(), to: endDate).day
-            else { return false }
-
-        return remainingDays < 30
+                                     userApiClient: UserDeviceAPIClient.fake,
+									 settingsStatusSectionViewModelFactory: .init({ .mock }), addNewDeviceFactory: .init({_ in .mock }))
     }
 }

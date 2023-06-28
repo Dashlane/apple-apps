@@ -31,7 +31,7 @@ public class DarkWebMonitoringService: Mockable {
     let deepLinkingService: DeepLinkingService
 
     private let iconService: IconServiceProtocol
-    private let personalDataURLDecoder: DashlaneAppKit.PersonalDataURLDecoder
+    private let personalDataURLDecoder: PersonalDataURLDecoderProtocol
     private let vaultItemsService: VaultItemsService
     private let premiumService: PremiumService
     private let teamSpacesService: TeamSpacesService
@@ -60,7 +60,7 @@ public class DarkWebMonitoringService: Mockable {
 
     init(iconService: IconServiceProtocol,
          identityDashboardService: IdentityDashboardServiceProtocol,
-         personalDataURLDecoder: DashlaneAppKit.PersonalDataURLDecoder,
+         personalDataURLDecoder: PersonalDataURLDecoderProtocol,
          vaultItemsService: VaultItemsService,
          premiumService: PremiumService,
          deepLinkingService: DeepLinkingService,

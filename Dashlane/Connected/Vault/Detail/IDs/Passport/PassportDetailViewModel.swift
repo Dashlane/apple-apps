@@ -9,6 +9,7 @@ import DocumentServices
 import CoreUserTracking
 import CoreSettings
 import VaultKit
+import UIComponents
 
 class PassportDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting, MockVaultConnectedInjecting {
 
@@ -37,16 +38,15 @@ class PassportDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting
         vaultItemsService: VaultItemsServiceProtocol,
         sharingService: SharedVaultHandling,
         teamSpacesService: TeamSpacesService,
-        usageLogService: UsageLogServiceProtocol,
         documentStorageService: DocumentStorageService,
-        deepLinkService: DeepLinkingServiceProtocol,
+        deepLinkService: VaultKit.DeepLinkingServiceProtocol,
         activityReporter: ActivityReporterProtocol,
         iconViewModelProvider: @escaping (VaultItem) -> VaultItemIconViewModel,
         logger: Logger,
         accessControl: AccessControlProtocol,
         userSettings: UserSettings,
-        attachmentSectionFactory: AttachmentsSectionViewModel.Factory,
-        attachmentsListViewModelProvider: @escaping (VaultItem, AnyPublisher<VaultItem, Never>) -> AttachmentsListViewModel
+        pasteboardService: PasteboardServiceProtocol,
+        attachmentSectionFactory: AttachmentsSectionViewModel.Factory
     ) {
         self.init(
             service: .init(
@@ -55,16 +55,15 @@ class PassportDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting
                 vaultItemsService: vaultItemsService,
                 sharingService: sharingService,
                 teamSpacesService: teamSpacesService,
-                usageLogService: usageLogService,
                 documentStorageService: documentStorageService,
                 deepLinkService: deepLinkService,
                 activityReporter: activityReporter,
                 iconViewModelProvider: iconViewModelProvider,
+                attachmentSectionFactory: attachmentSectionFactory,
                 logger: logger,
                 accessControl: accessControl,
                 userSettings: userSettings,
-                attachmentSectionFactory: attachmentSectionFactory,
-                attachmentsListViewModelProvider: attachmentsListViewModelProvider
+                pasteboardService: pasteboardService
             )
         )
     }

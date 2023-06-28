@@ -4,7 +4,7 @@ public struct CountryCodeNamePair: CodeNamePair, Identifiable, Codable, Hashable
     public var id: String {
         return self.code
     }
-    
+
     public static let codeFormat: CodeFormat = .country
     public let code: String
     public let name: String
@@ -14,7 +14,7 @@ public struct CountryCodeNamePair: CodeNamePair, Identifiable, Codable, Hashable
     }
 
         public static var systemCountryCode: CountryCodeNamePair? {
-        guard let regionCode = Locale.current.regionCode,
+        guard let regionCode = Locale.current.language.region?.identifier,
             let name = Locale.current.localizedString(forRegionCode: regionCode) else {
                 return nil
         }
@@ -26,7 +26,7 @@ public struct StateCodeNamePair: CodeNamePair, Identifiable, Codable, Hashable {
     public var id: String {
         code
     }
-    
+
     public static let level = "0"
     public static let codeFormat: CodeFormat = .state
     public let code: String
@@ -36,7 +36,7 @@ public struct StateCodeNamePair: CodeNamePair, Identifiable, Codable, Hashable {
         self.code = code
         self.name = name
     }
-    
+
     public init(components: RegionCodeComponentsInfo, name: String) {
         self.code = components.countryCode + "-" + StateCodeNamePair.level + "-" + components.subcode
         self.name = name

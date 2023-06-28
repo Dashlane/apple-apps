@@ -7,8 +7,16 @@ public protocol ImportServiceProtocol {
 
     func unlock(usingPassword password: String) async throws
     func extract() async throws -> [VaultItem]
-    func save(vaultItems: [VaultItem]) async throws
+    func save(_ vaultItems: [VaultItem]) async throws
+}
 
+extension ImportServiceProtocol {
+    func save(items: ImportableItems) async throws {
+        try applicationDatabase.save(items.credentials)
+        try applicationDatabase.save(items.secureNotes)
+        try applicationDatabase.save(items.creditCards)
+        try applicationDatabase.save(items.bankAccounts)
+    }
 }
 
 extension ImportServiceProtocol {

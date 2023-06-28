@@ -6,6 +6,8 @@ import CoreSpotlight
 import LoginKit
 import NotificationKit
 import UIKit
+import VaultKit
+import SwiftTreats
 
 protocol DeepLinkingServiceProtocol {
     var deepLinkPublisher: AnyPublisher<DeepLink, Never> { get }
@@ -95,14 +97,15 @@ class DeepLinkingService: DeepLinkingServiceProtocol {
 }
 
 extension DeepLinkingService {
-    private class FakeDeepLinkingService: DeepLinkingServiceProtocol {
+    private class FakeDeepLinkingService: DeepLinkingServiceProtocol, VaultKit.DeepLinkingServiceProtocol {
         var deepLinkPublisher: AnyPublisher<DeepLink, Never> { Empty().eraseToAnyPublisher() }
         func handleLink(_ link: DeepLink) {}
         func handleURL(_ url: URL) {}
+        func handle(_ action: VaultKit.DeepLinkAction) {}
         func resetLastLink() {}
     }
 
-    static var fakeService: DeepLinkingServiceProtocol {
+    static var fakeService: DeepLinkingServiceProtocol & VaultKit.DeepLinkingServiceProtocol {
         return FakeDeepLinkingService()
     }
 }
@@ -116,6 +119,36 @@ extension DeepLinkingServiceProtocol {
                     return nil
                 }
                 return component
+            }).eraseToAnyPublisher()
+    }
+
+    func homeDeeplinkPublisher() -> AnyPublisher<DeepLink, Never> {
+        deepLinkPublisher
+            .eraseToAnyPublisher()
+    }
+
+    func vaultDeeplinkPublisher() -> AnyPublisher<VaultDeeplink, Never> {
+        deepLinkPublisher
+            .compactMap({ deepLink -> VaultDeeplink? in
+                guard case let .vault(component) = deepLink else {
+                    return nil
+                }
+                return component
+            }).eraseToAnyPublisher()
+    }
+
+    func toolsDeeplinkPublisher() -> AnyPublisher<DeepLink, Never> {
+        deepLinkPublisher
+            .eraseToAnyPublisher()
+    }
+
+    func notificationsDeeplinkPublisher() -> AnyPublisher<NotificationCategory, Never> {
+        deepLinkPublisher
+            .compactMap({ deepLink in
+                guard case let .notifications(category) = deepLink else {
+                    return nil
+                }
+                return category
             }).eraseToAnyPublisher()
     }
 }

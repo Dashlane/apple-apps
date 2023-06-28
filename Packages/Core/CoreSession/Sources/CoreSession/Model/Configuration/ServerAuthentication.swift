@@ -1,6 +1,5 @@
 import Foundation
 
-
 public enum ServerAuthentication: Equatable, Codable {
         case uki(UKI)
         case signatureBased(SignedAuthentication)
@@ -13,7 +12,7 @@ public enum ServerAuthentication: Equatable, Codable {
             return deviceAuthentication.deviceAccessKey
         }
     }
-    
+
     public var isSignatureBased: Bool {
         switch self {
         case  .uki:
@@ -22,7 +21,7 @@ public enum ServerAuthentication: Equatable, Codable {
             return true
         }
     }
-    
+
             public var uki: UKI {
         switch self {
             case let .uki(uki):
@@ -44,7 +43,7 @@ public enum ServerAuthentication: Equatable, Codable {
     public init(deviceAccessKey: String, deviceSecretKey: String) {
         self = .signatureBased(SignedAuthentication(deviceAccessKey: deviceAccessKey, deviceSecretKey: deviceSecretKey))
     }
-    
+
     public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()
         if let authentication = try? container.decode(SignedAuthentication.self) {
@@ -70,7 +69,7 @@ public enum ServerAuthentication: Equatable, Codable {
 public struct UKI: Codable, Equatable {
     public let deviceId: String
     public let secret: String
-    
+
     public var rawValue: String {
         [deviceId, secret].joined(separator: "-")
     }
@@ -78,7 +77,7 @@ public struct UKI: Codable, Equatable {
         var compatibilitySignedAuthentication: SignedAuthentication {
         SignedAuthentication(deviceAccessKey: deviceId, deviceSecretKey: rawValue) 
     }
-    
+
     public init(deviceId: String, secret: String) {
         self.deviceId = deviceId
         self.secret = secret
@@ -88,12 +87,12 @@ public struct UKI: Codable, Equatable {
 public struct SignedAuthentication: Codable, Equatable {
     public let deviceAccessKey: String
     public let deviceSecretKey: String
-    
+
     public init(deviceAccessKey: String, deviceSecretKey: String) {
         self.deviceAccessKey = deviceAccessKey
         self.deviceSecretKey = deviceSecretKey
     }
-    
+
         var compatibilityUKI: UKI {
         return UKI(deviceId: deviceAccessKey, secret: deviceSecretKey)
     }

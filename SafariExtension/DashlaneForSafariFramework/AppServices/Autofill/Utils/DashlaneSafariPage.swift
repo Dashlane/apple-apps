@@ -31,7 +31,7 @@ final class DashlaneSafariPage: CustomStringConvertible, Equatable  {
         completion?()
             }
     
-    static func ==(lhs: DashlaneSafariPage, rhs: DashlaneSafariPage) -> Bool {
+    static func == (lhs: DashlaneSafariPage, rhs: DashlaneSafariPage) -> Bool {
         return lhs.tabId == rhs.tabId
     }
 }

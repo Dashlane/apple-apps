@@ -5,9 +5,11 @@ import TOTPGenerator
 import UIDelight
 import UIComponents
 import DesignSystem
+import VaultKit
+import CoreLocalization
 
 struct AddOTPSecretKeyView: View, NavigationBarStyleProvider {
-    var navigationBarStyle: NavigationBarStyle = .hidden(statusBarStyle: .default)
+    var navigationBarStyle: UIComponents.NavigationBarStyle = .hidden(statusBarStyle: .default)
 
     @StateObject
     var model: AddOTPSecretViewModel
@@ -27,7 +29,7 @@ struct AddOTPSecretKeyView: View, NavigationBarStyleProvider {
             Text(L10n.Localizable._2faSetupIntroTitle(model.credential.title)).font(.custom(GTWalsheimPro.regular.name, size: 26, relativeTo: .title))
             textField
             Spacer()
-            RoundedButton(L10n.Localizable.kwNext, action: model.validate)
+            RoundedButton(CoreLocalization.L10n.Core.kwNext, action: model.validate)
                 .roundedButtonLayout(.fill)
                 .disabled(model.otpSecretKey.isEmpty)
         }

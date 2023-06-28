@@ -1,6 +1,13 @@
 #include "PasswordFormatterForKWC3.h"
 #include <stdbool.h>
 
+// This is code for backward support due to the early versions of Dashlane.
+// The original encoding used for the client apps were not based on UTF8 at
+// the time, hence some very old accounts were created with an encoding
+// that was not UTF8. In order to continue to support these old accounts
+// this code was added.
+
+
 static bool isUnicodeNonCharacter(unsigned int ucs4);
 static unsigned char highSurrogate(unsigned int ucs4);
 static unsigned char lowSurrogate(unsigned int ucs4);
@@ -26,11 +33,6 @@ unsigned char lowSurrogate(unsigned int ucs4) {
 }
 
 char* doTheMagic(const char* chars, int* len) {
-    
-    ///////////////////////////   KWString.h
-    
-    //////////////////////////    KWString.c
-    
     
     bool headerdone = false;
     unsigned char replacement = 0xfd;

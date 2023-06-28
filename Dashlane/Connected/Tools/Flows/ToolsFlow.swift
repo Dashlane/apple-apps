@@ -1,14 +1,24 @@
 import SwiftUI
 import UIDelight
 import SwiftTreats
+import DesignSystem
+import VaultKit
 
-struct ToolsFlow: View {
+struct ToolsFlow: TabFlow {
 
-    @StateObject
+        let tag: Int = 0
+    let id: UUID = .init()
+    let title: String
+    let tabBarImage: NavigationImageSet
+
+    @ObservedObject
     var viewModel: ToolsFlowViewModel
 
-    init(viewModel: @autoclosure @escaping () -> ToolsFlowViewModel) {
-        self._viewModel = .init(wrappedValue: viewModel())
+    init(viewModel: ToolsFlowViewModel) {
+        self.viewModel = viewModel
+        self.title = viewModel.toolsItem?.title ?? L10n.Localizable.tabToolsTitle
+        self.tabBarImage = viewModel.toolsItem?.tabBarImage ?? .init(image: .ds.tools.outlined,
+                                                                 selectedImage: .ds.tools.filled)
     }
 
     var body: some View {
@@ -33,7 +43,21 @@ struct ToolsFlow: View {
                 .hideTabBar()
                 .navigationBarTitleDisplayMode(.inline)
             }
-
+        }
+        .tint(.ds.text.brand.standard)
+        .onReceive(viewModel.deeplinkPublisher) { deeplink in
+            switch deeplink {
+            case let .tool(toolDeeplink, origin):
+                self.handle(toolDeeplink: toolDeeplink, origin: origin)
+            case let .other(otherToolDeeplink, _):
+                switch otherToolDeeplink {
+                case .contacts, .sharing:
+                    guard !Device.isIpadOrMac else { return }
+                    self.handle(toolDeeplink: .otherTool(.contacts), origin: nil)
+                default: break
+                }
+            default: break
+            }
         }
         .sheet(item: $viewModel.presentedSheet) { sheet in
             switch sheet {
@@ -46,10 +70,9 @@ struct ToolsFlow: View {
                     viewModel.deepLinkingService.handleLink(.planPurchase(initialView: .list))
                 }
             case .vpnB2BDisabled:
-                VPNTeamPaywallView()
+                VPNTeamFeatureDisabledView()
             }
         }
-
     }
 
     @ViewBuilder
@@ -60,7 +83,7 @@ struct ToolsFlow: View {
         case .authenticator:
             AuthenticatorToolFlowView(viewModel: viewModel.authenticatorToolFlowViewModelFactory.make())
         case .passwordGenerator:
-            PasswordGeneratorToolsFlow(viewModel: viewModel.passwordGeneratorToolsFlowViewModelFactory.make())
+            PasswordGeneratorToolsFlow(viewModel: viewModel.passwordGeneratorToolsFlowViewModelFactory.make(pasteboardService: PasteboardService(userSettings: viewModel.userSettings)))
         case .darkWebMonitoring:
             DarkWebToolsFlow(viewModel: viewModel.darkWebToolsFlowViewModelFactory.make())
         case .secureWifi:
@@ -73,7 +96,14 @@ struct ToolsFlow: View {
                                         assert(Device.isIpadOrMac)
                     self.viewModel.presentedSheet = .showM2W(nil)
                 }
+        case .collections:
+            CollectionsFlow(viewModel: viewModel.collectionsFlowViewModelFactory.make())
         }
+    }
+
+    private func handle(toolDeeplink: ToolDeepLinkComponent, origin: String?) {
+        guard self.viewModel.canHandle(deeplink: toolDeeplink) else { return }
+        self.viewModel.handleDeepLink(toolDeeplink, origin: origin)
     }
 }
 

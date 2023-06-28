@@ -9,18 +9,16 @@ import NotificationKit
 import CoreFeature
 
 @MainActor
-final class AddItemFlowViewModel: ObservableObject, SessionServicesInjecting, AutoFillDemoHandler {
+final class AddItemFlowViewModel: ObservableObject, SessionServicesInjecting, AutoFillDemoHandler, Identifiable {
 
     enum Completion {
         case dismiss
     }
 
-    enum DisplayMode: Identifiable {
+    enum DisplayMode {
         case itemType(_ itemType: VaultItem.Type)
         case categoryDetail(_ category: ItemCategory)
         case prefilledPassword(_ password: GeneratedPassword)
-
-        var id: UUID { UUID() }
     }
 
     enum Step {
@@ -30,6 +28,8 @@ final class AddItemFlowViewModel: ObservableObject, SessionServicesInjecting, Au
         case detail(ItemDetailViewType)
         case autofillDemoDummyFields(Credential)
     }
+
+    let id = UUID()
 
         @Published
     var steps: [Step] = []
@@ -51,8 +51,7 @@ final class AddItemFlowViewModel: ObservableObject, SessionServicesInjecting, Au
     private let addPrefilledCredentialViewModelFactory: AddPrefilledCredentialViewModel.Factory
     private let autofillOnboardingFlowViewModelFactory: AutofillOnboardingFlowViewModel.Factory
 
-        private let usageLogService: UsageLogServiceProtocol
-    private let activityReporter: ActivityReporterProtocol
+        private let activityReporter: ActivityReporterProtocol
     private let capabilityService: CapabilityServiceProtocol
     private let deeplinkService: DeepLinkingServiceProtocol
 
@@ -63,8 +62,7 @@ final class AddItemFlowViewModel: ObservableObject, SessionServicesInjecting, Au
         credentialDetailViewModelFactory: CredentialDetailViewModel.Factory,
         addPrefilledCredentialViewModelFactory: AddPrefilledCredentialViewModel.Factory,
         autofillOnboardingFlowViewModelFactory: AutofillOnboardingFlowViewModel.Factory,
-        sessionServices: SessionServicesContainer,
-        usageLogService: UsageLogServiceProtocol
+        sessionServices: SessionServicesContainer
     ) {
         self.completion = completion
 
@@ -73,9 +71,8 @@ final class AddItemFlowViewModel: ObservableObject, SessionServicesInjecting, Au
         self.addPrefilledCredentialViewModelFactory = addPrefilledCredentialViewModelFactory
         self.autofillOnboardingFlowViewModelFactory = autofillOnboardingFlowViewModelFactory
 
-        self.usageLogService = usageLogService
         self.activityReporter = sessionServices.activityReporter
-        self.capabilityService = sessionServices.capabilityService
+        self.capabilityService = sessionServices.premiumService
         self.deeplinkService = sessionServices.appServices.deepLinkingService
 
         registerHandlers()
@@ -127,8 +124,6 @@ extension AddItemFlowViewModel {
 
 extension AddItemFlowViewModel {
     private func showDetailAddItemView(_ detail: DisplayMode.Detail) {
-        usageLogService.addItemLogger.logTapAddItem()
-
         guard let capability = detail.capability else {
             pushAddItemView(detail: detail)
             return

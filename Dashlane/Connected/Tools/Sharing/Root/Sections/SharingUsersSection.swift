@@ -1,6 +1,7 @@
 import SwiftUI
 import CoreSharing
 import VaultKit
+import CorePersonalData
 import IconLibrary
 import UIComponents
 
@@ -47,7 +48,7 @@ struct SharingUsersSection: View {
              List {
                  SharingUsersSection(model: .init(itemsProvider: itemsProvider,
                                                   sharingService: sharingService,
-                                                  detailViewModelFactory: .init { .mock(user: $0, itemsProvider: $2) },
+                                                  detailViewModelFactory: .init { .mock(user: $0, item: Credential(), itemsProvider: $2) },
                                                   gravatarIconViewModelFactory: gravatarFactory))
 
              }
@@ -58,7 +59,7 @@ struct SharingUsersSection: View {
          List {
              SharingUsersSection(model: .init(itemsProvider: itemsProvider,
                                               sharingService: SharingServiceMock(),
-                                              detailViewModelFactory: .init { .mock(user: $0, itemsProvider: $2) },
+                                              detailViewModelFactory: .init { .mock(user: $0, item: Credential(), itemsProvider: $2) },
                                               gravatarIconViewModelFactory: gravatarFactory))
          }
          .listStyle(.insetGrouped)

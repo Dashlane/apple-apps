@@ -2,7 +2,7 @@ import Foundation
 
 actor PasswordHealthCredentialsCache {
         private var credentialsByCheckStatus: [Bool: [SecurityDashboardCredential]] = [:]
-    
+
 	var safeNotExcludedCredentials: [SecurityDashboardCredential] {
 		self.credentialsByCheckStatus[false] ?? []
 	}

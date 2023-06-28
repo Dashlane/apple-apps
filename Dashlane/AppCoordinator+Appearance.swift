@@ -6,12 +6,13 @@ import UIKit
 
 extension AppCoordinator {
     func configureAppearance() {
+        UINavigationBar.appearance().tintColor = .ds.text.brand.standard
         UITabBar.appearance().tintColor = .ds.text.brand.quiet
-        UIView.appearance(whenContainedInInstancesOf: [UIAlertController.self]).tintColor = FiberAsset.accentColor.color
-        UITableViewCell.appearance().backgroundColor = FiberAsset.cellBackground.color
+        UIView.appearance(whenContainedInInstancesOf: [UIAlertController.self]).tintColor = UIColor.ds.text.brand.standard
+        UITableViewCell.appearance().backgroundColor = .ds.container.agnostic.neutral.supershy
         UITableView.appearance().tableFooterView = UIView()
-        UIPageControl.appearance().currentPageIndicatorTintColor = .ds.container.expressive.neutral.catchy.idle
-        UIPageControl.appearance().pageIndicatorTintColor = .ds.container.expressive.neutral.quiet.idle
+        UIPageControl.appearance().currentPageIndicatorTintColor = .ds.container.expressive.brand.catchy.idle
+        UIPageControl.appearance().pageIndicatorTintColor = .ds.container.expressive.brand.quiet.idle
         UISegmentedControl.appearance().selectedSegmentTintColor = FiberAsset.mainBackground.color
         UISegmentedControl.appearance().setTitleTextAttributes(
             [
@@ -24,18 +25,21 @@ extension AppCoordinator {
         UISegmentedControl.appearance().setTitleTextAttributes(
             [
                 .font: FontScaling.scaledFont(font: UIFont.systemFont(ofSize: UIFont.systemFontSize)),
-                .foregroundColor: FiberAsset.mainCopy.color
+                .foregroundColor: UIColor.ds.text.neutral.catchy
+            ],
+            for: .normal
+        )
+
+        UIBarButtonItem.appearance().setTitleTextAttributes(
+            [
+                .foregroundColor: UIColor.ds.text.brand.standard
             ],
             for: .normal
         )
 
         UITextField.appearance(whenContainedInInstancesOf: [UISearchBar.self]).backgroundColor = .ds.container.agnostic.neutral.quiet
-
-                if Device.isMac {
-            UIButton.appearance().tintColor = .ds.text.brand.standard
-            UISwitch.appearance().onTintColor = FiberAsset.switchDefaultTint.color
-            UINavigationBar.appearance().tintColor = .ds.text.brand.standard
-            UITextView.appearance().linkTextAttributes = [.foregroundColor: UIColor.ds.text.brand.standard]
-        }
+        UIButton.appearance().tintColor = .ds.text.brand.standard
+        UISwitch.appearance().onTintColor = .ds.container.expressive.brand.catchy.idle
+        UITextView.appearance().linkTextAttributes = [.foregroundColor: UIColor.ds.text.brand.standard]
     }
 }

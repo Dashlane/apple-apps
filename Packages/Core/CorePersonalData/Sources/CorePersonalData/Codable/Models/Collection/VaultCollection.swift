@@ -1,13 +1,22 @@
 import Foundation
 import DashTypes
 
-public struct VaultCollection: PersonalDataCodable, Equatable, Identifiable, PersonalDataCategory {
+public struct VaultCollection: PersonalDataCodable, Equatable, Identifiable {
 
     public static let contentType: PersonalDataContentType = .collection
+    public static let searchCategory: SearchCategory = .collection
 
     public struct ItemLink: Codable, Hashable {
         public var id: Identifier
         public var type: XMLDataType
+
+        public init(
+            id: Identifier = Identifier(),
+            type: XMLDataType
+        ) {
+            self.id = id
+            self.type = type
+        }
     }
 
     enum CodingKeys: String, CodingKey {
@@ -48,8 +57,23 @@ public struct VaultCollection: PersonalDataCodable, Equatable, Identifiable, Per
 
     public func validate() throws {
         if name.isEmptyOrWhitespaces() {
-            throw ItemValidationError(invalidProperty: \CredentialCategory.name)
+            throw ItemValidationError(invalidProperty: \VaultCollection.name)
         }
+    }
+}
+
+extension VaultCollection: Searchable {
+    public var searchableKeyPaths: [KeyPath<VaultCollection, String>] {
+        return [\.name]
+    }
+}
+
+extension VaultCollection: Displayable {
+    public var displayTitle: String {
+        return name
+    }
+    public var displaySubtitle: String? {
+        return nil
     }
 }
 
@@ -63,10 +87,14 @@ extension VaultCollection {
     public mutating func remove<T: PersonalDataCodable>(_ element: T) -> ItemLink? {
         return items.remove(.init(id: element.id, type: .init(T.contentType)))
     }
+
+                    public func contains<T: PersonalDataCodable>(_ element: T) -> Bool {
+        return items.contains(.init(id: element.id, type: .init(T.contentType)))
+    }
 }
 
 extension VaultCollection {
-                    public func contains<T: PersonalDataCodable>(_ element: T) -> Bool {
-        return items.contains(.init(id: element.id, type: .init(T.contentType)))
+                public func belongsToSpace(id: String?) -> Bool {
+        return (spaceId ?? "") == (id ?? "")
     }
 }

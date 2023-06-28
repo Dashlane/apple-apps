@@ -1,7 +1,7 @@
 import Foundation
 
 public struct Attachment: Codable, Hashable {
-    
+
     public let id: String
     public let version: Int
     public let type: String
@@ -13,8 +13,8 @@ public struct Attachment: Codable, Hashable {
     public let creationDatetime: UInt64
     public let userModificationDatetime: UInt64
     public let owner: String
-    
-    public enum CodingKeys : String, CodingKey {
+
+    public enum CodingKeys: String, CodingKey {
         case id, version, type, filename, downloadKey, cryptoKey, localSize, remoteSize, creationDatetime, userModificationDatetime, owner
     }
 

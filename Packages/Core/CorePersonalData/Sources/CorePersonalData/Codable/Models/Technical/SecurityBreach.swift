@@ -34,7 +34,7 @@ public struct SecurityBreach: PersonalDataCodable, Equatable {
         status = .default
         creationDatetime = Date()
     }
-    
+
     init(id: Identifier, breachId: String, content: String, contentRevision: String? = nil, leakedPasswords: String? = nil, status: SecurityBreach.Status? = nil, creationDatetime: Date? = nil) {
         self.id = id
         metadata = RecordMetadata(id: .temporary, contentType: Self.contentType)

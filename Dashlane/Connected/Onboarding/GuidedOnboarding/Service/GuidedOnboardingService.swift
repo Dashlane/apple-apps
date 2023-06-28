@@ -61,8 +61,4 @@ class GuidedOnboardingService {
     func storeGivenAnswers() {
         dataProvider.storeAnswers(answers: answers)
     }
-
-    func markGuidedOnboardingAsSkipped() {
-        dataProvider.markGuidedOnboardingAsSkipped()
-    }
 }

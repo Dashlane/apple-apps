@@ -13,6 +13,10 @@ class GeneratedOTPCodeRowViewModel: ObservableObject {
         var separatedCode: String {
         code.separated()
     }
+    
+        var accessibilityCode: String {
+        code.separated(by: " ", stride: 1)
+    }
 
     enum Mode {
         case totp(progress: CGFloat, refreshPeriod: TimeInterval)

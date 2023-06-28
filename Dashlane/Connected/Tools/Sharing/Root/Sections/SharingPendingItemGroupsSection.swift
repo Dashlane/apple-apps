@@ -3,6 +3,7 @@ import VaultKit
 import CoreSharing
 import CorePremium
 import UIComponents
+import CoreLocalization
 
 struct SharingPendingItemGroupsSection: View {
     @ObservedObject
@@ -17,7 +18,7 @@ struct SharingPendingItemGroupsSection: View {
                     } label: {
                        row(for: pendingGroup)
                     }
-                }.confirmationDialog(L10n.Localizable.teamSpacesSharingAcceptPrompt, isPresented: $model.isSpaceSelectionRequired, titleVisibility: .visible, actions: spacePickerDialog)
+                }.confirmationDialog(CoreLocalization.L10n.Core.teamSpacesSharingAcceptPrompt, isPresented: $model.isSpaceSelectionRequired, titleVisibility: .visible, actions: spacePickerDialog)
             }
 
         }
@@ -39,7 +40,7 @@ struct SharingPendingItemGroupsSection: View {
             }
         }
 
-        Button(L10n.Localizable.cancel, role: .cancel) {
+        Button(CoreLocalization.L10n.Core.cancel, role: .cancel) {
             model.select(nil)
         }
     }
@@ -92,7 +93,7 @@ struct SharingPendingItemGroupsSection_Previews: PreviewProvider {
             SharingPendingItemGroupsSection(model: .init(
                 sharingService: sharingService,
                 teamSpacesService: teamSpacesServiceOnlyPersonal,
-                vaultItemRowModelFactory: .init { .mock(configuration: $0, additionialConfiguration: $1) })
+                vaultItemRowModelFactory: .init { .mock(configuration: $0, additionalConfiguration: $1) })
             )
         }
         .previewDisplayName("Two Pending Groups")
@@ -102,7 +103,7 @@ struct SharingPendingItemGroupsSection_Previews: PreviewProvider {
             SharingPendingItemGroupsSection(model: .init(
                 sharingService: sharingService,
                 teamSpacesService: teamSpacesServiceWithBusinessTeam,
-                vaultItemRowModelFactory: .init { .mock(configuration: $0, additionialConfiguration: $1) })
+                vaultItemRowModelFactory: .init { .mock(configuration: $0, additionalConfiguration: $1) })
             )
         }
         .previewDisplayName("Select Space Before Accept")
@@ -112,7 +113,7 @@ struct SharingPendingItemGroupsSection_Previews: PreviewProvider {
             SharingPendingItemGroupsSection(model: .init(
                 sharingService: SharingServiceMock(pendingUserGroups: []),
                 teamSpacesService: teamSpacesServiceOnlyPersonal,
-                vaultItemRowModelFactory: .init { .mock(configuration: $0, additionialConfiguration: $1) })
+                vaultItemRowModelFactory: .init { .mock(configuration: $0, additionalConfiguration: $1) })
             )
         }
         .previewDisplayName("Empty")

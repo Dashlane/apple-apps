@@ -2,7 +2,7 @@ import Foundation
 import SwiftUI
 import CorePersonalData
 import VaultKit
-import UIComponents
+import DesignSystem
 
 extension ToastAction {
     func callAsFunction(_ action: CopyCredentialAction, for item: VaultItem) {

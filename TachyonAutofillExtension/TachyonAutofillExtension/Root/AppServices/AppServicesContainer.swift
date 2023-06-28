@@ -8,40 +8,43 @@ import CorePasswords
 import CoreSession
 import CoreFeature
 import Logger
-import DashlaneAppKit
+import CorePersonalData
 import DashlaneCrypto
 import LoginKit
 import CoreKeychain
 import CoreUserTracking
-
+import AutofillKit
+import DashlaneAppKit
+import LoginKit
+import VaultKit
 
 @MainActor
-class AppServicesContainer {
+class AppServicesContainer: DependenciesContainer {
     let settingsManager: SettingsManager
     let appSettings = AppSettings()
     let nonAuthenticatedUKIBasedWebService: LegacyWebService
     let appAPIClient: AppAPIClient
-    let appExtensionCommunication = AppExtensionCommunicationCenter.init(channel: .fromApp)
+    let appExtensionCommunication = AppExtensionCommunicationCenter.init(channel: .fromApp, baseURL: ApplicationGroup.documentsURL)
     let rootLogger: Logger
     let remoteLogger: KibanaLogger
     private let memoryPressureLogger: MemoryPressureLogger
     let regionInformationService = try! RegionInformationService()
-    let loginUsageLogService: LoginUsageLogService
+    let loginMetricsReporter: LoginMetricsReporter
     let linkedDomainService = LinkedDomainService()
     let passwordEvaluator = try! PasswordEvaluator()
     let activityReporter: UserTrackingAppActivityReporter
     lazy var domainParser = try! DomainParser(quickParsing: true)
     lazy var categorizer = try! Categorizer()
-    var installerLogService: InstallerLogService
     let unauthenticatedABTestingService: UnauthenticatedABTestingService
     let sessionsContainer: SessionsContainerProtocol
     static let crashReporterService =  CrashReporterService(target: .tachyon)
     public static let sharedInstance = AppServicesContainer(appLaunchTimeStamp: Date().timeIntervalSince1970)
     let keychainService: AuthenticationKeychainService
     let nitroWebService: NitroAPIClient
+    let sessionCryptoEngineProvider: SessionCryptoEngineProvider
     init(appLaunchTimeStamp: TimeInterval) {
-        loginUsageLogService = LoginUsageLogService(appLaunchTimeStamp: appLaunchTimeStamp)
-        loginUsageLogService.markAsLoadingSessionFromSavedLogin()
+        loginMetricsReporter = LoginMetricsReporter(appLaunchTimeStamp: appLaunchTimeStamp)
+        loginMetricsReporter.markAsLoadingSessionFromSavedLogin()
         _ = AppServicesContainer.crashReporterService
         let localLogger = LocalLogger()
         appAPIClient = try! AppAPIClient()
@@ -63,16 +66,14 @@ class AppServicesContainer {
         self.activityReporter = UserTrackingAppActivityReporter(logger: rootLogger[.userTrackingLogs],
                                                                 component: .osAutofill,
                                                                 appAPIClient: appAPIClient,
-                                                                platform: .ios)
-        self.installerLogService = InstallerLogService(appSettings: appSettings, webService: nonAuthenticatedUKIBasedWebService)
+                                                                platform: .current)
         self.nitroWebService = NitroAPIClient(engine: try! NitroAPIClientEngineImp(info: .init()))
         unauthenticatedABTestingService = UnauthenticatedABTestingService(logger: rootLogger[.abTesting],
-                                                                          abTestInstallerlogger: installerLogService,
                                                                           apiClient: appAPIClient,
                                                                           testsToEvaluate: UnauthenticatedABTestingService.testsToEvaluate,
                                                                           cache: appSettings)
         keychainService = AuthenticationKeychainService(cryptoEngine: CryptoCenter(from: CryptoRawConfig.keyBasedDefault.parametersHeader)!, keychainSettingsDataProvider: settingsManager, accessGroup: ApplicationGroup.keychainAccessGroup)
-
+        sessionCryptoEngineProvider = SessionCryptoEngineProvider(logger: rootLogger)
         updateGlobalAppEnvironment()
     }
 
@@ -87,3 +88,10 @@ extension AppServicesContainer {
         PersonalDataURLDecoder(domainParser: domainParser, linkedDomainService: linkedDomainService)
     }
 }
+extension AppServicesContainer {
+    var sessionCleaner: SessionCleaner {
+        SessionCleaner(keychainService: keychainService, sessionsContainer: sessionsContainer, logger: rootLogger[.session])
+    }
+}
+
+extension LoginKitServicesContainer: AppServicesInjecting {}

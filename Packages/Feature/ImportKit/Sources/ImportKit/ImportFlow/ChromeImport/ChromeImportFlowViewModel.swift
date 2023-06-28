@@ -2,7 +2,10 @@ import Combine
 import Foundation
 import CoreSettings
 
-public class ChromeImportFlowViewModel: ImportFlowViewModel {
+@MainActor
+public class ChromeImportFlowViewModel: ImportFlowViewModel, ImportKitServicesInjecting {
+    public var fileData: Data?
+    public var isLoading: Bool = false
 
     public typealias AnyImportViewModel = ChromeImportViewModel
 
@@ -12,7 +15,6 @@ public class ChromeImportFlowViewModel: ImportFlowViewModel {
     public var steps: [ImportFlowStep]
 
     public var showPasswordView: Bool = false
-    public let shouldDisplayRootBackButton: Bool
 
     public var dismissPublisher: AnyPublisher<ImportDismissAction, Never> {
         return dismissSubject.eraseToAnyPublisher()
@@ -24,18 +26,29 @@ public class ChromeImportFlowViewModel: ImportFlowViewModel {
 
     private var importViewModel: ChromeImportViewModel!
 
-    public init(initialStep: ImportFlowStep = .intro(.init(kind: .chrome, step: .intro)),
-                fromDeeplink: Bool = false,
-                userSettings: UserSettings) {
+    let importInformationViewModelFactory: ImportInformationViewModel.Factory
+
+    public init(initialStep: ImportFlowStep,
+                userSettings: UserSettings,
+                importInformationViewModelFactory: ImportInformationViewModel.Factory) {
         self.steps = [initialStep]
-        self.shouldDisplayRootBackButton = fromDeeplink
         self.userSettings = userSettings
+        self.importInformationViewModelFactory = importInformationViewModelFactory
+    }
+
+    public convenience init(userSettings: UserSettings,
+                            importInformationViewModelFactory: ImportInformationViewModel.Factory) {
+        let step = ImportFlowStep.intro(importInformationViewModelFactory.make(kind: .chrome, step: .intro))
+        self.init(initialStep: step,
+                  userSettings: userSettings,
+                  importInformationViewModelFactory: importInformationViewModelFactory)
     }
 
     public func handleIntroAction(_ action: ImportInformationView.Action) {
         switch action {
         case .nextInfo:
-            steps.append(.instructions(.init(kind: kind, step: .instructions)))
+            let viewModel = importInformationViewModelFactory.make(kind: kind, step: .instructions)
+            steps.append(.instructions(viewModel))
         case .close, .importCompleted, .done:
             assertionFailure("Inadmissible action for this step")
         }
@@ -44,7 +57,8 @@ public class ChromeImportFlowViewModel: ImportFlowViewModel {
     public func handleInstructionsAction(_ action: ImportInformationView.Action) {
         switch action {
         case .nextInfo:
-            steps.append(.extension(.init(kind: kind, step: .extension)))
+            let viewModel = importInformationViewModelFactory.make(kind: kind, step: .extension)
+            steps.append(.extension(viewModel))
         case .close, .importCompleted, .done:
             assertionFailure("Inadmissible action for this step")
         }
@@ -53,7 +67,8 @@ public class ChromeImportFlowViewModel: ImportFlowViewModel {
     public func handleExtensionAction(_ action: ImportInformationView.Action) {
         switch action {
         case .nextInfo:
-            steps.append(.instructions(.init(kind: kind, step: .instructions)))
+            let viewModel = importInformationViewModelFactory.make(kind: kind, step: .instructions)
+            steps.append(.instructions(viewModel))
         case .close, .importCompleted:
             assertionFailure("Inadmissible action for this step")
         case .done:

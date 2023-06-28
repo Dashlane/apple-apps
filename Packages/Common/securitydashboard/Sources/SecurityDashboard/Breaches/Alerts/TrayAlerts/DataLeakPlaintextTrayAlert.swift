@@ -100,7 +100,7 @@ extension DataLeakPlaintextTrayAlertBuilder {
 }
 
 extension DataLeakPlaintextTrayAlertBuilder {
-    
+
     func generateRecommendation(for alertData: AlertGenerator.AlertData, and localizationProvider: LocalizationProvider) throws -> AlertSection? {
                 guard !alertData.impactedCredentials.isEmpty else {
             return noCredentialImpactedRecommendation(for: alertData, and: localizationProvider)
@@ -109,12 +109,12 @@ extension DataLeakPlaintextTrayAlertBuilder {
         let recommendation = String(format: localizationProvider.localizedString(for: .trayAffectedPasswordsMatchingCredentialsRecommandation), parameter)
         return AlertSection(title: .init(recommendation), contents: ["\(parameter)"])
     }
-    
+
     func noCredentialImpactedRecommendation(for alertData: AlertGenerator.AlertData, and localizationProvider: LocalizationProvider) -> AlertSection? {
         guard let parameter = alertData.breach.impactedEmails?.first, alertData.impactedCredentials.isEmpty else {
             return nil
         }
-        
+
         let recommendation = String(format: localizationProvider.localizedString(for: .trayRecommendationDataLeakNoDomainNoPassword), parameter)
         return AlertSection(title: .init(recommendation), contents: ["\(parameter)"])
     }

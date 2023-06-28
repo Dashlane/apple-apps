@@ -1,12 +1,16 @@
 import Foundation
 extension UserDeviceAPIClient.Premium {
-        public struct GetAppleSubscriptionOfferSignature {
+        public struct GetAppleSubscriptionOfferSignature: APIRequest {
         public static let endpoint: Endpoint = "/premium/GetAppleSubscriptionOfferSignature"
 
         public let api: UserDeviceAPIClient
 
                 public func callAsFunction(appBundleID: AppBundleID, productIdentifier: String, offerIdentifier: String, applicationUsername: String, timeout: TimeInterval? = nil) async throws -> Response {
             let body = Body(appBundleID: appBundleID, productIdentifier: productIdentifier, offerIdentifier: offerIdentifier, applicationUsername: applicationUsername)
+            return try await api.post(Self.endpoint, body: body, timeout: timeout)
+        }
+
+        public func callAsFunction(_ body: Body, timeout: TimeInterval? = nil) async throws -> Response {
             return try await api.post(Self.endpoint, body: body, timeout: timeout)
         }
     }
@@ -17,7 +21,14 @@ extension UserDeviceAPIClient.Premium {
 }
 
 extension UserDeviceAPIClient.Premium.GetAppleSubscriptionOfferSignature {
-        struct Body: Encodable {
+        public struct Body: Encodable {
+
+        private enum CodingKeys: String, CodingKey {
+            case appBundleID = "appBundleID"
+            case productIdentifier = "productIdentifier"
+            case offerIdentifier = "offerIdentifier"
+            case applicationUsername = "applicationUsername"
+        }
 
                 public let appBundleID: AppBundleID
 
@@ -39,6 +50,13 @@ extension UserDeviceAPIClient.Premium.GetAppleSubscriptionOfferSignature {
     public typealias Response = DataType
 
         public struct DataType: Codable, Equatable {
+
+        private enum CodingKeys: String, CodingKey {
+            case keyIdentifier = "keyIdentifier"
+            case nonce = "nonce"
+            case signature = "signature"
+            case timestamp = "timestamp"
+        }
 
                 public let keyIdentifier: String
 

@@ -1,4 +1,6 @@
 import SwiftUI
+import DesignSystem
+import CoreLocalization
 
 struct SettingsLockSectionContent: View {
 
@@ -16,13 +18,15 @@ struct SettingsLockSectionContent: View {
                     .tag(option)
             }
         }
+        .foregroundColor(.ds.text.neutral.standard)
+        .tint(.ds.text.neutral.quiet)
+        .pickerStyle(.menu)
 
-        Toggle(L10n.Localizable.kwLockOnExit, isOn: $viewModel.isLockOnExitEnabled)
-            .toggleStyle(SwitchToggleStyle(tint: .green))
+        DS.Toggle(L10n.Localizable.kwLockOnExit, isOn: $viewModel.isLockOnExitEnabled)
             .alert(isPresented: $viewModel.showBusinessEnforcedAlert) {
                 Alert(title: Text(""),
                       message: Text(L10n.Localizable.kwLockOnExitForced),
-                      dismissButton: .cancel(Text(L10n.Localizable.kwButtonOk), action: {
+                      dismissButton: .cancel(Text(CoreLocalization.L10n.Core.kwButtonOk), action: {
                     withAnimation { viewModel.isLockOnExitEnabled = true }
                 }))
             }
@@ -60,6 +64,8 @@ extension SettingsLockSectionViewModel.AutoLockOption {
 
 struct SettingsLockSectionContent_Previews: PreviewProvider {
     static var previews: some View {
-        SettingsLockSectionContent(viewModel: SettingsLockSectionViewModel.mock)
+        List {
+            SettingsLockSectionContent(viewModel: SettingsLockSectionViewModel.mock)
+        }
     }
 }

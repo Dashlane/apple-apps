@@ -13,10 +13,10 @@ public class StreamTransfer: NSObject {
     let queue: DispatchQueue
 
     public init(source: URL,
-         destination: URL,
-         chunkSize: Int = 2048,
-         queue: DispatchQueue = DispatchQueue.global(),
-         completionHandler: StreamTransferCompletionHandler?) throws {
+                destination: URL,
+                chunkSize: Int = 2048,
+                queue: DispatchQueue = DispatchQueue.global(),
+                completionHandler: StreamTransferCompletionHandler?) throws {
         guard let inputStream = InputStream(url: source) else {
             throw StreamTransferError("Could not create input stream")
         }
@@ -113,15 +113,12 @@ extension StreamTransfer: StreamDelegate {
                 try stream(opened: aStream)
             case Stream.Event.hasBytesAvailable:
                 try stream(bytesReceivedOn: aStream)
-                break
             case Stream.Event.errorOccurred:
                 closeStreams()
                 completionHandler?(.failure(StreamTransferError("Stream error occurred")))
-                break
             case Stream.Event.endEncountered:
                 try stream(endFor: aStream)
                 completionHandler?(.success(self))
-                break
             default:
                 break
             }

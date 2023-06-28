@@ -14,8 +14,20 @@ public struct User: Codable, Hashable, Identifiable {
         public var proposeSignature: String?
         public var acceptSignature: String?
                         public var rsaStatus: RSAStatus
-    
-    public init(id: String, parentGroupId: Identifier, userGroupId: Identifier? = nil, itemGroupId: Identifier? = nil, referrer: String, status: SharingMemberStatus, encryptedGroupKey: String? = nil, permission: SharingPermission, proposeSignature: String? = nil, acceptSignature: String? = nil, rsaStatus: RSAStatus) {
+
+    public init(
+        id: String,
+        parentGroupId: Identifier,
+        userGroupId: Identifier? = nil,
+        itemGroupId: Identifier? = nil,
+        referrer: String,
+        status: SharingMemberStatus,
+        encryptedGroupKey: String? = nil,
+        permission: SharingPermission,
+        proposeSignature: String? = nil,
+        acceptSignature: String? = nil,
+        rsaStatus: RSAStatus
+    ) {
         self.id = id
         self.parentGroupId = parentGroupId
         self.userGroupId = userGroupId
@@ -29,7 +41,6 @@ public struct User: Codable, Hashable, Identifiable {
         self.rsaStatus = rsaStatus
     }
 }
-
 
 extension User {
     init(user: UserDownload, groupIdentifier: GroupIdentifier) {

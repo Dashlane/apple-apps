@@ -1,9 +1,12 @@
-import SwiftUI
 import Combine
 import CorePersonalData
-import UIDelight
-import SwiftTreats
 import NotificationKit
+import SwiftTreats
+import SwiftUI
+import UIComponents
+import UIDelight
+import VaultKit
+import CoreLocalization
 
 struct HomeView: View {
     @ObservedObject
@@ -24,19 +27,16 @@ struct HomeView: View {
         VaultListView(
             model: model.vaultListViewModel,
             shouldHideFilters: false,
-            title: L10n.Localizable.mainMenuHomePage,
+            title: CoreLocalization.L10n.Core.mainMenuHomePage,
             filtersFooterView: announcementsView
         )
         .padding(.bottom, bottomBannerHeight)
         .overlay(bottomBanner.onSizeChange(onBottomBannerSizeChange).hidden(searchViewModel.isSearchActive), alignment: .bottom)
         .lifeCycleEvent(onWillAppear: {
-            UITableView.appearance().backgroundColor = FiberAsset.systemBackground.color
-            model.modalAnnouncementsViewModel.trigger.send(.homeTabSelected)
+            UITableView.appearance().backgroundColor = UIColor.ds.background.default
         }, onWillDisappear: {
-            UITableView.appearance().backgroundColor = FiberAsset.tableBackground.color
+            UITableView.appearance().backgroundColor = UIColor.ds.background.default
         })
-        .searchForcedPlaceholderView(forcedPlaceholder)
-                        .homeModalAnnouncements(model: model.modalAnnouncementsViewModel)
     }
 
         @ViewBuilder
@@ -52,17 +52,7 @@ struct HomeView: View {
 
     @ViewBuilder
     private var announcementsView: some View {
-        HomeBannersAnnouncementsView(model: model.homeAnnouncementsViewModel)
-    }
-
-    var forcedPlaceholder: ListPlaceholder? {
-        guard model.shouldDisplayEmptyVaultPlaceholder else { return nil }
-        let addButton = Button(action: {
-                self.model.action(.addItem(displayMode: .itemType(Credential.self)))
-            }, title: ItemCategory.credentials.placeholderCtaTitle)
-            .eraseToAnyView()
-        return ListPlaceholder(category: .credentials,
-                               accessory: addButton)
+        HomeBannersAnnouncementsView(model: model.makeHomeAnnouncementsViewModel())
     }
 
     private func onBottomBannerSizeChange(_ size: CGSize) {
@@ -71,7 +61,7 @@ struct HomeView: View {
 }
 
 extension HomeView: NavigationBarStyleProvider {
-    var navigationBarStyle: NavigationBarStyle {
+    var navigationBarStyle: UIComponents.NavigationBarStyle {
         .homeBarStyle
     }
 }

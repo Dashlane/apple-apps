@@ -20,7 +20,7 @@ class AddOTPFlowViewModel: ObservableObject, SessionServicesInjecting, MockVault
 
     enum Step {
         case intro
-        case enterToken(viewModel: AddOTPSecretViewModel)
+        case addOTPManually(AddOTPManuallyFlowViewModel)
         case scanQRCode
         case success(mode: AddOTPSuccessView.Mode)
         case chooseCredential(viewModel: MatchingCredentialListViewModel)
@@ -60,15 +60,18 @@ class AddOTPFlowViewModel: ObservableObject, SessionServicesInjecting, MockVault
     let activityReporter: ActivityReporterProtocol
     let vaultItemsService: VaultItemsServiceProtocol
     let matchingCredentialListViewModelFactory: MatchingCredentialListViewModel.Factory
+    let addOTPManuallyFlowViewModelFactory: AddOTPManuallyFlowViewModel.Factory
 
     init(activityReporter: ActivityReporterProtocol,
          vaultItemsService: VaultItemsServiceProtocol,
          matchingCredentialListViewModelFactory: MatchingCredentialListViewModel.Factory,
+         addOTPManuallyFlowViewModelFactory: AddOTPManuallyFlowViewModel.Factory,
          mode: AddOTPFlowViewModel.Mode,
          completion: @escaping () -> Void) {
         self.activityReporter = activityReporter
         self.mode = mode
         self.vaultItemsService = vaultItemsService
+        self.addOTPManuallyFlowViewModelFactory = addOTPManuallyFlowViewModelFactory
         self.matchingCredentialListViewModelFactory = matchingCredentialListViewModelFactory
         self.completion = completion
     }
@@ -76,43 +79,31 @@ class AddOTPFlowViewModel: ObservableObject, SessionServicesInjecting, MockVault
     func introViewCompletionHandler(action: AddOTPIntroView.Action) {
         switch action {
         case .cancel:
-            self.dismiss()
+            completeFlow()
         case .scanQRCode:
             add(.scanQRCode)
             logOTPAdditionStarted(for: .qrCode, to: credential)
         case let .enterToken(credential):
-            add(.enterToken(viewModel: makeAddOTPSecretKeyViewModel(credential: credential)))
+            add(.addOTPManually(makeAddOTPManuallyFlowViewModel(credential: credential)))
             logOTPAdditionStarted(for: .textCode, to: credential)
         }
     }
 
     func add(_ navigationStep: Step) {
-        steps.append(navigationStep)
-    }
-
-    func makeAddOTPSecretKeyViewModel(credential: Credential) -> AddOTPSecretViewModel {
-        let viewModel = AddOTPSecretViewModel(credential: credential) { [weak self] in
-            self?.handleSecretEntered($0)
+        Task { @MainActor in
+            self.steps.append(navigationStep)
         }
-        return viewModel
     }
 
-    func handleSecretEntered(_ result: Result<OTPConfiguration, Error>) {
-        switch result {
-        case let .success(configuration):
-            otpConfiguration = configuration
-
-            if var credential = credential {
-                add(.success(mode: .credentialPrefilled(credential)))
-                logOTPAdded(configuration, to: credential, by: .textCode)
-                credential.otpURL = otpConfiguration?.otpURL
-                _ = try? vaultItemsService.save(credential)
-            } else {
-                checkDatabase(for: configuration)
+    func makeAddOTPManuallyFlowViewModel(credential: Credential?) -> AddOTPManuallyFlowViewModel {
+        addOTPManuallyFlowViewModelFactory.make(credential: credential) { [weak self] completion in
+            guard let self = self else { return }
+            switch completion {
+            case .completed:
+                self.completeFlow()
+            case let .failure(reason):
+                self.add(.failure(reason))
             }
-        case .failure:
-            add(.failure(.badSecretKey(credential?.title ?? "")))
-            logOTPAdditionFailure(by: .textCode, to: credential, error: .nonOtpTextCode)
         }
     }
 
@@ -154,7 +145,6 @@ class AddOTPFlowViewModel: ObservableObject, SessionServicesInjecting, MockVault
             addCredentialStep(for: configuration)
         case let .linkToCredential(credential):
             link(configuration: configuration, to: credential)
-
         }
     }
 
@@ -189,8 +179,8 @@ class AddOTPFlowViewModel: ObservableObject, SessionServicesInjecting, MockVault
     }
 
     func completeFlow() {
-        self.completion()
-        self.dismiss()
+        completion()
+        dismissPublisher.send()
     }
 
     func handleFailureViewCompletion(_ action: FailureAction) {
@@ -201,14 +191,9 @@ class AddOTPFlowViewModel: ObservableObject, SessionServicesInjecting, MockVault
             completeFlow()
         }
     }
-
-    func dismiss() {
-        dismissPublisher.send()
-    }
-
 }
 
-private extension Array where Element == Credential {
+extension Array where Element == Credential {
 
     func withoutOTP() -> Self {
         self.filter { $0.otpURL == nil }
@@ -237,7 +222,12 @@ extension AddOTPFlowViewModel {
         return AddOTPFlowViewModel(activityReporter: .fake,
                                    vaultItemsService: MockServicesContainer().vaultItemsService,
                                    matchingCredentialListViewModelFactory: .init { .mock(website: $0, matchingCredentials: $1, completion: $2) },
+                                   addOTPManuallyFlowViewModelFactory: .init { _, _ in .mock },
                                    mode: AddOTPFlowViewModel.Mode.credentialPrefilled(PersonalDataMock.Credentials.github),
-                                   completion: {  })
+                                   completion: { })
     }
 }
+
+extension ChooseWebsiteViewModel: SessionServicesInjecting, MockVaultConnectedInjecting {}
+extension PlaceholderWebsiteViewModel: SessionServicesInjecting, MockVaultConnectedInjecting {}
+extension AddLoginDetailsViewModel: SessionServicesInjecting, MockVaultConnectedInjecting {}

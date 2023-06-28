@@ -4,6 +4,8 @@ import CorePersonalData
 import Combine
 import CoreUserTracking
 import Network
+import VaultKit
+import UIComponents
 
 class CredentialDomainsViewModel {
     var item: Credential

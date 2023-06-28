@@ -1,9 +1,12 @@
 import Foundation
 import SwiftUI
 import CoreSession
+import CoreFeature
 import UIComponents
 import DashTypes
 import DesignSystem
+import LoginKit
+import CoreLocalization
 
 struct TwoFACompletionView: View {
 
@@ -20,7 +23,7 @@ struct TwoFACompletionView: View {
         ZStack {
             switch model.state {
             case .inProgress:
-                TwoFAProgressView(state: $model.progressState)
+                ProgressionView(state: $model.progressState)
             case let .success(completion):
                 successView(completion: completion)
             case let .failure(error):
@@ -46,7 +49,7 @@ struct TwoFACompletionView: View {
             VStack {
                 Spacer()
                 RoundedButton(L10n.Localizable.twofaSuccessCta, action: {
-                    UIApplication.shared.open(DashlaneURLFactory.authenticator)
+                    UIApplication.shared.open(URLScheme.authenticator.url)
                     completion()
                 })
                 .roundedButtonLayout(.fill)
@@ -87,12 +90,12 @@ struct TwoFACompletionView: View {
         case .noInternet:
             return FeedbackView(title: L10n.Localizable.twofaActivationNoInternetErrorTitle,
                                message: L10n.Localizable.twofaActivationNoInternetErrorMessage,
-                                primaryButton: (L10n.Localizable.modalTryAgain, {
+                                primaryButton: (CoreLocalization.L10n.Core.modalTryAgain, {
                Task {
                    await model.start()
                }
             }),
-                                secondaryButton: (L10n.Localizable.cancel, {
+                                secondaryButton: (CoreLocalization.L10n.Core.cancel, {
                 model.completion()
             }))
         case .unknown:

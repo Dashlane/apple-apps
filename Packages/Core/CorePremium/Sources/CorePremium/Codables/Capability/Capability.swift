@@ -20,6 +20,10 @@ public struct LimitInfo: Decodable {
 
 public struct ReasonInfo<Reason: Decodable>: Decodable {
     public let reason: Reason
+
+    public init(reason: Reason) {
+        self.reason = reason
+    }
 }
 
 public struct FileQuotaInfo: Decodable {
@@ -44,7 +48,7 @@ public struct FileQuotaInfo: Decodable {
 
 extension KeyedDecodingContainer {
     func decode<Info>(_ type: Capability<Info>.Type,
-                forKey key: Key) throws -> Capability<Info> {
+                      forKey key: Key) throws -> Capability<Info> {
         try decodeIfPresent(type, forKey: key) ?? .init()
     }
 }

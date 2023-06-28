@@ -33,8 +33,8 @@ class TwoFAPhoneNumberSetupViewModel: ObservableObject, SessionServicesInjecting
     }
 
     let countryList: [Country] = {
-        var codes = Locale.isoRegionCodes.compactMap { code in
-          return Country(code: code)
+        var codes = Locale.Region.isoRegions.compactMap { code in
+            return Country(code: code.identifier)
         }
        return codes
             .sorted {
@@ -42,15 +42,15 @@ class TwoFAPhoneNumberSetupViewModel: ObservableObject, SessionServicesInjecting
        }
     }()
 
-    let accountAPIClient: AccountAPIClientProtocol
+    let userAPIClient: UserDeviceAPIClient
     let regionInformationService: RegionInformationService
     let completion: (TOTPActivationResponse?) -> Void
 
-    init(accountAPIClient: AccountAPIClientProtocol,
+    init(userAPIClient: UserDeviceAPIClient,
          option: TFAOption,
          regionInformationService: RegionInformationService,
          completion: @escaping (TOTPActivationResponse?) -> Void) {
-        self.accountAPIClient = accountAPIClient
+        self.userAPIClient = userAPIClient
         self.option = option
         self.regionInformationService = regionInformationService
         self.completion = completion
@@ -72,10 +72,10 @@ class TwoFAPhoneNumberSetupViewModel: ObservableObject, SessionServicesInjecting
 
     func requestTOTPActivation() async {
         do {
-            let result = try await self.accountAPIClient.requestTOTPActivation(with: TOTPActivationRequest(phoneNumber: code + phoneNumber, country: selectedCountry.code))
+            let result = try await self.userAPIClient.authentication.requestTOTPActivation(phoneNumber: code + phoneNumber, country: selectedCountry.code)
             inProgress = false
             self.completion(result)
-        } catch let error as AccountError where error == .invalidRecoveryPhoneNumber {
+        } catch let error as DashlaneAPI.APIError where error.hasAccountCode(APIErrorCodes.Account.phoneValidationFailed) {
             isPhoneNumberInvalid = true
             inProgress = false
         } catch {
@@ -87,7 +87,7 @@ class TwoFAPhoneNumberSetupViewModel: ObservableObject, SessionServicesInjecting
 
 extension TwoFAPhoneNumberSetupViewModel {
     static func mock(_ option: TFAOption) -> TwoFAPhoneNumberSetupViewModel {
-                return try! .init(accountAPIClient: AccountAPIClient(apiClient: .fake),
+                return try! .init(userAPIClient: .fake,
                           option: option,
                           regionInformationService: RegionInformationService(),
                           completion: { _ in })

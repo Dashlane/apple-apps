@@ -5,7 +5,6 @@ public enum DeviceListEntry: Hashable {
     case group(BucketPairingGroup, main: BucketDevice, devices: Set<BucketDevice>)
 }
 
-
 extension DeviceListEntry {
     public var displayedDevice: BucketDevice {
         switch self {

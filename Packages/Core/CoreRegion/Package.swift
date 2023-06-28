@@ -3,13 +3,13 @@ import PackageDescription
 let package = Package(
     name: "CoreRegion",
     platforms: [
-        .iOS(.v15),
-        .macOS(.v12)
+        .iOS(.v16),
+        .macOS(.v13)
     ],
     products: [
                 .library(
             name: "CoreRegion",
-            targets: ["CoreRegion"]),
+            targets: ["CoreRegion"])
     ],
     dependencies: [],
     targets: [
@@ -17,13 +17,18 @@ let package = Package(
             name: "CoreRegion",
             exclude: ["Resources/region-information-resources/publishMaven"],
             resources: [
-                .process("Resources"),
+                .process("Resources")
             ]),
-        
+
         .testTarget(
             name: "CoreRegionTests",
             dependencies: [
-                "CoreRegion",
+                "CoreRegion"
+            ]),
+        .testTarget(
+            name: "CoreRegionPerformanceTests",
+            dependencies: [
+                "CoreRegion"
             ])
     ]
 )

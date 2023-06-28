@@ -24,12 +24,12 @@ public struct DrivingLicence: PersonalDataCodable, Equatable, Identifiable, Iden
         case spaceId
         case attachments
     }
-    
+
     public enum Mode {
         case countryWithState
         case other
     }
-    
+
     public var id: Identifier
     public let metadata: RecordMetadata
     public var anonId: String
@@ -56,7 +56,7 @@ public struct DrivingLicence: PersonalDataCodable, Equatable, Identifiable, Iden
         }
         return country.drivingLicenceMode
     }
-    
+
     public init() {
         id = Identifier()
         anonId = UUID().uuidString
@@ -67,7 +67,7 @@ public struct DrivingLicence: PersonalDataCodable, Equatable, Identifiable, Iden
         creationDatetime = Date()
         _attachments = .init(nil)
     }
-    
+
     init(id: Identifier,
          anonId: String,
          number: String,
@@ -97,7 +97,7 @@ public struct DrivingLicence: PersonalDataCodable, Equatable, Identifiable, Iden
         self.spaceId = spaceId
         _attachments = .init(nil)
     }
-    
+
 }
 
 extension DrivingLicence {

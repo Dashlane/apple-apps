@@ -7,7 +7,7 @@ public enum MasterKeyStoredStatus: Equatable {
     case available(accessMode: KeychainAccessMode)
     case expired(accessMode: KeychainAccessMode)
     case notAvailable
-    
+
     init(keychainItemStatus: KeychainItemStatus, expired: Bool) {
         switch keychainItemStatus {
             case .found(accessible: let accessMode):
@@ -28,21 +28,18 @@ public enum MasterKeyStoredStatus: Equatable {
 }
 
 final public class MasterKeyStore: KeychainManager {
-    
-        
-    private let keychainManagerDataToStoreKey = "KWKeychainManagerDataToStoreKey"
+
+        private let keychainManagerDataToStoreKey = "KWKeychainManagerDataToStoreKey"
     private let keychainManagerExpirationDateKey = "KWKeychainManagerExpirationDateKey"
     private let keychainManagerDestroyIfExpiredKey = "KWKeychainManagerDestroyIfExpiredKey"
     private let keychainManagerServerKey = "keychainManagerServerKey"
-    
-        
-    let cryptoEngine: KeychainCryptoEngine
+
+        let cryptoEngine: KeychainCryptoEngine
     let settings: SettingsDataProvider
     let accessGroup: String
     let userLogin: String
-     
-        
-    public init(cryptoEngine: KeychainCryptoEngine,
+
+        public init(cryptoEngine: KeychainCryptoEngine,
                 settings: SettingsDataProvider,
                 accessGroup: String,
                 userLogin: String) {
@@ -51,10 +48,9 @@ final public class MasterKeyStore: KeychainManager {
         self.settings = settings
         self.accessGroup = accessGroup
     }
-    
-        
-                public func checkMasterKeyStatus() throws -> MasterKeyStoredStatus {
-                let keychainItemStatus = try self.status(for: .masterKey)
+
+                        public func checkMasterKeyStatus() throws -> MasterKeyStoredStatus {
+                        let keychainItemStatus = try self.status(for: .masterKey)
         guard keychainItemStatus != .notFound else {
             return .notAvailable
         }
@@ -64,10 +60,10 @@ final public class MasterKeyStore: KeychainManager {
         }
         return MasterKeyStoredStatus(keychainItemStatus: keychainItemStatus, expired: false)
     }
-    
+
                     public func masterKey(context: LAContext? = nil) throws -> MasterKeyContainer {
         let keychainData = try retrieve(.masterKey, context: context)
-        
+
         if let masterPassword = keychainData[keychainManagerDataToStoreKey] as? String,
             let expirationDate = keychainData[keychainManagerExpirationDateKey] as? Date {
             return MasterKeyContainer(masterKey: .masterPassword(masterPassword), expirationDate: expirationDate)
@@ -78,28 +74,28 @@ final public class MasterKeyStore: KeychainManager {
             throw KeychainError.decryptionFailure
         }
     }
-    
+
                                 @discardableResult
     public func storeMasterKey(_ masterKey: MasterKey,
                                expiringIn expirationTimeInterval: TimeInterval,
                                accessMode: KeychainAccessMode) throws -> MasterKeyContainer {
         let expirationDate = Date(timeInterval: expirationTimeInterval, since: Date())
-        
-        let data: [String : Any] = [ keychainManagerDataToStoreKey: masterKey.value,
+
+        let data: [String: Any] = [ keychainManagerDataToStoreKey: masterKey.value,
                                      keychainManagerExpirationDateKey: expirationDate,
                                      keychainManagerDestroyIfExpiredKey: true]
-        
+
         try store(data, for: .masterKey, accessMode: accessMode)
         try settings.saveMasterKeyExpirationDate(expirationDate)
         return MasterKeyContainer(masterKey: masterKey, expirationDate: expirationDate)
     }
-    
+
     public func storeServerKey(_ serverKey: String) throws {
-        let data: [String : Any] = [keychainManagerServerKey: serverKey]
-        
+        let data: [String: Any] = [keychainManagerServerKey: serverKey]
+
         try store(data, for: .serverKey, accessMode: .whenDeviceUnlocked)
     }
-    
+
     public func serverKey() throws -> String {
         let keychainData = try retrieve(.serverKey)
         guard let serverKey = keychainData[keychainManagerServerKey] as? String else {
@@ -107,12 +103,12 @@ final public class MasterKeyStore: KeychainManager {
         }
         return serverKey
     }
-    
-        public func removeMasterKey() throws  {
+
+        public func removeMasterKey() throws {
         try removeKeychainData(for: .masterKey)
         settings.removeMasterKeyExpirationDate()
     }
-    
+
     public func removeServerKey() throws {
         try removeKeychainData(for: .serverKey)
     }
@@ -125,20 +121,19 @@ final public class MasterKeyStore: KeychainManager {
         }
         return false
     }
-    
-        
-                            internal func checkMasterKeyStatus(referenceDateForMasterKeyExpiry: Date) throws -> MasterKeyStoredStatus {
-        
+
+                                internal func checkMasterKeyStatus(referenceDateForMasterKeyExpiry: Date) throws -> MasterKeyStoredStatus {
+
                 let itemAvailabilityStatus = try status(for: .masterKey)
         guard itemAvailabilityStatus != .notFound else { return .notAvailable }
-        
+
                         let expirationDate = try settings.masterKeyExpirationDate()
         guard referenceDateForMasterKeyExpiry < expirationDate else {
             return MasterKeyStoredStatus(keychainItemStatus: itemAvailabilityStatus, expired: true)
         }
         return MasterKeyStoredStatus(keychainItemStatus: itemAvailabilityStatus, expired: false)
     }
-    
+
     public static func removeAllKeychainData(accessGroup: String) throws {
         let queries = KeychainQueryBuilder.makeDeleteAllQueries(accessGroup: accessGroup)
         try queries.forEach { query in

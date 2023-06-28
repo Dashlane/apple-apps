@@ -1,6 +1,6 @@
 import Foundation
 extension UserDeviceAPIClient.Vpn {
-        public struct GetVPNSubscriptionInfo {
+        public struct GetVPNSubscriptionInfo: APIRequest {
         public static let endpoint: Endpoint = "/vpn/GetVPNSubscriptionInfo"
 
         public let api: UserDeviceAPIClient
@@ -17,7 +17,7 @@ extension UserDeviceAPIClient.Vpn {
 }
 
 extension UserDeviceAPIClient.Vpn.GetVPNSubscriptionInfo {
-        struct Body: Encodable {
+        public struct Body: Encodable {
     }
 }
 
@@ -25,6 +25,11 @@ extension UserDeviceAPIClient.Vpn.GetVPNSubscriptionInfo {
     public typealias Response = DataType
 
         public struct DataType: Codable, Equatable {
+
+        private enum CodingKeys: String, CodingKey {
+            case isSubscribed = "isSubscribed"
+            case subscriptionDateUnix = "subscriptionDateUnix"
+        }
 
                 public let isSubscribed: Bool
 

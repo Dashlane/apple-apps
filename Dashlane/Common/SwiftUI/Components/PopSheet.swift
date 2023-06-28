@@ -1,6 +1,8 @@
+import DesignSystem
 import SwiftUI
 import DashlaneAppKit
 import SwiftTreats
+import CoreLocalization
 
 struct PopSheet {
     struct Button: Identifiable {
@@ -24,7 +26,7 @@ struct PopSheet {
         }
 
                 public static func cancel(_ action: (() -> Void)? = {}) -> Button {
-            Button(kind: .cancel, label: Text(L10n.Localizable.cancel), action: action)
+            Button(kind: .cancel, label: Text(CoreLocalization.L10n.Core.cancel), action: action)
         }
 
                 public static func destructive(_ label: Text, action: (() -> Void)? = {}) -> Button {
@@ -61,7 +63,7 @@ struct PopSheet {
         VStack(spacing: 0) {
             self.title
                 .font(.subheadline)
-                .foregroundColor(Color(asset: FiberAsset.placeholder))
+                .foregroundColor(.ds.text.neutral.quiet)
                 .padding()
             ForEach(self.buttons.filter({ $0.kind != .cancel })) { button in
                 Divider()
@@ -84,10 +86,11 @@ struct PopSheet {
                     }
 
                 })
-                    .accentColor(Color(asset: FiberAsset.accentColor))
-                    .padding()
+                .accentColor(.ds.text.brand.standard)
+                .padding()
             }
-        }.frame(minWidth: 300)
+        }
+        .frame(minWidth: 300)
     }
 
 }

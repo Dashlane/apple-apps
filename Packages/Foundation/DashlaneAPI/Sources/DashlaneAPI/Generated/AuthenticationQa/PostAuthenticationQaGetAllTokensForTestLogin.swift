@@ -1,6 +1,6 @@
 import Foundation
 extension AppAPIClient.AuthenticationQa {
-        public struct GetAllTokensForTestLogin {
+        public struct GetAllTokensForTestLogin: APIRequest {
         public static let endpoint: Endpoint = "/authentication-qa/GetAllTokensForTestLogin"
 
         public let api: AppAPIClient
@@ -17,7 +17,11 @@ extension AppAPIClient.AuthenticationQa {
 }
 
 extension AppAPIClient.AuthenticationQa.GetAllTokensForTestLogin {
-        struct Body: Encodable {
+        public struct Body: Encodable {
+
+        private enum CodingKeys: String, CodingKey {
+            case login = "login"
+        }
 
                 public let login: String
     }
@@ -27,6 +31,15 @@ extension AppAPIClient.AuthenticationQa.GetAllTokensForTestLogin {
     public typealias Response = DataType
 
         public struct DataType: Codable, Equatable {
+
+        private enum CodingKeys: String, CodingKey {
+            case teamInviteTokens = "teamInviteTokens"
+            case teamFreeTrialTokens = "teamFreeTrialTokens"
+            case resetToken = "resetToken"
+            case newDeviceToken = "newDeviceToken"
+            case deleteToken = "deleteToken"
+            case emailSubscriptionTokens = "emailSubscriptionTokens"
+        }
 
         public let teamInviteTokens: [TeamInviteTokens]
 
@@ -42,6 +55,11 @@ extension AppAPIClient.AuthenticationQa.GetAllTokensForTestLogin {
 
                 public struct TeamInviteTokens: Codable, Equatable {
 
+            private enum CodingKeys: String, CodingKey {
+                case teamId = "teamId"
+                case token = "token"
+            }
+
             public let teamId: Int
 
             public let token: String
@@ -54,6 +72,10 @@ extension AppAPIClient.AuthenticationQa.GetAllTokensForTestLogin {
 
                 public struct TeamFreeTrialTokens: Codable, Equatable {
 
+            private enum CodingKeys: String, CodingKey {
+                case token = "token"
+            }
+
             public let token: String
 
             public init(token: String) {
@@ -62,6 +84,11 @@ extension AppAPIClient.AuthenticationQa.GetAllTokensForTestLogin {
         }
 
                 public struct EmailSubscriptionTokens: Codable, Equatable {
+
+            private enum CodingKeys: String, CodingKey {
+                case email = "email"
+                case token = "token"
+            }
 
             public let email: String
 

@@ -17,8 +17,9 @@ extension APIClient {
     }
 }
 
-public typealias Endpoint = String
-public struct Empty: Codable, Equatable {}
+public struct Empty: Codable, Equatable {
+    public init() throws {}
+}
 
 public struct AppAPIClient: APIClient {
     let engine: APIClientEngine

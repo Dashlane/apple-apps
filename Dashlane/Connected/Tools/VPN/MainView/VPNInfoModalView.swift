@@ -10,7 +10,7 @@ struct VPNInfoModalView: View {
     var body: some View {
         VStack(alignment: .center, spacing: 32) {
             VStack(alignment: .leading, spacing: 8) {
-                Image(asset: FiberAsset.vpnOutlined)
+                Image.ds.feature.vpn.outlined
                     .resizable()
                     .foregroundColor(Color(asset: FiberAsset.dashGreen))
                     .frame(width: 48, height: 48)

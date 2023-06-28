@@ -53,7 +53,7 @@ public struct Device {
             return nil
         }
     }
-    
+
     public static var currentBiometryDisplayableName: String {
         return Device.biometryType?.displayableName ?? ""
     }
@@ -65,11 +65,11 @@ public struct Device {
         }
         return true
     }
-    
+
                 public static func localizedStringWithCurrentBiometry(key: String) -> String {
         return String(format: NSLocalizedString(key, comment: ""), currentBiometryDisplayableName)
     }
-    
+
     public static var systemVersion: String {
         #if targetEnvironment(macCatalyst) || os(macOS)
         let systemVersion = ProcessInfo.processInfo.operatingSystemVersion
@@ -88,7 +88,7 @@ public extension Device {
     #elseif os(macOS)
     static var isIpadOrMac: Bool { return true }
     #endif
-    
+
     static var isIpad: Bool {
         #if targetEnvironment(macCatalyst) || !os(iOS)
             return false
@@ -96,7 +96,7 @@ public extension Device {
             return isIpadOrMac
         #endif
     }
-    
+
     static var isMac: Bool {
         #if targetEnvironment(macCatalyst) || os(macOS)
             return true

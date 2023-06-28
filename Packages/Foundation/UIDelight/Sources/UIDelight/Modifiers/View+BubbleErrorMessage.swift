@@ -2,11 +2,13 @@ import SwiftUI
 
 private struct BubbleErrorMessage: View {
     @Binding var text: String?
+    @AccessibilityFocusState private var focus
 
     var body: some View {
         ZStack {
             if let text = text {
                 Text(text)
+                    .fiberAccessibilityFocus($focus)
                     .font(.body)
                     .lineLimit(nil)
                     .multilineTextAlignment(.leading)
@@ -14,9 +16,18 @@ private struct BubbleErrorMessage: View {
                     .arrowBackground()
                     .onTapGesture {
                         self.text = nil
-                }.transition(AnyTransition.bubbleAnimation)
+                    }
+                    .transition(AnyTransition.bubbleAnimation)
             }
-        }.animation(.spring(), value: (text != nil))
+        }
+        .animation(.spring(), value: (text != nil))
+        .onChange(of: text) { text in
+            guard let text, !text.isEmpty else { return }
+            
+                        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+                self.focus = true
+            }
+        }
     }
 }
 

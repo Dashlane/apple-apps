@@ -1,13 +1,24 @@
 import SwiftUI
 import UIDelight
+import DesignSystem
+import VaultKit
+import CoreLocalization
 
-struct PasswordGeneratorToolsFlow: View {
+struct PasswordGeneratorToolsFlow: TabFlow {
+        let tabBarImage = NavigationImageSet(image: .ds.feature.passwordGenerator.outlined,
+                                         selectedImage: .ds.feature.passwordGenerator.filled)
+    let title: String = CoreLocalization.L10n.Core.tabGeneratorTitle
+    let tag: Int = ConnectedCoordinator.Tab.passwordGenerator.tabBarIndexValue
+    let id = UUID()
+    let embedInNavigationView: Bool
 
     @StateObject
     var viewModel: PasswordGeneratorToolsFlowViewModel
 
-    init(viewModel: @autoclosure @escaping () -> PasswordGeneratorToolsFlowViewModel) {
+    init(embedInNavigationView: Bool = false,
+         viewModel: @autoclosure @escaping () -> PasswordGeneratorToolsFlowViewModel) {
         _viewModel = .init(wrappedValue: viewModel())
+        self.embedInNavigationView = embedInNavigationView
     }
 
     var body: some View {
@@ -22,6 +33,7 @@ struct PasswordGeneratorToolsFlow: View {
                 PasswordGeneratorHistoryView(model: viewModel.passwordGeneratorHistoryViewModelFactory.make())
             }
         }
+        .embedInNavigationView(embedInNavigationView)
     }
 }
 

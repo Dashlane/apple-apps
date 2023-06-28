@@ -3,7 +3,6 @@ import BrazeKit
 
 public enum HomeModalAnnouncementTrigger: CaseIterable {
         case sessionUnlocked
-        case homeTabSelected
 }
 
 protocol HomeModalAnnouncement {
@@ -17,6 +16,7 @@ enum HomeModalAnnouncementType: Identifiable {
     case sheet(HomeSheetAnnouncement)
     case bottomSheet(HomeBottomSheetAnnouncement)
     case overScreen(HomeOverFullScreenAnnouncement)
+    case alert(HomeAlertAnnouncement)
 
     var id: String {
         switch self {
@@ -26,6 +26,8 @@ enum HomeModalAnnouncementType: Identifiable {
             return sheet.id
         case .overScreen(let over):
             return over.id
+        case .alert(let alert):
+            return alert.id
         }
     }
 }
@@ -37,7 +39,6 @@ enum HomeSheetAnnouncement: String, Identifiable {
 
     var id: String { rawValue }
 }
-
 
 enum HomeBottomSheetAnnouncement: Identifiable {
     case braze(BrazeAnnouncement)
@@ -52,6 +53,12 @@ enum HomeBottomSheetAnnouncement: Identifiable {
 
 enum HomeOverFullScreenAnnouncement: String, Identifiable {
     case rateApp
+
+    var id: String { rawValue }
+}
+
+enum HomeAlertAnnouncement: String, Identifiable {
+    case upgradeOperatingSystem
 
     var id: String { rawValue }
 }

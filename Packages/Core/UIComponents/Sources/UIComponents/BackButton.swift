@@ -1,13 +1,18 @@
 import SwiftUI
 import UIDelight
 import DesignSystem
+import CoreLocalization
 
 public struct BackButton: View {
     let label: String
     let color: Color
-    let action: () -> Void
+    let action: @MainActor () -> Void
 
-    public init(label: String, color: Color = .ds.text.neutral.standard, action: @escaping () -> Void) {
+    public init(
+        label: String,
+        color: Color = .ds.text.neutral.standard,
+        action: @escaping @MainActor () -> Void
+    ) {
         self.label = label
         self.color = color
         self.action = action
@@ -27,6 +32,12 @@ public struct BackButton: View {
             .offset(x: -6)
             .padding(.trailing, -6)
         }.foregroundColor(color)
+    }
+}
+
+public extension BackButton {
+    init(color: Color = .ds.text.neutral.standard, action: @escaping () -> Void) {
+        self.init(label: L10n.Core.kwBack, color: color, action: action)
     }
 }
 

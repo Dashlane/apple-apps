@@ -4,8 +4,6 @@ protocol MaverickAction: Codable { }
 
 enum MaverickNonAuthenticatedAction: String, MaverickAction {
     case analysisDisabled
-    case installerLog
-    case perfLog
     case evaluatePasswordStrength
     case isReactivationEnabled
     case disableReactivation

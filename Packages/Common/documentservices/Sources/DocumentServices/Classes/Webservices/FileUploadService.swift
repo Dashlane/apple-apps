@@ -6,7 +6,7 @@ public enum FileUploadServiceError: Error {
 }
 
 public struct FileUploadService {
-    
+
     private enum Key: String {
         case key
         case bucket
@@ -19,7 +19,7 @@ public struct FileUploadService {
         case file
         case securityToken = "X-Amz-Security-Token"
     }
-    
+
     private let uploadAuthentication: UploadAuthentication
     private let webservice: ProgressableNetworkingEngine
 
@@ -27,11 +27,11 @@ public struct FileUploadService {
         self.uploadAuthentication = authentication
         self.webservice = webservice
     }
-    
+
                                 @discardableResult public func upload(file: URL, progress: inout Progress?, completion: @escaping (Result<Bool, Swift.Error>) -> Void) throws -> URLSessionTask {
-        
+
         let fileContent = try Data(contentsOf: file)
-        
+
         let keyOrder = [Key.bucket.rawValue,
                         Key.policy.rawValue,
                         Key.date.rawValue,

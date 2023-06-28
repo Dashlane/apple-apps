@@ -2,8 +2,12 @@ import Foundation
 import UIKit
 import DashlaneAppKit
 import SwiftTreats
+import DesignSystem
+import SwiftUI
+import CoreLocalization
 
-public enum ToolsItem: String, CaseIterable, Hashable, TabElement {
+public enum ToolsItem: String, CaseIterable, Hashable, TabElement, Identifiable {
+
     case identityDashboard
     case darkWebMonitoring
     case secureWifi
@@ -11,61 +15,84 @@ public enum ToolsItem: String, CaseIterable, Hashable, TabElement {
     case multiDevices = "MobileToDesktop"
     case contacts
     case authenticator
+    case collections
+
+    public var id: String {
+        return rawValue
+    }
 
     var tabBarImage: NavigationImageSet {
         .init(image: image,
               selectedImage: image)
     }
 
-    var image: ImageAsset {
+    var image: UIImage {
         switch self {
         case .passwordGenerator:
-            return FiberAsset.toolsPasswordGenerator
+            return .ds.feature.passwordGenerator.outlined
         case .multiDevices:
-            return FiberAsset.toolsNewDeviceConnector
+            return .ds.laptopCheckmark.outlined
         case .identityDashboard:
-            return FiberAsset.toolsIdentityDashboard
+            return .ds.feature.passwordHealth.outlined
         case .secureWifi:
-            return FiberAsset.toolsVpn
+            return .ds.feature.vpn.outlined
         case .darkWebMonitoring:
-            return FiberAsset.toolsDarkWeb
+            return .ds.feature.darkWebMonitoring.outlined
         case .contacts:
-            return FiberAsset.toolsSharing
+            return .ds.shared.outlined
         case .authenticator:
-            return FiberAsset.pictoAuthenticator
+            return .ds.feature.authenticator.outlined
+        case .collections:
+            return .ds.folder.outlined
         }
     }
 
-    var sidebarImage: NavigationImageSet {
+    public var icon: SwiftUI.Image {
         switch self {
         case .passwordGenerator:
-            return .init(image: FiberAsset.sidebarToolsPasswordgenerator,
-                         selectedImage: FiberAsset.sidebarToolsPasswordgeneratorSelected)
+            return .ds.feature.passwordGenerator.outlined
         case .multiDevices:
-            return .init(image: FiberAsset.sidebarToolsNewdevice,
-                         selectedImage: FiberAsset.sidebarToolsNewdeviceSelected)
+            return .ds.laptopCheckmark.outlined
         case .identityDashboard:
-            return .init(image: FiberAsset.sidebarToolsIdentitydashboard,
-                         selectedImage: FiberAsset.sidebarToolsIdentitydashboardSelected)
+            return .ds.feature.passwordHealth.outlined
         case .secureWifi:
-            return .init(image: FiberAsset.sidebarToolsVpn,
-                         selectedImage: FiberAsset.sidebarToolsVpnSelected)
+            return .ds.feature.vpn.outlined
         case .darkWebMonitoring:
-            return .init(image: FiberAsset.sidebarToolsDarkWebMonitoring,
-                         selectedImage: FiberAsset.sidebarToolsDarkWebMonitoringSelected)
+            return .ds.feature.darkWebMonitoring.outlined
         case .contacts:
-            return .init(image: FiberAsset.sidebarContacts,
-                         selectedImage: FiberAsset.sidebarContactsSelected)
+            return .ds.shared.outlined
         case .authenticator:
-            return .init(image: FiberAsset.pictoAuthenticator,
-                         selectedImage: FiberAsset.pictoAuthenticator)
+            return .ds.feature.authenticator.outlined
+        case .collections:
+            return .ds.folder.outlined
+        }
+    }
+
+    public var selectedIcon: SwiftUI.Image {
+        switch self {
+        case .passwordGenerator:
+            return .ds.feature.passwordGenerator.filled
+        case .multiDevices:
+            return .ds.laptopCheckmark.filled
+        case .identityDashboard:
+            return .ds.feature.passwordHealth.outlined
+        case .secureWifi:
+            return .ds.feature.vpn.filled
+        case .darkWebMonitoring:
+            return .ds.feature.darkWebMonitoring.outlined
+        case .contacts:
+            return .ds.shared.filled
+        case .authenticator:
+            return .ds.feature.authenticator.filled
+        case .collections:
+            return .ds.folder.filled
         }
     }
 
     var title: String {
         switch self {
         case .passwordGenerator:
-            return L10n.Localizable.mainMenuPasswordGenerator
+            return CoreLocalization.L10n.Core.mainMenuPasswordGenerator
         case .multiDevices:
             return L10n.Localizable.kwMultiDevices
         case .identityDashboard:
@@ -78,6 +105,8 @@ public enum ToolsItem: String, CaseIterable, Hashable, TabElement {
             return L10n.Localizable.tabContactsTitle
         case .authenticator:
             return L10n.Localizable.otpToolName
+        case .collections:
+            return CoreLocalization.L10n.Core.KWVaultItem.Collections.toolsTitle
         }
     }
 }

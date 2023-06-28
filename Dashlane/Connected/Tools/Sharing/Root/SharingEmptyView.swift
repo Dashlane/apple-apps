@@ -10,15 +10,18 @@ struct SharingEmptyView: View {
 
     var body: some View {
         VStack(alignment: .center, spacing: 32) {
-            Image(asset: FiberAsset.sharingPaywall)
+            Image.ds.group.outlined
+                .resizable()
+                .frame(width: 60, height: 60)
+                .accessibilityHidden(true)
             if showText {
                 Text(L10n.Localizable.emptySharingListText)
                     .font(.body)
                     .lineLimit(nil)
                     .multilineTextAlignment(.center)
             }
-
-        }.foregroundColor(.ds.text.neutral.quiet)
+        }
+        .foregroundColor(.ds.text.neutral.quiet)
     }
 }
 

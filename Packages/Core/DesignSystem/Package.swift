@@ -3,8 +3,8 @@ import PackageDescription
 let package = Package(
     name: "DesignSystem",
     platforms: [
-        .iOS(.v15),
-        .macOS(.v12)
+        .iOS(.v16),
+        .macOS(.v13)
     ],
     products: [
                 .library(
@@ -17,6 +17,7 @@ let package = Package(
     dependencies: [
                 .package(url: "_", from: "1.2.0"),
         .package(path: "../../Foundation/UIDelight"),
+        .package(path: "../../Foundation/SwiftTreats"),
         .package(path: "../../Core/CoreLocalization"),
         .package(path: "../../Plugins/swiftgen-plugin")
     ],
@@ -25,13 +26,18 @@ let package = Package(
             name: "DesignSystem",
             dependencies: [
                 .product(name: "UIDelight", package: "UIDelight"),
+                .product(name: "SwiftTreats", package: "SwiftTreats"),
                 .product(name: "CoreLocalization", package: "CoreLocalization")
             ],
-            exclude: ["Resources/swiftgen.yml",
-                      "Resources/swift5-color.stencil",
-                      "Resources/swift5-images.stencil"],
+            exclude: [
+                "Resources/swiftgen.yml",
+                "Resources/swift5-color.stencil",
+                "Resources/swift5-images.stencil",
+                "Resources/swift5-text-styles.stencil"
+            ],
             resources: [
-                .process("Resources/Assets.xcassets")
+                .process("Resources/Assets.xcassets"),
+                .process("Resources/Fonts")
             ]
         ),
         .executableTarget(

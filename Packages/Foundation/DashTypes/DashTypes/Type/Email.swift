@@ -1,7 +1,7 @@
 import Foundation
 
 public struct Email: ExpressibleByStringLiteral, CustomStringConvertible, Equatable {
-    static let regex = try! NSRegularExpression(pattern: "[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\" +
+        static let regex = try! NSRegularExpression(pattern: "[a-z0-9!#$%&'*+/=?^_`{|}~-]+(?:\\" +
                                                 "_" +
                                                 "(?:[a-z0-9-]*[a-z0-9])?\\.)+[a-z0-9]" +
                                                 "(?:[a-z0-9-]*[a-z0-9])?", options: .caseInsensitive)
@@ -29,7 +29,11 @@ public struct Email: ExpressibleByStringLiteral, CustomStringConvertible, Equata
 
         if let start = addressStartIndex, let end = addressEndIndex, start < end {
             address = String(stringValue[stringValue.index(after: start)..<end])
-            displayName = String(stringValue[...stringValue.index(before: start)]).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+            if start > stringValue.startIndex {
+                displayName = String(stringValue[...stringValue.index(before: start)]).trimmingCharacters(in: CharacterSet.whitespacesAndNewlines)
+            } else {
+                displayName = nil
+            }
         } else {
             address = stringValue
             displayName = nil

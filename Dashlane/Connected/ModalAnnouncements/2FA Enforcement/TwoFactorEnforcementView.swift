@@ -5,6 +5,7 @@ import UIComponents
 import DesignSystem
 import CoreSession
 import CoreNetworking
+import LoginKit
 
 struct TwoFactorEnforcementView: View {
 
@@ -32,8 +33,13 @@ struct TwoFactorEnforcementView: View {
 
     var mainView: some View {
         FeedbackView(title: L10n.Localizable.twofaEnforcementTitle,
-                     message: L10n.Localizable.twofaEnforcementMessage1 + "\n\n" + L10n.Localizable.twofaEnforcementMessage2,
-                     kind: .twoFA, hideBackButton: true, primaryButton: (L10n.Localizable.twofaEnforcementSetupCta, { showSetupView = true  }), secondaryButton: (L10n.Localizable.twofaEnforcementLogoutCta, model.logout))
+                     message: L10n.Localizable.twofaEnforcementMessage1,
+                     kind: .twoFA, hideBackButton: true,
+                     primaryButton: (L10n.Localizable.twofaEnforcementSetupCta, { showSetupView = true  }),
+                     secondaryButton: (L10n.Localizable.twofaEnforcementLogoutCta, model.logout),
+                     accessory: {
+            accessoryView
+        })
         .fullScreenCover(isPresented: $showSetupView, onDismiss: {
             openAppStoreViewIfPossible()
             Task {
@@ -52,6 +58,16 @@ struct TwoFactorEnforcementView: View {
     func openAppStoreViewIfPossible() {
                 appStoreViewer?.openAppStorePage(dismissed: {})
         appStoreViewer = nil
+    }
+
+    var accessoryView: some View {
+        Text(L10n.Localizable.twofaEnforcementMessage2)
+            .multilineTextAlignment(.leading)
+            .lineLimit(nil)
+            .fixedSize(horizontal: false, vertical: true)
+            .foregroundColor(.ds.text.neutral.standard)
+            .font(.body)
+            .padding(.vertical, 32)
     }
 }
 

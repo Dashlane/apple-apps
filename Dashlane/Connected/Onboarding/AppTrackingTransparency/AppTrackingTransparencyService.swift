@@ -8,12 +8,10 @@ import SwiftTreats
 class AppTrackingTransparencyService {
 
     private let authenticatedABTestingService: AuthenticatedABTestingService
-    private let appTrackingTransparencyLogger: AppTrackingTransparencyLogger
     private let logger: Logger
 
-    init(authenticatedABTestingService: AuthenticatedABTestingService, appTrackingTransparencyLogger: AppTrackingTransparencyLogger, logger: Logger) {
+    init(authenticatedABTestingService: AuthenticatedABTestingService, logger: Logger) {
         self.authenticatedABTestingService = authenticatedABTestingService
-        self.appTrackingTransparencyLogger = appTrackingTransparencyLogger
         self.logger = logger
     }
 
@@ -24,23 +22,7 @@ class AppTrackingTransparencyService {
         }
         #endif
 
-        appTrackingTransparencyLogger.log(.authorizationRequested)
-
-        ATTrackingManager.requestTrackingAuthorization { [weak self] status in
-            switch status {
-            case .authorized:
-                self?.appTrackingTransparencyLogger.log(.authorized)
-            case .denied:
-                self?.appTrackingTransparencyLogger.log(.denied)
-            case .restricted:
-                self?.appTrackingTransparencyLogger.log(.restricted)
-            case .notDetermined:
-                self?.appTrackingTransparencyLogger.log(.undetermined)
-            @unknown default:
-                self?.logger.fatal("Unknown authorization status \(status).")
-                return
-            }
-
+        ATTrackingManager.requestTrackingAuthorization { _ in
                                                 Adjust.requestTrackingAuthorization(completionHandler: nil)
         }
     }

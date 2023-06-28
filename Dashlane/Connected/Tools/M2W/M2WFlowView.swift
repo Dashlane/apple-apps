@@ -8,7 +8,7 @@ struct M2WFlowView: View {
     @StateObject
     var viewModel: M2WFlowViewModel
 
-    let completion: ((M2WDismissAction) -> Void)?
+    let completion: (@MainActor (M2WDismissAction) -> Void)?
 
     var body: some View {
         StepBasedNavigationView(steps: $viewModel.steps) { step in

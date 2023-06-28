@@ -1,6 +1,5 @@
 import Foundation
 
-
 extension AsymmetricKeyPair {
     public enum KeySize: Int {
         case rsa512 = 512
@@ -39,7 +38,7 @@ extension SecKey {
     }
 }
 
-public extension PublicKey{
+public extension PublicKey {
     init(rsaData data: Data) throws {
         let key = try SecKey.makeRSAKey(data: data, keyClass: kSecAttrKeyClassPublic)
         self.secKey = key
@@ -53,13 +52,12 @@ public extension PrivateKey {
     }
 }
 
-
-fileprivate enum RSAPemComponent: String {
+private enum RSAPemComponent: String {
     case publicKeyHeader = "-----BEGIN RSA PUBLIC KEY-----"
     case publicKeyFooter = "-----END RSA PUBLIC KEY-----"
     case privateKeyHeader = "-----BEGIN RSA PRIVATE KEY-----"
     case privateKeyFooter = "-----END RSA PRIVATE KEY-----"
-    
+
 }
 
 fileprivate extension String {
@@ -81,7 +79,7 @@ fileprivate extension Data {
             .replacingOccurrences(of: footer, with: "")
             .replacingOccurrences(of: "\n", with: "")
             .replacingOccurrences(of: "\r", with: "")
-        
+
         guard let data = Data(base64Encoded: base64) else {
             return nil
         }
@@ -94,10 +92,10 @@ public extension PublicKey {
         guard let data = Data(pemString: rsaPemString, header: RSAPemComponent.publicKeyHeader.rawValue, footer: RSAPemComponent.publicKeyFooter.rawValue) else {
             throw RSA.RSAError.keyCreationFailed
         }
-        
+
         try self.init(rsaData: data)
     }
-    
+
     func rsaPemString() throws -> String {
         return try data().base64EncodedString().pemFormat(withHeader: RSAPemComponent.publicKeyHeader.rawValue,
                                                           footer: RSAPemComponent.publicKeyFooter.rawValue)
@@ -109,13 +107,12 @@ public extension PrivateKey {
         guard let data = Data(pemString: rsaPemString, header: RSAPemComponent.privateKeyHeader.rawValue, footer: RSAPemComponent.privateKeyFooter.rawValue) else {
             throw RSA.RSAError.keyCreationFailed
         }
-        
+
         try self.init(rsaData: data)
     }
-    
+
     func rsaPemString() throws -> String {
         return try data().base64EncodedString().pemFormat(withHeader: RSAPemComponent.privateKeyHeader.rawValue,
                                                           footer: RSAPemComponent.privateKeyFooter.rawValue)
     }
 }
-

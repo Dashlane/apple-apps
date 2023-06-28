@@ -5,15 +5,22 @@ import CoreUserTracking
 import SwiftUI
 import UniformTypeIdentifiers
 import VaultKit
+import CorePremium
 
-public class DashImportViewModel: ImportViewModel, ObservableObject {
+public class DashImportViewModel: ImportViewModel, ObservableObject, ImportKitServicesInjecting {
+
+    enum ValidationError: Error {
+        case wrongPassword
+        case extractionFailed
+    }
 
     public let kind: ImportFlowKind = .dash
     public var step: ImportStep = .extract
     public let iconService: IconServiceProtocol
     public let importService: ImportServiceProtocol
-    public let personalDataURLDecoder: CorePersonalData.PersonalDataURLDecoder?
-    public let activityReporter: ActivityReporterProtocol?
+    public let personalDataURLDecoder: PersonalDataURLDecoderProtocol
+    public let activityReporter: ActivityReporterProtocol
+    public let teamSpacesService: CorePremium.TeamSpacesServiceProtocol
 
     @Published
     var password: String = "" {
@@ -47,16 +54,19 @@ public class DashImportViewModel: ImportViewModel, ObservableObject {
 
     private var cancellables: Set<AnyCancellable> = []
 
-    init(
+    @MainActor
+    public init(
         importService: ImportServiceProtocol,
         iconService: IconServiceProtocol,
-        personalDataURLDecoder: CorePersonalData.PersonalDataURLDecoder,
-        activityReporter: ActivityReporterProtocol
+        personalDataURLDecoder: PersonalDataURLDecoderProtocol,
+        activityReporter: ActivityReporterProtocol,
+        teamSpacesService: CorePremium.TeamSpacesServiceProtocol
     ) {
         self.importService = importService
         self.iconService = iconService
         self.personalDataURLDecoder = personalDataURLDecoder
         self.activityReporter = activityReporter
+        self.teamSpacesService = teamSpacesService
     }
 
     private init(
@@ -66,9 +76,10 @@ public class DashImportViewModel: ImportViewModel, ObservableObject {
     ) {
         self.importService = importService
         self.iconService = iconService
-        self.personalDataURLDecoder = nil
+        self.personalDataURLDecoder = PersonalDataURLDecoderMock.mock()
         self.items = items
-        self.activityReporter = nil
+        self.activityReporter = .fake
+        self.teamSpacesService = .mock()
     }
 
     func updateIsAnyItemSelected(for item: ImportItem? = nil, isSelected: Bool? = nil) {
@@ -87,31 +98,30 @@ public class DashImportViewModel: ImportViewModel, ObservableObject {
         items.forEach { item in
             item.$isSelected.sink { [weak self, weak item] isSelected in
                 self?.updateIsAnyItemSelected(for: item, isSelected: isSelected)
-            }.store(in: &cancellables)
+            }
+            .store(in: &cancellables)
         }
     }
 
     @MainActor
-    func validate(completion: @escaping (Result<Void, Error>) -> Void) {
+    func validate() async throws {
         showWrongPasswordError = false
         inProgress = true
 
-        Task {
+        do {
+            try await importService.unlock(usingPassword: password)
             do {
-                try await importService.unlock(usingPassword: password)
-                do {
-                    try await self.extract()
-                    self.inProgress = false
-                    completion(.success)
-                } catch {
-                    completion(.failure(error))
-                }
+                try await extract()
+                inProgress = false
             } catch {
-                self.inProgress = false
-                self.showWrongPasswordError = true
-                self.attempts += 1
-                self.report(.wrongFilePassword)
+                throw error
             }
+        } catch {
+            inProgress = false
+            showWrongPasswordError = true
+            attempts += 1
+            report(.wrongFilePassword, importDataStep: .selectDashlaneSpace)
+            throw ValidationError.wrongPassword
         }
     }
 
@@ -120,31 +130,34 @@ public class DashImportViewModel: ImportViewModel, ObservableObject {
         step = .extract
 
         do {
-            items = try await importService.extract().map { .init(vaultItem: $0, personalDataURLDecoder: personalDataURLDecoder) }
+            items = try await importService.extract().map { .init(vaultItem: $0) }
         } catch {
-            report(.wrongFileStructure)
-            throw error
+            report(.wrongFileStructure, importDataStep: .selectFile)
+            throw ValidationError.extractionFailed
         }
     }
 
-    public func save() async throws {
+    public func save(in userSpace: UserSpace?) async throws {
         defer {
             inProgress = false
+        }
+
+        if userSpace == nil && !availableSpaces.isEmpty {
+                        throw ImportViewModelError.needsB2BSpace
         }
 
         step = .save
         inProgress = true
 
-        let vaultItems = items.compactMap { $0.isSelected ? $0.vaultItem : nil }
+        let vaultItems = items.selectedItemsWithSpace(userSpace, businessTeam: teamSpacesService.businessTeamsInfo.availableBusinessTeam)
         do {
-            try await importService.save(vaultItems: vaultItems)
-            reportSave(of: vaultItems)
+            try await importService.save(vaultItems)
+            reportSave(of: vaultItems, preFilterItemsCount: items.count)
         } catch {
-            report(.failureDuringImport)
+            report(.failureDuringImport, importDataStep: .previewItemsToImport)
             throw error
         }
     }
-
 }
 
 extension DashImportViewModel {

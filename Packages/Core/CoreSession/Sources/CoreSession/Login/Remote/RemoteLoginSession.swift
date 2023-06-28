@@ -8,7 +8,8 @@ public struct RemoteLoginSession {
     let masterKey: MasterKey
     public let authentication: ServerAuthentication
     let remoteKey: Data?
-
+    public let isRecoveryLogin: Bool
+    public let newMasterPassword: String?
     public var analyticsIds: AnalyticsIdentifiers {
         return userData.analyticsIds
     }

@@ -16,4 +16,3 @@ private struct FullBackgroundColorModifier: ViewModifier {
         }
     }
 }
-

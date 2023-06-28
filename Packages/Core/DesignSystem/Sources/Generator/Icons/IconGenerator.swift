@@ -9,7 +9,7 @@ struct IconGenerator {
         print("⏳ Fetching icons from Specify...")
         let request = URLRequest.makeSpecifyRequest(endpoint: .iconTokens, apiToken: apiToken)
         let (data, _) = try await URLSession.shared.data(for: request)
-        let decodedIcons = try JSONDecoder().decode([SpecifyIcon].self, from: data)
+        let decodedIcons = try JSONDecoder().decode([SpecifyIcon].self, from: data).filter(\.shouldBeProcessed)
         print("✅ Fetched \(decodedIcons.count) icons from Specify.")
 
         print("⏳ Fetching individual image data for \(decodedIcons.count) icons...")

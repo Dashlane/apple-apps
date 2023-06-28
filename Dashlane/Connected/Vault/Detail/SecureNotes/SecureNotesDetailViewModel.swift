@@ -2,7 +2,6 @@ import Foundation
 import CorePersonalData
 import SwiftUI
 import CoreSession
-import DashlaneReportKit
 import DashTypes
 import Combine
 import DashlaneAppKit
@@ -11,11 +10,11 @@ import CoreUserTracking
 import CoreSettings
 import VaultKit
 import CoreFeature
+import UIComponents
 
 class SecureNotesDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting, MockVaultConnectedInjecting {
 
     private var deleteAttachmentsSubscriber: AnyCancellable?
-    let logger: SecureNotesDetailUsageLogger
 
     var selectedColor: SecureNoteColor {
         get {
@@ -36,8 +35,9 @@ class SecureNotesDetailViewModel: DetailViewModelProtocol, SessionServicesInject
     let secureNotesDetailToolbarFactory: SecureNotesDetailToolbarModel.Factory
     let sharingMembersDetailLinkModelFactory: SharingMembersDetailLinkModel.Factory
     let shareButtonViewModelFactory: ShareButtonViewModel.Factory
+    let attachmentsListViewModelFactory: AttachmentsListViewModel.Factory
 
-    private var teamSpacesService: TeamSpacesService {
+    private var teamSpacesService: VaultKit.TeamSpacesServiceProtocol {
         service.teamSpacesService
     }
 
@@ -50,21 +50,21 @@ class SecureNotesDetailViewModel: DetailViewModelProtocol, SessionServicesInject
         vaultItemsService: VaultItemsServiceProtocol,
         sharingService: SharedVaultHandling,
         teamSpacesService: TeamSpacesService,
-        usageLogService: UsageLogServiceProtocol,
-        deepLinkService: DeepLinkingServiceProtocol,
+        deepLinkService: VaultKit.DeepLinkingServiceProtocol,
         activityReporter: ActivityReporterProtocol,
+        pasteboardService: PasteboardServiceProtocol,
         iconViewModelProvider: @escaping (VaultItem) -> VaultItemIconViewModel,
         secureNotesDetailNavigationBarModelFactory: SecureNotesDetailNavigationBarModel.Factory,
         secureNotesDetailFieldsModelFactory: SecureNotesDetailFieldsModel.Factory,
         secureNotesDetailToolbarModelFactory: SecureNotesDetailToolbarModel.Factory,
         sharingMembersDetailLinkModelFactory: SharingMembersDetailLinkModel.Factory,
         shareButtonViewModelFactory: ShareButtonViewModel.Factory,
+        attachmentsListViewModelFactory: AttachmentsListViewModel.Factory,
+        attachmentSectionFactory: AttachmentsSectionViewModel.Factory,
         logger: Logger,
         documentStorageService: DocumentStorageService,
         accessControl: AccessControlProtocol,
-        userSettings: UserSettings,
-        attachmentSectionFactory: AttachmentsSectionViewModel.Factory,
-        attachmentsListViewModelProvider: @escaping (VaultItem, AnyPublisher<VaultItem, Never>) -> AttachmentsListViewModel
+        userSettings: UserSettings
     ) {
         self.init(
             service: .init(
@@ -73,22 +73,22 @@ class SecureNotesDetailViewModel: DetailViewModelProtocol, SessionServicesInject
                 vaultItemsService: vaultItemsService,
                 sharingService: sharingService,
                 teamSpacesService: teamSpacesService,
-                usageLogService: usageLogService,
                 documentStorageService: documentStorageService,
                 deepLinkService: deepLinkService,
                 activityReporter: activityReporter,
                 iconViewModelProvider: iconViewModelProvider,
+                attachmentSectionFactory: attachmentSectionFactory,
                 logger: logger,
                 accessControl: accessControl,
                 userSettings: userSettings,
-                attachmentSectionFactory: attachmentSectionFactory,
-                attachmentsListViewModelProvider: attachmentsListViewModelProvider
+                pasteboardService: pasteboardService
             ),
             secureNotesDetailNavigationBarModelFactory: secureNotesDetailNavigationBarModelFactory,
             secureNotesDetailFieldsModelFactory: secureNotesDetailFieldsModelFactory,
             secureNotesDetailToolbarFactory: secureNotesDetailToolbarModelFactory,
             sharingMembersDetailLinkModelFactory: sharingMembersDetailLinkModelFactory,
-            shareButtonViewModelFactory: shareButtonViewModelFactory
+            shareButtonViewModelFactory: shareButtonViewModelFactory,
+            attachmentsListViewModelFactory: attachmentsListViewModelFactory
         )
     }
 
@@ -98,7 +98,8 @@ class SecureNotesDetailViewModel: DetailViewModelProtocol, SessionServicesInject
         secureNotesDetailFieldsModelFactory: SecureNotesDetailFieldsModel.Factory,
         secureNotesDetailToolbarFactory: SecureNotesDetailToolbarModel.Factory,
         sharingMembersDetailLinkModelFactory: SharingMembersDetailLinkModel.Factory,
-        shareButtonViewModelFactory: ShareButtonViewModel.Factory
+        shareButtonViewModelFactory: ShareButtonViewModel.Factory,
+        attachmentsListViewModelFactory: AttachmentsListViewModel.Factory
     ) {
         self.service = service
         self.secureNotesDetailNavigationBarModelFactory = secureNotesDetailNavigationBarModelFactory
@@ -106,7 +107,7 @@ class SecureNotesDetailViewModel: DetailViewModelProtocol, SessionServicesInject
         self.secureNotesDetailToolbarFactory = secureNotesDetailToolbarFactory
         self.sharingMembersDetailLinkModelFactory = sharingMembersDetailLinkModelFactory
         self.shareButtonViewModelFactory = shareButtonViewModelFactory
-        self.logger = SecureNotesDetailUsageLogger(usageLogService: service.usageLogService)
+        self.attachmentsListViewModelFactory = attachmentsListViewModelFactory
 
         registerServiceChanges()
         setupAutoSave()
@@ -137,5 +138,13 @@ class SecureNotesDetailViewModel: DetailViewModelProtocol, SessionServicesInject
     @objc private func autoSave() {
         guard (mode.isAdding || mode.isEditing), canSave else { return }
         save()
+    }
+
+    func makeAttachmentsListViewModel() -> AttachmentsListViewModel? {
+        let publisher = service.vaultItemsService
+            .itemPublisher(for: item)
+            .map { $0 as VaultItem }
+            .eraseToAnyPublisher()
+        return attachmentsListViewModelFactory.make(editingItem: item, itemPublisher: publisher)
     }
 }

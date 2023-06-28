@@ -6,82 +6,49 @@ import UIDelight
 import ImportKit
 import DashTypes
 import UIKit
+import SwiftUI
 
 @MainActor
 final class SettingsFlowViewModel: ObservableObject, SessionServicesInjecting {
-
-    enum Step {
-        case main
-        case security
-        case general
-        case helpCenter
-        case `import`(DashImportFlowViewModel) 
-        case labs
-    }
-
     @Published
-    var steps: [Step]
+    var subSectionsPath: [SettingsSubSection] = []
 
     private var cancellables: Set<AnyCancellable> = []
-
-    let labsService = LabsService()
-
-    let mainSettingsViewModelFactory: MainSettingsViewModel.Factory
+    private let labsService = LabsService()
+    private let mainSettingsViewModelFactory: MainSettingsViewModel.Factory
     let securitySettingsViewModelFactory: SecuritySettingsViewModel.Factory
     let generalSettingsViewModelFactory: GeneralSettingsViewModel.Factory
     let helpCenterSettingsViewModelFactory: HelpCenterSettingsViewModel.Factory
-    let labsSettingsViewModelFactory: LabsSettingsViewModel.Factory
+    private let labsSettingsViewModelFactory: LabsSettingsViewModel.Factory
 
     init(mainSettingsViewModelFactory: MainSettingsViewModel.Factory,
          securitySettingsViewModelFactory: SecuritySettingsViewModel.Factory,
          generalSettingsViewModelFactory: GeneralSettingsViewModel.Factory,
          helpCenterSettingsViewModelFactory: HelpCenterSettingsViewModel.Factory,
-         labsSettingsViewModelFactory: LabsSettingsViewModel.Factory) {
+         labsSettingsViewModelFactory: LabsSettingsViewModel.Factory,
+         deepLinkingService: DeepLinkingServiceProtocol) {
         self.mainSettingsViewModelFactory = mainSettingsViewModelFactory
         self.securitySettingsViewModelFactory = securitySettingsViewModelFactory
         self.generalSettingsViewModelFactory = generalSettingsViewModelFactory
         self.helpCenterSettingsViewModelFactory = helpCenterSettingsViewModelFactory
         self.labsSettingsViewModelFactory = labsSettingsViewModelFactory
-        _steps = .init(initialValue: [.main])
+        deepLinkingService.settingsComponentPublisher().map { link in
+            switch link {
+            case .root:
+                return []
+            case .security:
+                return [.security]
+            }
+        }.assign(to: &$subSectionsPath)
     }
 
-    func handleMainAction(_ action: MainSettingsView.Action) {
-
-        switch action {
-        case .displaySecuritySettings:
-            self.steps.append(.security)
-        case .displayGeneralSettings:
-            self.steps.append(.general)
-        case .displayHelpCenter:
-            self.steps.append(.helpCenter)
-        case .displayLabs:
-            self.steps.append(.labs)
-        }
+    func makeMainViewModel() -> MainSettingsViewModel {
+        mainSettingsViewModelFactory.make(labsService: labsService)
     }
 
-    func handleGeneralSettingsAction(_ action: GeneralSettingsView.Action) {
-        switch action {
-        case .displayImportFlow(let viewModel):
-            viewModel.dismissPublisher.sink { [weak self] action in
-                guard let self = self,
-                      let window = UIApplication.shared.keyUIWindow,
-                      let splitVC = window.rootViewController as? UISplitViewController,
-                      let tabBarVC = splitVC.viewControllers.first as? TabSelectable
-                        ?? splitVC.viewController(for: .primary) as? TabSelectable else {
-                    return
-                }
-                switch action {
-                case .dismiss:
-                    _ = self.steps.popLast()
-                    tabBarVC.selectTab(.home, coordinator: nil)
-                default:
-                    break
-                }
-            }.store(in: &cancellables)
-            steps.append(.import(viewModel))
-        }
+    func makeLabsViewModel() -> LabsSettingsViewModel {
+        labsSettingsViewModelFactory.make(labsService: labsService)
     }
-
 }
 
 extension SettingsFlowViewModel {
@@ -91,6 +58,7 @@ extension SettingsFlowViewModel {
                               securitySettingsViewModelFactory: .init({ .mock }),
                               generalSettingsViewModelFactory: .init({ .mock }),
                               helpCenterSettingsViewModelFactory: .init({ .mock }),
-                              labsSettingsViewModelFactory: .init({ _ in .mock }))
+                              labsSettingsViewModelFactory: .init({ _ in .mock }),
+                              deepLinkingService: DeepLinkingService.fakeService)
     }
 }

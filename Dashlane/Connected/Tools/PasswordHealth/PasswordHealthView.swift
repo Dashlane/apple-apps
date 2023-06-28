@@ -2,6 +2,7 @@ import CorePersonalData
 import DesignSystem
 import SwiftUI
 import UIComponents
+import VaultKit
 
 struct PasswordHealthView: View {
 
@@ -36,7 +37,7 @@ struct PasswordHealthView: View {
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
-                UserSpaceSwitcher(model: viewModel.userSpaceSwitcherViewModel)
+                UserSpaceSwitcher(model: viewModel.userSpaceSwitcherViewModelFactory.make())
             }
         }
         .reportPageAppearance(.toolsPasswordHealthOverview)

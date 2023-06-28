@@ -24,7 +24,7 @@ public struct Passport: PersonalDataCodable, Equatable, Identifiable, IdentityLi
         case spaceId
         case attachments
     }
-    
+
     public let id: Identifier
     public var anonId: String
     public let metadata: RecordMetadata
@@ -60,7 +60,7 @@ public struct Passport: PersonalDataCodable, Equatable, Identifiable, IdentityLi
         userModificationDatetime = nil
         _attachments = .init(nil)
     }
-    
+
     init(id: Identifier,
          anonId: String,
          number: String,
@@ -104,7 +104,7 @@ extension Passport {
 }
 
 extension Passport: Searchable {
-    
+
     public var searchableKeyPaths: [KeyPath<Passport, String>] {
         return [
             \Passport.displayFullName,

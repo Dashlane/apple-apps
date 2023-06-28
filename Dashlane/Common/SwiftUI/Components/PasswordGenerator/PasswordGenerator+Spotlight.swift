@@ -1,6 +1,7 @@
 import Foundation
 import SwiftUI
 import CoreSpotlight
+import VaultKit
 
 extension PasswordGeneratorView {
 

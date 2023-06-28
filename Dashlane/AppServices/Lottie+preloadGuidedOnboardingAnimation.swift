@@ -3,10 +3,10 @@ import Lottie
 import UIKit
 import UIComponents
 
-extension LottieAnimation {
+extension DefaultAnimationCache {
 
-            static func preloadAnimationsForGuidedOnboarding() {
+            func preloadAnimationsForGuidedOnboarding() async {
         let animationAssets = GuidedOnboardingQuestion.allCases.map(\.animationAsset) + GuidedOnboardingAnswer.allCases.compactMap(\.animationAsset)
-        animationAssets.preloadInBackground()
+        await self.load(animationAssets)
     }
 }

@@ -7,7 +7,7 @@ extension CreditCard {
     public var subtitleImage: SwiftUI.Image? {
         self.asset
     }
-    
+
     public var subtitleFont: Font? {
         return Font.caption.monospaced()
     }

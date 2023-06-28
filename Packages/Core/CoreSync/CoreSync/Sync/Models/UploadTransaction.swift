@@ -17,11 +17,11 @@ public struct UploadTransaction: Encodable {
     let time: Int 
     @RawRepresented
     public var type: PersonalDataContentType?
-    
+
     public init(action: SyncTransactionActionType,
-         content: String?,
-         identifier: Identifier,
-         type: RawRepresented<PersonalDataContentType>) {
+                content: String?,
+                identifier: Identifier,
+                type: RawRepresented<PersonalDataContentType>) {
         self.action = action
         self.content = content
         self.identifier = identifier
@@ -30,14 +30,13 @@ public struct UploadTransaction: Encodable {
     }
 }
 
-
 extension UploadTransaction {
     public init(_ transaction: UploadTransactionSession.Transaction) {
         switch transaction.action {
             case let .upload(content: content):
                 self.content = content
                 self.action = .edit
-                
+
             case .remove:
                 self.content = nil
                 self.action = .remove

@@ -6,7 +6,7 @@ enum MainTab: TabViewElement {
     case passwordGenerator(PasswordGeneratorTabViewModel)
     case other(MoreTabViewModel)
     
-    static func ==(lhs: Self, rhs: Self) -> Bool {
+    static func == (lhs: Self, rhs: Self) -> Bool {
         switch (lhs, rhs) {
         case (.vault, .vault): return true
         case (.autofill, .autofill): return true

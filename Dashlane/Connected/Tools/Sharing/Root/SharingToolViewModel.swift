@@ -1,6 +1,7 @@
 import Foundation
 import VaultKit
 import IconLibrary
+import CorePersonalData
 import DashTypes
 
 @MainActor
@@ -71,21 +72,22 @@ extension SharingToolViewModel {
                 SharingPendingItemGroupsSectionViewModel(
                     sharingService: sharingService,
                     teamSpacesService: teamSpacesService,
-                    vaultItemRowModelFactory: .init { .mock(configuration: $0, additionialConfiguration: $1)}
+                    vaultItemRowModelFactory: .init { .mock(configuration: $0, additionalConfiguration: $1)}
                 )
             },
             userGroupsSectionViewModelFactory: .init { itemsProvider in
                 SharingUserGroupsSectionViewModel(
                     itemsProvider: itemsProvider,
                     detailViewModelFactory: .init { .mock(userGroup: $0, itemsProvider: $2) },
-                    sharingService: sharingService
+                    sharingService: sharingService,
+                    teamSpacesService: teamSpacesService
                 )
             },
             usersSectionViewModelFactory: .init { itemsProvider in
                 SharingUsersSectionViewModel(
                     itemsProvider: itemsProvider,
                     sharingService: sharingService,
-                    detailViewModelFactory: .init { .mock(user: $0, itemsProvider: $2) },
+                    detailViewModelFactory: .init { .mock(user: $0, item: Credential(), itemsProvider: $2) },
                     gravatarIconViewModelFactory: .init { .mock(email: $0) }
                 )
             },

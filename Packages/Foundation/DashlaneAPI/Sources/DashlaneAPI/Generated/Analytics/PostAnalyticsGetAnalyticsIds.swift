@@ -1,6 +1,6 @@
 import Foundation
 extension AppAPIClient.Analytics {
-        public struct GetAnalyticsIds {
+        public struct GetAnalyticsIds: APIRequest {
         public static let endpoint: Endpoint = "/analytics/GetAnalyticsIds"
 
         public let api: AppAPIClient
@@ -17,7 +17,11 @@ extension AppAPIClient.Analytics {
 }
 
 extension AppAPIClient.Analytics.GetAnalyticsIds {
-        struct Body: Encodable {
+        public struct Body: Encodable {
+
+        private enum CodingKeys: String, CodingKey {
+            case login = "login"
+        }
 
                 public let login: String
     }
@@ -27,6 +31,11 @@ extension AppAPIClient.Analytics.GetAnalyticsIds {
     public typealias Response = DataType
 
         public struct DataType: Codable, Equatable {
+
+        private enum CodingKeys: String, CodingKey {
+            case devicesAnalyticsIds = "devicesAnalyticsIds"
+            case userAnalyticsId = "userAnalyticsId"
+        }
 
                 public let devicesAnalyticsIds: [String]?
 

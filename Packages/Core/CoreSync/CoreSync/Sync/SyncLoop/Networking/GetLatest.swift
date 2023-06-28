@@ -16,17 +16,17 @@ public struct GetLatestDataService {
                 case temporaryDisabled = "temporary_disabled"
         case other = ""
     }
-    
+
     let apiClient: DeprecatedCustomAPIClient
-    
+
     public init(apiClient: DeprecatedCustomAPIClient) {
         self.apiClient = apiClient
     }
-    
+
                                 public func latestData(fromTimestamp timestamp: Timestamp,
-                    missingTransactions: [Identifier] = [],
-                    needsKeys: Bool = false,
-                    returnsTeamAdminGroups: Bool = false) async throws -> DownloadedTransactions {
+                           missingTransactions: [Identifier] = [],
+                           needsKeys: Bool = false,
+                           returnsTeamAdminGroups: Bool = false) async throws -> DownloadedTransactions {
         struct Params: Encodable {
             let timestamp: Timestamp
             let transactions: [Identifier]
@@ -50,10 +50,9 @@ public struct GetLatestDataService {
                               using: .post,
                               input: EmptyInput(),
                               completion: completion)
-        
+
     }
 }
-
 
 struct AllDataForMasterPasswordChange: Decodable {
     let timestamp: Timestamp

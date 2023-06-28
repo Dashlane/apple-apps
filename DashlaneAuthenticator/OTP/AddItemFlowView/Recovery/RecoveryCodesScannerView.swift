@@ -9,10 +9,10 @@ struct RecoveryCodesScannerView: View {
 
     @ObservedObject
     var model: RecoveryCodesScanViewModel
-    
+
     @Binding
     var recoveryCodes: [String]
-        
+
     var body: some View {
         NavigationView {
             mainView
@@ -27,8 +27,8 @@ struct RecoveryCodesScannerView: View {
                 .padding(8)
                 .multilineTextAlignment(.center)
                 .frame(height: 100, alignment: .center)
-            
-            ImageCaptureView() { result in
+
+            ImageCaptureView { result in
                 switch result {
                 case let .success(result):
                     model.processImage(result)
@@ -47,14 +47,14 @@ struct RecoveryCodesScannerView: View {
         .navigationBarHidden(true)
         .background(Color.black)
         .overlay(overlayView.hidden(!model.isProgress))
-        .fullScreenCover(isPresented: $model.presentConfirmtion, content: {
+        .fullScreenCover(isPresented: $model.presentConfirmation, content: {
             RecoveryCodesConfirmationView(recoveryCodes: $model.recoveryCodes, save: {
                 recoveryCodes = model.recoveryCodes
                 model.save(recoveryCodes)
             }, cancel: model.cancel)
         })
     }
-    
+
     var overlayView: some View {
         ZStack {
             ProgressView(L10n.Localizable.processingRecoverCodeMessage)
@@ -65,7 +65,7 @@ struct RecoveryCodesScannerView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .background(Color.clear)
     }
-    
+
     private func cameraAlert() -> Alert {
         Alert(title: Text(L10n.Localizable.reScanRecoveryCodesAlertTitle),
               message: Text(L10n.Localizable.reScanRecoveryCodesAlertMessage),
@@ -76,7 +76,7 @@ struct RecoveryCodesScannerView: View {
     }
 
     private func openSetting() {
-        UIApplication.shared.openSettings() { _ in
+        UIApplication.shared.openSettings { _ in
             dismiss()
         }
     }

@@ -67,7 +67,7 @@ struct EnableSafariOnboardingView: View {
             .frame(width: 24, height: 24)
             .foregroundColor(Color.red)
         MarkdownText(text)
-            .foregroundColor(Color(asset: FiberAsset.settingsSecondaryHighlight))
+            .foregroundColor(.ds.text.neutral.standard)
     }
 
     @ViewBuilder

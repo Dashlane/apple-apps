@@ -11,7 +11,7 @@ enum OnboardingChecklistAction: String, Identifiable {
     case fixBreachedAccounts 
     case seeScanResult 
     case activateAutofill
-    case m2d
+    case mobileToDesktop
 
     var title: String {
         switch self {
@@ -25,7 +25,7 @@ enum OnboardingChecklistAction: String, Identifiable {
             return L10n.Localizable.dwmOnboardingChecklistItemTitle
         case .activateAutofill:
             return L10n.Localizable.onboardingChecklistV2ActionTitleActivateAutofill
-        case .m2d:
+        case .mobileToDesktop:
             return L10n.Localizable.onboardingChecklistV2ActionTitleM2D
         }
     }
@@ -42,7 +42,7 @@ enum OnboardingChecklistAction: String, Identifiable {
             return L10n.Localizable.dwmOnboardingChecklistItemCaption
         case .activateAutofill:
             return L10n.Localizable.onboardingChecklistV2ActionCaptionActivateAutofill
-        case .m2d:
+        case .mobileToDesktop:
             return L10n.Localizable.onboardingChecklistV2ActionCaptionM2D
         }
     }
@@ -59,7 +59,7 @@ enum OnboardingChecklistAction: String, Identifiable {
             return L10n.Localizable.darkWebMonitoringOnboardingChecklistSeeScanResult
         case .activateAutofill:
             return L10n.Localizable.onboardingChecklistV2ActionButtonActivateAutofill
-        case .m2d:
+        case .mobileToDesktop:
             return L10n.Localizable.onboardingChecklistV2ActionButtonM2D
         }
     }
@@ -76,7 +76,7 @@ enum OnboardingChecklistAction: String, Identifiable {
             return 1
         case .activateAutofill:
             return 2
-        case .m2d:
+        case .mobileToDesktop:
             return 3
         }
     }
@@ -90,7 +90,7 @@ enum OnboardingChecklistAction: String, Identifiable {
             return .onboardingVault
         case .activateAutofill:
             return .onboardingAutofill
-        case .m2d:
+        case .mobileToDesktop:
             return .onboardingM2d
         }
     }

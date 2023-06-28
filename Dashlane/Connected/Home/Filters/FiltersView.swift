@@ -2,43 +2,17 @@ import SwiftUI
 import Combine
 import CorePersonalData
 import CoreUserTracking
-
-enum VaultListFilter: CaseIterable, Identifiable, Equatable {
-    case all
-    case credentials
-    case secureNotes
-    case payments
-    case personalInfo
-    case ids
-
-    var id: Self { self }
-
-    var title: String {
-        switch self {
-        case .all:
-            return L10n.Localizable.itemsTitle
-        case .credentials:
-            return L10n.Localizable.mainMenuLoginsAndPasswords
-        case .secureNotes:
-            return L10n.Localizable.mainMenuNotes
-        case .payments:
-            return L10n.Localizable.mainMenuPayment
-        case .personalInfo:
-            return L10n.Localizable.mainMenuContact
-        case .ids:
-            return L10n.Localizable.mainMenuIDs
-        }
-    }
-}
+import VaultKit
+import CoreLocalization
 
 struct FiltersView: View {
     @Binding
-    var activeFilter: VaultListFilter
+    var activeFilter: VaultItemsSection
 
     var body: some View {
         ScrollView(.horizontal, showsIndicators: false) {
             HStack(spacing: 10) {
-                ForEach(VaultListFilter.allCases) { vaultListFilter in
+                ForEach(VaultItemsSection.allCases) { vaultListFilter in
                     Button(vaultListFilter.title) {
                         self.activeFilter = vaultListFilter
                     }
@@ -87,19 +61,21 @@ struct FilterButtonStyle: ButtonStyle {
     }
 }
 
-extension ItemCategory {
-    var vaultListFilter: VaultListFilter {
-        switch self {
-        case .credentials:
-            return .credentials
-        case .ids:
-            return .ids
-        case .payments:
-            return .payments
-        case .personalInfo:
-            return .personalInfo
-        case .secureNotes:
-            return .secureNotes
-        }
-    }
+extension VaultItemsSection {
+   var title: String {
+       switch category {
+       case nil:
+           return CoreLocalization.L10n.Core.itemsTitle
+       case .credentials:
+           return CoreLocalization.L10n.Core.mainMenuLoginsAndPasswords
+       case .secureNotes:
+           return CoreLocalization.L10n.Core.mainMenuNotes
+       case .payments:
+           return CoreLocalization.L10n.Core.mainMenuPayment
+       case .personalInfo:
+           return CoreLocalization.L10n.Core.mainMenuContact
+       case .ids:
+           return CoreLocalization.L10n.Core.mainMenuIDs
+       }
+   }
 }

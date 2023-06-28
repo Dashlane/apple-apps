@@ -10,16 +10,16 @@ class BiometryUnlockViewModel: ObservableObject {
     let login: Login
     let biometryType: Biometry
     let completion: (PairedServicesContainer) -> Void
-    
+
     @Published
     var showError = false
-    
+
     @Published
     var showRetry = false
-    
+
     @Published
     var inProgress = false
-    
+
     let keychainService: AuthenticationKeychainServiceProtocol
     let validateMasterKey: (CoreKeychain.MasterKey) async throws -> PairedServicesContainer
     init(login: Login,
@@ -33,7 +33,7 @@ class BiometryUnlockViewModel: ObservableObject {
         self.validateMasterKey = validateMasterKey
         self.completion = completion
     }
-    
+
     func validate() async {
         inProgress = true
         do {

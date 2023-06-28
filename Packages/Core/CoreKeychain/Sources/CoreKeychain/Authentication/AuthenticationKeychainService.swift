@@ -7,18 +7,18 @@ public protocol AuthenticationKeychainServiceProtocol {
     nonisolated var masterKeyStatusChanged: PassthroughSubject<AuthenticationKeychainService.MasterKeyStatusChange, Never> { get }
 
     func masterKeyStatus(for login: Login) -> MasterKeyStoredStatus
-    func masterKey(for login: Login, using context: LAContext?) throws  -> MasterKey
-    func save(_ masterKey: MasterKey, for login: Login, expiresAfter timeInterval: TimeInterval, accessMode: KeychainAccessMode) throws -> Void
-    func removeMasterKey(for login: Login) throws -> Void
+    func masterKey(for login: Login, using context: LAContext?) throws -> MasterKey
+    func save(_ masterKey: MasterKey, for login: Login, expiresAfter timeInterval: TimeInterval, accessMode: KeychainAccessMode) throws
+    func removeMasterKey(for login: Login) throws
 
     func pincode(for login: Login) throws -> String
-    func setPincode(_ pincode: String?, for login: Login) throws -> Void
+    func setPincode(_ pincode: String?, for login: Login) throws
 
     func serverKey(for login: Login) -> String?
-    func saveServerKey(_ serverKey: String, for login: Login) throws -> Void
-    func removeServerKey(for login: Login) throws -> Void
+    func saveServerKey(_ serverKey: String, for login: Login) throws
+    func removeServerKey(for login: Login) throws
 
-    func removeAllLocalData() throws -> Void
+    func removeAllLocalData() throws
     func masterPasswordEquals(_ masterPassword: String, for login: Login) throws -> Bool
     func makeResetContainerKeychainManager(userLogin: UserLogin) -> ResetContainerKeychainManager
 }
@@ -116,9 +116,9 @@ public struct AuthenticationKeychainService: AuthenticationKeychainServiceProtoc
     }
 
     public func save(_ masterKey: CoreKeychain.MasterKey,
-                       for login: Login,
-                       expiresAfter timeInterval: TimeInterval,
-                       accessMode: KeychainAccessMode) throws {
+                     for login: Login,
+                     expiresAfter timeInterval: TimeInterval,
+                     accessMode: KeychainAccessMode) throws {
         let settings = try settingsDataProvider(for: login)
 
         let store = MasterKeyStore(cryptoEngine: cryptoEngine,
@@ -177,7 +177,7 @@ public struct AuthenticationKeychainService: AuthenticationKeychainServiceProtoc
         guard status == errSecSuccess else { throw PinCodeRetrievalError.status(code: status) }
 
                 let mainQuery = mainQueryRef as! CFMutableDictionary
-        var mainQuery2 = mainQuery as! [CFString: Any]
+                var mainQuery2 = mainQuery as! [CFString: Any]
 
         mainQuery2[kSecReturnData] = kCFBooleanTrue
         mainQuery2[kSecClass] = kSecClassGenericPassword
@@ -255,6 +255,3 @@ public struct AuthenticationKeychainService: AuthenticationKeychainServiceProtoc
         ResetContainerKeychainManagerImpl(cryptoEngine: cryptoEngine, accessGroup: accessGroup, userLogin: userLogin)
     }
 }
-
-
-

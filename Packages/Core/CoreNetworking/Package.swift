@@ -13,15 +13,15 @@ if let envPointer = getenv("INTEGRATION_TEST") {
 let package = Package(
     name: "CoreNetworking",
     platforms: [
-        .iOS(.v15),
-        .macOS(.v12)
+        .iOS(.v16),
+        .macOS(.v13)
     ],
     products: [
-        .library(name: "CoreNetworking", targets: ["CoreNetworking"]),
+        .library(name: "CoreNetworking", targets: ["CoreNetworking"])
     ],
     dependencies: [
         .package(path: "../../Foundation/DashTypes"),
-        .package(path: "../../Foundation/DashlaneAPI"),
+        .package(path: "../../Foundation/DashlaneAPI")
     ],
     targets: [
         .target(name: "CoreNetworking",
@@ -33,6 +33,6 @@ let package = Package(
                     path: "CoreNetworkingTests",
                     resources: [
                         .process("TestResources/")
-                    ]),
+                    ])
     ]
 )

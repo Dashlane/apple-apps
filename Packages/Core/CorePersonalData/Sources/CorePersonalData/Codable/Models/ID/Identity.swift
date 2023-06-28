@@ -1,7 +1,6 @@
 import Foundation
 import SwiftTreats
 import DashTypes
-import SwiftTreats
 
 public struct Identity: PersonalDataCodable, Equatable, Identifiable, DatedPersonalData {
     public static let contentType: PersonalDataContentType = .identity
@@ -33,13 +32,13 @@ public struct Identity: PersonalDataCodable, Equatable, Identifiable, DatedPerso
         case japanese
     }
 
-    public enum PersonalTitle : String, Codable, Defaultable, CaseIterable, Identifiable {
+    public enum PersonalTitle: String, Codable, Defaultable, CaseIterable, Identifiable {
         public static let defaultValue: PersonalTitle = .noneOfThese
 
         public var id: String {
             return self.rawValue
         }
-        
+
         case mr = "MR"
         case mrs = "MME"
         case miss = "MLLE"
@@ -90,7 +89,7 @@ public struct Identity: PersonalDataCodable, Equatable, Identifiable, DatedPerso
         creationDatetime = Date()
         _attachments = .init(nil)
     }
-    
+
     init(id: Identifier,
          anonId: String,
          personalTitle: Identity.PersonalTitle,
@@ -126,11 +125,11 @@ public struct Identity: PersonalDataCodable, Equatable, Identifiable, DatedPerso
 
 extension Identity {
     public func validate() throws {
-        if firstName.isEmptyOrWhitespaces() && middleName.isEmptyOrWhitespaces() && lastName.isEmptyOrWhitespaces()  {
+        if firstName.isEmptyOrWhitespaces() && middleName.isEmptyOrWhitespaces() && lastName.isEmptyOrWhitespaces() {
             throw ItemValidationError(invalidProperty: \Identity.firstName)
         }
     }
-    
+
     public mutating func prepareForSaving() {
         if pseudo.isEmpty && !defaultLogin.isEmpty {
             pseudo = defaultLogin
@@ -157,15 +156,15 @@ public extension Identity {
     var displayName: String {
         return  [firstName, middleName, lastName].joinedName()
     }
- 
+
     var displayNameInverted: String {
         return [lastName, middleName, firstName].joinedName()
     }
-    
+
     var displayNameWithoutMiddleName: String {
         return [firstName, lastName].joinedName()
     }
-    
+
     var displayNameWithoutMiddleNameInverted: String {
         return [lastName, firstName].joinedName()
     }
@@ -175,7 +174,7 @@ extension Identity: Displayable {
     public var displayTitle: String {
         return displayName
     }
-    
+
     public var displaySubtitle: String? {
        return defaultLogin
     }
@@ -189,7 +188,7 @@ extension Identity: Displayable {
             .replacingOccurrences(of: " ", with: "")
             .lowercased()
     }
-   
+
     public var gender: Gender? {
         switch personalTitle {
         case .mr:
@@ -198,7 +197,7 @@ extension Identity: Displayable {
             return .female
         case .mx, .noneOfThese:
             return nil
-       
+
         }
     }
 }
@@ -216,7 +215,7 @@ extension CountryCodeNamePair {
     var identityMode: Identity.Mode {
         if ["BE", "CH", "DE", "IT", "NL", "NO", "SE", "AT", "DK", "FR", "LU", "GB", "IE", "BR"].contains(code) {
             return .european
-        }  else if ["MX", "CL", "CO", "ES", "PE", "PT", "AR"].contains(code) {
+        } else if ["MX", "CL", "CO", "ES", "PE", "PT", "AR"].contains(code) {
             return .spanish
         } else if ["JP"].contains(code) {
             return .japanese
@@ -226,9 +225,6 @@ extension CountryCodeNamePair {
     }
 }
 
-
-
-
 public protocol IdentityLinked {
     var linkedIdentity: Identity? { get }
 }
@@ -237,7 +233,7 @@ extension IdentityLinked {
     public var linkedIdentityFullName: String? {
         return  linkedIdentity?.displayName
     }
-    
+
     var linkedIdentitySearchValue: String {
         guard let identity = self.linkedIdentity else {
             return ""

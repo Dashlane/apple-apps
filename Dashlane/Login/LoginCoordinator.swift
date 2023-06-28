@@ -7,6 +7,9 @@ import Logger
 import DashlaneAppKit
 import LoginKit
 import CoreUserTracking
+import SwiftTreats
+import CoreLocalization
+import UIComponents
 
 @MainActor
 class LoginCoordinator: Coordinator {
@@ -26,8 +29,6 @@ class LoginCoordinator: Coordinator {
     let login: Login?
     let loginKitServices: LoginKitServicesContainer
 
-    @Published
-    var staticErrorPublisher: Error?
     var sessionServicesSubscription: AnyCancellable?
 
     init(loginHandler: LoginHandler,
@@ -43,7 +44,7 @@ class LoginCoordinator: Coordinator {
         self.sessionLogger = sessionLogger
         self.login = login
 
-        loginKitServices = appServices.makeLoginKitServicesContainer(logger: appServices.installerLogService.login)
+        loginKitServices = appServices.makeLoginKitServicesContainer()
     }
 
     func start() {
@@ -54,15 +55,16 @@ class LoginCoordinator: Coordinator {
             purchasePlanFlowProvider: PurchasePlanFlowProvider(appServices: appServices),
             sessionActivityReporterProvider: SessionActivityProvider(appActivityReporter: appServices.activityReporter),
             tokenPublisher: appServices.deepLinkingService.tokenPublisher(),
-            versionValidityAlertProvider: VersionValidityAlert.errorAlert()) { [weak self] completion in
+            versionValidityAlertProvider: VersionValidityAlert.errorAlert(),
+            context: .passwordApp) { [weak self] completion in
                 guard let self = self else { return }
                 switch completion {
                 case .logout:
                     self.completion(.logout)
-                case let .localLogin(completion, localLoginHandler):
-                    self.handleLocalLoginCompletion(completion, localLoginHandler: localLoginHandler)
-                case let .remoteLogin(completion, remoteLoginHandler):
-                    self.handleRemoteLoginCompletion(completion, remoteLoginHandler: remoteLoginHandler)
+                case let .localLogin(completion):
+                    self.handleLocalLoginCompletion(completion)
+                case let .remoteLogin(completion):
+                    self.handleRemoteLoginCompletion(completion)
                 case let .ssoAccountCreation(login, info):
                     self.completion(.ssoAccountCreation(login, info))
                 }
@@ -70,42 +72,63 @@ class LoginCoordinator: Coordinator {
         navigator.push(LoginFlow(viewModel: viewModel), barStyle: .transparent, animated: true)
     }
 
-    private func handleLocalLoginCompletion(_ completion: LocalLoginFlowViewModel.Completion,
-                                            localLoginHandler: LocalLoginHandler) {
+    private func handleLocalLoginCompletion(_ completion: LocalLoginFlowViewModel.Completion) {
         switch completion {
         case .logout:
             self.completion(.logout)
-        case let .completed(session, shouldResetMP, shouldRefreshKeychainMasterKey, loginFlowLogInfo):
+        case let .completed(session, shouldResetMP, shouldRefreshKeychainMasterKey, loginFlowLogInfo, isRecoveryLogin, newMasterPassword):
             self.loadSessionServices(using: session,
                                      shouldChangeMasterPassword: shouldResetMP,
                                      shouldRefreshKeychainMasterKey: shouldRefreshKeychainMasterKey,
                                      logInfo: loginFlowLogInfo,
-                                     isFirstLogin: false)
-        case let .migration(migrationMode):
+                                     isFirstLogin: false,
+                                     isRecoveryLogin: isRecoveryLogin,
+                                     newMasterPassword: newMasterPassword)
+        case let .migration(migrationMode, localLoginHandler):
             currentSubCoordinator = self.makeMigrationCoordinator(with: migrationMode,
                                                                   localLoginHandler: localLoginHandler)
             currentSubCoordinator?.start()
         }
     }
 
-    private func handleRemoteLoginCompletion(_ completion: RemoteLoginFlowViewModel.Completion,
-                                             remoteLoginHandler: RemoteLoginHandler) {
+    private func handleRemoteLoginCompletion(_ completion: RemoteLoginFlowViewModel.Completion) {
         switch completion {
         case let .deviceUnlinking(remoteLoginSession, logInfo, remoteLoginHandler, loadActionPublisher):
             loadSession(using: remoteLoginSession,
                         loadActionPublisher: loadActionPublisher,
                         logInfo: logInfo,
                         remoteLoginHandler: remoteLoginHandler)
-        case let .completed(session, logInfo):
-            loadSessionServices(using: session, logInfo: logInfo, isFirstLogin: true)
+        case let .completed(config):
+            loadSessionServices(using: config)
         case let .migrateAccount(migrationInfos, validator):
             migrate(with: migrationInfos, validator: validator)
+        case .logout:
+            self.completion(.logout)
         }
     }
 
     func handle(error: Error) {
         self.sessionLogger.fatal("Failed to load session", error: error)
-        self.completion(.logout)
+        if DiagnosticMode.isEnabled {
+            self.displayErrorAndLogout(error: error)
+        } else {
+            self.completion(.logout)
+        }
+    }
+
+    func displayErrorAndLogout(error: Error) {
+        guard DiagnosticMode.isEnabled else { return }
+        let alert = UIAlertController(title: CoreLocalization.L10n.Core.kwErrorTitle,
+                                      message: error.debugDescription, preferredStyle: .alert)
+        alert.addAction(.init(title: CoreLocalization.L10n.Core.copyError, style: .default, handler: {_ in
+            UIPasteboard.general.string = error.localizedDescription
+            self.completion(.logout)
+        }))
+        alert.addAction(.init(title: CoreLocalization.L10n.Core.kwButtonOk,
+                              style: .default, handler: {_ in
+            self.completion(.logout)
+        }))
+        self.navigator.present(alert, animated: true)
     }
 }
 
@@ -119,19 +142,26 @@ private extension LoginCoordinator {
             guard let self = self else {
                 return
             }
-            if case let .success(response) = result, case let .finished(newSession) = response {
-                sessionServices.unload(reason: .masterPasswordChanged)
-                self.loadSessionServices(using: newSession,
-                                         shouldChangeMasterPassword: false,
-                                         shouldRefreshKeychainMasterKey: false,
-                                         logInfo: .init(loginMode: .masterPassword),
-                                         isFirstLogin: false)
+            switch result {
+            case let .failure(error):
+                self.sessionLogger.fatal("Failed to change master password", error: error)
+                self.handle(error: error)
+            case let .success(response):
+                if case let .finished(newSession) = response {
+                    sessionServices.unload(reason: .masterPasswordChanged)
+                    self.loadSessionServices(using: newSession,
+                                             shouldChangeMasterPassword: false,
+                                             shouldRefreshKeychainMasterKey: false,
+                                             logInfo: .init(loginMode: .masterPassword),
+                                             isFirstLogin: false,
+                                             isRecoveryLogin: false)
+                }
             }
         }
         currentSubCoordinator.start()
     }
 
-    func makeMigrationCoordinator(with mode: LocalLoginFlowViewModel.Completion.MigrationMode,
+        func makeMigrationCoordinator(with mode: LocalLoginFlowViewModel.Completion.MigrationMode,
                                   localLoginHandler: LocalLoginHandler) -> LocalLoginMigrationCoordinator {
         .init(navigator: navigator,
               appServices: appServices,
@@ -148,7 +178,8 @@ private extension LoginCoordinator {
                 case let .session(session):
                     self.loadSessionServices(using: session,
                                              logInfo: .init(loginMode: .masterPassword),
-                                             isFirstLogin: false)
+                                             isFirstLogin: false,
+                                             isRecoveryLogin: false)
                 }
             }
         }
@@ -160,12 +191,14 @@ extension LoginCoordinator {
                              shouldChangeMasterPassword: Bool = false,
                              shouldRefreshKeychainMasterKey: Bool = true,
                              logInfo: LoginFlowLogInfo,
-                             isFirstLogin: Bool) {
+                             isFirstLogin: Bool,
+                             isRecoveryLogin: Bool,
+                             newMasterPassword: String? = nil) {
         sessionServicesSubscription = SessionServicesContainer
             .buildSessionServices(from: session,
                                   appServices: self.appServices,
                                   logger: appServices.rootLogger[.session],
-                                  loadingContext: .localLogin) { [weak self] result in
+                                  loadingContext: .localLogin(isRecoveryLogin)) { [weak self] result in
                 guard let self = self else { return }
                 switch result {
                 case let .success(sessionServices) where shouldChangeMasterPassword:
@@ -175,11 +208,68 @@ extension LoginCoordinator {
                     if shouldRefreshKeychainMasterKey {
                         sessionServices.lockService.secureLockConfigurator.refreshMasterKeyExpiration()
                     }
-                    self.completion(.servicesLoaded(sessionServices))
+                    if isRecoveryLogin, let newMasterPassword = newMasterPassword {
+                        changeMasterPassword(sessionServices: sessionServices, newMasterPassword: newMasterPassword)
+                    } else {
+                        self.completion(.servicesLoaded(sessionServices))
+                    }
                 case let .failure(error):
                     self.handle(error: error)
                 }
             }
+    }
+
+    func loadSessionServices(using config: RemoteLoginConfiguration) {
+        sessionServicesSubscription = SessionServicesContainer
+            .buildSessionServices(from: config.session,
+                                  appServices: self.appServices,
+                                  logger: appServices.rootLogger[.session],
+                                  loadingContext: .remoteLogin(config.isRecoveryLogin)) { [weak self] result in
+                guard let self = self else { return }
+                switch result {
+                case let .success(sessionServices):
+                    sessionServices.activityReporter.logSuccessfulLogin(logInfo: config.logInfo, isFirstLogin: true)
+                    if let pin = config.pinCode {
+                        try? sessionServices.lockService.secureLockConfigurator.enablePinCode(pin)
+                    }
+                    if config.shouldEnableBiometry {
+                        try? sessionServices.lockService.secureLockConfigurator.enableBiometry()
+                    }
+                    if config.isRecoveryLogin, let newMasterPassword = config.newMasterPassword {
+                        changeMasterPassword(sessionServices: sessionServices, newMasterPassword: newMasterPassword)
+                    } else {
+                        self.completion(.servicesLoaded(sessionServices))
+                    }
+                case let .failure(error):
+                    self.handle(error: error)
+                }
+            }
+    }
+
+    func changeMasterPassword(sessionServices: SessionServicesContainer, newMasterPassword: String) {
+        do {
+            let accountCryptoChangerService = try sessionServices.makeAccountCryptoChangerService(newMasterPassword: newMasterPassword)
+            let model = sessionServices.viewModelFactory.makePostARKChangeMasterPasswordViewModel(
+                accountCryptoChangerService: accountCryptoChangerService,
+                completion: { result in
+                    switch result {
+                    case let .finished(session):
+                        sessionServices.unload(reason: .masterPasswordChanged)
+                        self.loadSessionServices(using: session,
+                                                 shouldChangeMasterPassword: false,
+                                                 shouldRefreshKeychainMasterKey: false,
+                                                 logInfo: .init(loginMode: .masterPassword),
+                                                 isFirstLogin: false,
+                                                 isRecoveryLogin: true)
+                    case .cancel:
+                        self.completion(.logout)
+                    }
+                })
+            let view = PostARKChangeMasterPasswordView(model: model)
+            navigator.push(view)
+        } catch {
+            self.handle(error: error)
+        }
     }
 }
 

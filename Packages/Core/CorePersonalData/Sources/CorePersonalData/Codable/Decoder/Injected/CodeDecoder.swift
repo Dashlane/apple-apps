@@ -7,7 +7,7 @@ public enum CodeFormat {
 }
 
 public protocol CodeDecoder {
-        func decodeCode(_ code:  String, for: CodeFormat) throws -> String?
+        func decodeCode(_ code: String, for: CodeFormat) throws -> String?
 }
 
 public struct CodeDecoderMock: CodeDecoder {
@@ -17,7 +17,7 @@ public struct CodeDecoderMock: CodeDecoder {
         self.code = code
     }
 
-    public func decodeCode(_ code:  String, for: CodeFormat) throws -> String? {
+    public func decodeCode(_ code: String, for: CodeFormat) throws -> String? {
         return code
     }
 }

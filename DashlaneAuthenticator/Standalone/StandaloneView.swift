@@ -5,12 +5,13 @@ import Combine
 import StoreKit
 import TOTPGenerator
 import AuthenticatorKit
+import SwiftTreats
 
 enum StandaloneViewSheet: Identifiable {
     case addItem(_ skipIntro: Bool = false)
     case downloadDashlane
     case addItemViaCameraApp(OTPInfo)
-    
+
     var id: String {
         switch self {
         case .addItem:
@@ -24,17 +25,17 @@ enum StandaloneViewSheet: Identifiable {
 }
 
 struct StandaloneView<Content: View>: View {
-    
+
     @StateObject
     var model: StandaloneViewModel
-    
+
     @Binding
     var showAnnouncement: Bool
-    
+
     let announcementContent: () -> Content
-    
+
     let refreshPairingAnnouncement = PassthroughSubject<Void, Never>()
-    
+
     init(model: @autoclosure @escaping () -> StandaloneViewModel,
          showAnnouncement: Binding<Bool>,
          @ViewBuilder announcementContent: @escaping () -> Content) {
@@ -42,9 +43,9 @@ struct StandaloneView<Content: View>: View {
         _showAnnouncement = showAnnouncement
         self.announcementContent = announcementContent
     }
-    
+
     @State var appStoreViewer: AppStoreProductViewer?
-    
+
     var body: some View {
         ZStack {
             if model.codes.isEmpty && model.showOnboarding {
@@ -71,7 +72,7 @@ struct StandaloneView<Content: View>: View {
                             guard !ProcessInfo.isTesting else {
                                 return
                             }
-                            if model.requestRating, let windowScene = UIApplication.shared.windows.first?.windowScene {
+                            if model.requestRating, let windowScene = UIApplication.shared.keyWindowScene {
                                 SKStoreReviewController.requestReview(in: windowScene)
                                 model.didFinishRating()
                             }
@@ -80,7 +81,7 @@ struct StandaloneView<Content: View>: View {
                 }
             }
         }
-        
+
         .modifier(StandaloneViewSheetModifier(displayedSheet: $model.displayedSheet,
                                               makeAddItemRootViewModel: model.makeAddItemRootViewModel,
                                               makeDownloadDashlaneViewModel: model.makeDownloadDashlaneViewModel,
@@ -94,9 +95,9 @@ struct StandaloneView<Content: View>: View {
             }
             model.displayedSheet = .addItemViaCameraApp(OTPInfo(configuration: config))
         }
-        
+
     }
-    
+
     @ViewBuilder
     var announcementDisplayed: some View {
         if self.showAnnouncement {
@@ -111,24 +112,24 @@ struct StandaloneView<Content: View>: View {
                     UIApplication.shared.open(.securitySettings)
                 }
             })
-            
+
         }
     }
 }
 
 private struct StandaloneViewSheetModifier: ViewModifier {
-    
+
     @Binding
     var displayedSheet: StandaloneViewSheet?
-    
+
     @State
-    var appStoreViewer: AppStoreProductViewer? = nil
+    var appStoreViewer: AppStoreProductViewer?
     let makeAddItemRootViewModel: @MainActor (Bool) -> AddItemFlowViewModel
     let makeDownloadDashlaneViewModel: @MainActor (@escaping (AppStoreProductViewer) -> Void) -> DownloadDashlaneViewModel
     let makeAddItemScanCodeFlowViewModel: @MainActor (OTPInfo) -> AddItemScanCodeFlowViewModel
-    
+
     let refreshPairingAnnouncement: PassthroughSubject<Void, Never>
-    
+
     func body(content: Content) -> some View {
         content
             .sheet(item: $displayedSheet,
@@ -140,14 +141,14 @@ private struct StandaloneViewSheetModifier: ViewModifier {
                 case let .addItemViaCameraApp(otpInfo):
                     AddItemScanCodeFlowView(viewModel: makeAddItemScanCodeFlowViewModel(otpInfo))
                 case .downloadDashlane:
-                    DownloadDashlaneView(model: makeDownloadDashlaneViewModel() { page in
+                    DownloadDashlaneView(model: makeDownloadDashlaneViewModel { page in
                         self.appStoreViewer = page
                                                 self.displayedSheet = nil
                     })
                 }
             })
     }
-    
+
     func openAppStoreViewIfPossible() {
         DispatchQueue.main.async {
                         appStoreViewer?.openAppStorePage(dismissed: {

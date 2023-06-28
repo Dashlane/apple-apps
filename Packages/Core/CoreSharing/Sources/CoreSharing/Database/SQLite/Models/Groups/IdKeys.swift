@@ -12,11 +12,11 @@ extension Column {
     static var id: Column {
         return Column(IdKeys.id.rawValue)
     }
-    
+
     static var parentGroupId: Column {
         return Column(IdKeys.parentGroupId.rawValue)
     }
-    
+
     static var itemGroupId: Column {
         return Column(IdKeys.itemGroupId.rawValue)
     }

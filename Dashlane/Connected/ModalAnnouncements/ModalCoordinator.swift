@@ -9,6 +9,7 @@ import UIDelight
 import CoreUserTracking
 import NotificationKit
 
+@MainActor
 class ModalCoordinator: NSObject, SubcoordinatorOwner {
 
     let sessionServices: SessionServicesContainer
@@ -33,10 +34,22 @@ class ModalCoordinator: NSObject, SubcoordinatorOwner {
         configureTriggers()
         configureIdentityBreaches()
         configureDeviceLimitRequest()
+        postAccountRecoveryKeyLogin()
+    }
+
+    func postAccountRecoveryKeyLogin() {
+        guard let navigationController = self.baseWindow.rootViewController, sessionServices.loadingContext.isAccountRecoveryLogin else {
+            return
+        }
+        let view = PostAccountRecoveryLoginFlow(model: self.sessionServices.viewModelFactory.makePostAccountRecoveryLoginFlowModel(authenticationMethod: self.sessionServices.session.authenticationMethod))
+        navigationController.modalPresentationStyle = .fullScreen
+        let viewController = UIHostingController(rootView: view)
+        viewController.isModalInPresentation = true
+        navigationController.present(viewController, animated: false)
     }
 
     func homeTabDidSelect() {
-        presentModals(on: .homeTabSelected)
+        presentModals()
     }
 
     func showSecurityTokenAlert(withToken token: String?) {
@@ -53,12 +66,12 @@ class ModalCoordinator: NSObject, SubcoordinatorOwner {
             .filter { $0 == nil }
             .sink { [weak self] _ in
                 DispatchQueue.main.async {
-                    self?.presentModals(on: .sessionUnlocked)
+                    self?.presentModals()
                 }
             }.store(in: &subscriptions)
     }
 
-    private func presentModals(on trigger: HomeModalAnnouncementTrigger) {
+    private func presentModals() {
         let breaches = sessionServices.identityDashboardService.breachesToPresent
         guard !breaches.isEmpty else { return }
         presentIdentityBreaches(breaches: breaches) { [weak self] presentedBreaches in

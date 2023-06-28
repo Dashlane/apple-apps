@@ -1,13 +1,14 @@
 import Foundation
 import CorePersonalData
 import Combine
-import DashlaneReportKit
 import DashTypes
 import DocumentServices
 import DashlaneAppKit
 import CoreUserTracking
 import CoreSettings
 import VaultKit
+import UIComponents
+import CoreLocalization
 
 class AddressDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting, MockVaultConnectedInjecting {
 
@@ -41,7 +42,6 @@ class AddressDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting,
     let service: DetailService<Address>
 
     let regionInformationService: RegionInformationService
-    let logger: AddressDetailUsageLogger
 
     private var cancellables: Set<AnyCancellable> = []
     private let vaultItemsService: VaultItemsServiceProtocol
@@ -52,8 +52,7 @@ class AddressDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting,
         vaultItemsService: VaultItemsServiceProtocol,
         sharingService: SharedVaultHandling,
         teamSpacesService: TeamSpacesService,
-        usageLogService: UsageLogServiceProtocol,
-        deepLinkService: DeepLinkingServiceProtocol,
+        deepLinkService: VaultKit.DeepLinkingServiceProtocol,
         activityReporter: ActivityReporterProtocol,
         iconViewModelProvider: @escaping (VaultItem) -> VaultItemIconViewModel,
         logger: Logger,
@@ -61,8 +60,8 @@ class AddressDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting,
         regionInformationService: RegionInformationService,
         userSettings: UserSettings,
         documentStorageService: DocumentStorageService,
+        pasteboardService: PasteboardServiceProtocol,
         attachmentSectionFactory: AttachmentsSectionViewModel.Factory,
-        attachmentsListViewModelProvider: @escaping (VaultItem, AnyPublisher<VaultItem, Never>) -> AttachmentsListViewModel,
         dismiss: (() -> Void)? = nil
     ) {
         self.init(
@@ -72,16 +71,15 @@ class AddressDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting,
                 vaultItemsService: vaultItemsService,
                 sharingService: sharingService,
                 teamSpacesService: teamSpacesService,
-                usageLogService: usageLogService,
                 documentStorageService: documentStorageService,
                 deepLinkService: deepLinkService,
                 activityReporter: activityReporter,
                 iconViewModelProvider: iconViewModelProvider,
+                attachmentSectionFactory: attachmentSectionFactory,
                 logger: logger,
                 accessControl: accessControl,
                 userSettings: userSettings,
-                attachmentSectionFactory: attachmentSectionFactory,
-                attachmentsListViewModelProvider: attachmentsListViewModelProvider
+                pasteboardService: pasteboardService
             ),
             regionInformationService: regionInformationService
         )
@@ -94,7 +92,6 @@ class AddressDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting,
         self.service = service
         self.vaultItemsService = service.vaultItemsService
         self.regionInformationService = regionInformationService
-        self.logger = AddressDetailUsageLogger(usageLogService: service.usageLogService)
 
         registerServiceChanges()
         fetchPhone()
@@ -121,12 +118,11 @@ class AddressDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting,
     private func setupName() {
         if mode.isAdding {
             let count = vaultItemsService.addresses.count + 1
-            item.name = "\(L10n.Localizable.kwAddressIOS) \(count)"
+            item.name = "\(CoreLocalization.L10n.Core.kwAddressIOS) \(count)"
         }
     }
 
     func prepareForSaving() throws {
         try service.prepareForSaving()
-        logger.logAddress(item: item)
     }
 }

@@ -2,7 +2,6 @@ import Foundation
 import BrazeKit
 import BrazeUI
 
-
 extension BrazeService: BrazeInAppMessagePresenter {
 
             public func present(message: BrazeKit.Braze.InAppMessage) {

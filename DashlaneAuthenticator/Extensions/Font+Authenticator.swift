@@ -3,11 +3,11 @@ import SwiftUI
 import UIComponents
 
 extension Font {
-    
+
     enum Authenticator {
         case largeTitle
         case mediumTitle
-        
+
         var font: Font {
             switch self {
             case .largeTitle:
@@ -23,7 +23,7 @@ extension Font {
             }
         }
     }
-    
+
     static func authenticator(_ authenticator: Authenticator) -> Font {
         return authenticator.font
     }

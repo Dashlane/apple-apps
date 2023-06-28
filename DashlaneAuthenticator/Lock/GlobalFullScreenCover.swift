@@ -11,7 +11,7 @@ struct GlobalFullScreenCoverLock<Content: View>: UIViewControllerRepresentable {
 
     @Binding
     var lock: Lock?
-    
+
     let content: () -> Content
 
     struct ModalLockSession {
@@ -113,13 +113,13 @@ struct GlobalFullScreenCoverLock<Content: View>: UIViewControllerRepresentable {
 }
 
 extension View {
-  
+
     func globalFullScreen<Content: View>(lock: Binding<Lock?>,
-                                       @ViewBuilder content:  @escaping (Lock?) -> Content) -> some View {
+                                         @ViewBuilder content: @escaping (Lock?) -> Content) -> some View {
         return self.background(GlobalFullScreenCoverLock(lock: lock,
                                                          content: { content(lock.wrappedValue) }))
     }
-    
+
 }
 
 struct GlobalFullScreenCoverLock_Previews: PreviewProvider {

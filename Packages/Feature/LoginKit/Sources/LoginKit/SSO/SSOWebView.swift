@@ -4,13 +4,21 @@ import SwiftTreats
 
 #if canImport(UIKit)
 struct SSOWebView: UIViewRepresentable {
+    typealias SAMLCompletion = ((Result<String, Error>) -> Void)
+    typealias CallBackCompletion = ((Result<URL, Error>) -> Void)
 
     let url: URL
     let injectionScript: String?
-    let didReceiveCallback: Completion<URL>?
-    let didReceiveSAML: Completion<String>?
-    
-    init(url: URL, injectionScript: String? = nil, clearCookies: Bool, didReceiveCallback: Completion<URL>? = nil, didReceiveSAML: Completion<String>? = nil) {
+    let didReceiveCallback: CallBackCompletion?
+    let didReceiveSAML: SAMLCompletion?
+
+    init(
+        url: URL,
+        injectionScript: String? = nil,
+        clearCookies: Bool,
+        didReceiveCallback: CallBackCompletion? = nil,
+        didReceiveSAML: SAMLCompletion? = nil
+    ) {
         self.url = url
         self.injectionScript = injectionScript
         self.didReceiveCallback = didReceiveCallback
@@ -19,16 +27,16 @@ struct SSOWebView: UIViewRepresentable {
           deleteCookies()
         }
     }
-   
+
         func deleteCookies() {
-        URLCache.shared.removeAllCachedResponses()
-        if let cookies = HTTPCookieStorage.shared.cookies {
-            for cookie in cookies {
-                HTTPCookieStorage.shared.deleteCookie(cookie)
-            }
-        }
+        HTTPCookieStorage.shared.removeCookies(since: Date.distantPast)
+           WKWebsiteDataStore.default().fetchDataRecords(ofTypes: WKWebsiteDataStore.allWebsiteDataTypes()) { records in
+               records.forEach { record in
+                   WKWebsiteDataStore.default().removeData(ofTypes: record.dataTypes, for: [record], completionHandler: {})
+               }
+           }
     }
-    
+
     func makeUIView(context: Context) -> WKWebView {
         let userContentController = WKUserContentController()
         let configuration = WKWebViewConfiguration()
@@ -39,7 +47,7 @@ struct SSOWebView: UIViewRepresentable {
             userContentController.add(context.coordinator, name: "didReceiveSAML")
             configuration.userContentController = userContentController
         }
-       
+
         let view = WKWebView(frame: .zero, configuration: configuration)
         let delegate = context.coordinator
         view.navigationDelegate = delegate
@@ -50,7 +58,7 @@ struct SSOWebView: UIViewRepresentable {
     func makeCoordinator() -> Coordinator {
         Coordinator(didReceiveCallback: didReceiveCallback, didReceiveSAML: didReceiveSAML)
     }
-    
+
     func updateUIView(_ uiView: WKWebView, context: Context) {}
 
 }
@@ -61,7 +69,7 @@ struct SSOWebView: NSViewRepresentable {
     let injectionScript: String?
     let didReceiveCallback: Completion<URL>?
     let didReceiveSAML: Completion<String>?
-    
+
     init(url: URL, injectionScript: String? = nil, clearCookies: Bool, didReceiveCallback: Completion<URL>? = nil, didReceiveSAML: Completion<String>? = nil) {
         self.url = url
         self.injectionScript = injectionScript
@@ -76,7 +84,7 @@ struct SSOWebView: NSViewRepresentable {
             }
         }
     }
-    
+
     func makeNSView(context: Context) -> WKWebView {
         let userContentController = WKUserContentController()
         let configuration = WKWebViewConfiguration()
@@ -87,7 +95,7 @@ struct SSOWebView: NSViewRepresentable {
             userContentController.add(context.coordinator, name: "didReceiveSAML")
             configuration.userContentController = userContentController
         }
-       
+
         let view = WKWebView(frame: .zero, configuration: configuration)
         let delegate = context.coordinator
         view.navigationDelegate = delegate
@@ -98,7 +106,7 @@ struct SSOWebView: NSViewRepresentable {
     func makeCoordinator() -> Coordinator {
         Coordinator(didReceiveCallback: didReceiveCallback, didReceiveSAML: didReceiveSAML)
     }
-    
+
     func updateNSView(_ uiView: WKWebView, context: Context) {}
 
 }
@@ -109,36 +117,41 @@ struct SSOWebView: NSViewRepresentable {
 class Coordinator: NSObject, WKScriptMessageHandler, WKNavigationDelegate {
     let didReceiveCallback: Completion<URL>?
     let didReceiveSAML: Completion<String>?
-    
+
     init(didReceiveCallback: Completion<URL>?, didReceiveSAML: Completion<String>?) {
         self.didReceiveCallback = didReceiveCallback
         self.didReceiveSAML = didReceiveSAML
     }
-    
-    func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
-        guard let response = message.body as? String else {
-            return
+
+    nonisolated func userContentController(_ userContentController: WKUserContentController, didReceive message: WKScriptMessage) {
+        Task { @MainActor in
+            guard let response = message.body as? String else {
+                return
+            }
+            didReceiveSAML?(.success(response))
         }
-        didReceiveSAML?(.success(response))
     }
-    
-    func webView(_ webView: WKWebView, didReceiveServerRedirectForProvisionalNavigation navigation: WKNavigation!) {
-        guard let url = webView.url, url.absoluteString.hasPrefix("dashlane") == true else {
-            return
+
+    nonisolated func webView(_ webView: WKWebView, didReceiveServerRedirectForProvisionalNavigation navigation: WKNavigation!) {
+        Task { @MainActor in
+            guard let url = webView.url, url.absoluteString.hasPrefix("dashlane") == true else {
+                return
+            }
+            didReceiveCallback?(.success(url))
         }
-        didReceiveCallback?(.success(url))
     }
-    
-    func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
-        didReceiveSAML?(.failure(error))
-        didReceiveCallback?(.failure(error))
+
+    nonisolated func webView(_ webView: WKWebView, didFail navigation: WKNavigation!, withError error: Error) {
+        Task { @MainActor in   
+            didReceiveSAML?(.failure(error))
+            didReceiveCallback?(.failure(error))
+        }
     }
 
     func webView(_ webView: WKWebView, decidePolicyFor navigationAction: WKNavigationAction) async -> WKNavigationActionPolicy {
         return .allow
     }
 }
-
 
 struct SSOWebView_Previews: PreviewProvider {
     static var previews: some View {

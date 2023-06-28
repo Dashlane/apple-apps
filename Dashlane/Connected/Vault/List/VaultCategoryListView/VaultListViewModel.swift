@@ -1,7 +1,6 @@
 import Foundation
 import Combine
 import CorePersonalData
-import DashlaneReportKit
 import CoreFeature
 import CoreUserTracking
 import DashlaneAppKit
@@ -11,13 +10,13 @@ import DashTypes
 import CoreSharing
 
 enum VaultListCompletion {
-    case enterDetail(VaultItem, UserEvent.SelectVaultItem)
+    case enterDetail(VaultItem, UserEvent.SelectVaultItem, isEditing: Bool)
     case addItem(AddItemFlowViewModel.DisplayMode)
 }
 
 class VaultListViewModel: ObservableObject, SessionServicesInjecting {
     @Published
-    var activeFilter: VaultListFilter {
+    var activeFilter: VaultItemsSection {
         didSet {
             searchViewModel.activeFilter = activeFilter
         }
@@ -34,7 +33,7 @@ class VaultListViewModel: ObservableObject, SessionServicesInjecting {
     private var shouldShowOnboardingChecklist: Bool
 
     init(
-        filter: VaultListFilter,
+        filter: VaultItemsSection,
         activityReporter: ActivityReporterProtocol,
         userSettings: UserSettings,
         searchViewModelFactory: VaultSearchViewModel.Factory,
@@ -76,8 +75,8 @@ extension VaultListViewModel {
         VaultListViewModel(
             filter: .all,
             activityReporter: .fake,
-            userSettings: UserSettings(internalStore: InMemoryLocalSettingsStore()),
-            searchViewModelFactory: .init { _, _ in .mock },
+            userSettings: UserSettings(internalStore: .mock()),
+            searchViewModelFactory: .init { _, _  in .mock },
             completion: { _ in }
         )
     }

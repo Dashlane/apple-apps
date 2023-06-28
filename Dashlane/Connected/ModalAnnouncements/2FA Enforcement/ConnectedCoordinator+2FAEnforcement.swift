@@ -10,19 +10,19 @@ extension ConnectedCoordinator {
 
     func configure2FAEnforcement() {
 
-        guard sessionServices.featureService.isEnabled(.enforce2FA) else {
+        guard sessionServices.featureService.isEnabled(.enforce2FA),
+              sessionServices.session.configuration.info.accountType == .masterPassword else {
             return
         }
 
         let otp2Enabled = sessionServices.session.configuration.info.loginOTPOption != nil
-        let accountAPIClient = AuthenticatedAccountAPIClient(apiClient: sessionServices.userDeviceAPIClient)
         sessionServices.teamSpacesService.$businessTeamsInfo.compactMap {
             $0.availableBusinessTeam?.space
         }
         .removeDuplicates()
         .flatMap { space -> AnyPublisher<Bool, Never> in
             let service = TwoFAEnforcementService(space: space,
-                                                  accountAPIClient: accountAPIClient,
+                                                  userApiClient: self.sessionServices.userDeviceAPIClient,
                                                   otp2Enabled: otp2Enabled)
             return service.shouldPresent2FAEnforcement
         }
@@ -34,7 +34,7 @@ extension ConnectedCoordinator {
                 assertionFailure()
                 return
             }
-            let model = self.sessionServices.viewModelFactory.makeTwoFactorEnforcementViewModel(accountAPIClient: AccountAPIClient(apiClient: self.sessionServices.userDeviceAPIClient)) { [weak self] in
+            let model = self.sessionServices.viewModelFactory.makeTwoFactorEnforcementViewModel { [weak self] in
                 self?.sessionServices.appServices.sessionLifeCycleHandler?.logout(clearAutoLoginData: true)
             }
             let view = TwoFactorEnforcementView(model: model)

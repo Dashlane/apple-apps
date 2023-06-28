@@ -9,13 +9,13 @@ public extension NavigationLink where Label == EmptyView {
             EmptyView()
         }
     }
-    
-        init<Tag>(tag: Tag,  selection: Binding<Tag?>, @ViewBuilder destination: () -> Destination) where Tag: Hashable {
+
+        init<Tag>(tag: Tag, selection: Binding<Tag?>, @ViewBuilder destination: () -> Destination) where Tag: Hashable {
         self.init(destination: destination(), tag: tag, selection: selection) {
             EmptyView()
         }
     }
-    
+
         init<Item, EmbeddedDestination>(item: Binding<Item?>, @ViewBuilder destination: (Item) -> EmbeddedDestination) where Destination == EmbeddedDestination? {
         let binding = Binding<Bool>(get: {
             item.wrappedValue != nil
@@ -33,7 +33,6 @@ public extension NavigationLink where Label == EmptyView {
     }
 }
 
-
 public extension View {
         func navigation<Destination: View>(isActive: Binding<Bool>, @ViewBuilder destination: () -> Destination) -> some View {
         self
@@ -43,8 +42,8 @@ public extension View {
                 .accessibilityHidden(true)
             )
     }
-    
-        func navigation<Tag, Destination>(tag: Tag,  selection: Binding<Tag?>, @ViewBuilder destination: () -> Destination) -> some View where Destination: View, Tag: Hashable {
+
+        func navigation<Tag, Destination>(tag: Tag, selection: Binding<Tag?>, @ViewBuilder destination: () -> Destination) -> some View where Destination: View, Tag: Hashable {
         self
             .background(
                 NavigationLink(tag: tag,
@@ -53,24 +52,24 @@ public extension View {
                 .accessibilityHidden(true)
             )
     }
-    
-        func navigation<Item, Destination>(item: Binding<Item?>, @ViewBuilder destination: (Item) -> Destination) -> some View where Destination: View {
+
+        func navigation<Item, Destination>(item: Binding<Item?>, @ViewBuilder destination: (Item) -> Destination, hidden: Bool = false) -> some View where Destination: View {
         self
             .background(
                 NavigationLink(item: item,
                                destination: destination)
+                .opacity(hidden ? 0.0 : 1.0)
                 .accessibilityHidden(true)
 
             )
     }
 }
 
-
 struct NavigationLinkProgrammaticPush_Previews: PreviewProvider {
     struct IsActiveBindingScreen: View {
         @State
         var isSecondScreenDisplayed: Bool = false
-        
+
         var body: some View {
             NavigationView {
                 Button("Push programatically") {
@@ -83,7 +82,7 @@ struct NavigationLinkProgrammaticPush_Previews: PreviewProvider {
             }
         }
     }
-    
+
     struct SelectionBindingScreen: View {
         enum Step: Hashable {
             case firstStep
@@ -91,7 +90,7 @@ struct NavigationLinkProgrammaticPush_Previews: PreviewProvider {
         }
         @State
         var step: Step? = .firstStep
-        
+
         var body: some View {
             NavigationView {
                 Button("Push programatically") {
@@ -104,11 +103,11 @@ struct NavigationLinkProgrammaticPush_Previews: PreviewProvider {
             }
         }
     }
-    
+
     struct ItemBindingScreen: View {
         @State
-        var text: String? = nil
-        
+        var text: String?
+
         var body: some View {
             NavigationView {
                 Button("Push programatically") {
@@ -121,17 +120,17 @@ struct NavigationLinkProgrammaticPush_Previews: PreviewProvider {
             }
         }
     }
-    
+
     struct SecondScreen: View {
         @Environment(\.dismiss)
         private var dismiss
-        
+
         var body: some View {
             Button("Dismiss", action: dismiss.callAsFunction)
                 .navigationTitle("Second")
         }
     }
-    
+
     static var previews: some View {
         IsActiveBindingScreen()
             .previewDisplayName("Push by boolean binding")

@@ -5,21 +5,21 @@ public struct PersonalDataDecoder {
         struct Options {
         let userInfo: [CodingUserInfoKey: Any]
         let codeDecoder: CodeDecoder?
-        let personalDataURLDecoder: PersonalDataURLDecoder?
+        let personalDataURLDecoder: PersonalDataURLDecoderProtocol?
         let linkedFetcher: LinkedFetcher?
         let metadata: RecordMetadata?
     }
-    
-    public var codeDecoder: CodeDecoder?
-    public var personalDataURLDecoder: PersonalDataURLDecoder?
 
-    public init(codeDecoder:  CodeDecoder? = nil,
-                personalDataURLDecoder: PersonalDataURLDecoder? = nil) {
+    public var codeDecoder: CodeDecoder?
+    public var personalDataURLDecoder: PersonalDataURLDecoderProtocol?
+
+    public init(codeDecoder: CodeDecoder? = nil,
+                personalDataURLDecoder: PersonalDataURLDecoderProtocol? = nil) {
         self.codeDecoder = codeDecoder
         self.personalDataURLDecoder = personalDataURLDecoder
     }
-        
-    public func decode<T>(_ type: T.Type, from value: PersonalDataValue, using linkedFetcher: LinkedFetcher? = nil) throws -> T where T : Decodable {
+
+    public func decode<T>(_ type: T.Type, from value: PersonalDataValue, using linkedFetcher: LinkedFetcher? = nil) throws -> T where T: Decodable {
         let options = Options(userInfo: [:],
                               codeDecoder: codeDecoder,
                               personalDataURLDecoder: personalDataURLDecoder,
@@ -28,8 +28,8 @@ public struct PersonalDataDecoder {
         let decoder = PersonalDataDecoderImpl(value: value, options: options)
         return try T(from: decoder)
     }
-    
-    public func decode<T>(_ type: T.Type, from record: PersonalDataRecord, using linkedFetcher: LinkedFetcher? = nil) throws -> T where T : Decodable {
+
+    public func decode<T>(_ type: T.Type, from record: PersonalDataRecord, using linkedFetcher: LinkedFetcher? = nil) throws -> T where T: Decodable {
         let options = Options(userInfo: [:],
                               codeDecoder: codeDecoder,
                               personalDataURLDecoder: personalDataURLDecoder,
@@ -43,20 +43,20 @@ public struct PersonalDataDecoder {
 struct PersonalDataDecoderImpl: Decoder {
     let value: PersonalDataValue?
     let codingPath: [CodingKey]
-    let userInfo: [CodingUserInfoKey : Any] = [:]
+    let userInfo: [CodingUserInfoKey: Any] = [:]
     let options: PersonalDataDecoder.Options
-    
+
     init(value: PersonalDataValue?, codingPath: [CodingKey] = [], options: PersonalDataDecoder.Options) {
         self.value = value
         self.codingPath = codingPath
         self.options = options
     }
-    
+
     private func makeErrorContext(description: String) -> DecodingError.Context {
         DecodingError.Context(codingPath: self.codingPath, debugDescription: description)
     }
-    
-    func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key : CodingKey {
+
+    func container<Key>(keyedBy type: Key.Type) throws -> KeyedDecodingContainer<Key> where Key: CodingKey {
         switch value {
             case let .collection(collection):
                 let container = KeyedDecodeContainer<Key>(collection: collection,
@@ -68,7 +68,7 @@ struct PersonalDataDecoderImpl: Decoder {
                                                           codingPath: codingPath,
                                                           options: options)
                 return KeyedDecodingContainer(container)
-                
+
             case nil:
                 throw DecodingError.valueNotFound(PersonalDataCollection.self,
                                                   makeErrorContext(description: "Expected to decode \(PersonalDataCollection.self) but found no value instead."))
@@ -76,21 +76,21 @@ struct PersonalDataDecoderImpl: Decoder {
                 throw DecodingError.typeMismatch(PersonalDataCollection.self,
                                                  makeErrorContext(description: "Expected to decode \(PersonalDataCollection.self) but found \(value.debugCoderDescription) instead."))
         }
-        
+
     }
-    
+
     func unkeyedContainer() throws -> UnkeyedDecodingContainer {
         let value = self.value ?? .list([]) 
         guard case let .list(list) = value else {
             throw DecodingError.typeMismatch(PersonalDataList.self,
                                              makeErrorContext(description: "Expected to decode \(PersonalDataList.self) but found \(value.debugCoderDescription) instead."))
         }
-        
+
         return UnkeyedDecodeContainer(list: list,
                                       codingPath: codingPath,
                                       options: options)
     }
-    
+
     func singleValueContainer() throws -> SingleValueDecodingContainer {
         return SingleValueDecodeContainer(decoder: self,
                                           codingPath: codingPath,
@@ -104,31 +104,31 @@ extension PersonalDataDecoderImpl {
         guard case let .item(string) = value else {
             throw DecodingError.typeMismatch(String.self, makeErrorContext(description: "Expected to decode \(String.self) but found \(value.debugCoderDescription) instead."))
         }
-        
+
         return string
     }
-    
+
                 func unwrapNumeric<T: Numeric & LosslessStringConvertible>(_ type: T.Type) throws -> T {
         let value = try unwrapString()
-        
+
         guard !value.isEmpty, let value = T.init(value) else {
             return 0
         }
-        
+
         return value
     }
-    
+
                 func unwrapBool() throws -> Bool {
         let value = try unwrapString()
 
         guard !value.isEmpty else {
             return false
         }
-        
+
         let nsValue = value as NSString 
         return nsValue.boolValue
     }
-    
+
     func unwrapDate() throws -> Date {
         let value = try unwrapString()
 
@@ -136,61 +136,61 @@ extension PersonalDataDecoderImpl {
             throw DecodingError.valueNotFound(PersonalDataCollection.self,
                                               makeErrorContext(description: "Expected to decode \(Date.self) but found no value instead."))
         }
-        
+
         guard let seconds = TimeInterval(value) else {
             throw DecodingError.dataCorrupted(makeErrorContext(description: "Invalid string \(value) for type \(Date.self)."))
         }
-        
+
         return Date(timeIntervalSince1970: seconds)
     }
-    
+
     func unwrapURL() throws -> URL {
         let value = try unwrapString()
 
         guard let url = URL(string: value) else {
             throw DecodingError.dataCorrupted(makeErrorContext(description: "Invalid string for type \(URL.self)."))
         }
-        
+
         return url
     }
-    
+
     func unwrapData() throws -> Data {
         let value = try unwrapString()
 
         guard !value.isEmpty, let data = Data(base64Encoded: value) else {
             throw DecodingError.dataCorrupted(makeErrorContext(description: "Invalid string for type \(Data.self)."))
         }
-        
+
         return data
     }
-    
+
     func unwrapPersonalDataURL() throws -> PersonalDataURL {
         let value = try unwrapString()
 
         guard let decoder = options.personalDataURLDecoder else {
             return PersonalDataURL(rawValue: value)
         }
-        
+
         return try decoder.decodeURL(value)
     }
-    
+
     func unwrapCodeNamePair(using type: CodeNamePair.Type) throws -> CodeNamePair {
         let value = try unwrapString()
-        
+
         guard let decoder = options.codeDecoder,
               let name = try decoder.decodeCode(value, for: type.codeFormat) else {
             return type.init(code: value, name: "")
         }
-        
+
         return type.init(code: value, name: name)
     }
-    
+
     func unwrapLinked<T: PersonalDataCodable>(using type: T.Type) throws -> Linked<T> {
         let rawId = try unwrapString()
         guard !rawId.isEmpty else {
             return Linked(nil)
         }
-        
+
         let identifier = Identifier(rawId)
         if let identity = try options.linkedFetcher?.fetch(with: identifier, type: type) {
             return Linked(identity)
@@ -198,8 +198,8 @@ extension PersonalDataDecoderImpl {
             return Linked(identifier: identifier)
         }
     }
- 
-    func unwrap<T: Decodable>(as type: T.Type) throws -> T {
+
+            func unwrap<T: Decodable>(as type: T.Type) throws -> T {
         if type == Date.self {
             return try self.unwrapDate() as! T
         } else if type == URL.self {
@@ -220,10 +220,6 @@ extension PersonalDataDecoderImpl {
             return try T(from: self)
         } else if type == Linked<Identity>.self {
             return try self.unwrapLinked(using: Identity.self) as! T
-        } else if type == Linked<SecureNoteCategory>.self {
-            return try self.unwrapLinked(using: SecureNoteCategory.self) as! T
-        } else if type == Linked<CredentialCategory>.self {
-            return try self.unwrapLinked(using: CredentialCategory.self) as! T
         } else if type == PersonalDataCollection.self {
             guard case let .collection(collection) = value else {
                 throw DecodingError.typeMismatch(PersonalDataObject.self,
@@ -234,8 +230,7 @@ extension PersonalDataDecoderImpl {
             return try T(from: self)
         }
     }
-    
-    func unwrapOptional<T: Decodable>(as type: T.Type) throws -> T? {
+        func unwrapOptional<T: Decodable>(as type: T.Type) throws -> T? {
         if type is CodeNamePair.Type {
             return try? self.unwrap(as: type) 
         } else {

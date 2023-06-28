@@ -8,17 +8,10 @@ import LocalAuthentication
 import CoreUserTracking
 import DashlaneAppKit
 import LoginKit
+import VaultKit
+import CoreLocalization
 
-protocol AccessControlProtocol {
-    func requestAccess(forReason reason: AccessControlReason) -> AccessControlPublisher
-}
-
-typealias AccessControlPublisher = AnyPublisher<Bool, Never>
-
-enum AccessControlReason {
-    case unlockItem
-    case lockOnExit
-
+extension AccessControlReason {
     var logReason: Definition.Reason {
         switch self {
         case .unlockItem:
@@ -35,28 +28,6 @@ enum AccessControlReason {
         case .lockOnExit:
             return L10n.Localizable.kwLockOnExit
         }
-    }
-}
-
-extension AccessControlProtocol {
-    func requestAccess() -> AccessControlPublisher {
-        return requestAccess(forReason: .unlockItem)
-    }
-
-    func requestAccess(_ completion: @escaping (Bool) -> Void) {
-        requestAccess().sinkOnce(receiveValue: completion)
-    }
-
-    func requestAccess(forReason reason: AccessControlReason,
-                       _ completion: @escaping (Bool) -> Void) {
-        requestAccess(forReason: reason).sinkOnce(receiveValue: completion)
-    }
-}
-
-public struct FakeAccessControl: AccessControlProtocol {
-    let accept: Bool
-    func requestAccess(forReason reason: AccessControlReason) -> AccessControlPublisher {
-        return Just(accept).eraseToAnyPublisher()
     }
 }
 
@@ -125,10 +96,10 @@ class AccessControl: AccessControlViewModelProtocol, AccessControlProtocol {
         switch secureLockMode {
         case .biometry:
             accessMode = makePendingAccessForBiometry(for: reason, fallback: makePendingAccessForMasterPassword(reason: reason))
-        case .pincode(let code, _, _):
-            accessMode = makePendingAccessForPin(code: code, reason: reason)
-        case .biometryAndPincode(_, let code, _, _):
-            accessMode = makePendingAccessForBiometry(for: reason, fallback: makePendingAccessForPin(code: code, reason: reason))
+        case .pincode(let lock):
+            accessMode = makePendingAccessForPin(code: lock.code, reason: reason)
+        case .biometryAndPincode(_, let lock):
+            accessMode = makePendingAccessForBiometry(for: reason, fallback: makePendingAccessForPin(code: lock.code, reason: reason))
         case .masterKey, .rememberMasterPassword:
             accessMode = makePendingAccessForMasterPassword(reason: reason)
         }
@@ -140,7 +111,7 @@ class AccessControl: AccessControlViewModelProtocol, AccessControlProtocol {
         logAskAuthentication(for: .biometric, reason: reason.logReason)
         return .biometry { [weak self] in
                         DispatchQueue.main.async {
-                self?.validateBiometry(forReason: reason, fallbackTitle: fallback.isPin ? L10n.Localizable.enterPasscode : nil) {
+                self?.validateBiometry(forReason: reason, fallbackTitle: fallback.isPin ? CoreLocalization.L10n.Core.enterPasscode : nil) {
                     self?.pendingAccess?.mode = fallback
                 }
             }
@@ -166,7 +137,7 @@ class AccessControl: AccessControlViewModelProtocol, AccessControlProtocol {
     }
 
         func requestAccess(forReason reason: AccessControlReason) -> AccessControlPublisher {
-        guard !teamSpaceService.isSSOUser else {
+        guard session.authenticationMethod.userMasterPassword != nil else {
             return Just(true).eraseToAnyPublisher()
         }
 
@@ -208,7 +179,7 @@ class AccessControl: AccessControlViewModelProtocol, AccessControlProtocol {
     }
 
     private func validateMasterPassword(_ password: String) {
-        guard let masterPassword = self.session.configuration.masterKey.masterPassword, password == masterPassword else {
+        guard let masterPassword = self.session.authenticationMethod.userMasterPassword, password == masterPassword else {
             self.pendingAccess?.error = .wrongMasterPassword
             return
         }

@@ -20,10 +20,10 @@ public struct Infobox: View {
     private var style
 
     var title: String
-    var description: String? = nil
+    var description: String?
     let firstButton: Button<Text>?
     let secondButton: Button<Text>?
-    
+
     public var body: some View {
         VStack(spacing: 16) {
             Label {
@@ -39,7 +39,7 @@ public struct Infobox: View {
             .labelStyle(.titleAndIcon)
             .fiberAccessibilityElement(children: .combine)
             .fiberAccessibilityLabel(Text("\(L10n.Core.accessibilityInfoSection): \(title), \(description ?? "")"))
-            
+
             buttonSection
                 .frame(alignment: .trailing)
         }
@@ -50,7 +50,7 @@ public struct Infobox: View {
         )
         .controlSize(effectiveControlSize)
     }
-    
+
     private var infoIconView: some View {
         Image.ds.feedback.info.outlined
             .renderingMode(.template)
@@ -62,7 +62,7 @@ public struct Infobox: View {
 
     private var titleView: some View {
         Text(title)
-            .font(titleFont)
+            .textStyle(titleTextStyle)
             .fixedSize(horizontal: false, vertical: true)
             .foregroundColor(contentColor)
     }
@@ -71,13 +71,13 @@ public struct Infobox: View {
     private var descriptionView: some View {
         if let description = description {
             Text(description)
-                .font(descriptionFont)
+                .textStyle(.body.reduced.regular)
                 .lineLimit(3)
                 .fixedSize(horizontal: false, vertical: true)
                 .foregroundColor(contentColor)
         }
     }
-    
+
     @ViewBuilder
     private var buttonSection: some View {
         if firstButton != nil {
@@ -183,7 +183,7 @@ struct InfoBox_Previews: PreviewProvider {
                 Button("Secondary Button") {}
             }
             .style(mood: .brand)
-            
+
                         ForEach([ControlSize.regular, .large], id: \.self) { controlSize in
                 Infobox(title: "Title", description: "Description")
                     .controlSize(controlSize)
@@ -255,7 +255,7 @@ public extension Infobox {
             return .ds.text.positive.standard
         }
     }
-    
+
     private var containerBackgroundColor: Color {
         switch style.mood {
         case .neutral:
@@ -273,25 +273,16 @@ public extension Infobox {
 }
 
 extension Infobox {
-    private var titleFont: Font {
+    private var titleTextStyle: TextStyle {
         switch effectiveControlSize {
-        case .mini, .small:
-            return .system(.footnote).weight(.medium)
-        case .large:
-            return .system(.body).weight(.semibold)
-        case .regular:
-            fallthrough
-        @unknown default:
-            return .system(.subheadline).weight(.semibold)
-        }
-    }
-
-    private var descriptionFont: Font {
-        switch effectiveControlSize {
-        case .large:
-            return .system(.subheadline)
-        default:
-            return .system(.footnote)
+            case .mini, .small:
+                return .title.block.small
+            case .large:
+                return .title.block.medium
+            case .regular:
+                fallthrough
+            @unknown default:
+                return .title.block.medium
         }
     }
 }
@@ -328,7 +319,7 @@ public extension Infobox {
     enum ButtonSectionConfiguration {
         case secondaryAndPrimary
         case standaloneSecondaryButton
-        
+
         var shouldShowTwoButtons: Bool {
             switch self {
             case .secondaryAndPrimary:

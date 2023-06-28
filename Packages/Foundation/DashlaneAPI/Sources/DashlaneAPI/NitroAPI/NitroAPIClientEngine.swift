@@ -2,9 +2,9 @@ import Foundation
 
 public protocol NitroAPIClientEngine {
     func post<Response: Decodable, Body: Encodable>(_ endpoint: Endpoint,
-                                                           body: Body) async throws -> Response
+                                                    body: Body) async throws -> Response
     func get<Response: Decodable>(_ endpoint: Endpoint,
-                                         timeout: TimeInterval?) async throws -> Response
+                                  timeout: TimeInterval?) async throws -> Response
 }
 
 public struct NitroAPIClientEngineImp: NitroAPIClientEngine {
@@ -13,13 +13,13 @@ public struct NitroAPIClientEngineImp: NitroAPIClientEngine {
     let encoder = JSONEncoder()
     let environment: NitroEnvironment
     let additionalHeaders: [String: String]
-    
+
     public init(environment: NitroEnvironment = .production, info: APIConfiguration.Info) throws {
         self.session = URLSession(configuration: .ephemeral)
         self.environment = environment
         additionalHeaders = try Self.makeAdditionalHeaders(info: info, environment: environment)
     }
-    
+
     public func post<Response: Decodable, Body: Encodable>(_ endpoint: Endpoint,
                                                            body: Body) async throws -> Response {
         var urlRequest = URLRequest(endpoint: endpoint,
@@ -28,7 +28,7 @@ public struct NitroAPIClientEngineImp: NitroAPIClientEngine {
         try urlRequest.updateBody(body, using: encoder)
         return try await session.response(from: urlRequest, using: decoder)
     }
-    
+
     public func get<Response: Decodable>(_ endpoint: Endpoint,
                                          timeout: TimeInterval?) async throws -> Response {
         let urlRequest = URLRequest(endpoint: endpoint,
@@ -49,11 +49,11 @@ extension NitroAPIClientEngineImp {
             return headers
 #if DEBUG
         case let .staging(info):
-            let cloudFare =  [
-                "CF-Access-Client-Id": info.cloudfareIdentifier,
-                "CF-Access-Client-Secret": info.cloudfareSecret
+            let cloudflare =  [
+                "CF-Access-Client-Id": info.cloudflareIdentifier,
+                "CF-Access-Client-Secret": info.cloudflareSecret
             ]
-            return headers.merging(cloudFare) { left, _ in return left }
+            return headers.merging(cloudflare) { left, _ in return left }
 #endif
         }
     }

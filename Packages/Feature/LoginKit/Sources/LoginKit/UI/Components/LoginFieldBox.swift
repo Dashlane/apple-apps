@@ -10,8 +10,8 @@ public struct LoginFieldBox<Content: View>: View {
     private let backgroundColor: Color
 
     public init(height: CGFloat = 60,
-         backgroundColor: Color = .ds.container.agnostic.neutral.quiet,
-         @ViewBuilder content: () -> Content) {
+                backgroundColor: Color = .ds.container.agnostic.neutral.quiet,
+                @ViewBuilder content: () -> Content) {
         self.content = content()
         self.height = height
         self.backgroundColor = backgroundColor
@@ -22,7 +22,6 @@ public struct LoginFieldBox<Content: View>: View {
             content
         }
         .foregroundColor(.primary)
-        .padding(.horizontal, 20)
         .frame(height: height)
         .background(backgroundColor)
     }

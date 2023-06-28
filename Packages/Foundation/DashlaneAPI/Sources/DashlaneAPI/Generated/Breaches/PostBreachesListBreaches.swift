@@ -1,6 +1,6 @@
 import Foundation
 extension AppAPIClient.Breaches {
-        public struct ListBreaches {
+        public struct ListBreaches: APIRequest {
         public static let endpoint: Endpoint = "/breaches/ListBreaches"
 
         public let api: AppAPIClient
@@ -17,7 +17,13 @@ extension AppAPIClient.Breaches {
 }
 
 extension AppAPIClient.Breaches.ListBreaches {
-        struct Body: Encodable {
+        public struct Body: Encodable {
+
+        private enum CodingKeys: String, CodingKey {
+            case livemode = "livemode"
+            case pageCount = "pageCount"
+            case pageNumber = "pageNumber"
+        }
 
                 public let livemode: Bool
 
@@ -32,9 +38,24 @@ extension AppAPIClient.Breaches.ListBreaches {
 
         public struct DataType: Codable, Equatable {
 
+        private enum CodingKeys: String, CodingKey {
+            case breaches = "breaches"
+        }
+
         public let breaches: [Breaches]?
 
                 public struct Breaches: Codable, Equatable {
+
+            private enum CodingKeys: String, CodingKey {
+                case creationDateUnix = "creationDateUnix"
+                case definition = "definition"
+                case deletionDateUnix = "deletionDateUnix"
+                case id = "id"
+                case livemode = "livemode"
+                case revision = "revision"
+                case updateDateUnix = "updateDateUnix"
+                case uri = "uri"
+            }
 
             public let creationDateUnix: Int
 
@@ -58,6 +79,23 @@ extension AppAPIClient.Breaches.ListBreaches {
                     case _1 = 1
                     case _2 = 2
                     case _3 = 3
+                }
+
+                private enum CodingKeys: String, CodingKey {
+                    case announcedDate = "announcedDate"
+                    case breachModelVersion = "breachModelVersion"
+                    case criticality = "criticality"
+                    case domains = "domains"
+                    case eventDate = "eventDate"
+                    case id = "id"
+                    case leakedData = "leakedData"
+                    case name = "name"
+                    case sensitiveDomain = "sensitiveDomain"
+                    case status = "status"
+                    case template = "template"
+                    case breachCreationDate = "breachCreationDate"
+                    case lastModificationRevision = "lastModificationRevision"
+                    case relatedLinks = "relatedLinks"
                 }
 
                                 public let announcedDate: DateDay

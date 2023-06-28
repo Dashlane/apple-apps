@@ -1,6 +1,6 @@
 import Foundation
 extension AppAPIClient.Time {
-        public struct GetRemoteTime {
+        public struct GetRemoteTime: APIRequest {
         public static let endpoint: Endpoint = "/time/GetRemoteTime"
 
         public let api: AppAPIClient
@@ -16,7 +16,11 @@ extension AppAPIClient.Time {
 }
 
 extension AppAPIClient.Time.GetRemoteTime {
-        struct Body: Encodable {
+        public struct Body: Encodable {
+
+        private enum CodingKeys: String, CodingKey {
+            case tz = "tz"
+        }
 
                 public let tz: String?
     }
@@ -26,6 +30,10 @@ extension AppAPIClient.Time.GetRemoteTime {
     public typealias Response = DataType
 
         public struct DataType: Codable, Equatable {
+
+        private enum CodingKeys: String, CodingKey {
+            case timestamp = "timestamp"
+        }
 
                 public let timestamp: Int
 

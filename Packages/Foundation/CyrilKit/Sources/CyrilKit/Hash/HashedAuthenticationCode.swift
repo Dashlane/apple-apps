@@ -4,22 +4,22 @@ import CommonCrypto
 public struct HashedAuthenticationCodeProducer: AuthenticationCodeProducer {
     public let key: SymmetricKey
     public let variant: HashFunction
-    
+
     public init(key: SymmetricKey, variant: HashFunction) {
         self.key = key
         self.variant = variant
     }
-    
+
         public func authenticationCode(for data: Data) -> Data {
         let hashBytes = UnsafeMutablePointer<UInt8>.allocate(capacity: variant.digestLength)
         defer { hashBytes.deallocate() }
-        
+
         data.withUnsafeBytes { dataBytes -> Void in
             key.withUnsafeBytes { keyBytes -> Void in
                 CCHmac(variant.hmacAlgorithm, keyBytes.baseAddress, key.count, dataBytes.baseAddress, data.count, hashBytes)
             }
         }
-        
+
         return Data(bytes: hashBytes, count: variant.digestLength)
     }
 }

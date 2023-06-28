@@ -8,7 +8,7 @@ extension SKProduct {
         }
         return introductoryPrice.price
     }
-    
+
     public var finalPriceLocale: Locale {
         guard let introductoryPrice = self.introductoryPrice else {
             return self.priceLocale

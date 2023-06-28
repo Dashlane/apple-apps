@@ -10,7 +10,6 @@ final class MiniBrowserPasswordGeneratorCardViewModel: ObservableObject {
     @Published var generatedPassword: String = ""
 
     private var bag = Set<AnyCancellable>()
-    private let usageLogService: DWMLogService
 
     private func compositionOptions(letters: Bool, digits: Bool, symbols: Bool) -> PasswordCompositionOptions {
         var options: PasswordCompositionOptions = []
@@ -29,9 +28,7 @@ final class MiniBrowserPasswordGeneratorCardViewModel: ObservableObject {
         return options
     }
 
-    init(usageLogService: DWMLogService) {
-        self.usageLogService = usageLogService
-
+    init() {
         Publishers.CombineLatest4($passwordGenDigitsEnabled, $passwordGenLettersEnabled, $passwordGenSymbolsEnabled, $passwordLength)
             .map({ digits, letters, symbols, length in
                 self.generatePassword(options: self.compositionOptions(letters: letters, digits: digits, symbols: symbols),
@@ -42,11 +39,11 @@ final class MiniBrowserPasswordGeneratorCardViewModel: ObservableObject {
     }
 
     private func generatePassword(options: PasswordCompositionOptions? = nil, length: Int? = nil) -> String {
-        let defaultCompsitionOptions = compositionOptions(letters: passwordGenLettersEnabled, digits: passwordGenDigitsEnabled, symbols: passwordGenSymbolsEnabled)
+        let defaultCompositionOptions = compositionOptions(letters: passwordGenLettersEnabled, digits: passwordGenDigitsEnabled, symbols: passwordGenSymbolsEnabled)
         let defaultLength = 24
 
         return PasswordGenerator(length: Int(length ?? defaultLength),
-                                 composition: options ?? defaultCompsitionOptions,
+                                 composition: options ?? defaultCompositionOptions,
                                  distinguishable: true).generate()
     }
 
@@ -56,9 +53,5 @@ final class MiniBrowserPasswordGeneratorCardViewModel: ObservableObject {
                                                          digits: passwordGenDigitsEnabled,
                                                          symbols: passwordGenSymbolsEnabled),
                              length: Int(passwordLength))
-    }
-
-    func logDisplay() {
-        usageLogService.log(.passwordGeneratorDisplayed)
     }
 }

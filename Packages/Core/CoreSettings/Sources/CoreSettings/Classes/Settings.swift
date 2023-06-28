@@ -20,9 +20,9 @@ final public class Settings {
         guard metadata.type == T.self else {
             return nil
         }
-        var kvp: KeyValuePair? = nil
+        var kvp: KeyValuePair?
         let context = dataStack.currentThreadContext
-        var kvpValue: Data? = nil
+        var kvpValue: Data?
         var isSecure: Bool = false
         context.performAndWait {
             let request: NSFetchRequest<KeyValuePair> = KeyValuePair.fetchRequest()
@@ -32,16 +32,16 @@ final public class Settings {
             kvpValue = kvp?.value
             isSecure = kvp?.secure ?? false
         }
-        guard let v = kvpValue else {
+        guard let kvpValue else {
             return nil
         }
         if isSecure == true {
-            guard let decrypted = delegate?.decrypt(data: v) else {
+            guard let decrypted = delegate?.decrypt(data: kvpValue) else {
                 return nil
             }
             return T(binaryData: decrypted)
         }
-        return T(binaryData: v)
+        return T(binaryData: kvpValue)
     }
 
         public func set<T: DataConvertible>(value: T?, forIdentifier identifier: String) {
@@ -69,7 +69,7 @@ final public class Settings {
                 guard let value = value else {
                     return
                 }
-                let kvp = results?.first ?? NSEntityDescription.insertNewObject(forEntityName: "KeyValuePair", into: context) as! KeyValuePair
+                                let kvp = results?.first ?? NSEntityDescription.insertNewObject(forEntityName: "KeyValuePair", into: context) as! KeyValuePair
                 kvp.key = identifier
                 if metadata.secure {
                     kvp.value = self.delegate?.encrypt(data: value.binaryData)
@@ -93,11 +93,11 @@ final public class Settings {
         public init(configuration: SettingsConfiguration, logger: Logger) {
         self.configuration = configuration
         self.logger = logger
-        guard let ds = DataStack(modelURL: configuration.modelURL,
+        guard let dataStack = DataStack(modelURL: configuration.modelURL,
                                  storeURL: configuration.storeURL) else {
                                     preconditionFailure("Settings failed to initialize DataStack")
         }
-        self.dataStack = ds
+        self.dataStack = dataStack
     }
 
 }

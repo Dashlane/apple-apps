@@ -25,7 +25,7 @@ class LocalAuthenticationInformationService {
     }
     
     init(session: Session,
-        premiumService: PremiumService,
+         premiumService: PremiumService,
          settings: LocalSettingsStore,
          keychainService: AuthenticationKeychainService) {
         self.session = session
@@ -43,7 +43,7 @@ class LocalAuthenticationInformationService {
             return .pinCode
         } else if userLockSettings[.rememberMasterPassword] == true {
             return .rememberMasterPassword
-        } else if premiumService.status?.isSSOUser() ?? false {
+        } else if case .sso = session.authenticationMethod {
             return .sso
         }
         
@@ -67,7 +67,7 @@ class LocalAuthenticationInformationService {
     }
     
     func isMasterPasswordValid(autofillMasterPassword: String) -> Bool {
-        switch session.configuration.masterKey {
+        switch session.authenticationMethod.sessionKey {
         case let .masterPassword(masterPassword, _):
             if masterPassword == autofillMasterPassword { return true }
                         return HashedMasterPasswordVerification.is(hashedMasterPassword: autofillMasterPassword, equalTo: masterPassword)

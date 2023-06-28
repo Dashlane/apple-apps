@@ -5,13 +5,13 @@ import SwiftTreats
 final public class SettingsManager {
     static let dbName = "Settings"
     static let dbExtension = "sqlite"
-    
+
     static func makeStoreURL(directoryURL: URL) -> URL {
         return directoryURL
             .appendingPathComponent(dbName)
             .appendingPathExtension(dbExtension)
     }
-    
+
     public let logger: Logger
     @Atomic
     private var cachedSettings = [URL: Settings]()
@@ -19,11 +19,9 @@ final public class SettingsManager {
     public var cryptoEngine: CryptoEngine?
 
     public subscript(directoryURL: URL) -> Settings? {
-        get {
-            return cachedSettings[Self.makeStoreURL(directoryURL: directoryURL)]
-        }
+        cachedSettings[Self.makeStoreURL(directoryURL: directoryURL)]
     }
-    
+
     @discardableResult
     public func createSettings(in location: URL) throws -> Settings {
         guard cachedSettings[location] == nil else {
@@ -56,17 +54,17 @@ final public class SettingsManager {
         do {
             let storePath = settings.configuration.storeURL.path
             try FileManager.default.removeItem(atPath: storePath)
-            
+
                         let walStorePath = storePath + "-wal"
             try? FileManager.default.removeItem(atPath: walStorePath)
-            
+
             let shmStorePath = storePath + "-shm"
             try? FileManager.default.removeItem(atPath: shmStorePath)
         } catch {
             throw SettingsError.fileSystemErrorAt(path: "\(settings.configuration.storeURL)")
         }
     }
-  
+
         public init(logger: Logger) {
         self.logger = logger
     }
@@ -81,5 +79,5 @@ extension SettingsManager: SettingsDelegate {
     public func decrypt(data: Data) -> Data? {
         return cryptoEngine?.decrypt(data: data)
     }
-    
+
 }

@@ -4,11 +4,13 @@ public struct DeviceHardware {
     public static var name: String = {
                 #if targetEnvironment(macCatalyst) || os(macOS)
         return ioServiceName ?? ""
+#elseif targetEnvironment(simulator)
+        return simulatorModel
 #else
         return utsnameName
 #endif
     }()
-    
+
     private static var utsnameName: String {
         var systemInfo = utsname()
         uname(&systemInfo)
@@ -19,7 +21,13 @@ public struct DeviceHardware {
         }
         return identifier
     }
-    
+
+#if targetEnvironment(simulator)
+    private static var simulatorModel: String {
+        return ProcessInfo().environment["SIMULATOR_MODEL_IDENTIFIER"] ?? ""
+    }
+#endif
+
 #if targetEnvironment(macCatalyst) || os(macOS)
     private static var ioServiceName: String? {
         let service = IOServiceGetMatchingService(kIOMainPortDefault,
@@ -27,11 +35,11 @@ public struct DeviceHardware {
         guard service > 0 else {
             return nil
         }
-        
+
         defer {
             IOObjectRelease(service)
         }
-        
+
         guard let modelData = IORegistryEntryCreateCFProperty(service, "model" as CFString, kCFAllocatorDefault, 0).takeRetainedValue() as? Data,
               let modelIdentifier = String(data: modelData, encoding: .utf8)?.cString(using: .utf8) else {
                   return nil

@@ -3,26 +3,26 @@ import Combine
 
 @MainActor
 class AuthenticationPushViewModel: ObservableObject {
-    
+
     enum PushError {
         case expired
         case unknown
     }
-    
+
     enum Action {
         case accept
         case reject
     }
-    
+
     let notificationService: NotificationServiceProtocol
     let request: AuthenticationRequest
     let completion: (Action?) -> Void
-    
+
     @Published
-    var pushError: PushError? = nil
+    var pushError: PushError?
 
     var shouldDismiss = false
-    
+
     init(notificationService: NotificationServiceProtocol,
          request: AuthenticationRequest,
          completion: @escaping (Action?) -> Void) {
@@ -30,7 +30,7 @@ class AuthenticationPushViewModel: ObservableObject {
         self.request = request
         self.completion = completion
     }
-    
+
     func accept() {
         Task {
             do {
@@ -42,7 +42,7 @@ class AuthenticationPushViewModel: ObservableObject {
             }
         }
     }
-    
+
     func reject() {
         Task {
             do {

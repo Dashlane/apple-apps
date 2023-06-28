@@ -5,6 +5,8 @@ import DashlaneAppKit
 import SwiftTreats
 import SwiftUI
 import PremiumKit
+import VaultKit
+import UIComponents
 
 extension ConnectedCoordinator {
 
@@ -27,50 +29,46 @@ extension ConnectedCoordinator {
                                 tabBarVC: TabSelectable,
                                 splitVC: UISplitViewController) {
         switch deepLink {
-        case .prefilledCredential(let password):
-            tabBarVC.selectTab(ConnectedCoordinator.Tab.home, coordinator: nil)
-            self.sessionCoordinatorsContainer.homeCoordinator().createCredential(using: password)
+        case .prefilledCredential:
+            tabBarVC.selectTab(ConnectedCoordinator.Tab.home)
         case let .vault(vaultDeepLink):
             handleVaultDeeplink(vaultDeepLink, tabBarVC: tabBarVC)
-        case .tool(let toolDeeplink, let origin):
+        case .tool(let toolDeeplink, _):
             switch toolDeeplink {
             case .otherTool(.generator), .otherTool(.history):
-                tabBarVC.selectTab(.passwordGenerator, coordinator: nil)
+                tabBarVC.selectTab(.passwordGenerator)
                 return
             default: break
             }
 
-            guard let toolsCoordinator = self.sessionCoordinatorsContainer.toolsCoordinator(for: toolDeeplink, and: currentNavigationStyle) else {
-                tabBarVC.selectTab(ConnectedCoordinator.Tab.tools, coordinator: nil)
+            guard let toolsFlow = self.sessionFlowsContainer.toolsFlow(for: toolDeeplink, and: currentNavigationStyle) else {
+                tabBarVC.selectTab(ConnectedCoordinator.Tab.tools)
                 return
             }
-            tabBarVC.selectTab(ConnectedCoordinator.Tab.tools, coordinator: toolsCoordinator.coordinator)
-            toolsCoordinator.coordinator.handleDeepLink(toolDeeplink, origin: origin)
-        case .search(let query):
-            tabBarVC.selectTab(ConnectedCoordinator.Tab.home, coordinator: nil)
-            self.sessionCoordinatorsContainer.homeCoordinator().displaySearch(for: query)
+            tabBarVC.selectTab(ConnectedCoordinator.Tab.tools, flow: toolsFlow.flow)
+        case .search:
+            tabBarVC.selectTab(ConnectedCoordinator.Tab.home)
         case .settings:
             if Device.isIpadOrMac {
-                self.presentSettings()
+                self.presentSettingsFromSidebar()
             } else {
-                tabBarVC.selectTab(ConnectedCoordinator.Tab.settings, coordinator: nil)
+                tabBarVC.selectTab(ConnectedCoordinator.Tab.settings)
             }
         case .other(let otherDeeplink, let origin):
             switch otherDeeplink {
             case .contacts, .sharing:
                 guard !Device.isIpadOrMac else {
-                    tabBarVC.selectTab(.contacts, coordinator: nil)
+                    tabBarVC.selectTab(.contacts)
                     return
                 }
-                guard let toolsCoordinator = self.sessionCoordinatorsContainer.toolsCoordinator(for: .otherTool(.contacts), and: currentNavigationStyle) else {
-                    tabBarVC.selectTab(.tools, coordinator: nil)
+                guard let toolsFlow = self.sessionFlowsContainer.toolsFlow(for: .otherTool(.contacts), and: currentNavigationStyle) else {
+                    tabBarVC.selectTab(.tools)
                     return
                 }
-                tabBarVC.selectTab(ConnectedCoordinator.Tab.tools, coordinator: toolsCoordinator.coordinator)
-                toolsCoordinator.coordinator.handleDeepLink(.otherTool(.contacts), origin: origin)
+                tabBarVC.selectTab(ConnectedCoordinator.Tab.tools, flow: toolsFlow.flow)
             case .dashboard:
-                tabBarVC.selectTab(ConnectedCoordinator.Tab.home, coordinator: nil)
-                        case .devices: break
+                tabBarVC.selectTab(ConnectedCoordinator.Tab.home)
+            case .devices: break
             case .gettingStarted: break
             case .getPremium:
                 showPremium(with: .list)
@@ -88,37 +86,32 @@ extension ConnectedCoordinator {
         case let .token(token):
             modalCoordinator.showSecurityTokenAlert(withToken: token)
                     case .userNotConnected: break
-        case .importMethod(let importMethod):
-            tabBarVC.selectTab(ConnectedCoordinator.Tab.home, coordinator: nil)
-            self.sessionCoordinatorsContainer.homeCoordinator().presentImport(for: importMethod)
-        case .notifications(let category):
-            guard let notificationsCoordinator = self.sessionCoordinatorsContainer.notificationsCoordinator() else { return }
-            tabBarVC.selectTab(.notifications, coordinator: notificationsCoordinator)
-            if let category = category {
-                notificationsCoordinator.display(category: category)
-            }
+        case .importMethod:
+            tabBarVC.selectTab(ConnectedCoordinator.Tab.home)
+        case .notifications:
+            tabBarVC.selectTab(.notifications, flow: sessionFlowsContainer.notificationsFlow())
+        case let .mplessLogin(qrcode):
+            tabBarVC.selectTab(ConnectedCoordinator.Tab.settings)
+            showMpLess(withQRCode: qrcode)
         }
     }
 
     private func handleVaultDeeplink(_ vaultDeepLink: VaultDeeplink, tabBarVC: TabSelectable) {
         guard Device.isIpadOrMac else {
-                        tabBarVC.selectTab(ConnectedCoordinator.Tab.home, coordinator: nil)
-            sessionCoordinatorsContainer.homeCoordinator().handle(vaultDeepLink)
+                        tabBarVC.selectTab(ConnectedCoordinator.Tab.home)
             return
         }
 
-        guard let (_, vaultCoordinator) = self.sessionCoordinatorsContainer.vaultCoordinator(for: vaultDeepLink, and: currentNavigationStyle) else {
-            tabBarVC.selectTab(ConnectedCoordinator.Tab.home, coordinator: nil)
-            sessionCoordinatorsContainer.homeCoordinator().handle(vaultDeepLink)
+        guard let (_, vaultFlow) = self.sessionFlowsContainer.vaultFlow(for: vaultDeepLink, and: currentNavigationStyle) else {
+            tabBarVC.selectTab(ConnectedCoordinator.Tab.home)
             return
         }
 
-        if vaultCoordinator.shouldShowHomeSection(for: vaultDeepLink) {
-            tabBarVC.selectTab(ConnectedCoordinator.Tab.home, coordinator: nil)
+        if vaultDeepLink.shouldShowHomeSection {
+            tabBarVC.selectTab(ConnectedCoordinator.Tab.home)
         } else {
-            tabBarVC.selectTab(ConnectedCoordinator.Tab.vault, coordinator: vaultCoordinator)
+            tabBarVC.selectTab(ConnectedCoordinator.Tab.vault, flow: vaultFlow)
         }
-        vaultCoordinator.handle(vaultDeepLink)
     }
 
         private func showM2W(origin: String? = nil) {
@@ -154,10 +147,35 @@ extension ConnectedCoordinator {
         navigator.push(planPurchaseFlowView, barStyle: .transparent(), animated: false)
         parentViewController.present(navigator, animated: true)
     }
+
+    func showMpLess(withQRCode qrcode: String) {
+        guard let parentViewController = window.rootViewController?.topVisibleViewController else {
+            fatalError("Can't find parentViewController")
+        }
+        let navigator = DashlaneNavigationController()
+        let addNewDeviceView = AddNewDeviceView(model: self.sessionServices.viewModelFactory.makeAddNewDeviceViewModel(qrCodeViaSystemCamera: qrcode))
+        navigator.push(addNewDeviceView, barStyle: .transparent(), animated: false)
+        parentViewController.present(UIHostingController(rootView: addNewDeviceView), animated: true)
+    }
 }
 
 extension UITabBarController: TabSelectable {
-    func selectTab(_ tab: ConnectedCoordinator.Tab, coordinator: TabCoordinator?) {
+    func selectTab(_ tab: ConnectedCoordinator.Tab, flow: any TabFlow) {
         selectedIndex = tab.tabBarIndexValue
+    }
+
+    func selectTab(_ tab: ConnectedCoordinator.Tab) {
+        selectedIndex = tab.tabBarIndexValue
+    }
+}
+
+private extension VaultDeeplink {
+    var shouldShowHomeSection: Bool {
+        switch self {
+        case let .list(category):
+            return category == nil
+        case .fetchAndShow, .show, .create:
+            return false
+        }
     }
 }

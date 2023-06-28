@@ -10,6 +10,9 @@ extension VaultFlowViewModel {
         func createCredential(using password: GeneratedPassword) {
         showAddItemMenuView(displayMode: .prefilledPassword(password))
     }
+    var title: String {
+        mode.title
+    }
 
     func canHandle(deepLink: VaultDeeplink) -> Bool {
         if mode.isShowingAllItems {
@@ -49,6 +52,9 @@ extension VaultFlowViewModel {
                 origin: origin
             )
         case let .create(component):
+            guard showAddItemFlow == false else {
+                return
+            }
             if component.isCategory {
                 if let category = component.category {
                     showAddItemMenuView(displayMode: .categoryDetail(category))
@@ -56,19 +62,6 @@ extension VaultFlowViewModel {
             } else {
                 showAddItemMenuView(displayMode: .itemType(component.type))
             }
-        }
-    }
-
-    func shouldShowHomeSection(for deepLink: VaultDeeplink) -> Bool {
-        switch deepLink {
-        case let .list(category):
-            return category == nil
-        case .fetchAndShow:
-            return false
-        case .show:
-            return false
-        case .create:
-            return false
         }
     }
 
@@ -85,7 +78,7 @@ extension VaultFlowViewModel {
                         self.steps.removeLast(self.steps.count - 1)
 
             if case let .allItems(homeViewModel) = self.mode {
-                homeViewModel.vaultListViewModel.activeFilter = category?.vaultListFilter ?? .all
+                homeViewModel.vaultListViewModel.activeFilter = category?.section ?? .all
             }
         }
     }
@@ -135,6 +128,17 @@ private extension VaultItemsService {
                 return try? fetch(with: Identifier(rawIdentifier), type: FiscalInformation.self)
             default:
                 return nil
+        }
+    }
+}
+
+fileprivate extension VaultFlowViewModel.Mode {
+    var title: String {
+        switch self {
+        case .allItems:
+            return L10n.Localizable.recentTitle
+        case .category(let category):
+            return category.title
         }
     }
 }

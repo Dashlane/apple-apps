@@ -13,7 +13,7 @@ internal enum PreviousPlanType: Decodable {
 }
 
 extension PreviousPlanType {
-    
+
     public init(from decoder: Decoder) throws {
         let container =  try decoder.singleValueContainer()
         do {

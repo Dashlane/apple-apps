@@ -9,20 +9,13 @@ public class MiniBrowserHelpCardViewModel: ObservableObject {
     let password: String
     let domain: String
 
-    private let usageLogService: DWMLogService
-
-    init(email: String, password: String, domain: String, usageLogService: DWMLogService) {
+    init(email: String, password: String, domain: String) {
         self.email = email
         self.password = password
         self.domain = domain
-        self.usageLogService = usageLogService
     }
 
     func showHideInstructions() {
         shouldShowDetailedInstructions.toggle()
-
-        if shouldShowDetailedInstructions == true {
-            usageLogService.log(.miniBrowserInstructionsDisplayed)
-        }
     }
 }

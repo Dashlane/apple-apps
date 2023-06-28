@@ -3,6 +3,7 @@ import CoreSharing
 import VaultKit
 import DashTypes
 import Combine
+import CorePersonalData
 
 @MainActor
 class SharingItemsUserDetailViewModel: ObservableObject, SessionServicesInjecting {
@@ -22,6 +23,7 @@ class SharingItemsUserDetailViewModel: ObservableObject, SessionServicesInjectin
     private let sharingService: SharingServiceProtocol
     private let teamSpacesService: TeamSpacesService
     private let vaultIconViewModelFactory: VaultItemIconViewModel.Factory
+    private let detailViewFactory: DetailView.Factory
     let gravatarIconViewModelFactory: GravatarIconViewModel.SecondFactory
 
     init(user: SharingItemsUser,
@@ -29,9 +31,11 @@ class SharingItemsUserDetailViewModel: ObservableObject, SessionServicesInjectin
          itemsProvider: SharingToolItemsProvider,
          vaultIconViewModelFactory: VaultItemIconViewModel.Factory,
          gravatarIconViewModelFactory: GravatarIconViewModel.SecondFactory,
+         detailViewFactory: DetailView.Factory,
          teamSpacesService: TeamSpacesService,
          sharingService: SharingServiceProtocol) {
         self.vaultIconViewModelFactory = vaultIconViewModelFactory
+        self.detailViewFactory = detailViewFactory
         self.gravatarIconViewModelFactory = gravatarIconViewModelFactory
         self.teamSpacesService = teamSpacesService
         self.sharingService = sharingService
@@ -96,10 +100,15 @@ class SharingItemsUserDetailViewModel: ObservableObject, SessionServicesInjectin
                                           vaultIconViewModelFactory: vaultIconViewModelFactory,
                                           teamSpacesService: teamSpacesService)
     }
+
+    func detailView(for item: SharedVaultItemInfo<User>) -> DetailView {
+        detailViewFactory.make(itemDetailViewType: .viewing(item.vaultItem))
+    }
  }
 
-extension SharingItemsUserDetailViewModel {
+ extension SharingItemsUserDetailViewModel {
     static func mock(user: SharingItemsUser,
+                     item: VaultItem,
                      itemsProvider: SharingToolItemsProvider,
                      vaultIconViewModelFactory: VaultItemIconViewModel.Factory = .init { .mock(item: $0) },
                      gravatarIconViewModelFactory: GravatarIconViewModel.SecondFactory = .init { .mock(email: $0) },
@@ -110,8 +119,9 @@ extension SharingItemsUserDetailViewModel {
                                         itemsProvider: itemsProvider,
                                         vaultIconViewModelFactory: vaultIconViewModelFactory,
                                         gravatarIconViewModelFactory: gravatarIconViewModelFactory,
+                                        detailViewFactory: .init { _, _ in .mock(item: item) },
                                         teamSpacesService: teamSpacesService,
                                         sharingService: sharingService)
     }
 
-}
+ }

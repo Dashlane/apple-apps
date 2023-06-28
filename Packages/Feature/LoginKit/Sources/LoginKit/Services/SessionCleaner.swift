@@ -32,3 +32,9 @@ public struct SessionCleaner {
         try? keychainService.removeMasterKey(for: login)
     }
 }
+
+extension SessionCleaner {
+    static var mock: SessionCleaner {
+       return SessionCleaner(keychainService: .fake, sessionsContainer: FakeSessionsContainer(), logger: LoggerMock())
+    }
+}

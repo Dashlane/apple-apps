@@ -1,5 +1,7 @@
 import SwiftUI
 import SwiftTreats
+import LoginKit
+import CoreLocalization
 
 struct SecureLockNotificationRowView: View {
     @ObservedObject
@@ -9,12 +11,11 @@ struct SecureLockNotificationRowView: View {
         BaseNotificationRowView(icon: model.notification.icon,
                                 title: model.notification.title,
                                 description: model.notification.description,
-                                reportClick: model.notification.notificationActionHandler.reportClick,
                                 onTap: model.didTapOnEnableSecureLock)
             .alert(isPresented: $model.presentMPStoredInKeychainAlert) {
                 Alert(title: Text(presentMPStoredInKeychainAlertTitle),
-                      primaryButton: .default(Text(L10n.Localizable.kwButtonOk), action: model.enableSecureLock),
-                      secondaryButton: .cancel(Text(L10n.Localizable.cancel)))
+                      primaryButton: .default(Text(CoreLocalization.L10n.Core.kwButtonOk), action: model.enableSecureLock),
+                      secondaryButton: .cancel(Text(CoreLocalization.L10n.Core.cancel)))
             }
             .overFullScreen(isPresented: $model.choosePinCode) {
                 PinCodeSelection(model: model.pinCodeViewModel())

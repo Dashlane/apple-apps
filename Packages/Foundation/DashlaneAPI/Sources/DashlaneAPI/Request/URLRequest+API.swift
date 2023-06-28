@@ -16,7 +16,6 @@ extension URLRequest {
         setHeaders(configuration.additionalHeaders)
     }
 
-
     mutating func setHeaders(_ headers: [String: String]) {
         for header in headers {
             setValue(header.value, forHTTPHeaderField: header.key)
@@ -42,7 +41,6 @@ extension URLRequest {
         setValue(String(httpBody?.count ?? 0), forHTTPHeaderField: "Content-Length")
     }
 }
-
 
 extension URL {
             var hostWithPort: String? {

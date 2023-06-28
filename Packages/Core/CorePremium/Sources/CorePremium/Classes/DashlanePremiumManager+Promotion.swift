@@ -3,7 +3,7 @@ import Foundation
 import StoreKit
 
 extension DashlanePremiumManager {
-    
+
             internal func updateStoreProductVisibility() {
         guard let offers = self.currentSession?.offers else {
             return

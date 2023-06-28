@@ -21,7 +21,7 @@ private struct TabBarHider: UIViewControllerRepresentable {
                 guard let tabBarController = self?.tabBarController else { return }
                 tabBarController.tabBar.alpha = 0
             },
-            completion: { [weak self] context in
+            completion: { [weak self] _ in
                 guard let self = self, let tabBarController = self.tabBarController else { return }
                 tabBarController.tabBar.isHidden = true
                 self.updateSafeArea(with: tabBarController)

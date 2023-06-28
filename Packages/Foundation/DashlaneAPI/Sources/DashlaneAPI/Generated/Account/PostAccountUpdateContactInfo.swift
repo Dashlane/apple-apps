@@ -1,6 +1,6 @@
 import Foundation
 extension UserDeviceAPIClient.Account {
-        public struct UpdateContactInfo {
+        public struct UpdateContactInfo: APIRequest {
         public static let endpoint: Endpoint = "/account/UpdateContactInfo"
 
         public let api: UserDeviceAPIClient
@@ -8,6 +8,10 @@ extension UserDeviceAPIClient.Account {
                 @discardableResult
         public func callAsFunction(contactEmail: String? = nil, contactPhone: String? = nil, country: String? = nil, language: String? = nil, osCountry: String? = nil, osLanguage: String? = nil, timeout: TimeInterval? = nil) async throws -> Response {
             let body = Body(contactEmail: contactEmail, contactPhone: contactPhone, country: country, language: language, osCountry: osCountry, osLanguage: osLanguage)
+            return try await api.post(Self.endpoint, body: body, timeout: timeout)
+        }
+
+        public func callAsFunction(_ body: Body, timeout: TimeInterval? = nil) async throws -> Response {
             return try await api.post(Self.endpoint, body: body, timeout: timeout)
         }
     }
@@ -18,7 +22,16 @@ extension UserDeviceAPIClient.Account {
 }
 
 extension UserDeviceAPIClient.Account.UpdateContactInfo {
-        struct Body: Encodable {
+        public struct Body: Encodable {
+
+        private enum CodingKeys: String, CodingKey {
+            case contactEmail = "contactEmail"
+            case contactPhone = "contactPhone"
+            case country = "country"
+            case language = "language"
+            case osCountry = "osCountry"
+            case osLanguage = "osLanguage"
+        }
 
                 public let contactEmail: String?
 

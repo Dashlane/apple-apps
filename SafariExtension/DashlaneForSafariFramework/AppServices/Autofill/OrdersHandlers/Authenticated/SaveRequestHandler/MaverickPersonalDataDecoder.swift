@@ -3,6 +3,7 @@ import CorePersonalData
 import DashTypes
 import CoreRegion
 import DashlaneAppKit
+import VaultKit
 
 protocol MaverickPersonalDataDecoder {
     associatedtype MaverickObject: Decodable
@@ -82,17 +83,6 @@ extension Credential: MaverickPersonalDataDecoder {
         spaceId = maverickObject.SpaceId
         url = PersonalDataURL(rawValue: maverickObject.Url)
         password = maverickObject.Password
-
-        if !maverickObject.Category.isEmpty {
-            if let category = vaultItemsService.credentialCategories.first(where: { $0.name == maverickObject.Category }) {
-                self.category = category
-            } else {
-                var newCategory = CredentialCategory()
-                newCategory.name = maverickObject.Category
-                _ = try? vaultItemsService.save(newCategory)
-                self.category = newCategory
-            }
-        }
 
         isProtected = maverickObject.AutoProtected
         email = maverickObject.Email

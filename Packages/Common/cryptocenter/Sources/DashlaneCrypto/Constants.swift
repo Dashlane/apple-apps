@@ -193,7 +193,7 @@ struct RSAKeyConstants {
 }
 
 enum RSAError: Error {
-    case KeyPairGeneration
+    case keyPairGeneration
 }
 
 struct ConfigurationLength {

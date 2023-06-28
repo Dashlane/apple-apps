@@ -8,7 +8,7 @@ import DashTypes
 
 @MainActor
 class AddItemScanCodeFlowViewModel: ObservableObject, AuthenticatorServicesInjecting, AuthenticatorMockInjecting {
-    
+
     enum Step {
         case scanCode(ScanQRCodeViewModel)
         case enterCodeManually(AddItemManuallyFlowViewModel)
@@ -17,24 +17,24 @@ class AddItemScanCodeFlowViewModel: ObservableObject, AuthenticatorServicesInjec
         case preview(TokenRowViewModel, () -> Void)
         case dashlane2FAMessage(OTPInfo)
     }
-    
+
     @Published var steps: [Step] = []
-    
+
     @Published
     var showSuccess = false
-    
+
     let databaseService: AuthenticatorDatabaseServiceProtocol
     private let mode: AddItemMode
     private let logger: Logger
     private let didCreate: (OTPInfo, Definition.OtpAdditionMode) -> Void
-    
+
     let dismissPublisher = PassthroughSubject<Void, Never>()
     private let otpInfo: OTPInfo?
     private let tokenRowViewModelFactory: TokenRowViewModel.Factory
     private let matchingCredentialListViewModelFactory: MatchingCredentialListViewModel.Factory
     private let addManuallyViewModelFactory: AddItemManuallyFlowViewModel.Factory
     let isFirstToken: Bool
-    
+
     init(otpInfo: OTPInfo? = nil,
          databaseService: AuthenticatorDatabaseServiceProtocol,
          tokenRowViewModelFactory: TokenRowViewModel.Factory,
@@ -43,7 +43,7 @@ class AddItemScanCodeFlowViewModel: ObservableObject, AuthenticatorServicesInjec
          mode: AddItemMode,
          logger: Logger,
          isFirstToken: Bool,
-         didCreate : @escaping (OTPInfo, Definition.OtpAdditionMode) -> Void) {
+         didCreate: @escaping (OTPInfo, Definition.OtpAdditionMode) -> Void) {
         self.otpInfo = otpInfo
         self.tokenRowViewModelFactory = tokenRowViewModelFactory
         self.matchingCredentialListViewModelFactory = matchingCredentialListViewModelFactory
@@ -53,7 +53,7 @@ class AddItemScanCodeFlowViewModel: ObservableObject, AuthenticatorServicesInjec
         self.logger = logger
         self.didCreate = didCreate
         self.isFirstToken = isFirstToken
-        
+
         Task {
             if let otpInfo = otpInfo {
                 await start(with: otpInfo)
@@ -63,7 +63,7 @@ class AddItemScanCodeFlowViewModel: ObservableObject, AuthenticatorServicesInjec
             assert(!steps.isEmpty)
         }
     }
-    
+
     private func start() async {
         let viewModel = ScanQRCodeViewModel(logger: logger) { [weak self] otpInfo in
             guard let self = self else { return }
@@ -83,7 +83,7 @@ class AddItemScanCodeFlowViewModel: ObservableObject, AuthenticatorServicesInjec
             await handleOTPInfo(otpInfo)
         }
     }
-    
+
     func handleDashlaneOTPInfo(_ otpInfo: OTPInfo) {
                 self.save(otpInfo)
         self.steps.append(.preview(self.tokenRowViewModelFactory.make(token: otpInfo), {
@@ -94,10 +94,10 @@ class AddItemScanCodeFlowViewModel: ObservableObject, AuthenticatorServicesInjec
             }
         }))
     }
-    
+
     func handleOTPInfo(_ otpInfo: OTPInfo) async {
         let matchingAction = await self.mode.matchingAction(forWebsite: otpInfo.configuration.issuerOrTitle)
-    
+
         switch matchingAction {
         case .notNeeded:
                         self.save(otpInfo)
@@ -120,7 +120,7 @@ class AddItemScanCodeFlowViewModel: ObservableObject, AuthenticatorServicesInjec
             self.updateStepToMatchingCredentialSelection(for: otpInfo, matchingCredentials: matchingCredentials, provider: provider)
         }
     }
-    
+
     private func save(_ otpInfo: OTPInfo) {
         do {
             try self.databaseService.add([otpInfo])
@@ -128,19 +128,19 @@ class AddItemScanCodeFlowViewModel: ObservableObject, AuthenticatorServicesInjec
             self.steps.append(.failedToAddItem(otpInfo.configuration.issuerOrTitle))
         }
     }
-     
+
     func complete(_ otpInfo: OTPInfo, mode: Definition.OtpAdditionMode) {
         self.didCreate(otpInfo, mode)
     }
-    
+
     private func updateStepToMatchingCredentialSelection(for otpInfo: OTPInfo, matchingCredentials: [Credential], provider: SessionCredentialsProvider) {
         let viewModel = matchingCredentialListViewModelFactory.make(website: otpInfo.configuration.issuerOrTitle, matchingCredentials: matchingCredentials) { action in
-   
+
             self.matchingCredentialsSaveAfterSelection(otpInfo: otpInfo, provider: provider, userAction: action, mode: .qrCode)
         }
         self.steps.append(.credentialsMatchingWebsite(viewModel))
     }
-    
+
     func matchingCredentialsSaveAfterSelection(otpInfo: OTPInfo,
                                                provider: SessionCredentialsProvider,
                                                userAction: MatchingCredentialListViewModel.Completion,
@@ -159,14 +159,14 @@ class AddItemScanCodeFlowViewModel: ObservableObject, AuthenticatorServicesInjec
             self.steps.append(.failedToAddItem(otpInfo.configuration.issuerOrTitle))
         }
     }
-    
+
             func startManuallyChooseWebsite() {
         let viewModel = addManuallyViewModelFactory.make(mode: mode, isFirstToken: isFirstToken, didCreate: { [weak self] in
             self?.complete($0, mode: $1)
-        }) 
+        })
         self.steps.append(.enterCodeManually(viewModel))
     }
-    
+
         func resetFlow() {
         while steps.count > 1 {
             _ = steps.popLast()

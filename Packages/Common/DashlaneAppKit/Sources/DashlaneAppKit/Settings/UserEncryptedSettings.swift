@@ -2,18 +2,17 @@ import Foundation
 import Combine
 import DashTypes
 import CoreSettings
-import struct DashTypes.Login
 
 public enum UserEncryptedSettingsKey: String, CaseIterable, LocalSettingsKey {
         case teamSpaces = "KW_USER_TEAM_SPACES"
         case premiumStatusData = "premiumStatusData"
         case receiptHash = "receiptHash"
         case autofillData = "autofillData"
-    
+
     public var identifier: String {
         return rawValue
     }
-    
+
     public var type: Any.Type {
         switch self {
         case .teamSpaces:
@@ -22,7 +21,7 @@ public enum UserEncryptedSettingsKey: String, CaseIterable, LocalSettingsKey {
             return Data.self
         }
     }
-    
+
     public var isEncrypted: Bool {
         return true
     }

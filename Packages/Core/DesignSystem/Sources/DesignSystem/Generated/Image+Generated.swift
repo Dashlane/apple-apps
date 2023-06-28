@@ -35,11 +35,8 @@ extension Image {
             public enum more {
                 public static let outlined = Image("action/more/outlined")
             }
-            public enum moreAndroid {
-                public static let outlined = Image("action/more-android/outlined")
-            }
-            public enum moreApple {
-                public static let outlined = Image("action/more-apple/outlined")
+            public enum moreEmphasized {
+                public static let outlined = Image("action/more-emphasized/outlined")
             }
             public enum openExternalLink {
                 public static let outlined = Image("action/open-external-link/outlined")
@@ -281,14 +278,17 @@ extension Image {
             public static let filled = Image("lock/filled")
             public static let outlined = Image("lock/outlined")
         }
-        public enum logout {
-            public static let outlined = Image("logout/outlined")
+        public enum logOut {
+            public static let outlined = Image("log-out/outlined")
         }
         public enum menu {
             public static let outlined = Image("menu/outlined")
         }
         public enum muteAutofill {
             public static let outlined = Image("mute-autofill/outlined")
+        }
+        public enum noNetwork {
+            public static let outlined = Image("no-network/outlined")
         }
         public enum notification {
             public static let filled = Image("notification/filled")
@@ -315,6 +315,37 @@ extension Image {
         public enum shared {
             public static let filled = Image("shared/filled")
             public static let outlined = Image("shared/outlined")
+        }
+        public enum shortcut {
+            public enum command {
+                public static let outlined = Image("shortcut/command/outlined")
+            }
+            public enum optionAlt {
+                public static let outlined = Image("shortcut/option-alt/outlined")
+            }
+            public enum shift {
+                public static let outlined = Image("shortcut/shift/outlined")
+            }
+        }
+        public enum social {
+            public enum facebook {
+                public static let filled = Image("social/facebook/filled")
+            }
+            public enum instagram {
+                public static let filled = Image("social/instagram/filled")
+            }
+            public enum linkedin {
+                public static let filled = Image("social/linkedin/filled")
+            }
+            public enum reddit {
+                public static let filled = Image("social/reddit/filled")
+            }
+            public enum twitter {
+                public static let filled = Image("social/twitter/filled")
+            }
+            public enum youtube {
+                public static let filled = Image("social/youtube/filled")
+            }
         }
         public enum spaces {
             public enum all {

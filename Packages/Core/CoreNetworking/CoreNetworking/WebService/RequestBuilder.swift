@@ -5,7 +5,7 @@ import DashlaneAPI
 public enum ParameterValue {
     case simple(value: Encodable)
     case file(name: String, content: Data)
-    
+
     var value: Encodable {
         switch self {
         case let .simple(value):
@@ -17,7 +17,7 @@ public enum ParameterValue {
 }
 
 public struct Request {
-    
+
     public enum HTTPMethod: String {
         case get = "GET"
         case post = "POST"
@@ -25,12 +25,12 @@ public struct Request {
         case update = "UPDATE"
         case delete = "DELETE"
         case patch = "PATCH"
-    
+
     }
-    
+
     public enum ContentFormat {
         case json, queryString, multipart
-        
+
         var contentType: String {
             switch self {
             case .queryString:
@@ -42,11 +42,11 @@ public struct Request {
             }
         }
     }
-    
+
     struct Constants {
         static let dataCompressionThreshold = 860
     }
-    
+
     public let request: URLRequest
     public let params: [String: ParameterValue]
     public let needsAuthentication: Bool
@@ -54,8 +54,8 @@ public struct Request {
     public let keyOrder: [String]
     public let multipartBoundary: String
 
-    private var _postData: Data? = nil
-    
+    private var _postData: Data?
+
     init(request: URLRequest,
          params: [String: ParameterValue],
          needsAuthentication: Bool,
@@ -71,13 +71,12 @@ public struct Request {
         self.keyOrder = keyOrder
         self.multipartBoundary = multipartBoundary
     }
-    
+
     public func authenticated(using authentication: LegacyWebServiceImpl.Authentication,
-                              serverConfiguration: LegacyWebServiceImpl.Configuration) -> Request
-    {
+                              serverConfiguration: LegacyWebServiceImpl.Configuration) -> Request {
         var request = self.request
         var params = self.params
-        
+
         if needsAuthentication {
             params[RequestKey.login] = .simple(value: authentication.login)
             params[RequestKey.uki] = .simple(value: authentication.uki)
@@ -93,9 +92,8 @@ public struct Request {
                        postData: self._postData,
                        multipartBoundary: multipartBoundary)
     }
-    
-    public func nonAuthenticated(serverConfiguration: LegacyWebServiceImpl.Configuration) -> Request
-    {
+
+    public func nonAuthenticated(serverConfiguration: LegacyWebServiceImpl.Configuration) -> Request {
         var request = self.request
         let params = self.params
         request.addValue(UserAgent(platform: serverConfiguration.platform).description, forHTTPHeaderField: "User-Agent")
@@ -110,7 +108,7 @@ public struct Request {
                        keyOrder: self.keyOrder,
                        multipartBoundary: multipartBoundary)
     }
-    
+
     private func buildURLRequest() -> URLRequest {
         var request = self.request
         request.httpBody = self.postData
@@ -124,19 +122,18 @@ public struct Request {
         request.setValue(contentType, forHTTPHeaderField: "Content-Type")
         return request
     }
-    
-    
+
     public var urlRequest: URLRequest {
-        
+
         var request = self.buildURLRequest()
-        
+
                 if contentFormat != .multipart,
             let httpBody = request.httpBody,
             httpBody.count > Constants.dataCompressionThreshold {
             request.httpBody = httpBody.gzipCompressed()
             request.setValue("gzip", forHTTPHeaderField: "Content-Encoding")
         }
-        
+
         let postLength = (request.httpBody?.count) ?? 0
         request.setValue("\(postLength)", forHTTPHeaderField: "Content-Length")
         request.cachePolicy = .reloadIgnoringCacheData
@@ -146,7 +143,7 @@ public struct Request {
     public mutating func setPostData(_ data: Data?) {
         self._postData = data
     }
-    
+
     private func multipartFileEntry(boundary: String, fieldName: String, filename: String, data: Data) -> Data {
         return """
             --\(multipartBoundary)\r
@@ -165,7 +162,7 @@ public struct Request {
             """.data(using: .utf8)!
 
     }
-    
+
     private func multipartPostData(fromParams params: [String: ParameterValue]) -> Data {
         let multipartParams = params.reduce(into: [String: Data](), { result, next in
             switch next.value {
@@ -202,7 +199,7 @@ public struct Request {
                 + multipartEnd
         }
     }
-    
+
     private func jsonPostData(fromParams params: [String: ParameterValue]) -> Data? {
 
         guard self.request.httpMethod != HTTPMethod.get.rawValue else {
@@ -212,7 +209,7 @@ public struct Request {
         let encodableDic = params.mapValues { $0.value }.mapValues(EncodableWrapper.init)
         return try? JSONEncoder().encode(encodableDic)
     }
-    
+
     private func queryStringPostData(fromParams params: [String: ParameterValue]) -> Data? {
         let sortedParams = params.sorted { $0.key < $1.key }
 		return sortedParams.compactMap { pair in
@@ -224,10 +221,10 @@ public struct Request {
             }.joined(separator: "&").data(using: .utf8)
 
     }
-    
+
     public var postData: Data? {
         if let data = _postData { return data }
-        
+
         switch contentFormat {
         case .multipart:
             return multipartPostData(fromParams: params)
@@ -240,7 +237,7 @@ public struct Request {
 }
 
 public struct RequestBuilder {
-    
+
     let request: URLRequest
     let params: [String: ParameterValue]
     let needsAuthentication: Bool
@@ -258,7 +255,7 @@ public struct RequestBuilder {
                               keyOrder: keyOrder,
                               multipartBoundary: multipartBoundary)
     }
-    
+
     public func addParameterAsJsonString(key: String, value: Any) -> RequestBuilder {
         guard let jsonData = try? JSONSerialization.data(withJSONObject: value, options: []) else {
             preconditionFailure("Cannot create JSON from value")
@@ -268,7 +265,7 @@ public struct RequestBuilder {
         }
         return addParameter(key: key, value: jsonString)
     }
-    
+
     public func addFile(key: String, filename: String, fileContent: Data) -> RequestBuilder {
         var params = self.params
         params[key] = .file(name: filename, content: fileContent)
@@ -279,7 +276,7 @@ public struct RequestBuilder {
                               keyOrder: keyOrder,
                               multipartBoundary: multipartBoundary)
     }
-    
+
     public func addParameters(_ extra: [String: Encodable]) -> RequestBuilder {
         var params = self.params
         for (key, value) in extra {
@@ -292,7 +289,7 @@ public struct RequestBuilder {
                               keyOrder: keyOrder,
                               multipartBoundary: multipartBoundary)
     }
-    
+
     public func setNeedsAuthentication() -> RequestBuilder {
         return RequestBuilder(request: request,
                               params: params,
@@ -301,7 +298,7 @@ public struct RequestBuilder {
                               keyOrder: keyOrder,
                               multipartBoundary: multipartBoundary)
     }
-    
+
     public func build() -> Request {
         return Request(request: request,
                               params: params,
@@ -310,7 +307,7 @@ public struct RequestBuilder {
                               keyOrder: keyOrder,
                               multipartBoundary: multipartBoundary)
     }
-    
+
 }
 
 extension RequestBuilder {
@@ -326,8 +323,8 @@ extension RequestBuilder {
                 timeout: TimeInterval? = nil) {
 
         let base = serverConfiguration.environment.apiLegacyURL
-        
-        var components = URLComponents(string:path) ?? URLComponents()
+
+        var components = URLComponents(string: path) ?? URLComponents()
         components.scheme = components.scheme ?? base.scheme
         components.host = components.host ?? base.host
         components.port = components.port ?? base.port
@@ -346,18 +343,16 @@ extension RequestBuilder {
     }
 }
 
-
 private struct EncodableWrapper: Encodable {
     let value: Encodable
     init(_ value: Encodable) {
         self.value = value
     }
-    
+
     func encode(to encoder: Encoder) throws {
         return try value.encode(to: encoder)
     }
 }
-
 
 extension URL {
             var hostWithPort: String? {

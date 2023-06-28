@@ -28,7 +28,7 @@ extension Timestamp: Codable {
 }
 
 extension Timestamp: Comparable {
-    public static func < (lhs:  Timestamp, rhs: Timestamp) -> Bool {
+    public static func < (lhs: Timestamp, rhs: Timestamp) -> Bool {
         return lhs.rawValue < rhs.rawValue
     }
 }
@@ -47,10 +47,9 @@ public extension Timestamp {
     }
 }
 
-
 public extension Timestamp {
     init(timeInterval: TimeInterval) {
-        self.init(UInt64((timeInterval * 1000).rounded()))
+        self.init(timeInterval.milliseconds)
     }
 
     init(date: Date) {
@@ -89,7 +88,7 @@ public extension TimestampByIds {
             .forEach {
                 timestampByIds[Identifier($0.key)] = $0.value
             }
-        
+
         self = timestampByIds
     }
 }
@@ -97,9 +96,21 @@ public extension TimestampByIds {
 public struct TimestampIdPair: Equatable, Hashable {
     public let id: Identifier
     public let timestamp: Timestamp
-    
+
     public init(id: Identifier, timestamp: Timestamp) {
         self.id = id
         self.timestamp = timestamp
+    }
+}
+
+public extension Timestamp {
+    var millisecondsSince1970: UInt64 {
+        self.date.timeIntervalSince1970.milliseconds
+    }
+}
+
+private extension TimeInterval {
+    var milliseconds: UInt64 {
+        UInt64((self * 1000.0).rounded())
     }
 }

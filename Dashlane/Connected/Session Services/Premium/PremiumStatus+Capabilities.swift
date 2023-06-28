@@ -20,3 +20,19 @@ extension PremiumService {
         }.eraseToAnyPublisher()
     }
 }
+
+extension PremiumService: CapabilityServiceProtocol {
+    public func capabilitiesPublisher() -> any Publisher<StatusCapabilitySet, Never> {
+        $status.compactMap(\.?.capabilities)
+    }
+
+    public func statePublisher(of capability: CapabilityKey) -> any Publisher<CapabilityState, Never> {
+        return $status.map { status in
+            status?.capabilities.state(of: capability) ?? .available()
+        }
+    }
+
+    public func state(of capability: CapabilityKey) -> CapabilityState {
+        status?.capabilities.state(of: capability) ?? .available()
+    }
+}

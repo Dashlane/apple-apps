@@ -4,51 +4,23 @@ import DashTypes
 enum GuidedOnboardingViewModelCompletion {
     case nextStep(GuidedOnboardingSurveyStep?)
     case previousStep
+    case skip
 }
 
-protocol GuidedOnboardingViewModelProtocol: ObservableObject {
-    var onboardingFAQService: OnboardingFAQService { get }
-    var step: GuidedOnboardingSurveyStep { get }
-    var answers: [GuidedOnboardingAnswerViewModel] { get }
-    var hasSelectedAnswer: Bool { get set }
-    var showNextButton: Bool { get set }
-    var showAltActionButton: Bool { get set }
-    var altActionTitle: String { get set }
-    var canGoBackToPreviousQuestion: Bool { get }
-    var selectedAnswer: GuidedOnboardingAnswer? { get }
-    var stepNumberingDetails: (totalSteps: Int, currentStepIndex: Int)? { get }
+class GuidedOnboardingViewModel: ObservableObject, SessionServicesInjecting {
 
-    func selectAnswer(_ answer: GuidedOnboardingAnswer?)
-    func goToNextStep()
-    func goToPreviousStep()
-    func faqSectionShown()
-    func faqQuestionSelected(_ question: OnboardingFAQ)
-}
-
-class GuidedOnboardingViewModel: GuidedOnboardingViewModelProtocol, SessionServicesInjecting {
+    let step: GuidedOnboardingSurveyStep
+    let answers: [GuidedOnboardingAnswer]
+    let onboardingFAQService = OnboardingFAQService()
     private let guidedOnboardingService: GuidedOnboardingService
     private let dwmOnboardingService: DWMOnboardingService
-    let onboardingFAQService = OnboardingFAQService()
     private let completion: ((GuidedOnboardingViewModelCompletion) -> Void)?
-    let step: GuidedOnboardingSurveyStep
-    let answers: [GuidedOnboardingAnswerViewModel]
-    let logService: GuidedOnboardingLogsService
 
     @Published
-    var hasSelectedAnswer: Bool = false
-    @Published
-    var showNextButton: Bool = false
-    @Published
-    var showAltActionButton: Bool = false
-    @Published
-    var altActionTitle: String = ""
+    var selectedAnswer: GuidedOnboardingAnswer?
 
     var canGoBackToPreviousQuestion: Bool {
         guidedOnboardingService.atLeastOneQuestionHasBeenAnswered
-    }
-
-    var selectedAnswer: GuidedOnboardingAnswer? {
-        guidedOnboardingService.selectedAnswer(forQuestion: step.question)
     }
 
     var stepNumberingDetails: (totalSteps: Int, currentStepIndex: Int)? {
@@ -68,29 +40,20 @@ class GuidedOnboardingViewModel: GuidedOnboardingViewModelProtocol, SessionServi
     init(guidedOnboardingService: GuidedOnboardingService,
          dwmOnboardingService: DWMOnboardingService,
          step: GuidedOnboardingSurveyStep,
-         logService: UsageLogServiceProtocol,
          completion: ((GuidedOnboardingViewModelCompletion) -> Void)?) {
         self.guidedOnboardingService = guidedOnboardingService
         self.dwmOnboardingService = dwmOnboardingService
         self.step = step
-        self.logService = logService.guidedOnboardingLogsService
         self.completion = completion
-        self.answers = step.answers.map { GuidedOnboardingAnswerViewModel(content: $0) }
+        self.answers = step.answers
     }
 
     func selectAnswer(_ answer: GuidedOnboardingAnswer?) {
-        if let answer = answer {
-            logService.log(.selected(answer: answer))
-        }
-
+        selectedAnswer = answer
         guidedOnboardingService.selectAnswer(answer, forQuestion: step.question)
     }
 
     func goToNextStep() {
-        if let answer = selectedAnswer {
-            logService.log(.continueAfterSelectingAnswer(answer: answer, question: step.question))
-        }
-
         completion?(.nextStep(guidedOnboardingService.currentStep()))
     }
 
@@ -98,11 +61,7 @@ class GuidedOnboardingViewModel: GuidedOnboardingViewModelProtocol, SessionServi
         completion?(.previousStep)
     }
 
-    func faqSectionShown() {
-        logService.log(.faqSectionDisplayed)
-    }
-
-    func faqQuestionSelected(_ question: OnboardingFAQ) {
-        logService.log(.faqItemSelected(item: question))
+    func skip() {
+        completion?(.skip)
     }
 }

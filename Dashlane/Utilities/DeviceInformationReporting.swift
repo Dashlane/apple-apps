@@ -6,6 +6,7 @@ import DashlaneAppKit
 import SwiftTreats
 import LoginKit
 import CoreSettings
+import AutofillKit
 
 class DeviceInformationReporting {
     private let service: DeviceInfoService

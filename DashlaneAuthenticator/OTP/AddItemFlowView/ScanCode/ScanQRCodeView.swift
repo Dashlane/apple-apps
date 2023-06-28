@@ -1,12 +1,13 @@
 import SwiftUI
 import UIDelight
 import DashTypes
+import LoginKit
 
 struct ScanQRCodeView: View {
 
     @Environment(\.dismiss)
     private var dismiss
-    
+
     @State
     private var scale: CGFloat = 1
 
@@ -15,14 +16,14 @@ struct ScanQRCodeView: View {
 
     @StateObject
     var model: ScanQRCodeViewModel
-    
+
     let showManualEntryView: () -> Void
-    
+
     init(model: ScanQRCodeViewModel, showManualEntryView: @escaping () -> Void) {
         self._model = .init(wrappedValue: model)
         self.showManualEntryView = showManualEntryView
     }
-    
+
     var body: some View {
        mainView
             .navigation(isActive: $model.presentError) {
@@ -59,12 +60,11 @@ struct ScanQRCodeView: View {
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .navigationBarTitleDisplayMode(.inline)
         .navigationTitle(.init(L10n.Localizable.addOtpFlowScanCodeCta))
-        .hiddenNavigationTitle()
         .navigationBarStyle(.transparent(tintColor: .white, titleColor: .clear))
         .background(Color.black)
         .ignoresSafeArea(.all, edges: .all)
     }
-    
+
     private func cameraAlert() -> Alert {
         Alert(title: Text(L10n.Localizable.enableCameraAlertTitle),
               message: Text(L10n.InfoPlist.nsCameraUsageDescription),
@@ -75,11 +75,11 @@ struct ScanQRCodeView: View {
     }
 
     private func openSetting() {
-        UIApplication.shared.openSettings() { _ in
+        UIApplication.shared.openSettings { _ in
             dismiss()
         }
     }
-    
+
     var errorView: some View {
         FeedbackView(title: L10n.Localizable.qrcodeErrorTitle,
                      message: L10n.Localizable.qrcodeErrorSubtitle,

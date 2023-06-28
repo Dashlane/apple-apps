@@ -1,3 +1,4 @@
+import DesignSystem
 import SwiftUI
 import UIDelight
 
@@ -8,44 +9,36 @@ struct OnboardingFAQItemView: View {
     @State
     var showDetails = false
 
-    enum Completion {
-        case opened(_ question: OnboardingFAQ)
-    }
-
-    var completion: ((Completion) -> Void)?
-
     var body: some View {
         HStack(alignment: .top) {
             VStack(alignment: .leading, spacing: 16.0) {
                 Text(question.title)
                     .font(.system(size: 17.0))
                     .fixedSize(horizontal: false, vertical: true)
+                    .foregroundColor(.ds.text.neutral.standard)
 
                 Text(question.description)
                     .font(.system(size: 15.0))
                     .fixedSize(horizontal: false, vertical: true)
+                    .foregroundColor(.ds.text.neutral.quiet)
                     .hidden(!showDetails)
             }
 
             Spacer()
 
             VStack(alignment: .trailing) {
-                Image(asset: FiberAsset.arrowUp)
+                Image.ds.caretUp.outlined
                     .rotationEffect(.degrees(showDetails ? 0.0 : 180.0), anchor: .center)
-                    .colorMultiply(Color(asset: FiberAsset.onboardingSecondaryText))
-            }.offset(y: 7.0)
+                    .colorMultiply(.ds.text.neutral.quiet)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(16.0)
-        .background(Color(asset: FiberAsset.listBackground))
+        .background(Color.ds.container.expressive.neutral.quiet.idle)
         .cornerRadius(4.0)
         .onTapGesture {
             withAnimation(.spring()) {
                 self.showDetails.toggle()
-            }
-
-            if self.showDetails {
-                self.completion?(.opened(self.question))
             }
         }
     }

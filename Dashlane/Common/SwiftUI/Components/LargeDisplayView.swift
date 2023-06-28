@@ -42,7 +42,7 @@ extension Array where Element == Text {
     func joined() -> Text {
         var text: Text = Text("")
         self.forEach {
-           text =  text + $0
+            text =  text + $0
         }
         return text
     }

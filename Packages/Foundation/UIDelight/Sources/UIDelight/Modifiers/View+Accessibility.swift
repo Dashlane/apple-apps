@@ -7,9 +7,9 @@ import UIKit
 
 public extension View {
 
-                @ViewBuilder
+                    @ViewBuilder
     func fiberAccessibilityLabel(_ label: Text) -> some View {
-        if ProcessInfo.isTesting {
+                if ProcessInfo.isTesting {
             self
         } else {
             self.accessibilityLabel(label)

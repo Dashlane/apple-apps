@@ -35,24 +35,24 @@ public actor PasswordHealthAnalyzer {
                     (request, await self.compute(for: request))
                 }
             }
-            
+
             var data: [Request: PasswordHealthResult] = [:]
             for await taskResult in taskGroup {
                 data[taskResult.request] = taskResult.result
             }
-            
+
             return data
         }
-        
+
         return requestsResult
     }
-    
+
     func compute(for request: Request) async -> PasswordHealthResult {
         let result = await compute(for: request.filter)
         guard request.sensitiveOnly || request.spaceId != nil else {
             return result
         }
-        
+
         return await requestCache.value(for: request) {
             Task.detached(priority: .userInitiated) {
                 var result = result
@@ -61,7 +61,7 @@ public actor PasswordHealthAnalyzer {
             }
         }
     }
-    
+
     func compute(for filter: Request.Filter) async -> PasswordHealthResult {
         let credentials = await credentialsCache.credentials(for: filter)
         let services = PasswordHealthAnalyzerServices(passwordsSimilarityOperation: passwordsSimilarityOperation)
@@ -163,32 +163,32 @@ extension PasswordHealthAnalyzer {
 
                 let requests = requestFilters.map { Request(filtering: $0, spaceID: request.spaceId, sensitiveOnly: false) }
         let requestsImportant = requestFilters.map { Request(filtering: $0, spaceID: request.spaceId, sensitiveOnly: true) }
-        
+
         let credentialsCachedCredentials: [SecurityDashboardCredential] = await credentialsCache.credentials(for: .compromised)
         let results = await self.compute(for: requests + requestsImportant)
         var credentials = credentialsCachedCredentials
         if let spaceId = request.spaceId {
             credentials = credentials.filter {  $0.spaceId == spaceId }
         }
-        
+
         let allReport = PasswordHealthReport.ComputeReport(credentials: credentials,
                                                               requests: requests,
                                                               results: results)
-        
+
         let importantCredentials = credentials.filter { $0.sensitiveDomain }
         let importantReport = PasswordHealthReport.ComputeReport(credentials: importantCredentials,
                                                                     requests: requestsImportant,
                                                                     results: results)
-        
+
         let score: Int?
         if allReport.totalCount >= PasswordHealthAnalyzer.scoreMinimumNumberOfCredentials {
             score = Int(round(request.score(forCorruptedCount: allReport.corruptedCount, importantCorruptedCount: importantReport.corruptedCount, total: allReport.totalCount)))
         } else {
             score = nil
         }
-        
+
         let report = PasswordHealthReport(score: score, allCredentialsReport: allReport, importantCredentialsReport: importantReport)
-        
+
         return report
     }
 
@@ -231,4 +231,3 @@ extension PasswordHealthAnalyzer {
 				case reusedGroup(Int)
 	}
 }
-

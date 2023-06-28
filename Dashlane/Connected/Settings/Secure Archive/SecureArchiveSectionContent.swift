@@ -3,6 +3,7 @@ import CoreSession
 import CorePersonalData
 import DashlaneAppKit
 import CoreUserTracking
+import DesignSystem
 
 struct SecureArchiveSectionContent: View {
 
@@ -14,7 +15,8 @@ struct SecureArchiveSectionContent: View {
     var body: some View {
         Button(action: { showExportView = true }, label: {
             Text("Export")
-                .foregroundColor(.primary)
+                .foregroundColor(.ds.text.neutral.standard)
+                .textStyle(.body.standard.regular)
         })
         .sheet(isPresented: $showExportView) {
             ExportSecureArchiveView(viewModel: exportSecureArchiveViewModelFactory.make())

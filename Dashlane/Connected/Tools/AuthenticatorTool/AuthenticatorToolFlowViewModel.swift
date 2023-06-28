@@ -34,7 +34,7 @@ class AuthenticatorToolFlowViewModel: ObservableObject, SessionServicesInjecting
 
     private let iconService: IconServiceProtocol
     private let deepLinkingService: DeepLinkingServiceProtocol
-    private let otpDatabaseService: OTPDatabaseService
+    private let otpDatabaseService: AuthenticatorDatabaseServiceProtocol
     private let activityReporter: ActivityReporterProtocol
     private let vaultItemsService: VaultItemsServiceProtocol
     private let otpExplorerViewModelFactory: OTPExplorerViewModel.Factory
@@ -49,6 +49,7 @@ class AuthenticatorToolFlowViewModel: ObservableObject, SessionServicesInjecting
     init(vaultItemsService: VaultItemsServiceProtocol,
          activityReporter: ActivityReporterProtocol,
          deepLinkingService: DeepLinkingServiceProtocol,
+         otpDatabaseService: AuthenticatorDatabaseServiceProtocol,
          iconService: IconServiceProtocol,
          settings: LocalSettingsStore,
          otpExplorerViewModelFactory: OTPExplorerViewModel.Factory,
@@ -57,7 +58,7 @@ class AuthenticatorToolFlowViewModel: ObservableObject, SessionServicesInjecting
          addOTPFlowViewModelFactory: AddOTPFlowViewModel.Factory
     ) {
         self.activityReporter = activityReporter
-        self.otpDatabaseService = OTPDatabaseService(vaultItemsService: vaultItemsService, activityReporter: activityReporter)
+        self.otpDatabaseService = otpDatabaseService
         self.vaultItemsService = vaultItemsService
         self.supportedDomainsRepository = OTPSupportedDomainsRepository()
         self.deepLinkingService = deepLinkingService
@@ -104,7 +105,7 @@ class AuthenticatorToolFlowViewModel: ObservableObject, SessionServicesInjecting
     }
 
     func makeTokenListViewModel() -> OTPTokenListViewModel {
-        return otpTokenListViewModelFactory.make(authenticatorDatabaseService: otpDatabaseService, domainIconLibray: iconService.domain) { [weak self] action in
+        return otpTokenListViewModelFactory.make { [weak self] action in
             guard let self = self else { return }
             switch action {
             case .setupAuthentication:
@@ -161,10 +162,11 @@ extension AuthenticatorToolFlowViewModel {
         return AuthenticatorToolFlowViewModel(vaultItemsService: container.vaultItemsService,
                                               activityReporter: .fake,
                                               deepLinkingService: DeepLinkingService.fakeService,
+                                              otpDatabaseService: OTPDatabaseService.mock,
                                               iconService: IconServiceMock(),
-                                              settings: InMemoryLocalSettingsStore(),
+                                              settings: .mock(),
                                               otpExplorerViewModelFactory: .init({ _, _ in .mock }),
-                                              otpTokenListViewModelFactory: .init({ _, _, _ in .mock }),
+                                              otpTokenListViewModelFactory: .init({ _ in .mock }),
                                               credentialDetailViewModelFactory: .init({ _, _, _, _, _, _ in MockVaultConnectedContainer().makeCredentialDetailViewModel(item: PersonalDataMock.Credentials.amazon, mode: .viewing) }),
                                               addOTPFlowViewModelFactory: .init({ _, _ in .mock }))
     }

@@ -3,7 +3,6 @@ import Combine
 import CorePersonalData
 import CoreData
 import SwiftUI
-import DashlaneReportKit
 import CoreFeature
 import DashlaneAppKit
 import CoreUserTracking
@@ -19,23 +18,17 @@ struct VaultSearchSelection {
     let count: Int
 }
 
-class VaultSearchViewModel: ObservableObject, SessionServicesInjecting {
+class VaultSearchViewModel: SearchViewModel, ObservableObject, SessionServicesInjecting {
                 @Published
     var sections: [DataSection] = []
 
         @Published
-    var searchCriteria: String = ""
-
-                @Published
-    var searchResult: SearchResult = SearchResult(searchCriteria: "", sections: [])
-
-    @Published
     var recentSearchSections: [DataSection] = []
 
                     let searchCategory: ItemCategory?
 
                     @Published
-    var activeFilter: VaultListFilter
+    var activeFilter: VaultItemsSection
 
     @Published
     var isSearchActive: Bool = false {
@@ -53,15 +46,7 @@ class VaultSearchViewModel: ObservableObject, SessionServicesInjecting {
         featureService.isEnabled(.disableSecureNotes)
     }
 
-    var searchUsageLogPublisher: AnyPublisher<UsageLogCode32Search, Never> {
-        return $searchResult
-            .debounce(for: .seconds(10), scheduler: RunLoop.main)
-            .dropFirst()
-            .map { $0.searchUsageLog() }
-            .eraseToAnyPublisher()
-    }
-
-    let userSwitcherViewModel: UserSpaceSwitcherViewModel
+    let userSwitcherViewModelFactory: UserSpaceSwitcherViewModel.Factory
     let completion: (VaultListCompletion) -> Void
 
     private static let suggestedItemsMaxCount = 6
@@ -70,12 +55,9 @@ class VaultSearchViewModel: ObservableObject, SessionServicesInjecting {
 
     private let vaultItemRowModelFactory: VaultItemRowModel.Factory
 
-    private let queue = DispatchQueue(label: "globalSearch", qos: .userInitiated)
-
     private let vaultItemsService: VaultItemsServiceProtocol
     private let capabilityService: CapabilityServiceProtocol
     private let activityReporter: ActivityReporterProtocol
-    private let usageLogService: UsageLogServiceProtocol
     private let featureService: FeatureServiceProtocol
     private let teamSpacesService: TeamSpacesService
     private let sharingService: SharedVaultHandling
@@ -87,20 +69,18 @@ class VaultSearchViewModel: ObservableObject, SessionServicesInjecting {
         featureService: FeatureServiceProtocol,
         activityReporter: ActivityReporterProtocol,
         teamSpacesService: TeamSpacesService,
-        userSwitcherViewModel: @escaping () -> UserSpaceSwitcherViewModel,
-        usageLogService: UsageLogServiceProtocol,
+        userSwitcherViewModelFactory: UserSpaceSwitcherViewModel.Factory,
         vaultItemRowModelFactory: VaultItemRowModel.Factory,
-        activeFilter: VaultListFilter,
+        activeFilter: VaultItemsSection,
         completion: @escaping (VaultListCompletion) -> Void
     ) {
         self.featureService = featureService
         self.activityReporter = activityReporter
         self.capabilityService = capabilityService
         self.vaultItemsService = vaultItemsService
-        self.usageLogService = usageLogService
         self.teamSpacesService = teamSpacesService
         self.sharingService = sharingService
-        self.userSwitcherViewModel = userSwitcherViewModel()
+        self.userSwitcherViewModelFactory = userSwitcherViewModelFactory
         self.vaultItemRowModelFactory = vaultItemRowModelFactory
         self.activeFilter = activeFilter
         self.completion = completion
@@ -109,32 +89,25 @@ class VaultSearchViewModel: ObservableObject, SessionServicesInjecting {
             isSecureNoteLimited: capabilityService.state(of: .secureNotes) == .needsUpgrade
         )
         searchCategory = activeFilter.category
+        super.init(areCollectionsEnabled: featureService.isEnabled(.collectionsLabelling))
         setup()
     }
 
         func setup() {
         setupSectionPublisher()
 
-        let searchPublisher =  $searchCriteria
-            .removeDuplicates()
-            .debounceExceptFirst(for: .milliseconds(200), scheduler: queue, prepend: "")
-
         let itemsPublisher = vaultItemsService
             .itemsPublisher(for: searchCategory)
             .receive(on: queue)
 
-        itemsPublisher.combineLatest(searchPublisher) { items, criteria in
-            guard !criteria.isEmpty else {
-                return SearchResult(searchCriteria: criteria, sections: [])
-            }
+        let collectionsPublisher = vaultItemsService
+            .collectionsPublisher()
+            .receive(on: queue)
 
-            let filteredItems = items.filterAndSortItemsUsingCriteria(criteria)
-            let section = DataSection(name: "", items: filteredItems)
-            return SearchResult(searchCriteria: criteria, sections: [section])
-        }
-        .receive(on: DispatchQueue.main)
-        .assign(to: \.searchResult, on: self)
-        .store(in: &cancellables)
+        setupSearchPublisher(
+            itemsPublisher: itemsPublisher.eraseToAnyPublisher(),
+            collectionsPublisher: collectionsPublisher.eraseToAnyPublisher()
+        )
 
         itemsPublisher
             .map { items -> [DataSection] in
@@ -151,16 +124,15 @@ class VaultSearchViewModel: ObservableObject, SessionServicesInjecting {
             .assign(to: \.recentSearchSections, on: self)
             .store(in: &cancellables)
 
-        secureNoteStatePublisher()
-            .assign(to: \.secureNoteState, on: self)
-            .store(in: &cancellables)
+        setupSecureNoteStatePublisher()
     }
 
     private func setupSectionPublisher() {
         let filteredItems = self.$activeFilter
             .receive(on: queue)
-            .map { [vaultItemsService, teamSpacesService] in
-                vaultItemsService.itemsPublisherForSection($0.section, teamSpacesService: teamSpacesService)
+            .map { [vaultItemsService, teamSpacesService] filter in
+                vaultItemsService.itemsPublisherForSection(filter,
+                                                           teamSpacesService: teamSpacesService)
             }
             .switchToLatest()
             .shareReplayLatest()
@@ -176,7 +148,7 @@ class VaultSearchViewModel: ObservableObject, SessionServicesInjecting {
 
                     let suggestedSection = DataSection(
                         name: L10n.Localizable.suggested,
-                        isSuggestedItems: true,
+                        type: .suggestedItems,
                         items: Array(suggestedItems)
                     )
                     allSections = [suggestedSection] + allSections
@@ -185,24 +157,13 @@ class VaultSearchViewModel: ObservableObject, SessionServicesInjecting {
             }
             .filterEmpty()
             .receive(on: DispatchQueue.main)
-            .assign(to: \.sections, on: self)
-            .store(in: &cancellables)
+            .assign(to: &$sections)
     }
 
-    private func itemsSection(
-        for category: ItemCategory,
-        usingCriteria searchCriteria: String
-    ) -> AnyPublisher<DataSection, Never> {
-        vaultItemsService
-            .itemsPublisher(for: category)
-            .map { items in items.filterAndSortItemsUsingCriteria(searchCriteria) }
-            .compactMap { DataSection(name: category.title, items: $0) }
-            .eraseToAnyPublisher()
-    }
-
-    private func secureNoteStatePublisher() -> AnyPublisher<SecureNoteState, Never> {
+    private func setupSecureNoteStatePublisher() {
         capabilityService
             .statePublisher(of: .secureNotes)
+            .eraseToAnyPublisher()
             .map { [weak self] state -> SecureNoteState in
                 SecureNoteState(
                     isSecureNoteDisabled: self?.isSecureNoteDisabled ?? false,
@@ -210,6 +171,7 @@ class VaultSearchViewModel: ObservableObject, SessionServicesInjecting {
                 )
             }
             .eraseToAnyPublisher()
+            .assign(to: &$secureNoteState)
     }
 
         func count(for vaultSelectionOrigin: VaultSelectionOrigin) -> Int {
@@ -220,12 +182,14 @@ class VaultSearchViewModel: ObservableObject, SessionServicesInjecting {
         .flatMap(\.items).count
     }
 
-        func select(_ selection: VaultSearchSelection) {
+        func select(_ selection: VaultSearchSelection, isEditing: Bool = false) {
         if selection.origin == .searchResult {
             vaultItemsService.updateLastUseDate(of: [selection.item], origin: [.search])
+            let collections = vaultItemsService.collections.filterAndSortItemsUsingCriteria(searchCriteria)
 
             let searchEvent = UserEvent.SearchVaultItem(
                 charactersTypedCount: searchCriteria.count,
+                collectionCount: collections.count,
                 hasInteracted: true,
                 totalCount: selection.count
             )
@@ -234,18 +198,13 @@ class VaultSearchViewModel: ObservableObject, SessionServicesInjecting {
 
         completion(.enterDetail(
             selection.item,
-            selectVaultItem(selection))
+            selectVaultItem(selection),
+            isEditing: isEditing)
         )
     }
 
     private func selectVaultItem(_ selection: VaultSearchSelection) -> UserEvent.SelectVaultItem {
-        let log = UsageLogCode75GeneralActions(
-            type: selection.item.usageLogType75,
-            action: "open",
-            subaction: VaultItemRowModel.Origin.vault.subAction
-        )
-        usageLogService.post(log)
-        return UserEvent.SelectVaultItem(
+        UserEvent.SelectVaultItem(
             highlight: selection.origin.definitionHighlight,
             itemId: selection.item.userTrackingLogID,
             itemType: selection.item.vaultItemType,
@@ -267,10 +226,6 @@ class VaultSearchViewModel: ObservableObject, SessionServicesInjecting {
 }
 
 extension VaultSearchViewModel {
-    func sendSearchUsageLogFromSelection(index: Int) {
-        usageLogService.post(searchResult.searchUsageLog(click: true, index: index))
-    }
-
     func onAddItemDropdown() {
         activityReporter.reportPageShown(.homeAddItemDropdown)
     }
@@ -280,31 +235,13 @@ extension VaultSearchViewModel {
     func makeRowViewModel(
         _ item: VaultItem,
         isSuggestedItem: Bool,
+        isInCollecton: Bool = false,
         origin: VaultItemRowModel.Origin
     ) -> VaultItemRowModel {
         vaultItemRowModelFactory.make(
             configuration: .init(item: item, isSuggested: isSuggestedItem),
-            additionalConfiguration: .init(origin: .search, highlightedString: searchCriteria)
+            additionalConfiguration: .init(origin: .search, highlightedString: isInCollecton ? nil : searchCriteria)
         )
-    }
-}
-
-private extension VaultListFilter {
-    var section: VaultItemsSection {
-        switch self {
-        case .all:
-            return .all
-        case .credentials:
-            return .credentials(sort: Just(VaultItemSorting.sortedByName).eraseToAnyPublisher())
-        case .secureNotes:
-            return .secureNotes(sort: Just(VaultItemSorting.sortedByName).eraseToAnyPublisher())
-        case .payments:
-            return .payments
-        case .personalInfo:
-            return .personalInfo
-        case .ids:
-            return .ids
-        }
     }
 }
 
@@ -312,14 +249,13 @@ extension VaultSearchViewModel {
     static var mock: VaultSearchViewModel {
         .init(
             vaultItemsService: MockServicesContainer().vaultItemsService,
-            capabilityService: CapabilityService.mock,
+            capabilityService: .mock(),
             sharingService: SharedVaultHandlerMock(),
             featureService: .mock(),
             activityReporter: .fake,
             teamSpacesService: .mock(),
-            userSwitcherViewModel: {UserSpaceSwitcherViewModel.mock},
-            usageLogService: UsageLogService.fakeService,
-            vaultItemRowModelFactory: .init { .mock(configuration: $0, additionialConfiguration: $1) },
+            userSwitcherViewModelFactory: .init({ .mock }),
+            vaultItemRowModelFactory: .init { .mock(configuration: $0, additionalConfiguration: $1) },
             activeFilter: .all,
             completion: { _ in }
         )

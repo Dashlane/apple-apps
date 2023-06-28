@@ -6,13 +6,9 @@ import SwiftUI
 public extension View {
         @ViewBuilder
     func bottomSheet(_ detents: Set<BottomSheetDetents> = [.medium, .large]) -> some View {
-        if #available(iOS 16.0, *) {
-            self.presentationDetents(detents.detents)
-        } else {
-            self
-        }
+        self.presentationDetents(detents.detents)
     }
-    
+
 }
 
 public enum BottomSheetDetents: Hashable {
@@ -20,7 +16,6 @@ public enum BottomSheetDetents: Hashable {
     case large
     case fraction(CGFloat)
 
-    @available(iOS 16, *)
     var detent: PresentationDetent {
         switch self {
         case .medium: return .medium
@@ -29,7 +24,7 @@ public enum BottomSheetDetents: Hashable {
         }
     }
 
-    public static func ==(lhs: BottomSheetDetents, rhs: BottomSheetDetents) -> Bool {
+    public static func == (lhs: BottomSheetDetents, rhs: BottomSheetDetents) -> Bool {
         switch (lhs, rhs) {
         case (.medium, .medium): return true
         case (.large, .large): return true
@@ -39,7 +34,6 @@ public enum BottomSheetDetents: Hashable {
     }
 }
 
-@available(iOS 16, *)
 public extension Collection where Element == BottomSheetDetents {
     var detents: Set<PresentationDetent> {
         Set(map({ $0.detent }))

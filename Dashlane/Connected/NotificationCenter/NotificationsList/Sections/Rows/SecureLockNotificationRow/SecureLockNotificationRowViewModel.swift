@@ -1,6 +1,7 @@
 import Foundation
 import SwiftTreats
 import DashTypes
+import LoginKit
 
 class SecureLockNotificationRowViewModel: ObservableObject, SessionServicesInjecting {
     enum SecureLockType {

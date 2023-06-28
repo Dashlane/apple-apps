@@ -5,7 +5,7 @@ import Combine
 private class ScrollEventListener {
     @Binding
     private var isScrolling: Bool
-    
+
     @Binding
     var isOnTop: Bool
 
@@ -13,7 +13,7 @@ private class ScrollEventListener {
     let isOnTopPubliScrollingPublisher = PassthroughSubject<Bool, Never>()
 
     private var cancellables = Set<AnyCancellable>()
-       
+
     init(isScrolling: Binding<Bool>?,
          isOnTop: Binding<Bool>?) {
         self._isScrolling = isScrolling ?? .constant(false)
@@ -27,18 +27,18 @@ private class ScrollEventListener {
 }
 
 public struct TrackableScrollView<Content: View>: View {
-    
+
     private let content: Content
-    
+
     private let detector = PassthroughSubject<Int, Never>()
-    
+
     private var cancellables = Set<AnyCancellable>()
-    
+
     public init(isScrolling: Binding<Bool>? = nil,
                 isOnTop: Binding<Bool>? = nil,
                 content: () -> Content) {
         self.content = content()
-        
+
         let listener = ScrollEventListener(isScrolling: isScrolling, isOnTop: isOnTop)
         if isScrolling != nil {
         detector
@@ -60,7 +60,7 @@ public struct TrackableScrollView<Content: View>: View {
                 }).store(in: &cancellables)
         }
     }
-    
+
     public var body: some View {
         ScrollView {
             content
@@ -85,15 +85,15 @@ struct ViewOffsetKey: PreferenceKey {
 }
 
 struct TrackableScollView_Previews: PreviewProvider {
-    
+
     struct Example: View {
-        
+
         @State
         var isScrolling: Bool = false
-        
+
         @State
         var isOnTop: Bool = false
-        
+
         var body: some View {
             TrackableScrollView(isScrolling: $isScrolling, isOnTop: $isOnTop) {
                 Group {
@@ -108,7 +108,7 @@ struct TrackableScollView_Previews: PreviewProvider {
             }
         }
     }
-    
+
     static var previews: some View {
         Example()
     }

@@ -3,7 +3,7 @@ import Foundation
 public enum KeychainAccessMode {
     case whenDeviceUnlocked
     case afterBiometricAuthentication
-    
+
     var accessModeAttribute: [CFString: Any] {
         switch self {
         case .whenDeviceUnlocked:
@@ -13,4 +13,3 @@ public enum KeychainAccessMode {
         }
     }
 }
-

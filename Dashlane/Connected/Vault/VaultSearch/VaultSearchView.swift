@@ -5,6 +5,7 @@ import SwiftTreats
 import Combine
 import VaultKit
 import DesignSystem
+import CoreLocalization
 
 struct VaultSearchView: View {
 
@@ -22,6 +23,7 @@ struct VaultSearchView: View {
                 placement: .navigationBarDrawer(displayMode: .always),
                 prompt: L10n.Localizable.itemsTabSearchPlaceholder
             )
+            .autocorrectionDisabled()
             .searchActive(model.isSearchActive)
     }
 }
@@ -42,9 +44,6 @@ private struct SearchView: View {
     @Environment(\.searchHeaderHeight)
     private var bannerHeight
 
-    @Environment(\.searchForcedPlaceholderView)
-    private var forcedPlaceholderView
-
     @Environment(\.isSearching)
     private var isSearching
 
@@ -57,13 +56,13 @@ private struct SearchView: View {
                 list
                     .reportPageAppearance(.search)
             } else {
-                emptySearchCriteriaView
+                inactiveSearchView
             }
         }
         .frame(maxHeight: .infinity)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
-                UserSpaceSwitcher(model: model.userSwitcherViewModel, displayTeamName: true)
+                UserSpaceSwitcher(model: model.userSwitcherViewModelFactory.make(), displayTeamName: true)
             }
             ToolbarItem(placement: .navigationBarTrailing) {
                 addButton
@@ -101,7 +100,7 @@ private struct SearchView: View {
     private var list: some View {
         ZStack {
             if !model.searchResult.searchCriteria.isEmpty {
-                if !model.searchResult.hasResult {
+                if !model.searchResult.hasResult() {
                     if let category = model.activeFilter.category {
                         ListPlaceholder(category: category,
                                         accessory: placeholderAddButton)
@@ -110,7 +109,7 @@ private struct SearchView: View {
                             }
                     } else {
                         ListPlaceholder(icon: Image(asset: FiberAsset.emptySearch),
-                                        text: L10n.Localizable.emptySearchResultsText,
+                                        text: CoreLocalization.L10n.Core.emptySearchResultsText,
                                         accessory: placeholderAddButton)
                             .fiberAccessibilityAnnouncement(for: model.$searchResult) { _ in
                                 L10n.Localizable.accessibilityVaultSearchViewNoResult
@@ -142,15 +141,23 @@ private struct SearchView: View {
                 model: model.makeRowViewModel(
                     configuration.vaultItem,
                     isSuggestedItem: configuration.isSuggestedItem,
+                    isInCollecton: configuration.isInCollectionSection,
                     origin: .search
                 )
             ) {
                 model.select(.init(
                     item: configuration.vaultItem,
                     origin: .searchResult,
-                    count: model.searchResult.count)
+                    count: model.searchResult.count())
                 )
             }
+            .vaultItemRowCollectionActions([.addToACollection, .removeFromACollection])
+            .vaultItemRowEditAction(.init {
+                model.select(
+                    .init(item: configuration.vaultItem, origin: .searchResult, count: model.searchResult.count()),
+                    isEditing: true
+                )
+            })
         }
         .vaultItemsListDelete(.init(model.delete))
         .vaultItemsListDeleteBehaviour(.init(model.itemDeleteBehaviour))
@@ -171,6 +178,17 @@ private struct SearchView: View {
                     count: model.recentSearchSections.first?.items.count ?? 0)
                 )
             }
+            .vaultItemRowCollectionActions([.addToACollection, .removeFromACollection])
+            .vaultItemRowEditAction(.init {
+                model.select(
+                    .init(
+                        item: configuration.vaultItem,
+                        origin: .searchResult,
+                        count: model.recentSearchSections.first?.items.count ?? 0
+                    ),
+                    isEditing: true
+                )
+            })
         }
     }
 
@@ -192,6 +210,14 @@ private struct SearchView: View {
                 )
             }
             .padding(.trailing, model.sections.count > 1 ? 10 : 0)
+            .vaultItemRowCollectionActions([.addToACollection, .removeFromACollection])
+            .vaultItemRowEditAction(.init {
+                let origin: VaultSelectionOrigin = configuration.isSuggestedItem ? .suggestedItems : .regularList
+                model.select(
+                    .init(item: configuration.vaultItem, origin: origin, count: model.count(for: origin)),
+                    isEditing: true
+                )
+            })
         }
         .indexed(shouldHideIndexes: !model.activeFilter.supportIndexes, priority: .indexedList)
         .vaultItemsListDelete(.init(model.delete))
@@ -211,14 +237,6 @@ private struct SearchView: View {
         .background(Color(UIColor.systemBackground))
         .padding(.top, bannerHeight)
         .hidden(!model.sections.isEmpty)
-    }
-
-    private var emptySearchCriteriaView: AnyView {
-        if let forcedPlaceholderView = forcedPlaceholderView {
-            return forcedPlaceholderView
-        } else {
-            return inactiveSearchView.eraseToAnyView()
-        }
     }
 }
 
@@ -240,7 +258,7 @@ private extension View {
     }
 }
 
-private extension VaultListFilter {
+private extension VaultItemsSection {
     var supportIndexes: Bool {
         return ![.payments, .ids, .personalInfo].contains(self)
     }

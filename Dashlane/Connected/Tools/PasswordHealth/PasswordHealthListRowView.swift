@@ -3,6 +3,7 @@ import DesignSystem
 import SwiftUI
 import UIDelight
 import VaultKit
+import CoreLocalization
 
 struct PasswordHealthListRowView: View {
 
@@ -34,10 +35,10 @@ struct PasswordHealthListRowView: View {
             )
             Button(action: replace, title: L10n.Localizable.securityDashboardActionReplace)
         } label: {
-            Image(asset: FiberAsset.quickaction)
+            Image.ds.action.more.outlined
                 .resizable()
                 .aspectRatio(contentMode: .fit)
-                .fiberAccessibilityLabel(Text(L10n.Localizable.kwActions))
+                .fiberAccessibilityLabel(Text(CoreLocalization.L10n.Core.kwActions))
                 .frame(width: 24, height: 40)
                 .foregroundColor(.ds.text.brand.quiet)
         }

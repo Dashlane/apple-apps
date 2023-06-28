@@ -7,45 +7,49 @@ import UIKit
 import DashTypes
 import AuthenticatorKit
 import VaultKit
+import CoreActivityLogs
 
 class PairedDatabaseService: AuthenticatorDatabaseServiceProtocol, SessionCredentialsProvider {
-   
+
     @Published
     public var codes: Set<OTPInfo> = []
     public var codesPublisher: AnyPublisher<Set<OTPInfo>, Never> { $codes.eraseToAnyPublisher() }
-    
+
     @Published
     var isLoaded = false
     var isLoadedPublisher: AnyPublisher<Bool, Never> { $isLoaded.eraseToAnyPublisher() }
-    
+
     @Published
     public var credentials: [Credential] = []
     public var credentialsPublisher: Published<[Credential]>.Publisher { $credentials }
-    
+
     let login: String?
     let appDatabase: ApplicationDatabase
     private let databaseService: AuthenticatorDatabaseService
-    
+
     private var cancellables = Set<AnyCancellable>()
     private let sharingService: SharedVaultHandling
-    
+    private let activityLogsService: ActivityLogsServiceProtocol
+
     init(login: String,
          appDatabase: ApplicationDatabase,
          databaseService: AuthenticatorDatabaseService,
-         sharingService: SharedVaultHandling) {
+         sharingService: SharedVaultHandling,
+         activityLogsService: ActivityLogsServiceProtocol) {
         self.login = login
         self.appDatabase = appDatabase
         self.databaseService = databaseService
         self.sharingService = sharingService
+        self.activityLogsService = activityLogsService
         load()
     }
-    
+
     func credentialsWithFullRights() async -> [Credential] {
         return self.credentials.filter {
             $0.metadata.sharingPermission != .limited
         }
     }
-    
+
     public func delete(_ item: OTPInfo) throws {
         if item.isDashlaneOTP {
             databaseService.delete(item)
@@ -58,13 +62,13 @@ class PairedDatabaseService: AuthenticatorDatabaseServiceProtocol, SessionCreden
             try appDatabase.save(credential)
         }
     }
-    
+
     public func add(_ items: [OTPInfo]) throws {
-        
+
         let dashlaneCodes = items.filter {
             $0.isDashlaneOTP
         }
-                
+
         let credentials: [Credential] = items.filter {
             !$0.isDashlaneOTP
         }
@@ -73,9 +77,9 @@ class PairedDatabaseService: AuthenticatorDatabaseServiceProtocol, SessionCreden
         try databaseService.add(dashlaneCodes)
         try appDatabase.save(credentials)
     }
-    
+
     public func update(_ item: OTPInfo) throws {
-        
+
         guard !item.isDashlaneOTP else {
             try databaseService.update(item)
             return
@@ -92,17 +96,19 @@ class PairedDatabaseService: AuthenticatorDatabaseServiceProtocol, SessionCreden
             credentialHavingOTP.url = PersonalDataURL(rawValue: issuer)
         }
         try appDatabase.save(credentialHavingOTP)
+        activityLogCreate(credentialHavingOTP)
     }
-    
+
     public func link(_ otpInfo: OTPInfo, to credential: Credential) throws {
-        
+
         var credential = credential
         credential.note = otpInfo.recoveryCodes.joined(separator: "\n")
         credential.otpURL = otpInfo.configuration.otpURL
-        
+
         try appDatabase.save(credential)
+        activityLogUpdate(credential)
     }
-    
+
     func load() {
         databaseService.load()
         let credentials = appDatabase.itemsPublisher(for: Credential.self).shareReplayLatest()
@@ -114,7 +120,7 @@ class PairedDatabaseService: AuthenticatorDatabaseServiceProtocol, SessionCreden
                     }
                     partialResult[otpInfo] = credential.id
                 }
-                let credentialsCodes = Array<OTPInfo>(credentialsAndOTPInfo.keys)
+                let credentialsCodes = [OTPInfo](credentialsAndOTPInfo.keys)
                 let codes = Set(credentialsCodes + dashlaneOTP)
                 return (codes, credentialsAndOTPInfo)
             }
@@ -127,7 +133,7 @@ class PairedDatabaseService: AuthenticatorDatabaseServiceProtocol, SessionCreden
             .map { Array($0) }
             .assign(to: &$credentials)
     }
-    
+
     func copyDBToVault() {
         let codesToCopy: [Credential] = databaseService.codes.filter {
             !$0.isDashlaneOTP
@@ -138,5 +144,19 @@ class PairedDatabaseService: AuthenticatorDatabaseServiceProtocol, SessionCreden
                 !$0.isDashlaneOTP
             }.forEach(databaseService.delete)
         } catch {}
+    }
+}
+
+extension PairedDatabaseService {
+    func activityLogCreate(_ credential: Credential) {
+        guard let info = credential.reportableInfo() else { return }
+        try? activityLogsService.report(.creation,
+                                        for: info)
+    }
+
+    func activityLogUpdate(_ credential: Credential) {
+        guard let info = credential.reportableInfo() else { return }
+        try? activityLogsService.report(.update,
+                                        for: info)
     }
 }

@@ -7,8 +7,6 @@ import CoreUserTracking
 import DashlaneAppKit
 import AuthenticatorKit
 
-
-
 @MainActor
 class AddItemFlowViewModel: ObservableObject, AuthenticatorServicesInjecting, AuthenticatorMockInjecting {
     enum Step {
@@ -26,7 +24,7 @@ class AddItemFlowViewModel: ObservableObject, AuthenticatorServicesInjecting, Au
 
     @MainActor
     let dismissPublisher = PassthroughSubject<Void, Never>()
-    
+
     let completion: (OTPInfo) -> Void
 
     let logger: Logger
@@ -37,7 +35,7 @@ class AddItemFlowViewModel: ObservableObject, AuthenticatorServicesInjecting, Au
     let activityReporter: ActivityReporterProtocol
     let skipIntro: Bool
     let isFirstToken: Bool
-    
+
     init(databaseService: AuthenticatorDatabaseServiceProtocol,
          hasAtLeastOneTokenStoredInVault: Bool,
          mode: AddItemMode,
@@ -63,9 +61,8 @@ class AddItemFlowViewModel: ObservableObject, AuthenticatorServicesInjecting, Au
         self.activityReporter = activityReporter
         self.skipIntro = skipIntro
     }
-    
-        
-    @MainActor
+
+        @MainActor
     func startScanCode() async {
         let viewModel = scanCodeViewModelFactory
             .make(otpInfo: nil,
@@ -74,7 +71,7 @@ class AddItemFlowViewModel: ObservableObject, AuthenticatorServicesInjecting, Au
                   didCreate: { [weak self] in self?.didCreate(otpInfo: $0, mode: $1)})
         self.steps.append(.scanCode(viewModel))
     }
-    
+
     func startManuallyChooseWebsite() {
         let viewModel = addItemViewModelFactory.make(mode: mode,
                                                      isFirstToken: isFirstToken,
@@ -83,13 +80,13 @@ class AddItemFlowViewModel: ObservableObject, AuthenticatorServicesInjecting, Au
         })
         self.steps.append(.enterCodeManually(viewModel))
     }
-            
+
     private func didCreate(otpInfo: OTPInfo, mode: Definition.OtpAdditionMode) {
         self.completion(otpInfo)
         self.dismissPublisher.send()
         self.logAddOTP(otpInfo, additionMode: mode)
     }
-    
+
     private func logAddOTP(_ otpInfo: OTPInfo, additionMode: Definition.OtpAdditionMode) {
         activityReporter.report(UserEvent.AuthenticatorAddOtpCode(otpAdditionMode: additionMode))
         activityReporter.report(AnonymousEvent.AuthenticatorAddOtpCode(authenticatorIssuerId: otpInfo.authenticatorIssuerId, otpAdditionMode: additionMode, otpSpecifications: otpInfo.logSpecifications))

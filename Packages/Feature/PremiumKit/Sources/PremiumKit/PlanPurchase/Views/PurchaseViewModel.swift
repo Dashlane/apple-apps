@@ -15,7 +15,7 @@ class PurchaseViewModel: ObservableObject {
 
     private var subcription: AnyCancellable?
 
-    init(manager: DashlanePremiumManager, logger: PremiumStatusLogger?) {
+    init(manager: DashlanePremiumManager) {
         subcription = manager.fetchPurchasePlanGroupsForCurrentSession().map { groups in
             groups.isEmpty ? .empty : .fetched(groups)
         }
@@ -24,12 +24,11 @@ class PurchaseViewModel: ObservableObject {
             guard case .empty = state else {
                 return
             }
-            logger?.logPremium(type: LogPremiumType.yearlyPlanDisplayErrorFailToFetchData)
         })
         .assign(to: \.state, on: self)
     }
 
-    init(intitialState: State) {
-        state = intitialState
+    init(initialState: State) {
+        state = initialState
     }
 }

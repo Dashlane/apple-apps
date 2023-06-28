@@ -3,8 +3,8 @@ import PackageDescription
 let package = Package(
     name: "CoreSharing",
     platforms: [
-        .iOS(.v15),
-        .macOS(.v12)
+        .iOS(.v16),
+        .macOS(.v13)
     ],
     products: [
                 .library(
@@ -25,13 +25,13 @@ let package = Package(
                 .product(name: "DatabaseFoundation", package: "DatabaseFoundation"),
                 .product(name: "DashTypes", package: "DashTypes"),
                 .product(name: "DashlaneAPI", package: "DashlaneAPI"),
-                .product(name: "CyrilKit", package: "CyrilKit"),
+                .product(name: "CyrilKit", package: "CyrilKit")
             ]),
         .testTarget(
             name: "CoreSharingTests",
             dependencies: [
                 "CoreSharing",
-                .product(name: "DashlaneCrypto", package: "cryptocenter"),
+                .product(name: "DashlaneCrypto", package: "cryptocenter")
             ],
             resources: [
                 .process("Resources")

@@ -3,10 +3,10 @@ import SwiftUI
 import SwiftTreats
 
 private struct Tappable: ViewModifier {
-    
+
     let enabled: Bool
-    let action: () -> ()
-    
+    let action: () -> Void
+
     @ViewBuilder
     func body(content: Content) -> some View {
         if Device.isIpadOrMac, !ProcessInfo.isTesting {
@@ -29,11 +29,11 @@ private struct UltraPlainButtonStyle: ButtonStyle {
 }
 
 extension View {
-    
+
             public func onTapGesture(perform action: @escaping () -> Void) -> some View {
         self.modifier(Tappable(enabled: true, action: action))
     }
-    
+
                 public func onTapGesture(enabled: Bool,
                              perform action: @escaping () -> Void) -> some View {
         self.modifier(Tappable(enabled: enabled, action: action))

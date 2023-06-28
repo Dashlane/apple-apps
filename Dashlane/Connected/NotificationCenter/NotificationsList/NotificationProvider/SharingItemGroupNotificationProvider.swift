@@ -14,7 +14,6 @@ class SharingItemGroupNotificationProvider: NotificationProvider {
     private let sharingService: SharingServiceProtocol
     private let settingsStore: LocalSettingsStore
     private let session: Session
-    private let logger: NotificationCenterLogger
 
     @Published
     private var sharingNotificationInfo: Set<SharingNotificationInfo> = []
@@ -22,13 +21,10 @@ class SharingItemGroupNotificationProvider: NotificationProvider {
     init(session: Session,
          sharingService: SharingServiceProtocol,
          featureService: FeatureServiceProtocol,
-         settingsStore: LocalSettingsStore,
-         logger: NotificationCenterLogger) {
+         settingsStore: LocalSettingsStore) {
         self.sharingService = sharingService
         self.session = session
         self.settingsStore = settingsStore
-        self.logger = logger
-
         setupPublisher()
     }
 
@@ -70,7 +66,7 @@ class SharingItemGroupNotificationProvider: NotificationProvider {
     }
 
     private func publisher(for info: SharingNotificationInfo) -> AnyPublisher<DashlaneNotification, Never> {
-        let settings = NotificationSettings(prefix: info.settingsPrefix, settings: settingsStore, logger: logger)
+        let settings = NotificationSettings(prefix: info.settingsPrefix, settings: settingsStore)
 
         return settings
             .settingsChangePublisher()

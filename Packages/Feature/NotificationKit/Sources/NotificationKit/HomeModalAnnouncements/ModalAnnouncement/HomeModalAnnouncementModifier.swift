@@ -10,13 +10,12 @@ struct HomeModalAnnouncementModifier: ViewModifier {
 
     @Environment(\.sizeCategory) var sizeCategory
 
+    @State
+    private var showAlert: Bool = false
+
     func body(content: Content) -> some View {
         ZStack {
-            if bottomSheetShouldBeNative {
-                nativeBottomSheetView(content: content)
-            } else {
-                legacyBottomSheet(content: content)
-            }
+            nativeBottomSheetView(content: content)
         }
         .overFullScreen(item: $model.overFullScreen) { announcement in
             switch announcement {
@@ -31,20 +30,13 @@ struct HomeModalAnnouncementModifier: ViewModifier {
             case .planRecommandation:
                 PlanRecommandationView(viewModel: model.planRecommandationViewModelFactory.make())
             case .autofillActivation:
-                AutofillOnboardingFlowView(model: model.autofillOnboardingFlowViewModelFactory.make(completion: {}))
+                AutofillOnboardingFlowView(model: model.autofillOnboardingFlowViewModelFactory.make(completion: { model.sheet = nil }))
             }
         }
-    }
-
-    func legacyBottomSheet(content: Content) -> some View {
-        content
-            .bottomSheet(item: $model.bottomSheet, content: { announcement in
-                switch announcement {
-                case let .braze(brazeAnnouncement):
-                    BrazeAnnouncementContainerView(announcement: brazeAnnouncement, dismiss: { model.dismiss(announcement) })
-                        .hideTabBar()
-                }
-            })
+        .modifier(AlertAnnouncementModifier(announcement: model.alert, isPresented: $showAlert))
+        .onChange(of: model.alert) { newValue in
+            self.showAlert = newValue != nil
+        }
     }
 
     func nativeBottomSheetView(content: Content) -> some View {
@@ -56,17 +48,23 @@ struct HomeModalAnnouncementModifier: ViewModifier {
                 }
             })
     }
+}
 
+struct AlertAnnouncementModifier: ViewModifier {
 
-    private var bottomSheetShouldBeNative: Bool {
-        if Device.isIpadOrMac {
-                        return true
-        } else if #available(iOS 16, *) {
-                        return true
-        } else {
-                        return false
+    let announcement: HomeAlertAnnouncement?
+    @Binding
+    var isPresented: Bool
+
+    func body(content: Content) -> some View {
+        switch announcement {
+        case .upgradeOperatingSystem:
+            content.modifier(UpdateOperatingSystemAlertModifier(isPresented: $isPresented))
+        default:
+            content
         }
     }
+
 }
 
 public extension View {

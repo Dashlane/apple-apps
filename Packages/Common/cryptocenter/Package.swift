@@ -3,18 +3,18 @@ import PackageDescription
 let package = Package(
   name: "DashlaneCrypto",
     platforms: [
-        .iOS(.v15),
-        .macOS(.v12),
+        .iOS(.v16),
+        .macOS(.v13),
         .watchOS(.v6)
     ],
   products: [
     .library(name: "DashlaneCrypto", targets: ["DashlaneCrypto"]),
     .library(name: "PasswordFormatterForKWC3", targets: ["PasswordFormatterForKWC3"]),
-    .library(name: "TOTPGenerator", targets: ["TOTPGenerator"]),
   ],
   dependencies: [
     .package(path: "../../Foundation/CyrilKit"),
     .package(path: "../../Foundation/DashTypes"),
+    .package(path: "../../Foundation/TOTPGenerator")
   ],
   targets: [
     .target(name: "PasswordFormatterForKWC3"),
@@ -25,16 +25,16 @@ let package = Package(
                 "TOTPGenerator",
                 "DashTypes"
             ]),
-    .target(name: "TOTPGenerator"),
     .testTarget(name: "DashlaneCryptoTests",
                 dependencies: ["DashlaneCrypto"],
                 exclude: ["Resources/cryptotests/package.json",
-                          "Resources/cryptotests/README.md"],
+                          "Resources/cryptotests/README.md",
+                          "Resources/cryptotests/Resources"],
                 resources: [
-                    .copy("Resources/cryptotests/Resources/"),
                     .process("Resources/cryptotests/Tests/"),
                     .process("Resources/local/")
                 ]),
+    .testTarget(name: "DashlaneCryptoPerformanceTests",
+                dependencies: ["DashlaneCrypto"])
   ]
 )
-

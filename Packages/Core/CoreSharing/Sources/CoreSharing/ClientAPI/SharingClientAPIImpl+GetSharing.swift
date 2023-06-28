@@ -16,7 +16,6 @@ extension SharingClientAPIImpl {
     }
 }
 
-
 extension FetchRequest {
     struct BatchRequest {
         let itemGroupIds: [Identifier]?
@@ -28,11 +27,11 @@ extension FetchRequest {
         guard !isEmpty else {
             return nil
         }
-        
+
         let currentItemGroupIds = itemGroupIds.popLast()
         let currentItemIds = itemIds.popLast()
         let currentUserGroupIds = userGroupIds.popLast()
-        
+
         return BatchRequest(itemGroupIds: currentItemGroupIds,
                             itemIds: currentItemIds,
                             userGroupIds: currentUserGroupIds)

@@ -20,5 +20,4 @@ protocol FastLocalSetupViewModel: ObservableObject {
     func next()
     func back()
     func markDisplay()
-    func logDisplay()
 }

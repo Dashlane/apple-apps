@@ -2,42 +2,42 @@ import Foundation
 import DashTypes
 
 public protocol PremiumSessionDelegate: AnyObject {
-    
+
                         func premiumStatusData(for login: String) -> Data?
-    
-                        func setPremiumStatusData(_ data: Data?, for login: String) -> Void
+
+                        func setPremiumStatusData(_ data: Data?, for login: String)
 }
 
 public final class PremiumSession {
-    
+
         public typealias PremiumStatusUpdateHandler = (PremiumStatus, String?) -> Void
-    
+
         let login: String
-    
+
         let applicationUsernameHash: String
-    
+
         let webservice: LegacyWebService
-    
+
         let dashlaneAPI: DeprecatedCustomAPIClient
 
-        public private(set) var premiumStatus: PremiumStatus? = nil {
+        public private(set) var premiumStatus: PremiumStatus? {
         didSet {
             isBusinessUser = premiumStatus?.isBusinessUser()
         }
     }
-    
-        public private(set) var premiumStatusData: Data? = nil {
+
+        public private(set) var premiumStatusData: Data? {
         didSet {
             delegate?.setPremiumStatusData(premiumStatusData, for: login)
         }
     }
 
-    public private(set) var offers: Offers? = nil
-    
-    public private(set) var isBusinessUser: Bool? = nil
-    
+    public private(set) var offers: Offers?
+
+    public private(set) var isBusinessUser: Bool?
+
     private weak var delegate: PremiumSessionDelegate?
-    
+
     public init(for login: String,
                 applicationUsernameHash: String,
                 webservice: LegacyWebService,
@@ -48,13 +48,13 @@ public final class PremiumSession {
         self.dashlaneAPI = dashlaneAPI
         self.webservice = webservice
         self.delegate = delegate
-        
+
                                 self.premiumStatusData = delegate.premiumStatusData(for: login)
         if let data = self.premiumStatusData {
             self.premiumStatus = try? PremiumStatusService.decoder.decode(PremiumStatus.self, from: data)
         }
     }
-    
+
                 public func fetchOffers(includeFamilyPlans: Bool = true, preferMonthly: Bool = false, completion handler: ((Result<Offers, Error>) -> Void)? = nil) {
         guard self.offers == nil else {
             handler?(Result.success(offers!))
@@ -72,13 +72,13 @@ public final class PremiumSession {
             }
         }
     }
-    
+
         internal func updatePremiumStatus(completion handler: @escaping PremiumStatusUpdateHandler) {
         let service = PremiumStatusService(webservice: webservice)
         service.getStatus { [weak self] result in
-            
+
             switch result {
-                
+
             case .success(let (status, statusData)):
                 self?.premiumStatus = status
                 self?.premiumStatusData = statusData

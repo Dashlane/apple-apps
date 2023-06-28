@@ -1,3 +1,4 @@
+import DesignSystem
 import SwiftUI
 import Combine
 import UIDelight
@@ -23,7 +24,7 @@ struct ToolsView: View {
 
     var body: some View {
         list
-            .backgroundColorIgnoringSafeArea(Color(asset: FiberAsset.appBackground))
+            .backgroundColorIgnoringSafeArea(.ds.background.alternate)
             .navigationTitle(L10n.Localizable.toolsTitle)
             .reportPageAppearance(.tools)
     }
@@ -31,15 +32,16 @@ struct ToolsView: View {
     private var list: some View {
         ScrollView {
             LazyVGrid(columns: columns, spacing: 15) {
-                ForEach(viewModel.cells, id: \.self) { data in
-                    Button(action: { didSelect(item: data.item) },
-                           label: {
-                        ToolsViewCellView(cellData: data)
+                ForEach(viewModel.tools) { tool in
+                    Button {
+                        viewModel.didSelect(tool.item)
+                    } label: {
+                        ToolGridCell(tool: tool)
                             .frame(minHeight: tallestCell)
                             .onSizeChange { size in 
                                 onCellSizeChange(size, currentColumnsCount: columns.count)
                             }
-                    })
+                    }
                 }
             }
             .padding(16)
@@ -59,9 +61,6 @@ struct ToolsView: View {
         }
     }
 
-    private func didSelect(item: ToolsItem) {
-        viewModel.didSelect(item: item)
-    }
 }
 
 private extension GridItem {

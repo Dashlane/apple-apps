@@ -2,6 +2,8 @@ import SwiftUI
 import TOTPGenerator
 import AuthenticatorKit
 import CoreLocalization
+import DesignSystem
+import VaultKit
 
 struct GeneratedOTPCodeRowView: View {
 
@@ -47,6 +49,7 @@ struct GeneratedOTPCodeRowView: View {
                                                      removal: .move(edge: .bottom)).combined(with: .opacity))
                 .accessibilityIdentifier("Code")
                 .accessibilityElement()
+                .fiberAccessibilityLabel(Text(model.accessibilityCode))
             }
             .animation(.default, value: model.code)
             Button(action: {
@@ -58,7 +61,7 @@ struct GeneratedOTPCodeRowView: View {
             }, label: {
                 copyTrashButtonImage
                     .resizable()
-                    .accessibilityLabel(isEditing ? L10n.Localizable.kwDelete : CoreLocalization.L10n.Core.kwCopy)
+                    .accessibilityLabel(isEditing ? CoreLocalization.L10n.Core.kwDelete : CoreLocalization.L10n.Core.kwCopy)
                     .scaledToFit()
                     .frame(height: 24)
                     .foregroundColor(.ds.text.neutral.standard)
@@ -75,20 +78,22 @@ struct GeneratedOTPCodeRowView: View {
                 .onReceive(timer) { _ in
                     model.update(period: period)
                 }
+                .accessibilityHidden(true)
         case .hotp:
             if !hidesLeadingAction {
                 Button(action: {
                     model.increaseHOTPCounter()
                 }) {
-                    Image(asset: SharedAsset.generateHotp)
+                    Image.ds.action.refresh.outlined
                         .foregroundColor(.ds.text.brand.standard)
                 }
+                .fiberAccessibilityLabel(Text(CoreLocalization.L10n.Core.kwPadExtensionGeneratorRefresh))
             }
         }
     }
  
     private var copyTrashButtonImage: Image {
-        return Image(asset: isEditing ? SharedAsset.trashDelete : SharedAsset.copyIcon)
+        return isEditing ? Image.ds.action.delete.outlined : Image.ds.action.copy.outlined
     }
 }
 

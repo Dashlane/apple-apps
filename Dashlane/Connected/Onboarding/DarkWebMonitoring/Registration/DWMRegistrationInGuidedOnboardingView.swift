@@ -5,10 +5,20 @@ import LoginKit
 import UIComponents
 import DesignSystem
 
-struct DWMEmailRegistrationInGuidedOnboardingView<Model: DWMRegistrationViewModelProtocol>: View {
+struct DWMRegistrationInGuidedOnboardingView: View {
+
+    enum Action {
+        case back
+        case skip
+        case mailAppOpened
+        case userIndicatedEmailConfirmed
+        case unexpectedError
+    }
 
     @ObservedObject
-    var viewModel: Model
+    var viewModel: DWMRegistrationInGuidedOnboardingViewModel
+
+    let action: (Action) -> Void
 
     var body: some View {
         FullScreenScrollView {
@@ -17,20 +27,24 @@ struct DWMEmailRegistrationInGuidedOnboardingView<Model: DWMRegistrationViewMode
                 menuView
             }
         }
-        .loginAppearance()
+        .loginAppearance(backgroundColor: .ds.background.default)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 NavigationBarButton(L10n.Localizable.darkWebMonitoringOnboardingEmailViewBack) {
-                    viewModel.back()
+                    if viewModel.canGoBack() {
+                        action(.back)
+                    }
                 }
             }
             ToolbarItem(placement: .navigationBarTrailing) {
                 NavigationBarButton(L10n.Localizable.darkWebMonitoringOnboardingEmailViewSkip) {
                     viewModel.skip()
+                    action(.skip)
                 }
                 .hidden(viewModel.shouldShowRegistrationRequestSent)
             }
         }
+        .navigationBarStyle(.transparent)
         .navigationBarBackButtonHidden(true)
         .onAppear {
             self.viewModel.updateProgressUponDisplay()
@@ -69,7 +83,7 @@ struct DWMEmailRegistrationInGuidedOnboardingView<Model: DWMRegistrationViewMode
     }
 
     private var menuView: some View {
-        DWMRegistrationMenuView(viewModel: viewModel, environment: .guidedOnboarding)
+        DWMRegistrationMenuView(viewModel: viewModel, action: action)
             .frame(maxHeight: .infinity, alignment: .bottom)
             .padding(.horizontal, 24)
 
@@ -85,11 +99,11 @@ struct DWMEmailRegistrationInGuidedOnboardingView<Model: DWMRegistrationViewMode
 
     private var emailView: some View {
         HStack(spacing: 8) {
-            Image(asset: FiberAsset.emailFieldMailIcon)
+            Image.ds.item.email.outlined
                 .renderingMode(.template)
                 .resizable()
                 .frame(width: 20, height: 20)
-                .foregroundColor(.ds.text.positive.standard)
+                .foregroundColor(.ds.text.positive.quiet)
             Text(viewModel.email)
                 .font(.headline)
                 .foregroundColor(.ds.text.positive.standard)
@@ -112,11 +126,11 @@ struct DWMEmailRegistrationInGuidedOnboardingView<Model: DWMRegistrationViewMode
 
     private var registrationRequestSentTitleView: some View {
         HStack(spacing: 8) {
-            Image(asset: FiberAsset.emailRegistrationCheckmark)
+            Image.ds.feedback.success.outlined
                 .renderingMode(.template)
                 .resizable()
                 .frame(width: 16, height: 16)
-                .foregroundColor(.ds.text.positive.standard)
+                .foregroundColor(.ds.text.positive.quiet)
             Text(L10n.Localizable.darkWebMonitoringOnboardingEmailViewSent)
                 .font(.headline)
                 .foregroundColor(.ds.text.positive.standard)
@@ -138,20 +152,11 @@ struct DWMEmailRegistrationInGuidedOnboardingView<Model: DWMRegistrationViewMode
     }
 }
 
- extension DWMEmailRegistrationInGuidedOnboardingView: NavigationBarStyleProvider {
-    var navigationBarStyle: NavigationBarStyle {
-        let appearance = UINavigationBarAppearance()
-        appearance.shadowColor = .clear
-        appearance.backgroundColor = .ds.background.default
-        return .custom(appearance: appearance, tintColor: .ds.text.neutral.standard)
-    }
- }
-
 struct DWMOnboardingEmailView_Previews: PreviewProvider {
     static var previews: some View {
         MultiContextPreview(deviceRange: .some([.iPhoneSE, .iPhone11]), dynamicTypePreview: true) {
-            DWMEmailRegistrationInGuidedOnboardingView(viewModel: FakeDWMEmailRegistrationInGuidedOnboardingViewModel(registrationRequestSent: false))
-            DWMEmailRegistrationInGuidedOnboardingView(viewModel: FakeDWMEmailRegistrationInGuidedOnboardingViewModel(registrationRequestSent: true))
+            DWMRegistrationInGuidedOnboardingView(viewModel: .mock()) { _ in }
+            DWMRegistrationInGuidedOnboardingView(viewModel: .mock()) { _ in }
         }
     }
 }

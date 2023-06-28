@@ -5,6 +5,7 @@ import CorePremium
 import SwiftUI
 import UIDelight
 import CoreLocalization
+import SwiftTreats
 
 public struct PurchaseFlowView: View {
 
@@ -71,9 +72,6 @@ public struct PurchaseFlowView: View {
         case .paywall(let key):
             if let viewModel = model.makePaywallViewModel(key: key, purchasePlanGroup: planTiers.firstPlan(for: key.orderedByPriorityPurchaseKinds)) {
                 PaywallView(model: viewModel, shouldDisplayCloseButton: true, action: model.handlePaywallViewAction)
-                .onAppear {
-                    model.logPremium(key: key)
-                }
             }
         case .list:
             purchasePlansListView(with: planTiers)
@@ -96,9 +94,6 @@ public struct PurchaseFlowView: View {
             firstStep: model.startByList,
             action: model.handlePurchasePlansListViewAction
         )
-        .onAppear {
-            model.logPremium(type: .yearlyPlanDisplaySuccessful)
-        }
     }
 }
 
@@ -122,6 +117,8 @@ fileprivate extension PurchaseFlowDismissAction {
         switch self {
         case .success:
             return L10n.Core.planScreensPurchaseCompleteMessage
+        case let .failure(error):
+            return DiagnosticMode.isEnabled ? error.debugDescription : L10n.Core.planScreensPurchaseErrorMessage
         default:
             return L10n.Core.planScreensPurchaseErrorMessage
         }

@@ -22,16 +22,7 @@ extension OnboardingChecklistViewModel {
             .assign(to: \.isAutofillActivated, on: self)
             .store(in: &cancellables)
 
-        lockService.locker.screenLocker?
-            .$lock
-            .filter { $0 == nil }
-            .sink { [weak self] _ in
-                self?.modalAnnouncementsViewModel.trigger.send(.sessionUnlocked)
-            }.store(in: &cancellables)
-
         setupSettingsUpdatePublisher()
-
-        preLoadAnimation()
     }
 
     private func setupSettingsUpdatePublisher() {

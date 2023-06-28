@@ -4,20 +4,14 @@ import DashTypes
 import LoginKit
 import SwiftTreats
 import DesignSystem
+import CoreLocalization
 
 protocol UserConsentViewModelProtocol {
     var legalNoticeEUAttributedString: AttributedString { get }
     var legalNoticeNonEUAttributedString: AttributedString { get }
 }
 
-class UserConsentViewModel: ObservableObject, UserConsentViewModelProtocol {
-
-    @Published
-    var email: String
-
-    @Published
-    var masterPassword: String
-
+class UserConsentViewModel: ObservableObject, UserConsentViewModelProtocol, AccountCreationFlowDependenciesInjecting {
     @Published
     var hasUserAcceptedEmailMarketing: Bool
 
@@ -32,8 +26,6 @@ class UserConsentViewModel: ObservableObject, UserConsentViewModelProtocol {
 
     let isEmailMarketingOptInRequired: Bool
 
-    let logger: AccountCreationInstallerLogger
-
     let completion: (Completion) -> Void
 
     enum Completion {
@@ -41,45 +33,24 @@ class UserConsentViewModel: ObservableObject, UserConsentViewModelProtocol {
         case next(hasUserAcceptedTermsAndConditions: Bool, hasUserAcceptedEmailMarketing: Bool)
     }
 
-    private let loginUsageLogService: LoginUsageLogServiceProtocol?
-
-    init(email: DashTypes.Email,
-         masterPassword: String,
-         loginUsageLogService: LoginUsageLogServiceProtocol? = nil,
-         isEmailMarketingOptInRequired: Bool,
-         logger: AccountCreationInstallerLogger,
-         completion: @escaping (Completion) -> Void) {
-        self.email = email.address
-        self.masterPassword = masterPassword
+    init(isEmailMarketingOptInRequired: Bool,
+         completion: @escaping (UserConsentViewModel.Completion) -> Void) {
         self.isEmailMarketingOptInRequired = isEmailMarketingOptInRequired
-        self.logger = logger
-        self.loginUsageLogService = loginUsageLogService
         self.completion = completion
 
                 self.hasUserAcceptedEmailMarketing = isEmailMarketingOptInRequired ? false : true
     }
 
         func back() {
-        logger.log(.recap(action: .back))
         completion(.back(hasUserAcceptedTermsAndConditions: hasUserAcceptedTermsAndConditions, hasUserAcceptedEmailMarketing: hasUserAcceptedEmailMarketing))
     }
 
         func validate() {
                 if skipValidationInDebug() { return }
 
-        logger.log(.recap(action: .next))
-
                 guard hasUserAcceptedTermsAndConditions else {
             shouldDisplayMissingRequiredConsentAlert = true
-            logger.log(.recap(action: .termsAndConditionsAcceptanceMissing))
             return
-        }
-
-        logger.log(.recap(action: .termsAndConditionsAccepted))
-        if hasUserAcceptedEmailMarketing {
-            logger.log(.recap(action: .emailMarketingAccepted))
-        } else {
-            logger.log(.recap(action: .emailMarketingDeclined))
         }
 
         isAccountCreationRequestInProgress = true
@@ -90,6 +61,7 @@ class UserConsentViewModel: ObservableObject, UserConsentViewModelProtocol {
         private func skipValidationInDebug() -> Bool {
         #if DEBUG
         if !ProcessInfo.isTesting {
+            isAccountCreationRequestInProgress = true
             hasUserAcceptedEmailMarketing = true
             hasUserAcceptedTermsAndConditions = true
             completion(.next(hasUserAcceptedTermsAndConditions: hasUserAcceptedTermsAndConditions, hasUserAcceptedEmailMarketing: hasUserAcceptedEmailMarketing))
@@ -115,7 +87,7 @@ extension UserConsentViewModelProtocol {
         let privacyPolicyURL = URL(string: "_")!
 
         let termString = L10n.Localizable.createaccountPrivacysettingsTermsConditions
-        let privacyString = L10n.Localizable.kwCreateAccountPrivacy
+        let privacyString = CoreLocalization.L10n.Core.kwCreateAccountPrivacy
         let requiredString = L10n.Localizable.createaccountPrivacysettingsRequiredLabel
 
         let legalNotice = L10n.Localizable.minimalisticOnboardingRecapCheckboxTerms(termString, privacyString, requiredString)
@@ -136,8 +108,8 @@ extension UserConsentViewModelProtocol {
         let termsURL = URL(string: "_")!
         let privacyPolicyURL = URL(string: "_")!
 
-        let termString = L10n.Localizable.kwCreateAccountTermsConditions
-        let privacyString = L10n.Localizable.kwCreateAccountPrivacy
+        let termString = CoreLocalization.L10n.Core.kwCreateAccountTermsConditions
+        let privacyString = CoreLocalization.L10n.Core.kwCreateAccountPrivacy
 
         let legalNotice = L10n.Localizable.kwCreateAccountTermsConditionsPrivacyNotice(termString, privacyString)
 

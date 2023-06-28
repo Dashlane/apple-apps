@@ -1,7 +1,6 @@
 import Foundation
 import DashTypes
 
-
 public struct Nothing {
     public init?(json: Any?) {
             }
@@ -12,11 +11,11 @@ public struct ParserBuilder<A> {
     public typealias JSONDictionary = [String: Any]
 
     private let parse: JSONParser<A>
-    
+
     public init( _ parse: @escaping JSONParser<A> ) {
         self.parse = parse
     }
-    
+
     public func build() -> DataParser<A> {
         return { data in
             do {
@@ -43,6 +42,5 @@ public struct ParserBuilder<A> {
             }
         }
     }
-    
-}
 
+}

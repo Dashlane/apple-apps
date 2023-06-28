@@ -1,5 +1,7 @@
 import SwiftUI
 import UIDelight
+import VaultKit
+import CoreLocalization
 
 struct PasswordGeneratorTabView: View {
 
@@ -73,7 +75,7 @@ struct PasswordGeneratorTabView: View {
     }
     
         var copyButton: some View {
-        Button(L10n.Localizable.passwordGeneratorCopyButton, action: {
+        Button(CoreLocalization.L10n.Core.passwordGeneratorCopyButton, action: {
             self.passwordGeneratorViewModel.performMainAction()
             toast(L10n.Localizable.passwordGeneratorCopiedPassword, image: .ds.action.copy.outlined)
         } )

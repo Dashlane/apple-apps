@@ -3,6 +3,7 @@ import CorePersonalData
 import Combine
 import UIDelight
 import UIComponents
+import VaultKit
 
 struct PasswordGeneratorHistoryView: View {
 

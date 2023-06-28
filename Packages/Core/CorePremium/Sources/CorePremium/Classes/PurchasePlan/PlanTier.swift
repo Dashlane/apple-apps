@@ -3,11 +3,11 @@ import StoreKit
 
 public struct PlanTier {
     public let kind: PurchasePlan.Kind
-    public let plans: Array<PurchasePlan>
+    public let plans: [PurchasePlan]
     public let capabilities: CapabilitySet
 
     public init(kind: PurchasePlan.Kind,
-                plans: Array<PurchasePlan>,
+                plans: [PurchasePlan],
                 capabilities: CapabilitySet) {
         self.kind = kind
         self.plans = plans
@@ -26,7 +26,7 @@ extension PlanTier {
             plan.offer.duration == .yearly
         })
     }
-    
+
     public var yearlyDiscount: Float {
         guard let monthlyPlan = monthlyPlan, let yearlyPlan = yearlyPlan else {
             return 0

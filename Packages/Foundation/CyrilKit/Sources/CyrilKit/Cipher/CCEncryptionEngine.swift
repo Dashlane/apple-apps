@@ -6,7 +6,7 @@ struct CCEncryptionEngine: EncryptionEngine {
     enum Algorithm: Int {
         case aes
         case blowFish
-        
+
         var rawValue: Int {
             switch self {
                 case .aes:
@@ -16,12 +16,11 @@ struct CCEncryptionEngine: EncryptionEngine {
             }
         }
     }
-    
-    
+
     enum Mode {
         case cbc
         case ecb
-        
+
         var hasInitialisationVector: Bool {
             switch self {
                 case .cbc:
@@ -30,7 +29,7 @@ struct CCEncryptionEngine: EncryptionEngine {
                     return false
             }
         }
-        
+
         var CCValue: Int {
             switch self {
                 case .cbc:
@@ -40,8 +39,6 @@ struct CCEncryptionEngine: EncryptionEngine {
             }
         }
     }
-    
-    
 
     let algorithm: Algorithm
     let mode: Mode
@@ -49,7 +46,7 @@ struct CCEncryptionEngine: EncryptionEngine {
     let bufferSize: Int?
     let key: SymmetricKey
     let initializationVector: Data
-    
+
     init(algorithm: Algorithm,
          mode: Mode,
          padding: Padding?,
@@ -62,21 +59,21 @@ struct CCEncryptionEngine: EncryptionEngine {
         self.key = key
         self.initializationVector = initializationVector
         self.bufferSize = bufferSize
-        
+
         if !algorithm.validateKeySize(key.count) {
             throw EncryptionError.wrongKeySize
         }
-        
+
         if mode.hasInitialisationVector && initializationVector.count < algorithm.blockSize {
             throw EncryptionError.wrongInitialisationVectorSize
         }
     }
-    
-        @inline(__always)
+
+            @inline(__always)
     private func perform(_ operation: CCOperation, on data: Data) throws -> Data {
-       
+
         return try key.withUnsafeBytes { keyBytes throws -> Data in
-            return try initializationVector.withUnsafeBytes { iv throws -> Data in
+            return try initializationVector.withUnsafeBytes { initializationVector throws -> Data in
                 return try data.withUnsafeBytes { bytes throws -> Data in
                     let bufferSize = bufferSize ?? bytes.count + algorithm.blockSize
                     var buffer = [Int8](repeating: 0, count: bufferSize)
@@ -88,7 +85,7 @@ struct CCEncryptionEngine: EncryptionEngine {
                                          CCOptions(mode.CCValue | (padding?.CCValue ?? 0)),
                                          keyBytes.baseAddress,
                                          keyBytes.count,
-                                         mode.hasInitialisationVector ? iv.baseAddress : nil,
+                                         mode.hasInitialisationVector ? initializationVector.baseAddress : nil,
                                          bytes.baseAddress,
                                          bytes.count,
                                          &buffer,
@@ -98,47 +95,47 @@ struct CCEncryptionEngine: EncryptionEngine {
                     switch Int(status) {
                         case kCCSuccess:
                             return Data(bytes: buffer, count: dataOutMovedLength)
-                            
+
                         case kCCBufferTooSmall:
                             return try CCEncryptionEngine(algorithm: algorithm,
                                                           mode: mode,
                                                           padding: padding,
                                                           key: key,
-                                                          initializationVector: initializationVector,
+                                                          initializationVector: self.initializationVector,
                                                           bufferSize: dataOutMovedLength).perform(operation, on: data)
                         case kCCParamError:
                             throw EncryptionError.paramError
-                            
+
                         case  kCCMemoryFailure:
                             throw EncryptionError.memoryFailure
-                            
+
                         case  kCCAlignmentError:
                             throw EncryptionError.alignmentError
-                            
+
                         case  kCCDecodeError:
                             throw EncryptionError.decodeError
-                            
+
                         case  kCCUnimplemented:
                             throw EncryptionError.unimplemented
-                            
+
                         case  kCCOverflow:
                             throw EncryptionError.overflow
-                            
+
                         case  kCCRNGFailure:
                             throw EncryptionError.rngFailure
-                            
+
                         case  kCCUnspecifiedError:
                             throw EncryptionError.unspecifiedError
-                            
+
                         case  kCCCallSequenceError:
                             throw EncryptionError.callSequenceError
-                            
+
                         case  kCCKeySizeError:
                             throw EncryptionError.keySizeError
-                            
+
                         case  kCCInvalidKey:
                             throw EncryptionError.invalidKey
-                            
+
                         default:
                             throw EncryptionError.unknown(status: status)
                     }
@@ -146,11 +143,11 @@ struct CCEncryptionEngine: EncryptionEngine {
             }
         }
     }
-    
+
     func encrypt(_ data: Data) throws -> Data {
         return try perform(CCOperation(kCCEncrypt), on: data)
     }
-    
+
     func decrypt(_ data: Data) throws -> Data {
         return try perform(CCOperation(kCCDecrypt), on: data)
     }
@@ -165,7 +162,7 @@ private extension CCEncryptionEngine.Algorithm {
                 return (kCCKeySizeMinBlowfish...kCCKeySizeMaxBlowfish).contains(keySize)
         }
     }
-    
+
     var blockSize: Int {
         switch self {
             case .aes:
@@ -202,4 +199,3 @@ public enum EncryptionError: Error {
         case invalidKey
     case unknown(status: CCStatus)
 }
-

@@ -1,4 +1,5 @@
 import SwiftUI
+import CoreLocalization
 
 struct RevokeSharingButton: View {
     @Environment(\.revokeAction)
@@ -32,7 +33,7 @@ private struct RevokeSharingDialog: ViewModifier {
                 Button(L10n.Localizable.kwRevokeAccess) {
                     action()
                 }
-                Button(L10n.Localizable.cancel, role: .cancel) {
+                Button(CoreLocalization.L10n.Core.cancel, role: .cancel) {
 
                 }
             } message: {

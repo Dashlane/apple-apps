@@ -3,7 +3,6 @@ import DashTypes
 import Combine
 import LocalAuthentication
 
-
 public struct FakeAuthenticationKeychainService: AuthenticationKeychainServiceProtocol {
     static var defaultPasswordValidityPeriod: TimeInterval = 60
 
@@ -13,8 +12,9 @@ public struct FakeAuthenticationKeychainService: AuthenticationKeychainServicePr
 
     let accessGroup: String = ""
 
-    public let masterKeyStatusChanged = PassthroughSubject<AuthenticationKeychainService.MasterKeyStatusChange, Never>()
+    init() {}
 
+    public let masterKeyStatusChanged = PassthroughSubject<AuthenticationKeychainService.MasterKeyStatusChange, Never>()
 
     public func masterKeyStatus(for login: Login) -> MasterKeyStoredStatus {
         return .available(accessMode: .whenDeviceUnlocked)
@@ -61,7 +61,7 @@ public struct FakeAuthenticationKeychainService: AuthenticationKeychainServicePr
     }
 
     public func makeResetContainerKeychainManager(userLogin: UserLogin) -> ResetContainerKeychainManager {
-                ResetContainerKeychainManagerImpl(cryptoEngine: cryptoEngine, accessGroup: accessGroup, userLogin: userLogin)
+        FakeResetContainerKeychainManager()
     }
 }
 
@@ -85,4 +85,10 @@ extension Data {
     func mockCrypto() -> Data {
         return Data(reversed())
     }
+}
+
+public extension FakeAuthenticationKeychainService {
+	static var mock: FakeAuthenticationKeychainService {
+		FakeAuthenticationKeychainService()
+	}
 }

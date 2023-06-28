@@ -1,28 +1,27 @@
 import Foundation
 import Sodium
 
-
 public struct NitroSecureTunnelCrypto {
     let sodium = Sodium()
     let keyPair: any KeyPairProtocol
-    
+
     public var publicKey: String {
         let hexes = keyPair.publicKey.map { String(format: "%02X", $0) }
         return hexes.joined(separator: "")
     }
-    
+
     var privateKey: String {
         keyPair.secretKey.utf8String!
     }
-    
+
     public init() throws {
         guard let keyPair = sodium.keyExchange.keyPair() else {
             throw NitroCryptoError.couldNotGenerateKeyPair
         }
         self.keyPair = keyPair
     }
-    
-    public func createSecureTunnel(with userData: AttestationDocument.UserData) throws -> NitroSecureTunnel  {
+
+    public func createSecureTunnel(with userData: AttestationDocument.UserData) throws -> NitroSecureTunnel {
         guard let publicKeyData = Data(base64Encoded: userData.publicKey),
               let headerData = Data(base64Encoded: userData.header) else {
             throw NitroCryptoError.invalidUserData

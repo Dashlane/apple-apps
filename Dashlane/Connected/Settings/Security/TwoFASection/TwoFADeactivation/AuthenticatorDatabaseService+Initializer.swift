@@ -10,15 +10,15 @@ extension AuthenticatorDatabaseService {
     convenience init(logger: Logger) {
         self.init(logger: logger,
                   storeURL: ApplicationGroup.otpCodesStoreURL,
-                  makeCryptoEngine: { IPCCryptoEngine(encryptionKeyId: $0) })
+                  makeCryptoEngine: { KeychainBasedCryptoEngine.database(encryptionKeyId: $0) })
     }
 }
 
-extension IPCCryptoEngine {
-    init(encryptionKeyId: String) {
-        self.init(encryptionKeyId: encryptionKeyId,
-                  accessGroup: ApplicationGroup.keychainAccessGroup,
-                  cryptoCenter: CryptoCenter(from: CryptoRawConfig.keyBasedDefault.parametersHeader)!)
+private extension KeychainBasedCryptoEngine {
+    static func database(encryptionKeyId: String) -> KeychainBasedCryptoEngine {
+        KeychainBasedCryptoEngine(encryptionKeyId: encryptionKeyId,
+                                  accessGroup: ApplicationGroup.keychainAccessGroup,
+                                  allowKeyRegenerationIfFailure: false,
+                                  shouldAccessAfterFirstUnlock: false)
     }
-
 }

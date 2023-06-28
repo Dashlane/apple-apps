@@ -20,7 +20,7 @@ struct PasswordStrengthHandler: MaverickOrderHandleable {
             throw MaverickRequestHandlerError.wrongRequest
         }
         let evaluation = passwordEvaluator.evaluate(request.password)
-        let score = evaluation.strength.score
+        let score = evaluation.score
 
         return Response(id: actionMessageID, strength: score)
     }

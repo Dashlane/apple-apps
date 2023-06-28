@@ -44,7 +44,6 @@ public final class DocumentUpload: NSObject {
 
     private let documentCache: DocumentCache
     private let database: ApplicationDatabase
-    let logger: DocumentStorageLogger
 
                                     init(url: URL,
          email: String,
@@ -53,8 +52,7 @@ public final class DocumentUpload: NSObject {
          tag: String = "unknown",
          database: ApplicationDatabase,
          documentCache: DocumentCache,
-         webservice: ProgressableNetworkingEngine,
-         logger: DocumentStorageLogger) throws {
+         webservice: ProgressableNetworkingEngine) throws {
         self.tag = tag
         self.progress = progress
         self.item = item
@@ -62,7 +60,6 @@ public final class DocumentUpload: NSObject {
         self.webservice = webservice
         self.documentCache = documentCache
         self.database = database
-        self.logger = logger
         var secureFileInfo = SecureFileInformation()
         secureFileInfo.filename = url.lastPathComponent
         secureFileInfo.version = "1"
@@ -75,7 +72,7 @@ public final class DocumentUpload: NSObject {
         self.encryptedUrl = try documentCache.urlOfEncryptedDirectory(with: secureFileInfo.id.rawValue)
     }
 
-    private func indicateBackgroudTaskEnd() {
+    private func indicateBackgroundTaskEnd() {
         if let activity = self.backgroundActivity {
             ProcessInfo.processInfo.endActivity(activity)
         }
@@ -91,7 +88,7 @@ public final class DocumentUpload: NSObject {
             try await commitFile()
         } catch {
             self.isFinished = true
-            self.indicateBackgroudTaskEnd()
+            self.indicateBackgroundTaskEnd()
             throw error
         }
     }
@@ -172,8 +169,7 @@ extension DocumentUpload {
         try editingItem.updateAttachments(with: self.secureFileInfo)
         try self.database.update(editingItem)
         _ = try self.database.save(self.secureFileInfo)
-        self.logger.logAttachment(for: self.secureFileInfo, action: .add)
         try FileManager.default.removeItem(at: self.plaintextUrl)
-        self.indicateBackgroudTaskEnd()
+        self.indicateBackgroundTaskEnd()
     }
 }

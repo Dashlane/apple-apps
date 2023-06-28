@@ -8,13 +8,13 @@ struct IntroView: View {
         case skip
         case add
     }
-    
+
     let isStandAlone: Bool
     let completion: (Completion) -> Void
 
     @State
     var showOnboarding = false
-    
+
     enum Steps {
         case onboardingPage
         case noTokens
@@ -31,7 +31,7 @@ struct IntroView: View {
             .navigationBarTitleDisplayMode(.inline)
         }
     }
-    
+
     var mainView: some View {
         VStack {
             VStack(spacing: 48) {
@@ -51,7 +51,7 @@ struct IntroView: View {
         .padding(.horizontal, 24)
         .padding(.bottom, 24)
     }
-    
+
     var overlayButton: some View {
         RoundedButton(L10n.Localizable.introButtonTitle) {
             if isStandAlone {
@@ -67,9 +67,9 @@ struct IntroView: View {
            onboardingView
         })
     }
-    
+
     var onboardingView: some View {
-        OnboardingView() { completion(.add) }
+        OnboardingView { completion(.add) }
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 Button(action: {

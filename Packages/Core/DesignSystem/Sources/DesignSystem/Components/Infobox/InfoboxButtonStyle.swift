@@ -16,16 +16,16 @@ struct InfoboxButtonStyle: ButtonStyle {
 
     @ScaledMetric
     private var cornerRadius: Double = 10
-    
+
     private let role: Role
-    
+
     private var primaryButtonTextColor: Color {
         switch style.mood {
         case .neutral, .brand, .warning, .danger, .positive:
             return .ds.text.inverse.catchy
         }
     }
-    
+
     private var secondaryButtonTextColor: Color {
         switch style.mood {
         case .neutral:
@@ -40,7 +40,7 @@ struct InfoboxButtonStyle: ButtonStyle {
             return .ds.text.positive.standard
         }
     }
-    
+
     private var primaryButtonBackgroundColor: Color {
         switch style.mood {
         case .neutral:
@@ -55,7 +55,7 @@ struct InfoboxButtonStyle: ButtonStyle {
             return .ds.container.expressive.positive.catchy.idle
         }
     }
-    
+
     private var secondaryButtonBackgroundColor: Color {
         switch style.mood {
         case .neutral:
@@ -70,7 +70,7 @@ struct InfoboxButtonStyle: ButtonStyle {
             return .ds.container.expressive.positive.quiet.idle
         }
     }
-    
+
     private var textColor: Color {
         switch role {
         case .primary:
@@ -79,7 +79,7 @@ struct InfoboxButtonStyle: ButtonStyle {
             return secondaryButtonTextColor
         }
     }
-    
+
     private var backgroundColor: Color {
         switch role {
         case .primary:
@@ -88,14 +88,14 @@ struct InfoboxButtonStyle: ButtonStyle {
             return secondaryButtonBackgroundColor
         }
     }
-    
+
     init(role: InfoboxButtonStyle.Role) {
         self.role = role
     }
-    
+
     func makeBody(configuration: Configuration) -> some View {
         configuration.label
-            .font(.system(.caption).weight(.medium))
+            .textStyle(.component.button.standard)
             .foregroundColor(textColor)
             .padding(.vertical, 10)
             .padding(.horizontal, 14)

@@ -1,7 +1,6 @@
 import Foundation
 import CorePersonalData
 import Combine
-import DashlaneReportKit
 import CoreSession
 import CoreUserTracking
 import Cocoa
@@ -17,7 +16,6 @@ class CredentialRowViewModel: ObservableObject, SessionServicesInjecting {
 
     let item: Credential
     let iconViewModel: VaultItemIconViewModel
-    let usageLogService: UsageLogServiceProtocol
     let activityReporter: ActivityReporterProtocol
     let vaultItemsService: VaultItemsServiceProtocol
     let featureService: FeatureServiceProtocol
@@ -65,7 +63,6 @@ class CredentialRowViewModel: ObservableObject, SessionServicesInjecting {
          sharingService: SharedVaultHandling,
          teamSpacesService: TeamSpacesService,
          featureService: FeatureServiceProtocol,
-         usageLogService: UsageLogServiceProtocol,
          vaultItemsService: VaultItemsServiceProtocol,
          activityReporter: ActivityReporterProtocol,
          pasteboardService: PasteboardService,
@@ -73,7 +70,6 @@ class CredentialRowViewModel: ObservableObject, SessionServicesInjecting {
         self.item = item
         self.iconViewModel = iconViewModelProvider(item)
         self.space = teamSpacesService.displayedUserSpace(for: item)
-        self.usageLogService = usageLogService
         self.vaultItemsService = vaultItemsService
         self.sharingPermissionProvider = sharingService
         self.featureService = featureService
@@ -140,10 +136,9 @@ extension CredentialRowViewModel {
                                       sharingService: SharedVaultHandlerMock(),
                                       teamSpacesService: .mock(),
                                       featureService: .mock(),
-                                      usageLogService: UsageLogService.fakeService,
                                       vaultItemsService: container.vaultItemsService,
                                       activityReporter: .fake,
-                                      pasteboardService: PasteboardService(userSettings: UserSettings(internalStore: InMemoryLocalSettingsStore())),
+                                      pasteboardService: PasteboardService(userSettings: UserSettings(internalStore: .mock())),
                                       iconViewModelProvider: { VaultItemIconViewModel.mock(item: $0) })
     }
 }

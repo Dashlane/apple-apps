@@ -3,18 +3,14 @@ import Combine
 import UIDelight
 import UIComponents
 import DesignSystem
+import CoreLocalization
 
-struct DWMRegistrationMenuView<Model: DWMRegistrationViewModelProtocol>: View {
+struct DWMRegistrationMenuView: View {
 
     @ObservedObject
-    var viewModel: Model
+    var viewModel: DWMRegistrationInGuidedOnboardingViewModel
 
-        enum Environment {
-        case guidedOnboarding
-        case onboardingChecklistItem
-    }
-
-    let environment: Environment
+    let action: (DWMRegistrationInGuidedOnboardingView.Action) -> Void
 
     @ViewBuilder
     var body: some View {
@@ -32,8 +28,15 @@ struct DWMRegistrationMenuView<Model: DWMRegistrationViewModelProtocol>: View {
                 .padding(.bottom, 48)
             }
         }
-        .alert(isPresented: $viewModel.shouldDisplayError) {
-            Alert(title: Text(viewModel.errorContent), dismissButton: .default(Text(L10n.Localizable.kwButtonOk), action: viewModel.errorDismissalCompletion))
+        .alert(item: $viewModel.alert) { alert in
+            Alert(
+                title: Text(alert.message),
+                dismissButton: .default(Text(CoreLocalization.L10n.Core.kwButtonOk)) {
+                    if alert.isUnexpected {
+                        action(.unexpectedError)
+                    }
+                }
+            )
         }
     }
 
@@ -73,15 +76,16 @@ struct DWMRegistrationMenuView<Model: DWMRegistrationViewModelProtocol>: View {
     }
 
     private var confirmedEmailButton: some View {
-        Button(action: {
-            self.viewModel.userIndicatedEmailWasConfirmed()
-        }, label: {
-            Text(L10n.Localizable.darkWebMonitoringOnboardingEmailViewConfirmedMyEmail)
-        })
-            .font(.headline)
-            .padding(16)
-            .foregroundColor(Color(asset: FiberAsset.guidedOnboardingSecondaryAction))
-            .fixedSize(horizontal: false, vertical: true)
+        Button(
+            action: { action(.userIndicatedEmailConfirmed) },
+            label: {
+                Text(L10n.Localizable.darkWebMonitoringOnboardingEmailViewConfirmedMyEmail)
+            }
+        )
+        .font(.headline)
+        .padding(16)
+        .foregroundColor(Color(asset: FiberAsset.guidedOnboardingSecondaryAction))
+        .fixedSize(horizontal: false, vertical: true)
     }
 
     private func mailAppsActionSheetButtons() -> [PopSheet.Button] {
@@ -107,7 +111,8 @@ struct DWMRegistrationMenuView<Model: DWMRegistrationViewModelProtocol>: View {
 
     private func actionSheetButton(for emailApp: MailApp, withTitle title: String) -> PopSheet.Button {
         return .default(Text(title)) {
-            self.viewModel.openMailApp(emailApp)
+            action(.mailAppOpened)
+            viewModel.openMailApp(emailApp)
         }
     }
 }
@@ -115,10 +120,8 @@ struct DWMRegistrationMenuView<Model: DWMRegistrationViewModelProtocol>: View {
 struct DWMEmailRegistrationMenu_Previews: PreviewProvider {
     static var previews: some View {
         MultiContextPreview(dynamicTypePreview: true) {
-            DWMRegistrationMenuView(viewModel: FakeDWMEmailRegistrationInGuidedOnboardingViewModel(registrationRequestSent: false), environment: .guidedOnboarding)
-            DWMRegistrationMenuView(viewModel: FakeDWMEmailRegistrationInGuidedOnboardingViewModel(registrationRequestSent: true), environment: .guidedOnboarding)
-            DWMRegistrationMenuView(viewModel: FakeDWMEmailRegistrationInGuidedOnboardingViewModel(registrationRequestSent: false), environment: .onboardingChecklistItem)
-            DWMRegistrationMenuView(viewModel: FakeDWMEmailRegistrationInGuidedOnboardingViewModel(registrationRequestSent: true), environment: .onboardingChecklistItem)
+            DWMRegistrationMenuView(viewModel: .mock(shouldShowRegistrationRequestSent: false)) { _ in }
+            DWMRegistrationMenuView(viewModel: .mock(shouldShowRegistrationRequestSent: true)) { _ in }
         }
     }
 }

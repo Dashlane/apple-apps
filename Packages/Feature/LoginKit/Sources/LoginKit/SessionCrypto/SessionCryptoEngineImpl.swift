@@ -8,7 +8,7 @@ public class SessionCryptoEngineImpl: SessionCryptoEngine {
         case invalidCryptoConfig
         case invalidEncryptedPayloadHeader
     }
-    
+
     var mainCryptoEngine: SpecializedCryptoEngine
     lazy var keyBasedCryptoCenter = CryptoCenter(from: CryptoRawConfig.keyBasedDefault.parametersHeader)!
     let logger: Logger
@@ -16,10 +16,10 @@ public class SessionCryptoEngineImpl: SessionCryptoEngine {
     public var config: CryptoRawConfig {
         let config = mainCryptoEngine.cryptoCenter.config
         let data = config.saltLength > 0 ? mainCryptoEngine.cache?.fixedSalt(ofSize: UInt(config.saltLength)) : nil
-        
+
         return CryptoRawConfig(fixedSalt: data, parametersHeader: mainCryptoEngine.cryptoCenter.header)
     }
-    
+
     public var displayedKeyDerivationInfo: String {
         switch mainCryptoEngine.cryptoCenter.config {
         case .argon2dBased:
@@ -33,8 +33,7 @@ public class SessionCryptoEngineImpl: SessionCryptoEngine {
             return "No Derivation"
         }
     }
-    
-    
+
         public init(cryptoCenter: CryptoCenter, secret: EncryptionSecret, cache: MemoryDerivationKeyCache, logger: Logger) {
         self.mainCryptoEngine = SpecializedCryptoEngine(cryptoCenter: cryptoCenter, secret: secret, cache: cache)
         self.logger = logger
@@ -56,7 +55,7 @@ public class SessionCryptoEngineImpl: SessionCryptoEngine {
         guard let cryptoCenter = CryptoCenter(from: config.parametersHeader) else {
             throw Error.invalidCryptoConfig
         }
-        
+
         logErrorForUnexpectedChange(forNewCryptoCenter: cryptoCenter, newRawConfig: config)
 
         mainCryptoEngine.cryptoCenter = cryptoCenter
@@ -64,7 +63,7 @@ public class SessionCryptoEngineImpl: SessionCryptoEngine {
             mainCryptoEngine.cache?.saveFixedSalt(fixedSalt)
         }
     }
-    
+
             private func logErrorForUnexpectedChange(forNewCryptoCenter cryptoCenter: CryptoCenter, newRawConfig: CryptoRawConfig) {
         let oldRawConfig = self.config
         guard mainCryptoEngine.cryptoCenter.config.derivationAlgorithm == cryptoCenter.config.derivationAlgorithm else {
@@ -75,7 +74,7 @@ public class SessionCryptoEngineImpl: SessionCryptoEngine {
             let hasFixedBefore: Bool
             let hasFixedAfter: Bool
         }
-        
+
         let info = SaltUpdateInfo(hasChange: oldRawConfig.fixedSalt == newRawConfig.fixedSalt,
                                   hasFixedBefore: oldRawConfig.fixedSalt != nil,
                                   hasFixedAfter: newRawConfig.fixedSalt != nil)
@@ -86,13 +85,12 @@ public class SessionCryptoEngineImpl: SessionCryptoEngine {
                      New Header: \(newRawConfig.parametersHeader)
                      """)
     }
-    
+
     public func decrypt(data: Data) -> Data? {
         mainCryptoEngine.decrypt(data: data)
     }
-    
+
     public func encrypt(data: Data) -> Data? {
         mainCryptoEngine.encrypt(data: data)
     }
 }
-

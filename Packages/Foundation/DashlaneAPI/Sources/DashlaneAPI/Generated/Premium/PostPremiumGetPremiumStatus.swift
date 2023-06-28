@@ -1,6 +1,6 @@
 import Foundation
 extension UserDeviceAPIClient.Premium {
-        public struct GetPremiumStatus {
+        public struct GetPremiumStatus: APIRequest {
         public static let endpoint: Endpoint = "/premium/GetPremiumStatus"
 
         public let api: UserDeviceAPIClient
@@ -17,7 +17,7 @@ extension UserDeviceAPIClient.Premium {
 }
 
 extension UserDeviceAPIClient.Premium.GetPremiumStatus {
-        struct Body: Encodable {
+        public struct Body: Encodable {
     }
 }
 
@@ -25,6 +25,13 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
     public typealias Response = DataType
 
         public struct DataType: Codable, Equatable {
+
+        private enum CodingKeys: String, CodingKey {
+            case b2cStatus = "b2cStatus"
+            case capabilities = "capabilities"
+            case b2bStatus = "b2bStatus"
+            case currentTimestampUnix = "currentTimestampUnix"
+        }
 
                 public let b2cStatus: B2cStatus
 
@@ -66,6 +73,19 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
                 case stripe = "stripe"
             }
 
+            private enum CodingKeys: String, CodingKey {
+                case statusCode = "statusCode"
+                case isTrial = "isTrial"
+                case autoRenewal = "autoRenewal"
+                case endDateUnix = "endDateUnix"
+                case familyStatus = "familyStatus"
+                case planFeature = "planFeature"
+                case planName = "planName"
+                case planType = "planType"
+                case previousPlan = "previousPlan"
+                case startDateUnix = "startDateUnix"
+            }
+
                         public let statusCode: StatusCode
 
                         public let isTrial: Bool
@@ -88,6 +108,12 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
 
                         public struct FamilyStatus: Codable, Equatable {
 
+                private enum CodingKeys: String, CodingKey {
+                    case isAdmin = "isAdmin"
+                    case familyId = "familyId"
+                    case planName = "planName"
+                }
+
                 public let isAdmin: Bool
 
                 public let familyId: Int
@@ -102,6 +128,11 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
             }
 
                         public struct PreviousPlan: Codable, Equatable {
+
+                private enum CodingKeys: String, CodingKey {
+                    case planName = "planName"
+                    case endDateUnix = "endDateUnix"
+                }
 
                 public let planName: String
 
@@ -130,6 +161,7 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
                 public struct Capabilities: Codable, Equatable {
 
                         public enum Capability: String, Codable, Equatable, CaseIterable {
+                case autofillWithPhishingPrevention = "autofillWithPhishingPrevention"
                 case creditMonitoring = "creditMonitoring"
                 case dataLeak = "dataLeak"
                 case devicesLimit = "devicesLimit"
@@ -147,6 +179,12 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
                 case yubikey = "yubikey"
             }
 
+            private enum CodingKeys: String, CodingKey {
+                case capability = "capability"
+                case enabled = "enabled"
+                case info = "info"
+            }
+
             public let capability: Capability
 
             public let enabled: Bool
@@ -154,6 +192,10 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
                         public let info: Info?
 
                         public struct Info: Codable, Equatable {
+
+                private enum CodingKeys: String, CodingKey {
+                    case reason = "reason"
+                }
 
                                 public let reason: String?
 
@@ -177,6 +219,12 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
                 case inTeam = "in_team"
             }
 
+            private enum CodingKeys: String, CodingKey {
+                case statusCode = "statusCode"
+                case currentTeam = "currentTeam"
+                case pastTeams = "pastTeams"
+            }
+
             public let statusCode: StatusCode
 
             public let currentTeam: CurrentTeam?
@@ -184,6 +232,20 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
             public let pastTeams: [PastTeams]?
 
                         public struct CurrentTeam: Codable, Equatable {
+
+                private enum CodingKeys: String, CodingKey {
+                    case planName = "planName"
+                    case teamId = "teamId"
+                    case planFeature = "planFeature"
+                    case joinDateUnix = "joinDateUnix"
+                    case teamMembership = "teamMembership"
+                    case teamInfo = "teamInfo"
+                    case associatedEmail = "associatedEmail"
+                    case invitationDateUnix = "invitationDateUnix"
+                    case isRenewalStopped = "isRenewalStopped"
+                    case recoveryHash = "recoveryHash"
+                    case teamName = "teamName"
+                }
 
                 public let planName: String
 
@@ -201,11 +263,13 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
 
                 public let invitationDateUnix: Int?
 
+                public let isRenewalStopped: Bool?
+
                 public let recoveryHash: String?
 
                 public let teamName: String?
 
-                public init(planName: String, teamId: Int, planFeature: String, joinDateUnix: Int, teamMembership: PremiumGetStatusTeamMembership, teamInfo: PremiumGetStatusTeamInfo, associatedEmail: String? = nil, invitationDateUnix: Int? = nil, recoveryHash: String? = nil, teamName: String? = nil) {
+                public init(planName: String, teamId: Int, planFeature: String, joinDateUnix: Int, teamMembership: PremiumGetStatusTeamMembership, teamInfo: PremiumGetStatusTeamInfo, associatedEmail: String? = nil, invitationDateUnix: Int? = nil, isRenewalStopped: Bool? = nil, recoveryHash: String? = nil, teamName: String? = nil) {
                     self.planName = planName
                     self.teamId = teamId
                     self.planFeature = planFeature
@@ -214,12 +278,27 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
                     self.teamInfo = teamInfo
                     self.associatedEmail = associatedEmail
                     self.invitationDateUnix = invitationDateUnix
+                    self.isRenewalStopped = isRenewalStopped
                     self.recoveryHash = recoveryHash
                     self.teamName = teamName
                 }
             }
 
                         public struct PastTeams: Codable, Equatable {
+
+                private enum CodingKeys: String, CodingKey {
+                    case status = "status"
+                    case revokeDateUnix = "revokeDateUnix"
+                    case teamId = "teamId"
+                    case planFeature = "planFeature"
+                    case joinDateUnix = "joinDateUnix"
+                    case teamMembership = "teamMembership"
+                    case teamInfo = "teamInfo"
+                    case associatedEmail = "associatedEmail"
+                    case invitationDateUnix = "invitationDateUnix"
+                    case shouldDelete = "shouldDelete"
+                    case teamName = "teamName"
+                }
 
                 public let status: String
 

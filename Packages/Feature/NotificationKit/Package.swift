@@ -3,15 +3,15 @@ import PackageDescription
 let package = Package(
     name: "NotificationKit",
     platforms: [
-        .iOS(.v15)
+        .iOS(.v16)
     ],
     products: [
                 .library(
             name: "NotificationKit",
-            targets: ["NotificationKit"]),
+            targets: ["NotificationKit"])
     ],
     dependencies: [
-                .package(url: "_", from: "5.6.0"),
+                .package(url: "_", from: "5.13.0"),
         .package(path: "../../Foundation/SwiftTreats"),
         .package(path: "../../Foundation/DashTypes"),
         .package(path: "../../Core/CoreNetworking"),
@@ -21,13 +21,12 @@ let package = Package(
         .package(path: "../../Core/DesignSystem"),
         .package(path: "../../Plugins/sourcery-plugin"),
         .package(path: "../../Plugins/swiftgen-plugin"),
-        .package(path: "../../Common/dashlanereportkit"),
         .package(path: "../../Core/CorePremium"),
         .package(path: "../../Core/CoreUserTracking"),
         .package(path: "../../Core/CoreFeature"),
         .package(path: "../../Core/UIComponents"),
         .package(path: "../../Core/CorePersonalData"),
-        .package(path: "../../Core/CoreSession"),
+        .package(path: "../../Core/CoreSession")
     ],
     targets: [
                         .target(
@@ -42,13 +41,12 @@ let package = Package(
                 .product(name: "UIDelight", package: "UIDelight"),
                 .product(name: "CoreLocalization", package: "CoreLocalization"),
                 .product(name: "DesignSystem", package: "DesignSystem"),
-                .product(name: "DashlaneReportKit", package: "dashlanereportkit"),
                 .product(name: "CorePremium", package: "CorePremium"),
                 .product(name: "CoreUserTracking", package: "CoreUserTracking"),
                 .product(name: "CoreFeature", package: "CoreFeature"),
                 .product(name: "UIComponents", package: "UIComponents"),
                 .product(name: "CorePersonalData", package: "CorePersonalData"),
-                .product(name: "CoreSession", package: "CoreSession"),
+                .product(name: "CoreSession", package: "CoreSession")
 
             ],
             resources: [.process("Resources")]),

@@ -12,41 +12,38 @@ import AuthenticatorKit
 class UnlockViewModel: Identifiable, ObservableObject, AuthenticatorServicesInjecting {
 
     let login: Login
-    
+
     @Published
     var mode: AuthenticationMode
-    
+
     @Published
     var error: UnlockError?
-    let keychainService: AuthenticationKeychainService
+    let keychainService: AuthenticationKeychainServiceProtocol
     let sessionContainer: SessionsContainerProtocol
-    let appServices: AppServices
     let loginOTPOption: ThirdPartyOTPOption?
     let validateMasterKey: (CoreKeychain.MasterKey, Login, AuthenticationMode, ThirdPartyOTPOption?) async throws -> PairedServicesContainer
     let completion: (PairedServicesContainer) -> Void
-    
+
     @Published
     var showOnboarding: Bool
-    
+
     @Published
     var show2faOnboarding: Bool
-    
+
     var sharedDefault = SharedUserDefault<Bool?, String>(key: AuthenticatorUserDefaultKey.showPwdAppOnboarding.rawValue)
     var show2FAOnboardingSharedDefault = SharedUserDefault<Bool?, String>(key: AuthenticatorUserDefaultKey.show2FAOnboarding.rawValue)
-    
+
     init(login: Login,
          authenticationMode: AuthenticationMode,
          loginOTPOption: ThirdPartyOTPOption?,
-         keychainService: AuthenticationKeychainService,
+         keychainService: AuthenticationKeychainServiceProtocol,
          sessionContainer: SessionsContainerProtocol,
-         appServices: AppServices,
          validateMasterKey: @escaping (CoreKeychain.MasterKey, Login, AuthenticationMode, ThirdPartyOTPOption?) async throws -> PairedServicesContainer,
          completion: @escaping (PairedServicesContainer) -> Void) {
         self.login = login
         self.mode = authenticationMode
         self.keychainService = keychainService
         self.sessionContainer = sessionContainer
-        self.appServices = appServices
         self.completion = completion
         self.loginOTPOption = loginOTPOption
         self.validateMasterKey = validateMasterKey
@@ -58,16 +55,16 @@ class UnlockViewModel: Identifiable, ObservableObject, AuthenticatorServicesInje
     func validateMasterKey(_ masterKey: CoreKeychain.MasterKey) async throws -> PairedServicesContainer {
         return try await self.validateMasterKey(masterKey, login, mode, loginOTPOption)
     }
-    
+
     @MainActor
     func makeBiometryUnlockViewModel(biometryType: Biometry, completion: @escaping (PairedServicesContainer) -> Void) -> BiometryUnlockViewModel {
         return BiometryUnlockViewModel(login: login,
                                        biometryType: biometryType,
-                                       keychainService: appServices.keychainService,
+                                       keychainService: keychainService,
                                        validateMasterKey: validateMasterKey,
                                        completion: completion)
     }
-    
+
     @MainActor
     func makePinUnlockViewModel(pin: String, pinCodeAttempts: PinCodeAttempts, masterKey: CoreKeychain.MasterKey, completion: @escaping (PairedServicesContainer) -> Void) -> PinUnlockViewModel {
         return PinUnlockViewModel(login: login,
@@ -77,7 +74,7 @@ class UnlockViewModel: Identifiable, ObservableObject, AuthenticatorServicesInje
                                   validateMasterKey: validateMasterKey,
                                   completion: completion)
     }
-    
+
     @MainActor
     func makeBiometryAndPinUnlockViewModel(pin: String, pinCodeAttempts: PinCodeAttempts, masterKey: CoreKeychain.MasterKey, biometryType: Biometry, completion: @escaping (PairedServicesContainer) -> Void) -> BiometryAndPinUnlockViewModel {
         return BiometryAndPinUnlockViewModel(login: login,
@@ -88,12 +85,12 @@ class UnlockViewModel: Identifiable, ObservableObject, AuthenticatorServicesInje
                                              validateMasterKey: validateMasterKey,
                                              completion: completion)
     }
-    
+
     func didFinishOnboarding() {
         sharedDefault.wrappedValue = false
         showOnboarding = false
     }
-    
+
     func didFinish2FAOnboarding() {
         show2FAOnboardingSharedDefault.wrappedValue = false
         show2faOnboarding = false

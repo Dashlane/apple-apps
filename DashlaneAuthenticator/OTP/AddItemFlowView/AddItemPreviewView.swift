@@ -5,17 +5,17 @@ import UIComponents
 import DesignSystem
 
 struct AddItemPreviewView: View {
-    
+
     let model: TokenRowViewModel
     let isFirstToken: Bool
     let completion: () -> Void
-    
+
     @Environment(\.toast)
     var toast
-    
+
     @State
     var showSuccess = false
-    
+
     var body: some View {
         ZStack {
             mainView
@@ -25,7 +25,7 @@ struct AddItemPreviewView: View {
         }.animation(.easeInOut, value: showSuccess)
         .animation(.easeInOut, value: isFirstToken)
     }
-    
+
     var mainView: some View {
         VStack(alignment: .leading, spacing: 24) {
             VStack(alignment: .leading, spacing: 16) {
@@ -61,7 +61,7 @@ struct AddItemPreviewView: View {
             .navigationBarStyle(.transparent)
             .hiddenNavigationTitle()
     }
-    
+
     @ViewBuilder
     var successView: some View {
         if isFirstToken {
@@ -76,7 +76,7 @@ struct AddItemPreviewView_previews: PreviewProvider {
     static var previews: some View {
         NavigationView {
             AddItemPreviewView(model: .mock(), isFirstToken: true) {
-                
+
             }
         }
     }

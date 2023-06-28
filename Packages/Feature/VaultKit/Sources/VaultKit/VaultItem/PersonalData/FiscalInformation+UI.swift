@@ -23,7 +23,7 @@ extension FiscalInformation: VaultItem {
     public static var addTitle: String {
         L10n.Core.kwadddatakwFiscalStatementIOS
     }
-    
+
     public static var nativeMenuAddTitle: String {
         L10n.Core.addTaxNumber
     }

@@ -21,8 +21,6 @@ public struct AutofillOnboardingFlowView: View {
                 AutofillOnboardingSuccessView(action: { model.finish() })
             }
         }
-        .backgroundColorIgnoringSafeArea(.ds.background.default)
-        .padding(.bottom, 20)
         .onAppear(perform: model.onAppear)
     }
 }

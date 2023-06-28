@@ -16,7 +16,7 @@ final class VaultFlowViewModel: ObservableObject, SessionServicesInjecting, Auto
         case showAutofillDemo
         case showChecklist
         case addItemOfCategory(_ category: ItemCategory)
-        case didSelectItem(_ item: VaultItem, selectVaultItem: UserEvent.SelectVaultItem)
+        case didSelectItem(_ item: VaultItem, selectVaultItem: UserEvent.SelectVaultItem, isEditing: Bool)
         case addItem(displayMode: AddItemFlowViewModel.DisplayMode)
     }
 
@@ -45,10 +45,7 @@ final class VaultFlowViewModel: ObservableObject, SessionServicesInjecting, Auto
                 case autofillDemoDummyFields(Credential)
     }
 
-        let tag: Int = 0
-    let id: UUID = .init()
-
-    @Published
+        @Published
     var steps: [Step] = []
 
     @Published
@@ -78,7 +75,7 @@ final class VaultFlowViewModel: ObservableObject, SessionServicesInjecting, Auto
 
     private(set) var mode: Mode!
 
-        let detailInformationValue: CurrentValueSubject<TabElementDetail, Never>? = .init(.text(""))
+        let badgeValues: CurrentValueSubject<String?, Never>? = .init("")
     let actionPublisher: PassthroughSubject<CredentialDetailViewModel.Action, Never> = .init()
 
     private var cancellables: Set<AnyCancellable> = []
@@ -90,16 +87,17 @@ final class VaultFlowViewModel: ObservableObject, SessionServicesInjecting, Auto
     let autofillOnboardingFlowViewModelFactory: AutofillOnboardingFlowViewModel.Factory
     let onboardingChecklistFlowViewModelFactory: OnboardingChecklistFlowViewModel.Factory
 
-    var addItemFlowDisplayMode: AddItemFlowViewModel.DisplayMode?
+        var addItemFlowDisplayMode: AddItemFlowViewModel.DisplayMode = .prefilledPassword(.init())
 
         let sessionServices: SessionServicesContainer
     private let accessControl: AccessControlProtocol
     private let teamSpaceService: TeamSpacesService
-    private let usageLogService: UsageLogServiceProtocol
     private let activityReporter: ActivityReporterProtocol
     private let vaultItemsService: VaultItemsServiceProtocol
 
         private let categoryCountQueue = DispatchQueue(label: "vaultCategoryCount", qos: .utility)
+
+        let deeplinkPublisher: AnyPublisher<VaultDeeplink, Never>
 
     init(
         itemCategory: ItemCategory? = nil,
@@ -110,8 +108,7 @@ final class VaultFlowViewModel: ObservableObject, SessionServicesInjecting, Auto
         addItemFlowViewModelFactory: AddItemFlowViewModel.Factory,
         autofillOnboardingFlowViewModelFactory: AutofillOnboardingFlowViewModel.Factory,
         onboardingChecklistFlowViewModelFactory: OnboardingChecklistFlowViewModel.Factory,
-        sessionServices: SessionServicesContainer,
-        usageLogService: UsageLogServiceProtocol
+        sessionServices: SessionServicesContainer
     ) {
         self.detailViewFactory = detailViewFactory
         self.homeViewModelFactory = homeViewModelFactory
@@ -122,10 +119,11 @@ final class VaultFlowViewModel: ObservableObject, SessionServicesInjecting, Auto
 
         self.sessionServices = sessionServices
         self.accessControl = sessionServices.accessControl
-        self.usageLogService = usageLogService
         self.teamSpaceService = sessionServices.teamSpacesService
         self.activityReporter = sessionServices.activityReporter
         self.vaultItemsService = sessionServices.vaultItemsService
+
+        self.deeplinkPublisher = sessionServices.appServices.deepLinkingService.vaultDeeplinkPublisher()
 
         start(with: itemCategory, onboardingChecklistViewAction: onboardingChecklistViewAction)
         setupPublishers()
@@ -176,9 +174,9 @@ final class VaultFlowViewModel: ObservableObject, SessionServicesInjecting, Auto
                 .receive(on: categoryCountQueue)
                 .filter(by: teamSpaceService.$selectedSpace)
                 .map { $0.count }
-                .receive(on: RunLoop.main)
+                .receive(on: DispatchQueue.main)
                 .sink { [weak self] count in
-                    self?.detailInformationValue?.send(.text(String(count)))
+                    self?.badgeValues?.send(String(count))
                 }
                 .store(in: &cancellables)
         }
@@ -192,8 +190,8 @@ extension VaultFlowViewModel {
             showAutofillDemo()
         case .showChecklist:
             showChecklist()
-        case let .didSelectItem(item, selectVaultItem):
-            showDetail(for: item, selectVaultItem: selectVaultItem)
+        case let .didSelectItem(item, selectVaultItem, isEditing):
+            showDetail(for: item, selectVaultItem: selectVaultItem, isEditing: isEditing)
         case let .addItem(displayMode):
             showAddItemMenuView(displayMode: displayMode)
         default:
@@ -215,12 +213,12 @@ extension VaultFlowViewModel {
     }
 
     func showCategoryDetail(_ category: ItemCategory) {
-        let model = vaultListViewModelFactory.make(filter: category.vaultListFilter) { [weak self] completion in
+        let model = vaultListViewModelFactory.make(filter: category.section) { [weak self] completion in
             switch completion {
             case .addItem(let mode):
                 self?.showAddItemMenuView(displayMode: mode)
-            case let .enterDetail(item, selectVaultItem):
-                self?.showDetail(for: item, selectVaultItem: selectVaultItem)
+            case let .enterDetail(item, selectVaultItem, isEditing):
+                self?.showDetail(for: item, selectVaultItem: selectVaultItem, isEditing: isEditing)
             }
         }
 
@@ -292,8 +290,6 @@ extension VaultFlowViewModel {
     }
 
     func showAddItemMenuView(displayMode: AddItemFlowViewModel.DisplayMode) {
-        usageLogService.addItemLogger.logTapAddItem()
-
         addItemFlowDisplayMode = displayMode
         showAddItemFlow = true
     }
@@ -312,6 +308,11 @@ extension VaultFlowViewModel {
 
     func showChecklist() {
         showOnboardingChecklist = true
+    }
+
+    func openImportFlow() {
+        let link = DeepLink.importMethod(ImportMethodDeeplink.import(ImportMethodDeeplink.Method.lastpass))
+        sessionServices.appServices.deepLinkingService.handleLink(link)
     }
 }
 

@@ -48,16 +48,6 @@ final class RememberMasterPasswordToggleViewModel: ObservableObject, SessionServ
             }
             return
         }
-        guard !teamSpacesService.isSSOUser else {
-            actionHandler(.disableBiometricsAndPincode)
-
-            do {
-                try enableRememberMasterPassword()
-            } catch {
-                assertionFailure("Couldn't enable remember master password. [\(error.localizedDescription)]")
-            }
-            return
-        }
 
         activeAlert = .keychainStoredMasterPassword(completion: { [weak self] confirmed in
             guard let self = self else { return }
@@ -89,8 +79,7 @@ final class RememberMasterPasswordToggleViewModel: ObservableObject, SessionServ
         private func toggleWithAnimation(_ on: Bool) {
         withAnimation { isToggleOn = on }
     }
-
-    private var isRememberMasterPasswordActivated: Bool {
+        private var isRememberMasterPasswordActivated: Bool {
         lockService.secureLockConfigurator.isRememberMasterPasswordActivated
     }
 }

@@ -3,6 +3,7 @@ import SwiftUI
 import UIDelight
 import LoginKit
 import UIComponents
+import CoreLocalization
 
 struct SSOUserConsentView: View {
 
@@ -24,7 +25,7 @@ struct SSOUserConsentView: View {
         .navigationTitle(L10n.Localizable.kwTitle)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
-                NavigationBarButton(action: model.cancel, title: L10n.Localizable.cancel)
+                NavigationBarButton(action: model.cancel, title: CoreLocalization.L10n.Core.cancel)
             }
             ToolbarItem(placement: .navigationBarTrailing) {
                 NavigationBarButton(action: model.signup, title: L10n.Localizable.kwSignupButton)
@@ -64,12 +65,12 @@ struct SSOUserConsentView: View {
     }
 
     private func userConsentAlert() -> Alert {
-        return Alert(title: Text(L10n.Localizable.createaccountprivacysettingsError))
+        Alert(title: Text(L10n.Localizable.createaccountprivacysettingsError))
     }
 }
 
 extension SSOUserConsentView: NavigationBarStyleProvider {
-    var navigationBarStyle: NavigationBarStyle {
+    var navigationBarStyle: UIComponents.NavigationBarStyle {
         return .transparent(tintColor: FiberAsset.dashGreenCopy.color, statusBarStyle: .default)
     }
 }
@@ -79,16 +80,21 @@ struct SSOUserConsentView_Previews: PreviewProvider {
         MultiContextPreview {
             Group {
                 NavigationView {
-                    SSOUserConsentView(model: SSOUserConsentViewModel(isEmailMarketingOptInRequired: true,
-                                                                      completion: {_ in
-                    }))
+                    SSOUserConsentView(
+                        model: SSOUserConsentViewModel(
+                            isEmailMarketingOptInRequired: true,
+                            completion: { _ in }
+                        )
+                    )
                 }
-                SSOUserConsentView(model: SSOUserConsentViewModel(isEmailMarketingOptInRequired: false,
-                                                                  completion: {_ in
-                }))
+                SSOUserConsentView(
+                    model: SSOUserConsentViewModel(
+                        isEmailMarketingOptInRequired: false,
+                        completion: { _ in }
+                    )
+                )
             }
 
         }
-
     }
 }

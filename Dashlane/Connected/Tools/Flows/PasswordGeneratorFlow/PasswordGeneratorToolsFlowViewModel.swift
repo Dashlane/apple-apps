@@ -2,9 +2,11 @@ import Foundation
 import CorePersonalData
 import Combine
 import SwiftUI
+import VaultKit
+import DashTypes
 
 @MainActor
-class PasswordGeneratorToolsFlowViewModel: ObservableObject, SessionServicesInjecting, TabCoordinator {
+class PasswordGeneratorToolsFlowViewModel: ObservableObject, SessionServicesInjecting {
 
     enum Step {
         case root
@@ -15,31 +17,18 @@ class PasswordGeneratorToolsFlowViewModel: ObservableObject, SessionServicesInje
     var steps: [Step] = [.root]
 
     let deepLinkingService: DeepLinkingServiceProtocol
+    let pasteboardService: PasteboardService
     let passwordGeneratorViewModelFactory: PasswordGeneratorViewModel.ThirdFactory
     let passwordGeneratorHistoryViewModelFactory: PasswordGeneratorHistoryViewModel.Factory
 
     let deepLinkShowPasswordHistoryPublisher: AnyPublisher<Void, Never>
 
-        let tabBarImage = NavigationImageSet(image: FiberAsset.tabPwcGenOff,
-                                         selectedImage: FiberAsset.tabPwcGenOn)
-    let sidebarImage = NavigationImageSet(image: FiberAsset.tabPwcGenOff,
-                                          selectedImage: FiberAsset.tabPwcGenOn)
-    let title: String = L10n.Localizable.tabGeneratorTitle
-    let tag: Int = ConnectedCoordinator.Tab.passwordGenerator.tabBarIndexValue
-    let id = UUID()
-    func start() {}
-    lazy var viewController: UIViewController = {
-
-                        let view = NavigationView {
-            PasswordGeneratorToolsFlow(viewModel: self)
-        }
-        return UIHostingController(rootView: view)
-    }()
-
     init(deepLinkingService: DeepLinkingServiceProtocol,
+         pasteboardService: PasteboardService,
          passwordGeneratorViewModelFactory: PasswordGeneratorViewModel.ThirdFactory,
          passwordGeneratorHistoryViewModelFactory: PasswordGeneratorHistoryViewModel.Factory) {
         self.deepLinkingService = deepLinkingService
+        self.pasteboardService = pasteboardService
         self.passwordGeneratorViewModelFactory = passwordGeneratorViewModelFactory
         self.passwordGeneratorHistoryViewModelFactory = passwordGeneratorHistoryViewModelFactory
 
@@ -76,7 +65,7 @@ class PasswordGeneratorToolsFlowViewModel: ObservableObject, SessionServicesInje
             }
         }
 
-        return passwordGeneratorViewModelFactory.make(mode: .standalone(action))
+        return passwordGeneratorViewModelFactory.make(mode: .standalone(action), copyAction: { password in self.pasteboardService.set(password) })
     }
 
     func showHistory() {
@@ -87,7 +76,8 @@ class PasswordGeneratorToolsFlowViewModel: ObservableObject, SessionServicesInje
 extension PasswordGeneratorToolsFlowViewModel {
     static var mock: PasswordGeneratorToolsFlowViewModel {
         .init(deepLinkingService: DeepLinkingService.fakeService,
-              passwordGeneratorViewModelFactory: .init({ _ in .mock }),
+              pasteboardService: PasteboardService.mock(),
+              passwordGeneratorViewModelFactory: .init({ _, _  in .mock }),
               passwordGeneratorHistoryViewModelFactory: .init({ .mock() }))
     }
 }

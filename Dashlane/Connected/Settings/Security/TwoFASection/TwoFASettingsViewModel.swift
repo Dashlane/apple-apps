@@ -6,6 +6,7 @@ import CoreNetworking
 import TOTPGenerator
 import UIKit
 import LoginKit
+import Combine
 
 @MainActor
 class TwoFASettingsViewModel: SessionServicesInjecting, ObservableObject {
@@ -42,7 +43,7 @@ class TwoFASettingsViewModel: SessionServicesInjecting, ObservableObject {
     }
 
     let login: Login
-    let accountAPIClient: AccountAPIClientProtocol
+    let userAPIClient: UserDeviceAPIClient
     let logger: Logger
     let isTwoFAEnforced: Bool
     let nonAuthenticatedUKIBasedWebService: LegacyWebService
@@ -53,20 +54,23 @@ class TwoFASettingsViewModel: SessionServicesInjecting, ObservableObject {
     let twoFAActivationViewModelFactory: TwoFAActivationViewModel.Factory
     let twoFASetupViewModelFactory: TwoFASetupViewModel.Factory
     let twoFactorEnforcementViewModelFactory: TwoFactorEnforcementViewModel.Factory
+    let reachability: NetworkReachability
+    private var subcription: AnyCancellable?
 
     init(login: Login,
          loginOTPOption: ThirdPartyOTPOption?,
-         authenticatedAPIClient: DeprecatedCustomAPIClient,
+         userAPIClient: UserDeviceAPIClient,
          nonAuthenticatedUKIBasedWebService: LegacyWebService,
          logger: Logger,
          isTwoFAEnforced: Bool,
+         reachability: NetworkReachability,
          sessionLifeCycleHandler: SessionLifeCycleHandler?,
          twoFADeactivationViewModelFactory: TwoFADeactivationViewModel.Factory,
          twoFAActivationViewModelFactory: TwoFAActivationViewModel.Factory,
          twoFASetupViewModelFactory: TwoFASetupViewModel.Factory,
          twoFactorEnforcementViewModelFactory: TwoFactorEnforcementViewModel.Factory) {
         self.login = login
-        self.accountAPIClient = AccountAPIClient(apiClient: authenticatedAPIClient)
+        self.userAPIClient = userAPIClient
         self.currentOTP = loginOTPOption != nil ? .otp2 : nil
         self.isTFAEnabled = currentOTP == nil ? false : true
         self.logger = logger
@@ -77,6 +81,7 @@ class TwoFASettingsViewModel: SessionServicesInjecting, ObservableObject {
         self.twoFAActivationViewModelFactory = twoFAActivationViewModelFactory
         self.twoFASetupViewModelFactory = twoFASetupViewModelFactory
         self.twoFactorEnforcementViewModelFactory = twoFactorEnforcementViewModelFactory
+        self.reachability = reachability
 
         Task {
             await fetch()
@@ -86,12 +91,27 @@ class TwoFASettingsViewModel: SessionServicesInjecting, ObservableObject {
     func fetch() async {
         status = .loading
         do {
-            let response = try await accountAPIClient.twoFAStatus()
-            self.currentOTP = response.twoFAType
+            let response = try await userAPIClient.authentication.get2FAStatus()
+            self.currentOTP = response.type.twoFAType
             self.status = .loaded
         } catch {
-            self.status = .error
+            status = self.reachability.isConnected ? .error : .noInternet
+            fetchWhenInternetConnectionRestores()
         }
+    }
+
+    private func fetchWhenInternetConnectionRestores() {
+        guard !self.reachability.isConnected else {
+            return
+        }
+
+        subcription = reachability.$isConnected
+            .receive(on: DispatchQueue.main)
+            .filter { $0 }.sink { [weak self] _ in
+                Task {
+                    await self?.fetch()
+                }
+            }
     }
 
     func updateState() async {
@@ -107,7 +127,7 @@ class TwoFASettingsViewModel: SessionServicesInjecting, ObservableObject {
     }
 
     func makeTwoFactorEnforcementViewModel() -> TwoFactorEnforcementViewModel {
-        twoFactorEnforcementViewModelFactory.make(accountAPIClient: accountAPIClient) { [weak self] in
+        twoFactorEnforcementViewModelFactory.make { [weak self] in
             self?.sessionLifeCycleHandler?.logout(clearAutoLoginData: true)
         }
     }
@@ -127,14 +147,15 @@ extension TwoFASettingsViewModel {
     static var mock: TwoFASettingsViewModel {
         return TwoFASettingsViewModel(login: Login("_"),
                                       loginOTPOption: nil,
-                                      authenticatedAPIClient: .fake,
+                                      userAPIClient: .fake,
                                       nonAuthenticatedUKIBasedWebService: LegacyWebServiceMock(response: ""),
                                       logger: LoggerMock(),
                                       isTwoFAEnforced: true,
+                                      reachability: NetworkReachability(isConnected: true),
                                       sessionLifeCycleHandler: nil,
                                       twoFADeactivationViewModelFactory: .init({ _, _ in .mock() }),
                                       twoFAActivationViewModelFactory: .init({ .mock }),
                                       twoFASetupViewModelFactory: .init({ .mock }),
-                                      twoFactorEnforcementViewModelFactory: .init({ _, _ in .mock }))
+                                      twoFactorEnforcementViewModelFactory: .init({ _ in .mock }))
     }
 }

@@ -3,6 +3,7 @@ import WatchConnectivity
 import CorePersonalData
 import Combine
 import DashlaneAppKit
+import VaultKit
 
 public class AppWatchAppCommunicator: NSObject {
     private let vaultItemsService: VaultItemsServiceProtocol
@@ -56,7 +57,9 @@ public class AppWatchAppCommunicator: NSObject {
 }
 
 extension AppWatchAppCommunicator: WCSessionDelegate {
-    public func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {}
+    public func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
+        self.sendContext()
+    }
     
     public func sessionDidBecomeInactive(_ session: WCSession) {}
     

@@ -34,14 +34,14 @@ extension BankAccount: VaultItem {
     public static var addTitle: String {
         L10n.Core.kwadddatakwBankStatementIOS
     }
-    
+
     public static var nativeMenuAddTitle: String {
         L10n.Core.addBankAccount
     }
 }
 
 extension BankAccount: CopiablePersonalData {
-    
+
     public var valueToCopy: String {
         iban
     }

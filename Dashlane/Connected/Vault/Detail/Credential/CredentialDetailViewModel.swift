@@ -5,14 +5,15 @@ import DashTypes
 import CoreSession
 import Combine
 import CorePremium
-import DashlaneReportKit
 import CoreUserTracking
 import DashlaneAppKit
 import IconLibrary
 import DocumentServices
 import CoreSettings
 import VaultKit
+import AutofillKit
 import CoreFeature
+import UIComponents
 
 class CredentialDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting, MockVaultConnectedInjecting {
 
@@ -65,8 +66,7 @@ class CredentialDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
     let domainsSectionModelFactory: DomainsSectionModel.Factory
     let addOTPFlowViewModelFactory: AddOTPFlowViewModel.Factory
 
-    let passwordGeneratorViewModelFactory: (PasswordGeneratorMode) -> PasswordGeneratorViewModel
-    let logger: CredentialDetailUsageLogger
+    let passwordGeneratorViewModelFactory: (PasswordGeneratorMode, @escaping (String) -> Void) -> PasswordGeneratorViewModel
     let origin: ItemDetailOrigin
 
     var wasAdding: Bool = false
@@ -83,7 +83,7 @@ class CredentialDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
         private var generatedPasswordToLink: GeneratedPassword?
 
     private let featureService: FeatureServiceProtocol
-    private let passwordEvaluator: PasswordEvaluator
+    private let passwordEvaluator: PasswordEvaluatorProtocol
     private var subscriptions = Set<AnyCancellable>()
     private let linkedDomainsService: LinkedDomainService
     private let onboardingService: OnboardingService
@@ -106,7 +106,7 @@ class CredentialDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
         case save(addedDomains: LinkedServices)
     }
 
-    init(
+    convenience init(
         item: Credential,
         session: Session,
         mode: DetailMode = .viewing,
@@ -117,21 +117,20 @@ class CredentialDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
         sharingService: SharedVaultHandling,
         teamSpacesService: TeamSpacesService,
         premiumService: PremiumServiceProtocol,
-        vaultItemsServices: VaultItemsServiceProtocol,
         iconViewModelProvider: @escaping (VaultItem) -> VaultItemIconViewModel,
-        usageLogService: UsageLogServiceProtocol,
-        deepLinkService: DeepLinkingServiceProtocol,
+        deepLinkService: VaultKit.DeepLinkingServiceProtocol,
         activityReporter: ActivityReporterProtocol,
         featureService: FeatureServiceProtocol,
         iconService: IconServiceProtocol,
         logger: Logger,
         accessControl: AccessControlProtocol,
         userSettings: UserSettings,
-        passwordEvaluator: PasswordEvaluator,
+        passwordEvaluator: PasswordEvaluatorProtocol,
         linkedDomainsService: LinkedDomainService,
         onboardingService: OnboardingService,
         autofillService: AutofillService,
         documentStorageService: DocumentStorageService,
+        pasteboardService: PasteboardServiceProtocol,
         didSave: (() -> Void)? = nil,
         credentialMainSectionModelFactory: CredentialMainSectionModel.Factory,
         passwordHealthSectionModelFactory: PasswordHealthSectionModel.Factory,
@@ -141,10 +140,67 @@ class CredentialDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
         domainsSectionModelFactory: DomainsSectionModel.Factory,
         makePasswordGeneratorViewModel: PasswordGeneratorViewModel.Factory,
         addOTPFlowViewModelFactory: AddOTPFlowViewModel.Factory,
-        passwordGeneratorViewModelFactory: @escaping (PasswordGeneratorMode) -> PasswordGeneratorViewModel,
-        attachmentSectionFactory: AttachmentsSectionViewModel.Factory,
-        attachmentsListViewModelProvider: @escaping (VaultItem, AnyPublisher<VaultItem, Never>) -> AttachmentsListViewModel
+        passwordGeneratorViewModelFactory: @escaping (PasswordGeneratorMode, @escaping (String) -> Void) -> PasswordGeneratorViewModel,
+        attachmentSectionFactory: AttachmentsSectionViewModel.Factory
     ) {
+        self.init(
+            generatedPasswordToLink: generatedPasswordToLink,
+            vaultItemsService: vaultItemsService,
+            actionPublisher: actionPublisher,
+            featureService: featureService,
+            iconService: iconService,
+            passwordEvaluator: passwordEvaluator,
+            linkedDomainsService: linkedDomainsService,
+            onboardingService: onboardingService,
+            autofillService: autofillService,
+            didSave: didSave,
+            credentialMainSectionModelFactory: credentialMainSectionModelFactory,
+            passwordHealthSectionModelFactory: passwordHealthSectionModelFactory,
+            passwordAccessorySectionModelFactory: passwordAccessorySectionModelFactory,
+            notesSectionModelFactory: notesSectionModelFactory,
+            sharingDetailSectionModelFactory: sharingDetailSectionModelFactory,
+            domainsSectionModelFactory: domainsSectionModelFactory,
+            addOTPFlowViewModelFactory: addOTPFlowViewModelFactory,
+            passwordGeneratorViewModelFactory: passwordGeneratorViewModelFactory,
+            service: .init(
+                item: item,
+                mode: mode,
+                vaultItemsService: vaultItemsService,
+                sharingService: sharingService,
+                teamSpacesService: teamSpacesService,
+                documentStorageService: documentStorageService,
+                deepLinkService: deepLinkService,
+                activityReporter: activityReporter,
+                iconViewModelProvider: iconViewModelProvider,
+                attachmentSectionFactory: attachmentSectionFactory,
+                logger: logger,
+                accessControl: accessControl,
+                userSettings: userSettings,
+                pasteboardService: pasteboardService
+            )
+        )
+    }
+
+    init(generatedPasswordToLink: GeneratedPassword? = nil,
+         vaultItemsService: VaultItemsServiceProtocol,
+         actionPublisher: PassthroughSubject<CredentialDetailViewModel.Action, Never>? = nil,
+         origin: ItemDetailOrigin = ItemDetailOrigin.unknown,
+         featureService: FeatureServiceProtocol,
+         iconService: IconServiceProtocol,
+         passwordEvaluator: PasswordEvaluatorProtocol,
+         linkedDomainsService: LinkedDomainService,
+         onboardingService: OnboardingService,
+         autofillService: AutofillService,
+         didSave: (() -> Void)? = nil,
+         credentialMainSectionModelFactory: CredentialMainSectionModel.Factory,
+         passwordHealthSectionModelFactory: PasswordHealthSectionModel.Factory,
+         passwordAccessorySectionModelFactory: PasswordAccessorySectionModel.Factory,
+         notesSectionModelFactory: NotesSectionModel.Factory,
+         sharingDetailSectionModelFactory: SharingDetailSectionModel.Factory,
+         domainsSectionModelFactory: DomainsSectionModel.Factory,
+         addOTPFlowViewModelFactory: AddOTPFlowViewModel.Factory,
+         passwordGeneratorViewModelFactory: @escaping (PasswordGeneratorMode, @escaping (String) -> Void) -> PasswordGeneratorViewModel,
+         service: DetailService<Credential>) {
         self.generatedPasswordToLink = generatedPasswordToLink
         self.passwordEvaluator = passwordEvaluator
         self.credentialMainSectionModelFactory = credentialMainSectionModelFactory
@@ -155,33 +211,16 @@ class CredentialDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
         self.sharingDetailSectionModelFactory = sharingDetailSectionModelFactory
         self.domainsSectionModelFactory = domainsSectionModelFactory
         self.addOTPFlowViewModelFactory = addOTPFlowViewModelFactory
-        self.logger = CredentialDetailUsageLogger(usageLogService: usageLogService, item: item)
         self.actionPublisher = actionPublisher
         self.featureService = featureService
         self.linkedDomainsService = linkedDomainsService
         self.onboardingService = onboardingService
         self.autofillService = autofillService
-        self.vaultItemsServices = vaultItemsServices
+        self.vaultItemsServices = vaultItemsService
         self.domainIconLibrary = iconService.domain
         self.didSaveCallback = didSave
         self.origin = origin
-        self.service = .init(
-            item: item,
-            mode: mode,
-            vaultItemsService: vaultItemsService,
-            sharingService: sharingService,
-            teamSpacesService: teamSpacesService,
-            usageLogService: usageLogService,
-            documentStorageService: documentStorageService,
-            deepLinkService: deepLinkService,
-            activityReporter: activityReporter,
-            iconViewModelProvider: iconViewModelProvider,
-            logger: logger,
-            accessControl: accessControl,
-            userSettings: userSettings,
-            attachmentSectionFactory: attachmentSectionFactory,
-            attachmentsListViewModelProvider: attachmentsListViewModelProvider
-        )
+        self.service = service
 
         registerServiceChanges()
         registerPublishers()
@@ -194,6 +233,7 @@ class CredentialDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
     private func registerServiceChanges() {
         service
             .objectWillChange
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] in
                 self?.objectWillChange.send()
             }
@@ -201,7 +241,7 @@ class CredentialDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
     }
 
     private func registerPublishers() {
-        vaultItemsService.$credentials
+        vaultItemsServices.$credentials
             .map({ $0.count })
             .removeDuplicates()
             .sink { [weak self] count in
@@ -230,7 +270,7 @@ class CredentialDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
             case .save(let addedDomains):
                 self.item.linkedServices = addedDomains
                 self.save()
-                self.display(message: L10n.Localizable.KWAuthentifiantIOS.Domains.update)
+                self.eventPublisher.send(.domainsUpdate)
             }
         }.store(in: &subscriptions)
     }
@@ -240,11 +280,8 @@ class CredentialDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
         if item.password != originalItem.password {
             item.passwordModificationDate = Date()
         }
-        logPasswordDetails()
         if mode.isAdding {
             self.wasAdding = true
-            guard let url = item.url else { return }
-            logger.logSavePassword(credentialsCount: vaultItemsService.credentials.count, url: url)
         }
     }
 
@@ -255,7 +292,6 @@ class CredentialDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
 
     func delete() async {
         await service.delete()
-        logPasswordDetails(isDeleting: true)
     }
 
     func showAutoFillDemo() {
@@ -299,8 +335,10 @@ private extension CredentialDetailViewModel {
 
 extension CredentialDetailViewModel {
     func makeAddOTPFlowViewModel() -> AddOTPFlowViewModel {
-        addOTPFlowViewModelFactory.make(mode: .credentialPrefilled(item)) { [weak self] in
-            self?.save()
+                                let previousMode = mode
+        mode = .viewing
+        return addOTPFlowViewModelFactory.make(mode: .credentialPrefilled(item)) { [weak self] in
+            self?.mode = previousMode
         }
     }
 
@@ -311,7 +349,9 @@ extension CredentialDetailViewModel {
             }
             self.item.password = generated.password ?? ""
             self.generatedPasswordToLink = generated
-        }))
+        }), { password in
+            PasteboardService(userSettings: self.service.userSettings).set(password)
+        })
     }
 
     func makeDomainsViewModel(from additionMode: Bool = false) -> CredentialDomainsViewModel {

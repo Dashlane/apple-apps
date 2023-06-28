@@ -30,7 +30,7 @@ public class BreachesFetcher {
                               revision: breachesData.revision,
                               delta: delta)
     }
-    
+
             private func publicBreaches(accounts: [SecurityDashboardCredential], latestRevision: Int?) async -> BreachesData {
         log.debug("Starting to fetch public breaches")
         let revision = latestRevision ?? 0
@@ -40,7 +40,7 @@ public class BreachesFetcher {
             self.log.debug("Failed to fetch breaches, return the latest revision available and no breaches.")
             return (revision, [])
         }
-        
+
         var (lastRevisionFound, breaches) = [fetchedBreaches].filterRevisionAndValidPublicBreaches()
 
                 let lastRevision = max(revision, lastRevisionFound)
@@ -53,7 +53,7 @@ public class BreachesFetcher {
             self.log.debug("Finished to fetch public breaches, no revision was set so we return an empty set")
             return (lastRevision, [])
         }
-        
+
         self.log.debug("Finished to fetch public breaches")
         return (lastRevision, breaches)
     }
@@ -71,9 +71,9 @@ public class BreachesFetcher {
         let result = try await endpointToCall(lastUpdateDate)
         assert(!Thread.isMainThread)
                 let storedBreaches = result.leaks.compactMap(StoredBreach.init)
-        
+
                 let breachesIncludingDecipheredData = Self.decipheredBreaches(storedBreaches: storedBreaches, decryptor: decryptor, response: result)
-        
+
         let delta = BreachesService.treat(Set(breachesIncludingDecipheredData), comparingAgainst: existingBreaches, using: userCredentials)
         return LeaksResult(lastUpdateDate: result.lastUpdateDate, delta: delta)
     }
@@ -92,12 +92,12 @@ public class BreachesFetcher {
             assertionFailure("Cannot transform cipheredInfo.")
             return storedBreaches
         }
-        
+
         guard let decryptor = decryptor,
             let decrypted = decryptor.decrypt(data: cipheredInfo,
                                               using: cipheredKey)
             else {
-                assertionFailure("Coult not decrypt information")
+                assertionFailure("Could not decrypt information")
                 return storedBreaches
         }
 

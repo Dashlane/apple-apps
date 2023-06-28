@@ -10,7 +10,7 @@ extension UploadContentService {
     struct Output: Decodable {
         let timestamp: Timestamp
     }
-    
+
         static func upload(using mode: MigrationUploadMode,
                        content: DataForMasterPasswordChange,
                        authenticatedAPIClient apiClient: DeprecatedCustomAPIClient,
@@ -26,7 +26,7 @@ extension UploadContentService {
             default:
                 completion(result.map { $0.timestamp })
             }
-            
+
         }
     }
 }

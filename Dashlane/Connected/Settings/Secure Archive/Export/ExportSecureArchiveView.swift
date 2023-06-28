@@ -4,17 +4,17 @@ import UIDelight
 import SwiftTreats
 import LoginKit
 import DesignSystem
+import CoreLocalization
 
 struct ExportSecureArchiveView: View {
+    @Environment(\.dismiss) private var dismiss
 
-    @Environment(\.dismiss)
-    private var dismiss
+    @StateObject private var viewModel: ExportSecureArchiveViewModel
+    @FocusState private var isTextFieldFocused: Bool
 
-    @StateObject
-    var viewModel: ExportSecureArchiveViewModel
-
-    @FocusState
-    var isTextFieldFocused: Bool
+    init(viewModel: @autoclosure @escaping () -> ExportSecureArchiveViewModel) {
+        _viewModel = .init(wrappedValue: viewModel())
+    }
 
     var body: some View {
         NavigationView {
@@ -26,10 +26,10 @@ struct ExportSecureArchiveView: View {
                     progressView
                 }
             }
-            .backgroundColorIgnoringSafeArea(Color(asset: FiberAsset.mainBackground))
+            .backgroundColorIgnoringSafeArea(.ds.background.default)
             .toolbar {
                 ToolbarItem(placement: .navigationBarLeading) {
-                    Button(L10n.Localizable.cancel) {
+                    Button(CoreLocalization.L10n.Core.cancel) {
                         dismiss()
                     }
                 }
@@ -45,13 +45,13 @@ struct ExportSecureArchiveView: View {
             .alert(isPresented: $viewModel.displayInputError) {
                 Alert(title: Text(L10n.Localizable.exporterUnlockAlertWrongMpTitle),
                       message: Text(L10n.Localizable.exporterUnlockAlertWrongMpMessage),
-                      dismissButton: .cancel(Text(L10n.Localizable.kwButtonOk)))
+                      dismissButton: .cancel(Text(CoreLocalization.L10n.Core.kwButtonOk)))
             }
             .documentPicker(export: $viewModel.exportedArchiveURL) {
                 dismiss()
             }
         }
-        .accentColor(Color(asset: FiberAsset.accentColor))
+        .accentColor(.ds.text.brand.standard)
         .navigationViewStyle(.stack)
         .onAppear {
             isTextFieldFocused = true
@@ -59,16 +59,14 @@ struct ExportSecureArchiveView: View {
     }
 
     private var inputView: some View {
-        LoginFieldBox {
-            TextInput(L10n.Localizable.kwEnterYourMasterPassword,
-                      text: $viewModel.passwordInput)
-            .focused($isTextFieldFocused)
-            .textInputIsSecure(true)
-            .onSubmit {
-                viewModel.export()
-            }
-            .style(intensity: .supershy)
-        }
+        DS.PasswordField(
+            CoreLocalization.L10n.Core.kwEnterYourMasterPassword,
+            text: $viewModel.passwordInput
+        )
+        .focused($isTextFieldFocused)
+        .onSubmit(viewModel.export)
+        .textFieldAppearance(.standalone)
+        .padding(.horizontal)
     }
 
     private var progressView: some View {

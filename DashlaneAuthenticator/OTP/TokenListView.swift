@@ -8,37 +8,37 @@ import DesignSystem
 import UIComponents
 
 struct TokenListView<Content: View>: View {
-    
+
     enum NavigationItem {
         case detail(OTPInfo)
         case help
     }
-    
+
     @StateObject
     var model: TokenListViewModel
-    
+
     @State
-    var itemToDelete: OTPInfo? = nil
-    
+    var itemToDelete: OTPInfo?
+
     @State
-    var inDeletionItem: OTPInfo? = nil
-    
+    var inDeletionItem: OTPInfo?
+
     @Binding
     var expandedToken: OTPInfo?
-    
+
     var addAction: (_ skipIntro: Bool) -> Void
-    
+
     @Binding
     var showAnnouncement: Bool
-    
+
     @State
     private var isEditing = false
-    
+
     let announcementContent: () -> Content
-    
+
     @Environment(\.dismiss)
     var dismiss
-    
+
     init(model: @autoclosure @escaping () -> TokenListViewModel,
          expandedToken: Binding<OTPInfo?>,
          addAction: @escaping (_ skipIntro: Bool) -> Void,
@@ -50,16 +50,16 @@ struct TokenListView<Content: View>: View {
         _showAnnouncement = showAnnouncement
         self.announcementContent = announcementContent
     }
-    
+
     @Environment(\.toast)
     var toast
 
     @State
     var isScrollOnTop = false
-    
+
     @State
     var listBottomPadding: CGFloat = 0
-        
+
     var body: some View {
         StepBasedContentNavigationView(steps: $model.steps) { step in
             switch step {
@@ -86,7 +86,7 @@ struct TokenListView<Content: View>: View {
         .animation(.easeInOut, value: model.tokens)
         .animation(.easeInOut, value: model.favorites)
     }
-    
+
     @ToolbarContentBuilder
     var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .navigationBarLeading) {
@@ -96,24 +96,25 @@ struct TokenListView<Content: View>: View {
                 }
             }
         }
-        
+
         ToolbarItem(placement: .navigationBarTrailing) {
             if !isEditing {
                 Menu {
-                    Button{
+                    Button {
                         self.isEditing = true
                     } label: {
                         Text(L10n.Localizable.buttonEdit)
-                        Image(asset: SharedAsset.editPen)
+                        Image.ds.action.edit.outlined
                     }
                     Button {
                         model.showHelp()
                     } label: {
                         Text(L10n.Localizable.addOtpFlowHelpCta)
-                        Image(asset: SharedAsset.help)
+                        Image.ds.feedback.help.outlined
+                            .foregroundColor(.ds.text.neutral.standard)
                     }
                 } label: {
-                    Image(asset: SharedAsset.editBubble)
+                    Image.ds.action.moreEmphasized.outlined
                         .resizable()
                         .frame(width: 22, height: 22)
                         .foregroundColor(.ds.text.neutral.standard)
@@ -121,7 +122,7 @@ struct TokenListView<Content: View>: View {
             }
         }
     }
-    
+
     var scrollView: some View {
         TrackableScrollView(isOnTop: $isScrollOnTop.animation(.easeInOut)) {
             VStack(spacing: 24) {
@@ -144,16 +145,16 @@ struct TokenListView<Content: View>: View {
             expandedToken = model.favorites.first ?? model.tokens.first
         }
     }
-    
+
     var listView: some View {
         list(for: model.tokens, title: L10n.Localizable.listOtherSectionTitle)
             .padding(.bottom, listBottomPadding)
     }
-    
+
     var favoriteListView: some View {
         list(for: model.favorites, title: L10n.Localizable.listFavoriteSectionTitle)
     }
-    
+
     @ViewBuilder
     func list(for items: [OTPInfo], title: String) -> some View {
         VStack(spacing: 8) {
@@ -166,7 +167,7 @@ struct TokenListView<Content: View>: View {
                         Divider()
                             .padding(.leading, 12)
                     }
-                    
+
                     rowView(for: token)
                         .cornerRadius(isEditing ? 8 : 0)
                 }
@@ -175,7 +176,7 @@ struct TokenListView<Content: View>: View {
             .padding(.horizontal)
         }
     }
-    
+
     @ViewBuilder
     func section(title: String) -> some View {
         Text(title)
@@ -187,7 +188,7 @@ struct TokenListView<Content: View>: View {
             .frame(maxWidth: .infinity, alignment: .leading)
             .transition(.opacity)
     }
-    
+
     func rowMode(for token: OTPInfo) -> TokenRowMode {
         if isEditing {
             return .edition
@@ -197,7 +198,7 @@ struct TokenListView<Content: View>: View {
             return .view
         }
     }
-    
+
     @ViewBuilder
     func rowView(for token: OTPInfo) -> some View {
         TokenRowView(model: model.makeTokenRowViewModel(for: token),
@@ -213,21 +214,27 @@ struct TokenListView<Content: View>: View {
             }
         }
         .background(.ds.container.agnostic.neutral.supershy)
-        .deletableRow(isEnabled: !isEditing && inDeletionItem == nil || inDeletionItem == token,
-                      deleteImage: Image(asset: AuthenticatorAsset.trashDelete), isInProgress: { inProgress in
+        .deletableRow(
+            isEnabled: !isEditing && inDeletionItem == nil || inDeletionItem == token,
+            deleteImage: Image.ds.action.delete.outlined,
+            isInProgress: { inProgress in
                 inDeletionItem = inProgress ? token : nil
-        }) {
-            self.itemToDelete = token
-        }
+            },
+            perform: {
+                self.itemToDelete = token
+            }
+        )
     }
-    
+}
+
+extension TokenListView {
     func alert(for item: OTPInfo) -> Alert {
         Alert(title: Text(L10n.Localizable.otpDeletionTitle(item.configuration.issuerOrTitle)),
               message: Text(L10n.Localizable.otpDeletionMessage(item.configuration.issuerOrTitle)),
               primaryButton: .destructive(Text(L10n.Localizable.otpDeletionConfirmButton), action: { model.delete(item: item)}),
               secondaryButton: .cancel())
     }
-    
+
     @ViewBuilder
     var addNewAccountOverlay: some View {
         if !isEditing && isScrollOnTop {
@@ -235,7 +242,7 @@ struct TokenListView<Content: View>: View {
                 .transition(.opacity.combined(with: .offset(x: 0, y: 10)))
         }
     }
-    
+
     var addNewAccountButton: some View {
         RoundedButton(L10n.Localizable.addOtpFlowAddNewCta, action: { addAction(false) })
             .roundedButtonLayout(.fill)
@@ -247,14 +254,14 @@ struct TokenListView<Content: View>: View {
             .padding(.top)
             .background(addNewAccountBackground)
     }
-    
+
     @ViewBuilder
     var addNewAccountBackground: some View {
         let colors = [Color.ds.background.alternate,
                       Color.ds.background.alternate.opacity(0)]
         LinearGradient(gradient: Gradient(colors: colors), startPoint: .init(x: 0.5, y: 0.8), endPoint: .top).edgesIgnoringSafeArea(.bottom)
     }
-    
+
     func handleRowTrailingAction(_ action: TokenRowAction) {
         switch action {
         case let .copy(code, _):
@@ -271,7 +278,7 @@ struct TokenListView<Content: View>: View {
             model.steps.append(.detail(token))
         }
     }
-    
+
     @ViewBuilder
     var emptyTokensView: some View {
         VStack {
@@ -283,7 +290,9 @@ struct TokenListView<Content: View>: View {
         .overlay {
             VStack(spacing: 32) {
                 Spacer()
-                Image(asset: AuthenticatorAsset.lock)
+                Image.ds.lock.outlined
+                    .resizable()
+                    .frame(width: 60, height: 60)
                     .foregroundColor(.ds.text.oddity.disabled)
                 Text(L10n.Localizable.tokenListEmptyMessage)
                     .font(.body)
@@ -298,14 +307,14 @@ struct TokenListView<Content: View>: View {
                         self.isEditing = false
         }
     }
-    
+
     var helpLabel: some View {
         Button(action: {
             addAction(true)
         },
                label: {
             HStack {
-                Image(asset: AuthenticatorAsset.feedbackHelp)
+                Image.ds.feedback.help.outlined
                 Text(L10n.Localizable.tokenListHelpLabel)
                 Spacer()
                 Image(systemName: "chevron.right")
@@ -325,12 +334,15 @@ struct TokenListView_preview: PreviewProvider {
     static var previews: some View {
         MultiContextPreview {
             NavigationView {
-                TokenListView(model: .mock(),
-                              expandedToken: .constant(nil),
-                              addAction: {_ in},
-                              showAnnouncement: .constant(false)) {
-                    EmptyView()
-                }
+                TokenListView(
+                    model: .mock(),
+                    expandedToken: .constant(nil),
+                    addAction: {_ in},
+                    showAnnouncement: .constant(false),
+                    announcementContent: {
+                        EmptyView()
+                    }
+                )
             }
         }
     }

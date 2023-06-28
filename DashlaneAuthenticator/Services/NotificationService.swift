@@ -45,7 +45,7 @@ class NotificationService: NSObject, Mockable {
     let apiClient: AuthenticatorAPIClient
     let sessionsContainer: SessionsContainerProtocol
     let activityReporter: ActivityReporterProtocol
-    
+
     init(apiClient: AuthenticatorAPIClient,
          sessionsContainer: SessionsContainerProtocol,
          activityReporter: ActivityReporterProtocol,
@@ -57,7 +57,7 @@ class NotificationService: NSObject, Mockable {
 
         notificationCenter.delegate = self
         registerNotificationAction()
-        
+
         remoteDeviceTokenPublisher.catch { _ in
             return Empty()
         }.sink { [weak self] data in
@@ -66,7 +66,7 @@ class NotificationService: NSObject, Mockable {
     }
 
         func registerForRemoteNotifications() {
-        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { granted, _ in
+        UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .sound, .badge]) { _, _ in
             UNUserNotificationCenter.current().getNotificationSettings { settings in
                 guard settings.authorizationStatus == .authorized else { return }
                 DispatchQueue.main.async {
@@ -117,12 +117,12 @@ extension NotificationService: UNUserNotificationCenterDelegate {
     func userNotificationCenter(_ center: UNUserNotificationCenter, didReceive response: UNNotificationResponse, withCompletionHandler completionHandler: @escaping () -> Void) {
         let action = NotificationAction(rawValue: response.actionIdentifier)
         let notification = response.notification
-        
+
         let userInfo = notification.request.content.userInfo
         guard let authenticationRequest = AuthenticationRequest(userInfo: userInfo) else {
             return
         }
-        
+
                 if let action = action {
             Task(priority: .userInitiated) {
                 do {
@@ -144,7 +144,7 @@ extension NotificationService: UNUserNotificationCenterDelegate {
             remoteNotificationPublisher.send(.requestAuthentication(authenticationRequest))
         }
     }
-    
+
     public func accept(_ request: AuthenticationRequest) async throws {
         guard let deviceAccessKey = try? sessionsContainer.info(for: Login(request.login)).deviceAccessKey else {
             return
@@ -154,7 +154,7 @@ extension NotificationService: UNUserNotificationCenterDelegate {
                                                                   deviceAccessKey: deviceAccessKey))
         activityReporter.report(UserEvent.AuthenticatorPushAction(authenticatorPushStatus: .accepted, authenticatorPushType: .otpCode))
     }
-    
+
     public func reject(_ request: AuthenticationRequest) async throws {
         guard let deviceAccessKey = try? sessionsContainer.info(for: Login(request.login)).deviceAccessKey else {
             return
@@ -167,11 +167,11 @@ extension NotificationService: UNUserNotificationCenterDelegate {
 }
 
 class NotificationServiceMock: NotificationServiceProtocol {
-    
+
     var remoteNotificationPublisher = CurrentValueSubject<Notification?, Never>(nil)
-    
+
     func accept(_ request: AuthenticationRequest) async throws {}
-    
+
     func reject(_ request: AuthenticationRequest) async throws {}
-    
+
 }

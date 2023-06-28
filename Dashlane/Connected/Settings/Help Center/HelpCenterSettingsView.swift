@@ -1,5 +1,7 @@
 import SwiftUI
+import DesignSystem
 import UIDelight
+import CoreLocalization
 
 struct HelpCenterSettingsView: View {
 
@@ -12,28 +14,33 @@ struct HelpCenterSettingsView: View {
 
     var body: some View {
         List {
-            Section(header: Text(L10n.Localizable.kwHelpCenter)) {
+            Section(header: Text(L10n.Localizable.kwHelpCenter).textStyle(.title.supporting.small)) {
                 Button(action: viewModel.openHowToGuide) {
                     Text(L10n.Localizable.helpCenterGetStartedTitle)
-                        .foregroundColor(.primary)
+                        .foregroundColor(.ds.text.neutral.standard)
+                        .textStyle(.body.standard.regular)
                 }
                 Button(action: viewModel.openTroubleshooting) {
                     Text(L10n.Localizable.helpCenterHavingTroubleTitle)
-                        .foregroundColor(.primary)
+                        .foregroundColor(.ds.text.neutral.standard)
+                        .textStyle(.body.standard.regular)
                 }
                 Button(action: viewModel.openDeleteAccount) {
                     Text(L10n.Localizable.helpCenterDeleteAccountTitle)
-                        .foregroundColor(.primary)
+                        .foregroundColor(.ds.text.neutral.standard)
+                        .textStyle(.body.standard.regular)
                 }
             }
-            Section(header: Text(L10n.Localizable.settingsHelpLegalSection)) {
+            Section(header: Text(L10n.Localizable.settingsHelpLegalSection).textStyle(.title.supporting.small)) {
                 Button(action: viewModel.openPrivacyPolicy) {
-                    Text(L10n.Localizable.kwCreateAccountPrivacy)
-                        .foregroundColor(.primary)
+                    Text(CoreLocalization.L10n.Core.kwCreateAccountPrivacy)
+                        .foregroundColor(.ds.text.neutral.standard)
+                        .textStyle(.body.standard.regular)
                 }
                 Button(action: viewModel.openTermsOfService) {
-                    Text(L10n.Localizable.kwCreateAccountTermsConditions)
-                        .foregroundColor(.primary)
+                    Text(CoreLocalization.L10n.Core.kwCreateAccountTermsConditions)
+                        .foregroundColor(.ds.text.neutral.standard)
+                        .textStyle(.body.standard.regular)
                 }
             }
         }
@@ -47,6 +54,6 @@ struct HelpCenterSettingsView: View {
 
 struct HelpCenterSettingsView_Previews: PreviewProvider {
     static var previews: some View {
-        HelpCenterSettingsView(viewModel: HelpCenterSettingsViewModel(usageLogService: UsageLogService.fakeService))
+        HelpCenterSettingsView(viewModel: HelpCenterSettingsViewModel())
     }
 }

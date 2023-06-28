@@ -1,6 +1,6 @@
 import Foundation
 extension AppAPIClient.Darkwebmonitoring {
-        public struct ConfirmRegistration {
+        public struct ConfirmRegistration: APIRequest {
         public static let endpoint: Endpoint = "/darkwebmonitoring/ConfirmRegistration"
 
         public let api: AppAPIClient
@@ -17,7 +17,11 @@ extension AppAPIClient.Darkwebmonitoring {
 }
 
 extension AppAPIClient.Darkwebmonitoring.ConfirmRegistration {
-        struct Body: Encodable {
+        public struct Body: Encodable {
+
+        private enum CodingKeys: String, CodingKey {
+            case token = "token"
+        }
 
                 public let token: String
     }
@@ -27,6 +31,11 @@ extension AppAPIClient.Darkwebmonitoring.ConfirmRegistration {
     public typealias Response = DataType
 
         public struct DataType: Codable, Equatable {
+
+        private enum CodingKeys: String, CodingKey {
+            case email = "email"
+            case requestedBy = "requestedBy"
+        }
 
         public let email: String
 

@@ -1,6 +1,7 @@
 import Foundation
 import UIKit
 import UIDelight
+import SwiftUI
 
 struct VersionValidityAlert {
 
@@ -133,5 +134,11 @@ extension VersionValidityAlert {
         return .init(title: L10n.Localizable.validityStatusExpiredVersionNoUpdateTitle,
                      message: L10n.Localizable.validityStatusExpiredVersionNoUpdateDesc,
                      buttons: .one(.init(title: L10n.Localizable.validityStatusExpiredVersionNoUpdateClose)))
+    }
+
+    static func errorAlert() -> Alert {
+        return .init(title: Text(L10n.Localizable.validityStatusExpiredVersionNoUpdateTitle),
+                     message: Text(L10n.Localizable.validityStatusExpiredVersionNoUpdateDesc),
+                     dismissButton: .cancel(Text(L10n.Localizable.validityStatusExpiredVersionNoUpdateClose)))
     }
 }

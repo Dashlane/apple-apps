@@ -9,10 +9,6 @@ struct SearchViewFiltersViewKey: EnvironmentKey {
     static var defaultValue: AnyView?
 }
 
-struct SearchViewForcedPlaceholderKey: EnvironmentKey {
-    static var defaultValue: AnyView?
-}
-
 extension EnvironmentValues {
     var searchHeaderHeight: CGFloat {
         get { self[SearchViewHeaderHeightKey.self] }
@@ -23,11 +19,6 @@ extension EnvironmentValues {
         get { self[SearchViewFiltersViewKey.self] }
         set { self[SearchViewFiltersViewKey.self] = newValue }
     }
-
-    var searchForcedPlaceholderView: AnyView? {
-        get { self[SearchViewForcedPlaceholderKey.self] }
-        set { self[SearchViewForcedPlaceholderKey.self] = newValue }
-    }
 }
 
 extension View {
@@ -37,9 +28,5 @@ extension View {
 
                     func searchFiltersView(_ filtersView: some View) -> some View {
         self.environment(\.searchFiltersView, filtersView.eraseToAnyView())
-    }
-
-                    func searchForcedPlaceholderView(_ placeholder: (some View)?) -> some View {
-        self.environment(\.searchForcedPlaceholderView, placeholder?.eraseToAnyView())
     }
 }

@@ -3,6 +3,7 @@ enum ImportMethodDeeplink {
     enum Method: String {
         case csv
         case dash
+        case lastpass
     }
 
     case `import`(Method)

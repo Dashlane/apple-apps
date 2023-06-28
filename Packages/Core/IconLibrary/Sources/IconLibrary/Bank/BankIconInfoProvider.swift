@@ -9,24 +9,23 @@ public struct BankIconInfoProvider: IconInfoProvider {
         public var cacheKey: String {
             return bankCode + imageSuffix
         }
-        
+
         var imageSuffix: String {
             return isWhiteMode ? "_white" : ""
         }
-        
+
         public init(bankCode: String,
                     isWhiteMode: Bool = false) {
             self.bankCode = bankCode
             self.isWhiteMode = isWhiteMode
         }
     }
-    
+
     public func iconInfo(for request: Request) async throws -> (URL, IconColorSet?)? {
         let url = BankIconInfoProvider.baseURL.appendingPathComponent("bank_\(request.bankCode)\(request.imageSuffix).tiff")
         return (url, nil)
     }
 }
-
 
 @available(macOS 10.15, *)
 public typealias BankIconLibrary = IconLibrary<BankIconInfoProvider>
@@ -34,10 +33,10 @@ public typealias BankIconLibrary = IconLibrary<BankIconInfoProvider>
 @available(macOS 10.15, *)
 extension IconLibrary where Provider == BankIconInfoProvider {
     public init(cacheDirectory: URL,
-                            cacheValidationInterval: TimeInterval = BankIconLibrary.defaultCacheValidationInterval,
-                            cryptoEngine: CryptoEngine,
-                            logger: Logger) {
-        
+                cacheValidationInterval: TimeInterval = BankIconLibrary.defaultCacheValidationInterval,
+                cryptoEngine: CryptoEngine,
+                logger: Logger) {
+
         self.init(cacheDirectory: cacheDirectory,
                   cacheValidationInterval: cacheValidationInterval,
                   cryptoEngine: cryptoEngine,
@@ -45,8 +44,7 @@ extension IconLibrary where Provider == BankIconInfoProvider {
                   provider: BankIconInfoProvider(),
                   logger: logger)
     }
-    
-    
+
             public func icon(forBankCode bankCode: String, isWhiteMode: Bool = false) async throws -> Icon? {
         let request = BankIconLibrary.Request(bankCode: bankCode, isWhiteMode: isWhiteMode)
         return try await icon(for: request)

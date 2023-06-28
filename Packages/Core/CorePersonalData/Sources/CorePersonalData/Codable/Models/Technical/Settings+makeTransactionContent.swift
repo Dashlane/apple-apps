@@ -9,7 +9,7 @@ extension Settings {
         return try record
             .compressedXMLData()
     }
-    
+
         public static func makeSettings(compressedContent: Data) throws -> Settings {
         let record = try PersonalDataRecord(id: Settings.id, compressedXMLData: compressedContent)
         return try PersonalDataDecoder().decode(Settings.self, from: record)

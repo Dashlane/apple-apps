@@ -20,18 +20,16 @@ public final class SettingsRegister {
 
     private let queue = DispatchQueue(label: "settings")
 
-    private var dSettings = [String : SettingRegistration]()
-    
+    private var dSettings = [String: SettingRegistration]()
+
                 public func append(_ settingRegistrations: SettingRegistration...) throws {
         try self.append(settingRegistrations)
     }
 
         public func append(_ settingRegistrations: [SettingRegistration]) throws {
         try queue.sync {
-            for sr in settingRegistrations {
-                if let _ = dSettings[sr.identifier] {
-                    throw SettingRegistrationError.alreadyRegistered(identifier: sr.identifier)
-                }
+            for settingRegistration in settingRegistrations where dSettings[settingRegistration.identifier] != nil {
+                throw SettingRegistrationError.alreadyRegistered(identifier: settingRegistration.identifier)
             }
             settingRegistrations.forEach {
                 dSettings[$0.identifier] = $0
@@ -44,9 +42,7 @@ public final class SettingsRegister {
     }
 
     public subscript(identifier: String) -> SettingRegistration? {
-        get {
-            return queue.sync { dSettings[identifier] }
-        }
+        return queue.sync { dSettings[identifier] }
     }
-    
+
 }

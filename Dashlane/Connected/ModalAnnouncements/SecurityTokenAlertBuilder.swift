@@ -2,6 +2,7 @@ import Foundation
 import DashTypes
 import CoreNetworking
 import UIKit
+import CoreLocalization
 
 struct SecurityTokenAlertBuilder {
 
@@ -33,7 +34,7 @@ struct SecurityTokenAlertBuilder {
     }
 
     private func alertController(for token: String) -> UIViewController {
-        let title = L10n.Localizable.kwTokenPlaceholderText
+        let title = CoreLocalization.L10n.Core.kwTokenPlaceholderText
 
         let fontSize: CGFloat = 42.0
 
@@ -51,7 +52,7 @@ struct SecurityTokenAlertBuilder {
                 let alert = UIAlertController(title: title, message: "", preferredStyle: .alert)
 
         alert.setValue(attributedMessage, forKey: "attributedMessage")
-        alert.addAction(UIAlertAction(title: L10n.Localizable.kwButtonOk, style: .default, handler: nil))
+        alert.addAction(UIAlertAction(title: CoreLocalization.L10n.Core.kwButtonOk, style: .default, handler: nil))
 
         return alert
     }

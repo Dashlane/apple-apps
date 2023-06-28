@@ -15,18 +15,16 @@ class TrialPeriodNotificationProvider: NotificationProvider {
 
     init(premiumService: PremiumServiceProtocol,
          abTestService: ABTestingServiceProtocol,
-         settingsStore: LocalSettingsStore,
-         logger: NotificationCenterLogger) {
+         settingsStore: LocalSettingsStore) {
         self.premiumService = premiumService
         self.abTestService = abTestService
         self.settings = NotificationSettings(prefix: settingsPrefix,
-                                             settings: settingsStore,
-                                             logger: logger)
+                                             settings: settingsStore)
     }
 
         public func notificationPublisher() -> AnyPublisher<[DashlaneNotification], Never> {
         return premiumService
-            .premiumStatusPublisher
+            .statusPublisher
             .combineLatest(settings.settingsChangePublisher())
             .map { [weak self] premiumStatus, _ -> [TrialPeriodNotification] in
                 guard let self = self,

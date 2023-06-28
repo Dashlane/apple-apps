@@ -4,7 +4,7 @@ public struct CircularProgressBar: View {
     let progress: Double
     let color: Color
     let lineWidth: CGFloat
-    
+
     public init(progress: Double,
                 color: Color,
                 lineWidth: CGFloat = 2.0) {

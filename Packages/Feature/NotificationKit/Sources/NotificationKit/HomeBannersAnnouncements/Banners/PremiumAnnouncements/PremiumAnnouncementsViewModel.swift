@@ -9,7 +9,6 @@ import CoreFeature
 import CoreLocalization
 
 public enum PremiumAnnouncement: Int {
-    case iOSDropSupportAnnouncement
     case autorenewalFailedAnnouncement
     case specialOfferAnnouncement
     case premiumExpiredAnnouncement
@@ -36,16 +35,12 @@ public class PremiumAnnouncementsViewModel: ObservableObject {
         }
     }
 
-            @SharedUserDefault(key: dismissedDropIOSSupportKey, default: false, userDefaults: .standard)
-    public static var dismissedDropIOSSupport: Bool
-    private static let dismissedDropIOSSupportKey = "DROP_IOS_14_SUPPORT_BANNER_DISMISSED"
-
     public init(premiumService: PremiumServiceProtocol,
-         teamspaceService: TeamSpacesServiceProtocol,
-         featureService: FeatureServiceProtocol,
-         deeplinkService: NotificationKitDeepLinkingServiceProtocol,
-         userSettings: UserSettings,
-         excludedAnnouncements: Set<PremiumAnnouncement> = []) {
+                teamspaceService: TeamSpacesServiceProtocol,
+                featureService: FeatureServiceProtocol,
+                deeplinkService: NotificationKitDeepLinkingServiceProtocol,
+                userSettings: UserSettings,
+                excludedAnnouncements: Set<PremiumAnnouncement> = []) {
         self.premiumService = premiumService
         self.featureService = featureService
         self.teamspaceService = teamspaceService
@@ -75,7 +70,6 @@ public class PremiumAnnouncementsViewModel: ObservableObject {
                 self.setupPremiumWillExpireAnnouncement()
                 self.setupPremiumExpiredAnnouncement()
                 self.setupAutoRenewalFailedAnnouncement(status: status)
-                self.setupiOSDropSupportAnnouncement()
             }
             .store(in: &subscriptions)
 
@@ -117,26 +111,6 @@ public class PremiumAnnouncementsViewModel: ObservableObject {
                   return
               }
         addAnnouncement(.autorenewalFailedAnnouncement)
-    }
-
-    func setupiOSDropSupportAnnouncement() {
-        guard #unavailable(iOS 15) else {
-                        return
-        }
-        guard !Self.dismissedDropIOSSupport else {
-                        return
-        }
-        addAnnouncement(.iOSDropSupportAnnouncement)
-    }
-
-    func dismiss(announcement: PremiumAnnouncement) {
-        switch announcement {
-        case .iOSDropSupportAnnouncement:
-            Self.dismissedDropIOSSupport = true
-            fallthrough
-        default:
-            self.announcements.removeAll(where: { $0 == PremiumAnnouncement.iOSDropSupportAnnouncement })
-        }
     }
 
     private func addAnnouncement(_ announcement: PremiumAnnouncement) {
@@ -182,7 +156,7 @@ public extension PremiumAnnouncementsViewModel {
 
     static func mock(announcements: [PremiumAnnouncement]) -> PremiumAnnouncementsViewModel {
         let model = PremiumAnnouncementsViewModel(premiumService: PremiumServiceMock(),
-                                                  teamspaceService: TeamSpacesServiceMock(),
+                                                  teamspaceService: .mock(),
                                                   featureService: .mock(),
                                                   deeplinkService: NotificationKitDeepLinkingServiceMock(),
                                                   userSettings: UserSettings.mock,

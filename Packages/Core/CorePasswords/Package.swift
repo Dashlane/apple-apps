@@ -3,24 +3,26 @@ import PackageDescription
 let package = Package(
     name: "CorePasswords",
     platforms: [
-        .iOS(.v15),
-        .macOS(.v12)
+        .iOS(.v16),
+        .macOS(.v13)
     ],
     products: [
         .library(
             name: "CorePasswords",
-            targets: ["CorePasswords"]),
+            targets: ["CorePasswords"])
     ],
     dependencies: [
         .package(name: "DashTypes", path: "../../Foundation/DashTypes"),
+        .package(url: "_", branch: "main")
     ],
     targets: [
         .target(
             name: "CorePasswords",
             dependencies: [
                 "DashTypes",
+                .product(name: "ZXCVBN", package: "zxcvbnswift")
+
             ],
-            path: "CorePasswords",
             resources: [
                 .process("version"),
                 .process("Resource")
@@ -30,8 +32,13 @@ let package = Package(
             name: "CorePasswordsTests",
             dependencies: [
                 "CorePasswords"
-            ],
-            path: "CorePasswordsTests"
+            ]
+        ),
+        .testTarget(
+            name: "CorePasswordsPerformanceTests",
+            dependencies: [
+                "CorePasswords"
+            ]
         )
     ]
 )

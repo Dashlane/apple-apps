@@ -7,6 +7,8 @@ import DocumentServices
 import CoreUserTracking
 import CoreSettings
 import VaultKit
+import UIComponents
+import CoreLocalization
 
 class PhoneDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting, MockVaultConnectedInjecting {
 
@@ -25,17 +27,16 @@ class PhoneDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting, M
         vaultItemsService: VaultItemsServiceProtocol,
         sharingService: SharedVaultHandling,
         teamSpacesService: TeamSpacesService,
-        usageLogService: UsageLogServiceProtocol,
         documentStorageService: DocumentStorageService,
-        deepLinkService: DeepLinkingServiceProtocol,
+        deepLinkService: VaultKit.DeepLinkingServiceProtocol,
         activityReporter: ActivityReporterProtocol,
         iconViewModelProvider: @escaping (VaultItem) -> VaultItemIconViewModel,
         logger: Logger,
         accessControl: AccessControlProtocol,
         userSettings: UserSettings,
+        pasteboardService: PasteboardServiceProtocol,
         attachmentSectionFactory: AttachmentsSectionViewModel.Factory,
-        regionInformationService: RegionInformationService,
-        attachmentsListViewModelProvider: @escaping (VaultItem, AnyPublisher<VaultItem, Never>) -> AttachmentsListViewModel
+        regionInformationService: RegionInformationService
     ) {
         self.init(
             service: .init(
@@ -44,16 +45,15 @@ class PhoneDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting, M
                 vaultItemsService: vaultItemsService,
                 sharingService: sharingService,
                 teamSpacesService: teamSpacesService,
-                usageLogService: usageLogService,
                 documentStorageService: documentStorageService,
                 deepLinkService: deepLinkService,
                 activityReporter: activityReporter,
                 iconViewModelProvider: iconViewModelProvider,
+                attachmentSectionFactory: attachmentSectionFactory,
                 logger: logger,
                 accessControl: accessControl,
                 userSettings: userSettings,
-                attachmentSectionFactory: attachmentSectionFactory,
-                attachmentsListViewModelProvider: attachmentsListViewModelProvider
+                pasteboardService: pasteboardService
             ),
             regionInformationService: regionInformationService
         )
@@ -62,7 +62,6 @@ class PhoneDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting, M
     init(
         service: DetailService<Phone>,
         regionInformationService: RegionInformationService
-
     ) {
         self.service = service
         self.regionInformationService = regionInformationService
@@ -91,7 +90,7 @@ class PhoneDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting, M
     private func setupName() {
         if mode.isAdding {
             let count = vaultItemsService.phones.count + 1
-            item.name = "\(L10n.Localizable.kwPhoneIOS) \(count)"
+            item.name = "\(CoreLocalization.L10n.Core.kwPhoneIOS) \(count)"
         }
     }
 }

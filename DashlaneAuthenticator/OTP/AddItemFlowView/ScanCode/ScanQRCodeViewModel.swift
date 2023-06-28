@@ -8,7 +8,7 @@ class ScanQRCodeViewModel: ObservableObject {
 
     @Published
     var presentError = false
-  
+
     let completion: (OTPInfo?) async -> Void
     let logger: Logger
 
@@ -16,7 +16,7 @@ class ScanQRCodeViewModel: ObservableObject {
         self.completion = completion
         self.logger = logger
     }
-    
+
     func processQRCode(_ qrCode: String) {
                 guard let info = try? OTPConfiguration(otpString: qrCode, supportDashlane2FA: true) else {
             presentError = true

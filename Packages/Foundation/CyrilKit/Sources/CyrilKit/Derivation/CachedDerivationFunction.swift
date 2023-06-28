@@ -4,13 +4,13 @@ public actor CachedDerivationFunction {
     private struct Key: Equatable, Hashable {
         let passwordHash: Int
         let saltHash: Int
-        
+
         init(passwordHash: Int, saltHash: Int) {
             self.passwordHash = passwordHash
             self.saltHash = saltHash
         }
     }
-    
+
     private enum Derivation {
         case inProgress(Task<Data, Error>)
         case ready(Data)
@@ -22,7 +22,7 @@ public actor CachedDerivationFunction {
     public init(baseKeyDerivater: DerivationFunction) {
         self.baseKeyDerivater = baseKeyDerivater
     }
-    
+
                             public func derivateKey<V: ContiguousBytes & Hashable, S: ContiguousBytes & Hashable>(from password: V, salt: S) async throws -> Data {
         let key = Key(passwordHash: password.hashValue, saltHash: salt.hashValue)
         if let derivation = cache[key] {
@@ -43,7 +43,6 @@ public actor CachedDerivationFunction {
         }
     }
 }
-
 
 public extension DerivationFunction {
     func cached() -> CachedDerivationFunction {

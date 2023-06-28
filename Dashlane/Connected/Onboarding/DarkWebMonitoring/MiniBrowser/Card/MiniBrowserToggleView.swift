@@ -1,3 +1,4 @@
+import DesignSystem
 import SwiftUI
 import UIDelight
 
@@ -10,7 +11,7 @@ struct MiniBrowserToggleView: View {
     var body: some View {
         HStack {
             Text(title)
-                .foregroundColor(Color.white)
+                .foregroundColor(.ds.text.inverse.catchy)
                 .font(.body)
             Spacer()
             Toggle("", isOn: $isOn)

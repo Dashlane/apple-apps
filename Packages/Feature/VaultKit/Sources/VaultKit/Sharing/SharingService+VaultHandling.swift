@@ -11,19 +11,20 @@ extension SharingService: SharedVaultHandling {
         }
         return item.metadata.sharingPermission
     }
-    
+
     public func deleteBehaviour(for item: PersonalDataCodable) async throws -> ItemDeleteBehaviour {
         return try engine.deleteBehaviour(forItemId: item.id)
     }
-    
+
     public func refuseAndDelete(_ item: CorePersonalData.PersonalDataCodable) async throws {
-        try await engine.refuseItem(with: item.id)
+        let auditLogDetails = try? activityLogsService.makeActivityLog(codable: item)
+        try await engine.refuseItem(with: item.id, userAuditLogDetails: auditLogDetails)
     }
-    
+
     public func forceRevoke(_ credentials: [CorePersonalData.Credential]) async throws {
         try await engine.forceRevokeItemGroup(withItemIds: credentials.map(\.id))
     }
-    
+
     @SharingActor
     public func sync(using sharingInfo: SharingSummaryInfo?) async throws {
         defer {
@@ -32,18 +33,14 @@ extension SharingService: SharedVaultHandling {
         if engine.needsKey, let key = await keysStore.keyPair() {
             try await engine.updateUserKey(key)
         }
-        
-        guard !engine.needsKey else {
+
+        guard !engine.needsKey, let summary = sharingInfo else {
             return
         }
-        
-        let summary = sharingInfo.map {
-            SharingSummary(items: .init($0.items),
-                           itemGroups: .init($0.itemGroups),
-                           userGroups: .init($0.userGroups))
-        } ?? SharingSummary()
-        
-        try await engine.update(from: summary)
+
+        try await engine.update(from: SharingSummary(items: .init(summary.items),
+                                                     itemGroups: .init(summary.itemGroups),
+                                                     userGroups: .init(summary.userGroups)))
     }
 }
 

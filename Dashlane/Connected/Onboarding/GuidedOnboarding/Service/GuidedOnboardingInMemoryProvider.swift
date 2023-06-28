@@ -14,7 +14,4 @@ class GuidedOnboardingInMemoryProvider: GuidedOnboardingDataProvider {
     func removeStoredAnswers() {
         storedAnswers = [:]
     }
-
-    func markGuidedOnboardingAsSkipped() {
-            }
 }

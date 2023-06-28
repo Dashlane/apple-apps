@@ -4,14 +4,16 @@ import DashTypes
 import CoreSession
 import UIDelight
 import NotificationKit
+import DesignSystem
+import CoreLocalization
 
 struct MainSettingsView: View {
-
-    enum Action {
-        case displaySecuritySettings
-        case displayGeneralSettings
-        case displayHelpCenter
-        case displayLabs
+    enum FullScreenItem: String, Identifiable {
+        var id: String {
+            return rawValue
+        }
+        case rateApp
+        case deviceRegistration
     }
 
     @Environment(\.dismiss)
@@ -23,12 +25,11 @@ struct MainSettingsView: View {
     @State
     private var isPresentingRatingView = false
 
-    let action: (Action) -> Void
+    @State
+    private var presentedItem: Bool = false
 
-    init(viewModel: @escaping @autoclosure () -> MainSettingsViewModel,
-         action: @escaping (Action) -> Void) {
+    init(viewModel: @escaping @autoclosure () -> MainSettingsViewModel) {
         self._viewModel = .init(wrappedValue: viewModel())
-        self.action = action
     }
 
     var body: some View {
@@ -36,49 +37,61 @@ struct MainSettingsView: View {
             SettingsStatusSection(model: viewModel.settingsStatusSectionViewModelFactory.make())
 
             Section {
-                Button(action: { action(.displaySecuritySettings) }, label: {
-                    NavigationLink(isActive: .constant(false), destination: {}, label: {
-                        Text(L10n.Localizable.kwSecurity)
-                            .foregroundColor(.primary)
-                    })
-                })
-
-                Button(action: { action(.displayGeneralSettings) }, label: {
-                    NavigationLink(isActive: .constant(false), destination: {}, label: {
-                        Text(L10n.Localizable.kwGeneral)
-                            .foregroundColor(.primary)
-                    })
-                })
-
-                Button(action: { action(.displayHelpCenter) }, label: {
-                    NavigationLink(isActive: .constant(false), destination: {}, label: {
-                        Text(L10n.Localizable.helpCenterTitle)
-                            .foregroundColor(.primary)
-                    })
-                })
-            }
-
-            Section {
-                Button(action: viewModel.inviteFriends) {
-                    Text(L10n.Localizable.kwInviteFriends)
-                        .foregroundColor(.primary)
+                NavigationLink(value: SettingsSubSection.general) {
+                    Text(L10n.Localizable.kwGeneral)
+                        .foregroundColor(.ds.text.neutral.standard)
+                        .textStyle(.body.standard.regular)
                 }
+
+                NavigationLink(value: SettingsSubSection.security) {
+                    Text(L10n.Localizable.kwSecurity)
+                        .foregroundColor(.ds.text.neutral.standard)
+                        .textStyle(.body.standard.regular)
+                }
+
+                NavigationLink(value: SettingsSubSection.helpCenter) {
+                    Text(L10n.Localizable.helpCenterTitle)
+                        .foregroundColor(.ds.text.neutral.standard)
+                        .textStyle(.body.standard.regular)
+                }
+            }
+            if !Device.isMac {
+                Section {
+                    Button(
+                        action: { presentedItem = true },
+                        label: {
+                            Text(L10n.Localizable.addNewDeviceSettingsTitle)
+                                .foregroundColor(.ds.text.neutral.standard)
+                                .textStyle(.body.standard.regular)
+                        }
+                    )
+                }
+            }
+            Section {
+                Button(
+                    action: { viewModel.inviteFriends() },
+                    label: {
+                        Text(L10n.Localizable.kwInviteFriends)
+                            .foregroundColor(.ds.text.neutral.standard)
+                            .textStyle(.body.standard.regular)
+                    }
+                )
                 .activitySheet($viewModel.activityItem)
 
                 Button(action: {
                     isPresentingRatingView = true
                 }, label: {
                     Text(L10n.Localizable.kwRateDashlane)
-                        .foregroundColor(.primary)
+                        .foregroundColor(.ds.text.neutral.standard)
+                        .textStyle(.body.standard.regular)
                 })
 
                 if viewModel.shouldDisplayLabs {
-                    Button(action: { action(.displayLabs) }, label: {
-                        NavigationLink(isActive: .constant(false), destination: {}, label: {
-                            Text(L10n.Localizable.internalDashlaneLabsSettingsButton)
-                                .foregroundColor(.primary)
-                        })
-                    })
+                    NavigationLink(value: SettingsSubSection.labs) {
+                        Text(L10n.Localizable.internalDashlaneLabsSettingsButton)
+                            .foregroundColor(.ds.text.neutral.standard)
+                            .textStyle(.body.standard.regular)
+                    }
                 }
             } footer: {
                 informationFooter(display: Device.isMac)
@@ -86,10 +99,14 @@ struct MainSettingsView: View {
 
             if !Device.isMac {
                 Section {
-                    Button(action: viewModel.lock) {
-                        Text(L10n.Localizable.kwLockNow)
-                            .foregroundColor(.primary)
-                    }
+                    Button(
+                        action: { viewModel.lock() },
+                        label: {
+                            Text(L10n.Localizable.kwLockNow)
+                                .foregroundColor(.ds.text.neutral.standard)
+                                .textStyle(.body.standard.regular)
+                        }
+                    )
                 } footer: {
                     informationFooter(display: !Device.isMac)
                 }
@@ -97,7 +114,7 @@ struct MainSettingsView: View {
         }
         .listStyle(.insetGrouped)
         .navigationBarTitleDisplayMode(Device.isIpadOrMac ? .inline : .large)
-        .navigationTitle(L10n.Localizable.kwSettings)
+        .navigationTitle(CoreLocalization.L10n.Core.kwSettings)
         .toolbar {
             ToolbarItem(placement: .navigationBarTrailing) {
                 toolbarItemContent
@@ -109,29 +126,25 @@ struct MainSettingsView: View {
                                          sender: .settings,
                                          userSettings: viewModel.userSettings))
         }
-        .reportPageAppearance(.settings)
-
-        .onReceive(viewModel.deepLinkPublisher) { link in
-            switch link {
-            case .root:
-                break
-            case .security:
-                action(.displaySecuritySettings)
-            }
+        .fullScreenCover(isPresented: $presentedItem) {
+            AddNewDeviceView(model: viewModel.makeAddNewDeviceViewModel())
         }
+        .reportPageAppearance(.settings)
+        .foregroundColor(.ds.text.neutral.quiet)
     }
 
     @ViewBuilder
     private func informationFooter(display: Bool) -> some View {
         if display {
             Text("\(viewModel.session.configuration.login.email)\n\(footerVersionBuild)")
+                .textStyle(.body.helper.regular)
         }
     }
 
     @ViewBuilder
     private var toolbarItemContent: some View {
         if Device.isIpadOrMac {
-            Button(L10n.Localizable.kwDoneButton, action: dismiss.callAsFunction)
+            Button(CoreLocalization.L10n.Core.kwDoneButton, action: dismiss.callAsFunction)
         }
     }
 
@@ -146,6 +159,8 @@ struct MainSettingsView: View {
 
 struct MainSettingsView_Previews: PreviewProvider {
     static var previews: some View {
-        MainSettingsView(viewModel: MainSettingsViewModel.mock(), action: { _ in })
+        NavigationStack {
+            MainSettingsView(viewModel: MainSettingsViewModel.mock())
+        }
     }
 }

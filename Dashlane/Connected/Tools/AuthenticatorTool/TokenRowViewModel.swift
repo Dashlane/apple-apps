@@ -53,6 +53,6 @@ extension TokenRowViewModel {
         TokenRowViewModel(token: .mock,
                           domainIconLibrary: IconServiceMock().domain,
                           databaseService: AuthenticatorDatabaseServiceMock(),
-                          domainParser: DomainParserMock())
+                          domainParser: FakeDomainParser())
     }
 }

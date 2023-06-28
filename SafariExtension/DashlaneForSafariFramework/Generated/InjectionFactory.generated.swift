@@ -7,6 +7,9 @@ import Combine
 #if canImport(CoreFeature)
 import CoreFeature
 #endif
+#if canImport(CoreLocalization)
+import CoreLocalization
+#endif
 #if canImport(CorePasswords)
 import CorePasswords
 #endif
@@ -30,9 +33,6 @@ import DashTypes
 #endif
 #if canImport(DashlaneAppKit)
 import DashlaneAppKit
-#endif
-#if canImport(DashlaneReportKit)
-import DashlaneReportKit
 #endif
 #if canImport(DomainParser)
 import DomainParser
@@ -94,7 +94,8 @@ extension SessionServicesContainer {
                             userEncryptedSettings: spiegelUserEncryptedSettings,
                             popoverOpeningService: appServices.popoverOpeningService,
                             autofillService: appServices.autofillService,
-                            premiumService: premiumService
+                            premiumService: premiumService,
+                            featureService: featureService
             )
         }
         
@@ -133,7 +134,6 @@ extension SessionServicesContainer {
                             sharingService: sharingService,
                             teamSpacesService: teamSpacesService,
                             featureService: featureService,
-                            usageLogService: usageLogService,
                             vaultItemsService: vaultItemsService,
                             activityReporter: activityReporter,
                             pasteboardService: pasteboardService,
@@ -268,18 +268,6 @@ extension SessionServicesContainer {
 
 extension SessionServicesContainer {
         
-        internal func makeMaverickUsageLogHandler(maverickOrderMessage: MaverickOrderMessage) -> MaverickUsageLogHandler {
-            return MaverickUsageLogHandler(
-                            maverickOrderMessage: maverickOrderMessage,
-                            usageLogService: usageLogService,
-                            logger: appServices.rootLogger
-            )
-        }
-        
-}
-
-extension SessionServicesContainer {
-        
         internal func makeMoreTabViewModel(login: String) -> MoreTabViewModel {
             return MoreTabViewModel(
                             communicationService: appServices.communicationService,
@@ -318,38 +306,38 @@ extension SessionServicesContainer {
 
 extension SessionServicesContainer {
         
-        internal func makePasswordGeneratorViewModel(mode: PasswordGeneratorMode, saveGeneratedPassword: @escaping (GeneratedPassword) -> GeneratedPassword, savePreferencesOnChange: Bool = true) -> PasswordGeneratorViewModel {
+        internal func makePasswordGeneratorViewModel(mode: PasswordGeneratorMode, saveGeneratedPassword: @escaping (GeneratedPassword) -> GeneratedPassword, savePreferencesOnChange: Bool = true, copyAction: @escaping (String) -> Void) -> PasswordGeneratorViewModel {
             return PasswordGeneratorViewModel(
                             mode: mode,
                             saveGeneratedPassword: saveGeneratedPassword,
                             passwordEvaluator: appServices.passwordEvaluator,
-                            usageLogService: usageLogService,
                             sessionActivityReporter: activityReporter,
                             userSettings: spiegelUserSettings,
-                            savePreferencesOnChange: savePreferencesOnChange
+                            savePreferencesOnChange: savePreferencesOnChange,
+                            copyAction: copyAction
             )
         }
                 
-        internal func makePasswordGeneratorViewModel(mode: PasswordGeneratorMode, savePreferencesOnChange: Bool = true) -> PasswordGeneratorViewModel {
+        internal func makePasswordGeneratorViewModel(mode: PasswordGeneratorMode, savePreferencesOnChange: Bool = true, copyAction: @escaping (String) -> Void) -> PasswordGeneratorViewModel {
             return PasswordGeneratorViewModel(
                             mode: mode,
                             database: database,
                             passwordEvaluator: appServices.passwordEvaluator,
-                            usageLogService: usageLogService,
                             sessionActivityReporter: activityReporter,
                             userSettings: spiegelUserSettings,
-                            savePreferencesOnChange: savePreferencesOnChange
+                            savePreferencesOnChange: savePreferencesOnChange,
+                            copyAction: copyAction
             )
         }
                 
-        internal func makePasswordGeneratorViewModel(mode: PasswordGeneratorMode) -> PasswordGeneratorViewModel {
+        internal func makePasswordGeneratorViewModel(mode: PasswordGeneratorMode, copyAction: @escaping (String) -> Void) -> PasswordGeneratorViewModel {
             return PasswordGeneratorViewModel(
                             mode: mode,
                             database: database,
                             passwordEvaluator: appServices.passwordEvaluator,
-                            usageLogService: usageLogService,
                             sessionActivityReporter: activityReporter,
-                            userSettings: spiegelUserSettings
+                            userSettings: spiegelUserSettings,
+                            copyAction: copyAction
             )
         }
         
@@ -420,14 +408,7 @@ extension SessionServicesContainer {
         internal func makeVaultItemIconViewModel(item: VaultItem) -> VaultItemIconViewModel {
             return VaultItemIconViewModel(
                             item: item,
-                            iconService: iconService
-            )
-        }
-                
-        internal func makeVaultItemIconViewModel(item: VaultItem, iconLibrary: DomainIconLibraryProtocol) -> VaultItemIconViewModel {
-            return VaultItemIconViewModel(
-                            item: item,
-                            iconLibrary: iconLibrary
+                            iconLibrary: domainIconLibrary
             )
         }
         
@@ -720,24 +701,6 @@ extension IsPasswordLimitReachedHandler {
 }
 
 
-internal typealias _MaverickUsageLogHandlerFactory =  (
-    _ maverickOrderMessage: MaverickOrderMessage
-) -> MaverickUsageLogHandler
-
-internal extension InjectedFactory where T == _MaverickUsageLogHandlerFactory {
-    
-    func make(maverickOrderMessage: MaverickOrderMessage) -> MaverickUsageLogHandler {
-       return factory(
-              maverickOrderMessage
-       )
-    }
-}
-
-extension MaverickUsageLogHandler {
-        internal typealias Factory = InjectedFactory<_MaverickUsageLogHandlerFactory>
-}
-
-
 internal typealias _MoreTabViewModelFactory =  (
     _ login: String
 ) -> MoreTabViewModel
@@ -790,63 +753,69 @@ extension PasswordGeneratorTabViewModel {
 }
 
 
-internal typealias _PasswordGeneratorViewModelFactory =  (
+public typealias _PasswordGeneratorViewModelFactory =  (
     _ mode: PasswordGeneratorMode,
     _ saveGeneratedPassword: @escaping (GeneratedPassword) -> GeneratedPassword,
-    _ savePreferencesOnChange: Bool
+    _ savePreferencesOnChange: Bool,
+    _ copyAction: @escaping (String) -> Void
 ) -> PasswordGeneratorViewModel
 
-internal extension InjectedFactory where T == _PasswordGeneratorViewModelFactory {
+public extension InjectedFactory where T == _PasswordGeneratorViewModelFactory {
     
-    func make(mode: PasswordGeneratorMode, saveGeneratedPassword: @escaping (GeneratedPassword) -> GeneratedPassword, savePreferencesOnChange: Bool = true) -> PasswordGeneratorViewModel {
+    func make(mode: PasswordGeneratorMode, saveGeneratedPassword: @escaping (GeneratedPassword) -> GeneratedPassword, savePreferencesOnChange: Bool = true, copyAction: @escaping (String) -> Void) -> PasswordGeneratorViewModel {
        return factory(
               mode,
               saveGeneratedPassword,
-              savePreferencesOnChange
+              savePreferencesOnChange,
+              copyAction
        )
     }
 }
 
 extension PasswordGeneratorViewModel {
-        internal typealias Factory = InjectedFactory<_PasswordGeneratorViewModelFactory>
+        public typealias Factory = InjectedFactory<_PasswordGeneratorViewModelFactory>
 }
 
 
-internal typealias _PasswordGeneratorViewModelSecondFactory =  (
+public typealias _PasswordGeneratorViewModelSecondFactory =  (
     _ mode: PasswordGeneratorMode,
-    _ savePreferencesOnChange: Bool
+    _ savePreferencesOnChange: Bool,
+    _ copyAction: @escaping (String) -> Void
 ) -> PasswordGeneratorViewModel
 
-internal extension InjectedFactory where T == _PasswordGeneratorViewModelSecondFactory {
+public extension InjectedFactory where T == _PasswordGeneratorViewModelSecondFactory {
     
-    func make(mode: PasswordGeneratorMode, savePreferencesOnChange: Bool = true) -> PasswordGeneratorViewModel {
+    func make(mode: PasswordGeneratorMode, savePreferencesOnChange: Bool = true, copyAction: @escaping (String) -> Void) -> PasswordGeneratorViewModel {
        return factory(
               mode,
-              savePreferencesOnChange
+              savePreferencesOnChange,
+              copyAction
        )
     }
 }
 
 extension PasswordGeneratorViewModel {
-        internal typealias SecondFactory = InjectedFactory<_PasswordGeneratorViewModelSecondFactory>
+        public typealias SecondFactory = InjectedFactory<_PasswordGeneratorViewModelSecondFactory>
 }
 
 
-internal typealias _PasswordGeneratorViewModelThirdFactory =  (
-    _ mode: PasswordGeneratorMode
+public typealias _PasswordGeneratorViewModelThirdFactory =  (
+    _ mode: PasswordGeneratorMode,
+    _ copyAction: @escaping (String) -> Void
 ) -> PasswordGeneratorViewModel
 
-internal extension InjectedFactory where T == _PasswordGeneratorViewModelThirdFactory {
+public extension InjectedFactory where T == _PasswordGeneratorViewModelThirdFactory {
     
-    func make(mode: PasswordGeneratorMode) -> PasswordGeneratorViewModel {
+    func make(mode: PasswordGeneratorMode, copyAction: @escaping (String) -> Void) -> PasswordGeneratorViewModel {
        return factory(
-              mode
+              mode,
+              copyAction
        )
     }
 }
 
 extension PasswordGeneratorViewModel {
-        internal typealias ThirdFactory = InjectedFactory<_PasswordGeneratorViewModelThirdFactory>
+        public typealias ThirdFactory = InjectedFactory<_PasswordGeneratorViewModelThirdFactory>
 }
 
 
@@ -955,25 +924,5 @@ public extension InjectedFactory where T == _VaultItemIconViewModelFactory {
 
 extension VaultItemIconViewModel {
         public typealias Factory = InjectedFactory<_VaultItemIconViewModelFactory>
-}
-
-
-public typealias _VaultItemIconViewModelSecondFactory =  (
-    _ item: VaultItem,
-    _ iconLibrary: DomainIconLibraryProtocol
-) -> VaultItemIconViewModel
-
-public extension InjectedFactory where T == _VaultItemIconViewModelSecondFactory {
-    
-    func make(item: VaultItem, iconLibrary: DomainIconLibraryProtocol) -> VaultItemIconViewModel {
-       return factory(
-              item,
-              iconLibrary
-       )
-    }
-}
-
-extension VaultItemIconViewModel {
-        public typealias SecondFactory = InjectedFactory<_VaultItemIconViewModelSecondFactory>
 }
 

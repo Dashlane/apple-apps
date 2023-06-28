@@ -9,15 +9,15 @@ public struct ReportAction {
         self.reporter = reporter
     }
 
-    public func callAsFunction(_ page:  Page) {
+    public func callAsFunction(_ page: Page) {
         reporter.reportPageShown(page)
     }
 
-    public func callAsFunction<Event: AnonymousEventProtocol>(_ event:  Event) {
+    public func callAsFunction<Event: AnonymousEventProtocol>(_ event: Event) {
         reporter.report(event)
     }
 
-    public func callAsFunction<Event: UserEventProtocol>(_ event:  Event) {
+    public func callAsFunction<Event: UserEventProtocol>(_ event: Event) {
         reporter.report(event)
     }
 }

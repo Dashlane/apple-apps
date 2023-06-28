@@ -1,6 +1,6 @@
 import Foundation
 extension AppAPIClient.Authentication {
-        public struct PerformExtraDeviceVerification {
+        public struct PerformExtraDeviceVerification: APIRequest {
         public static let endpoint: Endpoint = "/authentication/PerformExtraDeviceVerification"
 
         public let api: AppAPIClient
@@ -17,7 +17,12 @@ extension AppAPIClient.Authentication {
 }
 
 extension AppAPIClient.Authentication.PerformExtraDeviceVerification {
-        struct Body: Encodable {
+        public struct Body: Encodable {
+
+        private enum CodingKeys: String, CodingKey {
+            case login = "login"
+            case token = "token"
+        }
 
                 public let login: String
 

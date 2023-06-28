@@ -2,22 +2,22 @@ import Foundation
 import DashTypes
 
 public struct GetDownloadLinkService {
-    
+
     private enum Endpoint: String {
         case commit = "_"
     }
-    
+
     private enum Key: String {
         case key
         case secureFileInfoId
     }
-    
+
     private let webservice: ProgressableNetworkingEngine
-    
+
     public init(webservice: ProgressableNetworkingEngine) {
         self.webservice = webservice
     }
-    
+
                                 @discardableResult public func getLink(key: String, secureFileInfoId: String) async throws -> DownloadLink {
         let params: [String: Encodable] = [
             Key.secureFileInfoId.rawValue: secureFileInfoId,

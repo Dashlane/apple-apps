@@ -8,7 +8,7 @@ public struct DocumentPickerView: UIViewControllerRepresentable {
     @Binding
     var fileUrl: URL?
     let supportedTypes: Set<String>
-    
+
     public init(fileUrl: Binding<URL?>, supportedTypes: Set<String>) {
         self._fileUrl = fileUrl
         self.supportedTypes = supportedTypes

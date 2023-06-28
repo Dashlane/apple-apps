@@ -5,7 +5,7 @@ public struct MemoryPressureLogger {
     private let trackingQueue = DispatchQueue.init(label: "memory tracker")
 
     public init(webService: LegacyWebService,
-         origin: KibanaLogger.Origin) {
+                origin: KibanaLogger.Origin) {
         let exceptionLoggerService = KibanaLogger(webService: webService,
                                                   outputLevel: .info,
                                                   origin: origin)
@@ -20,7 +20,7 @@ public struct MemoryPressureLogger {
                 default:
                     break
                 }
-                
+
             }
             source.resume()
         }

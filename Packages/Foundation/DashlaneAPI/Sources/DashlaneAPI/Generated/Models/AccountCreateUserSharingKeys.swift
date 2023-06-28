@@ -2,6 +2,11 @@ import Foundation
 
 public struct AccountCreateUserSharingKeys: Codable, Equatable {
 
+    private enum CodingKeys: String, CodingKey {
+        case privateKey = "privateKey"
+        case publicKey = "publicKey"
+    }
+
     public let privateKey: String
 
     public let publicKey: String

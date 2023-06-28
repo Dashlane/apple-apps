@@ -33,6 +33,7 @@ final class OnboardingChecklistFlowViewModel: ObservableObject, SessionServicesI
     var genericFullCover: GenericSheet?
 
     let displayMode: DisplayMode
+    let origin: OnboardingChecklistOrigin = .standalone
 
     private let onboardingChecklistViewAction: ((OnboardingChecklistFlowViewModel.Action) -> Void)?
     private let completion: (Completion) -> Void
@@ -72,11 +73,7 @@ final class OnboardingChecklistFlowViewModel: ObservableObject, SessionServicesI
     }
 
     func makeOnboardingChecklistViewModel() -> OnboardingChecklistViewModel {
-        let logsService = OnboardingChecklistLogsService(usageLogService: sessionServices.activityReporter.legacyUsage)
-
-        return onboardingChecklistViewModelFactory.make(
-            logsService: logsService,
-            action: onboardingChecklistViewAction ?? { self.handleOnboardingChecklistViewAction($0) }
+        return onboardingChecklistViewModelFactory.make(action: onboardingChecklistViewAction ?? { self.handleOnboardingChecklistViewAction($0) }
         )
     }
 }

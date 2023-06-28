@@ -3,6 +3,7 @@ import UIDelight
 import UIComponents
 import CoreUserTracking
 import DashTypes
+import CoreLocalization
 
 struct MasterPasswordChallengeAlert: View {
 
@@ -23,12 +24,12 @@ struct MasterPasswordChallengeAlert: View {
                 .ignoresSafeArea()
             AlertTextFieldView(title: title,
                                message: message,
-                               placeholder: L10n.Localizable.kwEnterYourMasterPassword,
+                               placeholder: CoreLocalization.L10n.Core.kwEnterYourMasterPassword,
                                isSecure: true,
                                textFieldInput: $masterPasswordInput,
                                onSubmit: buttonAction) {
                 HStack {
-                    Button(L10n.Localizable.cancel) {
+                    Button(CoreLocalization.L10n.Core.cancel) {
                         viewModel.completion(.cancelled)
                     }
                     Divider()
@@ -73,7 +74,7 @@ struct MasterPasswordChallengeAlert: View {
     private var secondaryButtonTitle: String {
         switch viewModel.intent {
         case .changeMasterPassword:
-            return L10n.Localizable.kwButtonOk
+            return CoreLocalization.L10n.Core.kwButtonOk
         case .enableMasterPasswordReset:
             return L10n.Localizable.resetMasterPasswordActivationMasterPasswordChallengeEnable
         }

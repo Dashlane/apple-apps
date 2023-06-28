@@ -7,6 +7,8 @@ import CoreNetworking
 import CoreUserTracking
 import CorePasswords
 import CorePersonalData
+import DesignSystem
+import CoreLocalization
 
 struct SecuritySettingsView: View {
 
@@ -24,19 +26,19 @@ struct SecuritySettingsView: View {
 
     var authenticationSectionFooter: String {
         if let biometryType = Device.biometryType {
-            return L10n.Localizable.kwSettingsPinBiometryTypeFooter(biometryType.displayableName)
+            return viewModel.isMasterPasswordAccount ? L10n.Localizable.kwSettingsPinBiometryTypeFooter(biometryType.displayableName) : L10n.Localizable.mplessPinBiometryLockSettingsFooter(biometryType.displayableName)
         } else {
-            return L10n.Localizable.kwSettingsPinTypeFooter
+            return viewModel.isMasterPasswordAccount ? L10n.Localizable.kwSettingsPinTypeFooter : L10n.Localizable.mplessPinLockSettingsFooter
         }
     }
 
     var body: some View {
         List {
-            Section(footer: Text(authenticationSectionFooter)) {
+            Section(footer: Text(authenticationSectionFooter).textStyle(.body.helper.regular)) {
                 SettingsAuthenticationSectionContent(viewModels: viewModel.authenticationSectionViewModels)
             }
             if viewModel.shouldDisplayOTP {
-                Section(footer: Text(viewModel.twoFASettingsMessage)) {
+                Section(footer: Text(viewModel.twoFASettingsMessage).textStyle(.body.helper.regular)) {
                     TwoFASettingsView(model: viewModel.makeTwoFASettingsViewModel())
                 }
             }
@@ -45,15 +47,18 @@ struct SecuritySettingsView: View {
                     SettingsLockSectionContent(viewModel: viewModel.settingsLockSectionViewModelFactory.make())
                 }
             }
-            Section(header: Text(L10n.Localizable.kwAccount)) {
+            Section(header: Text(L10n.Localizable.kwAccount).textStyle(.title.supporting.small)) {
                 SettingsAccountSectionContent(viewModel: viewModel.accountSectionViewModel, masterPasswordChallengeItem: $masterPasswordChallengeItem)
             }
             Section {
                 SettingsCryptographySectionContent(derivationKey: viewModel.derivationKey)
             } header: {
                 Text(L10n.Localizable.kwCryptography)
+                    .textStyle(.title.supporting.small)
+                    .foregroundColor(.ds.text.neutral.standard)
             } footer: {
                 Text(L10n.Localizable.kwCryptoDescription)
+                    .textStyle(.body.helper.regular)
             }
         }
         .listStyle(.insetGrouped)
@@ -66,7 +71,7 @@ struct SecuritySettingsView: View {
                 let title = Device.biometryType == nil ? L10n.Localizable.kwKeychainPasswordMsgPinOnly : biometricTitle
                 return Alert(title: Text(title),
                              message: nil,
-                             primaryButton: .default(Text(L10n.Localizable.kwButtonOk), action: { completion(true) }),
+                             primaryButton: .default(Text(CoreLocalization.L10n.Core.kwButtonOk), action: { completion(true) }),
                              secondaryButton: .cancel({ completion(false) }))
             }
         }

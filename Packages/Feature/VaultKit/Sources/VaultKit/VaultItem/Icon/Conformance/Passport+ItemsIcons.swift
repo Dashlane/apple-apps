@@ -7,15 +7,15 @@ extension Passport {
     public var listIcon: VaultItemIcon {
         .static(.ds.item.passport.outlined, backgroundColor: color)
     }
-    
+
     public var icon: VaultItemIcon {
         .static(.ds.item.passport.outlined, backgroundColor: color)
     }
-    
+
     public static var addIcon: SwiftUI.Image {
         .ds.item.passport.outlined
     }
-    
+
     private var color: Color {
         PassportColor.localized(from: country?.code).color
     }

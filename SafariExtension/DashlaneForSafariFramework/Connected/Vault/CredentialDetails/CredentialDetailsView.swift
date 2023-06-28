@@ -4,6 +4,8 @@ import UIDelight
 import TOTPGenerator
 import DashlaneAppKit
 import VaultKit
+import DesignSystem
+import CoreLocalization
 
 struct CredentialDetailsView: View {
     
@@ -56,25 +58,25 @@ extension CredentialDetailsView {
         ScrollView {
             VStack(spacing: 0) {
                 if !viewModel.credential.email.isEmpty {
-                    DetailsBasicField(title: L10n.Localizable.KWAuthentifiantIOS.email,
+                    DetailsBasicField(title: CoreLocalization.L10n.Core.KWAuthentifiantIOS.email,
                                       value: viewModel.credential.email,
                                       copy: { copy($0, action: .email) })
                         .fieldFrame()
                 }
                 if !viewModel.credential.login.isEmpty {
-                    DetailsBasicField(title: L10n.Localizable.KWAuthentifiantIOS.login,
+                    DetailsBasicField(title: CoreLocalization.L10n.Core.KWAuthentifiantIOS.login,
                                       value: viewModel.credential.login,
                                       copy: { copy($0, action: .login) })
                         .fieldFrame()
                 }
                 if !viewModel.credential.secondaryLogin.isEmpty {
-                    DetailsBasicField(title: L10n.Localizable.KWAuthentifiantIOS.secondaryLogin,
+                    DetailsBasicField(title: CoreLocalization.L10n.Core.KWAuthentifiantIOS.secondaryLogin,
                                       value: viewModel.credential.secondaryLogin,
                                       copy: { copy($0, action: .secondaryLogin) })
                         .fieldFrame()
                 }
                 if !viewModel.credential.password.isEmpty {
-                    DetailsSecureField(title: L10n.Localizable.KWAuthentifiantIOS.password,
+                    DetailsSecureField(title: CoreLocalization.L10n.Core.KWAuthentifiantIOS.password,
                                        value: viewModel.credential.password,
                                        enabled: !viewModel.isLimited(),
                                        copy: { copy($0, action: .password(limited: viewModel.isLimited())) })
@@ -82,7 +84,7 @@ extension CredentialDetailsView {
                 }
 
                 if let url = viewModel.credential.url {
-                    DetailsURLField(title: L10n.Localizable.KWAuthentifiantIOS.url,
+                    DetailsURLField(title: CoreLocalization.L10n.Core.KWAuthentifiantIOS.url,
                                     value: url,
                                     openWebsite: viewModel.openWebsite(_:))
                         .fieldFrame()
@@ -97,7 +99,7 @@ extension CredentialDetailsView {
                 }
                 
                 if !viewModel.credential.note.isEmpty {
-                    DetailsNoteField(title: L10n.Localizable.KWAuthentifiantIOS.note,
+                    DetailsNoteField(title: CoreLocalization.L10n.Core.KWAuthentifiantIOS.note,
                                      value: viewModel.credential.note,
                                      copy: { copy($0, action: .note) })
                         .frame(minHeight: 70)

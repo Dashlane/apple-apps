@@ -26,12 +26,8 @@ extension PersonalWebsite: VaultItem {
     public static var addTitle: String {
         L10n.Core.kwadddatakwPersonalWebsiteIOS
     }
-    
+
     public static var nativeMenuAddTitle: String {
         L10n.Core.addWebsite
-    }
-
-        public var logData: VaultItemUsageLogData {
-        VaultItemUsageLogData(website: website)
     }
 }

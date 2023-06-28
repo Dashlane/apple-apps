@@ -3,8 +3,8 @@ import PackageDescription
 let package = Package(
     name: "LoginKit",
     platforms: [
-        .iOS(.v15),
-        .macOS(.v12)
+        .iOS(.v16),
+        .macOS(.v13)
     ],
     products: [
                 .library(
@@ -12,10 +12,11 @@ let package = Package(
             targets: ["LoginKit"]),
         .library(
             name: "LoginKitUITestsTools",
-            targets: ["LoginKitUITestsTools"]),
+            targets: ["LoginKitUITestsTools"])
     ],
     dependencies: [
         .package(path: "../../Foundation/SwiftTreats"),
+        .package(path: "../../Common/DashlaneAppKit"),
         .package(path: "../../Core/DesignSystem"),
         .package(path: "../../Core/UIComponents"),
         .package(path: "../../Core/CoreSession"),
@@ -23,7 +24,6 @@ let package = Package(
         .package(path: "../../Common/cryptocenter"),
         .package(path: "../../Core/CoreSync"),
         .package(path: "../../Core/CoreLocalization"),
-        .package(path: "../../Common/dashlanereportkit"),
         .package(path: "../../Core/CorePasswords"),
         .package(path: "../../Core/CoreKeychain"),
         .package(path: "../../Core/Logger"),
@@ -35,7 +35,7 @@ let package = Package(
         .package(path: "../../Core/CoreSettings"),
         .package(path: "../../Core/CoreCrypto"),
         .package(name: "CoreUserTracking", path: "../../Core/CoreUserTracking"),
-        .package(url: "_", from: "0.4.5")
+        .package(url: "_", from: "0.4.6")
     ],
     targets: [
                         .target(
@@ -45,7 +45,6 @@ let package = Package(
                 .product(name: "SwiftTreats", package: "SwiftTreats"),
                 .product(name: "DesignSystem", package: "DesignSystem"),
                 .product(name: "UIComponents", package: "UIComponents"),
-                .product(name: "DashlaneReportKit", package: "DashlaneReportKit"),
                 .product(name: "CoreSession", package: "CoreSession"),
                 .product(name: "CorePersonalData", package: "CorePersonalData"),
                 .product(name: "DashlaneCrypto", package: "cryptocenter"),
@@ -59,6 +58,7 @@ let package = Package(
                 .product(name: "CorePremium", package: "CorePremium"),
                 .product(name: "CoreFeature", package: "CoreFeature"),
                 .product(name: "CoreCrypto", package: "CoreCrypto"),
+                .product(name: "DashlaneAppKit", package: "DashlaneAppKit"),
                 .product(name: "SwiftCBOR", package: "SwiftCBOR")
             ],
             resources: [.process("Resources")]

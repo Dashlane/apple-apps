@@ -25,9 +25,13 @@ public struct RateAppView: View {
     public var body: some View {
         mainView
             .modifier(AlertStyle())
-            .sheet(isPresented: $isMailViewPresented, onDismiss: { dismiss() }) {
-                MailView(model: viewModel.makeMailViewModel())
-            }
+            .sheet(
+                isPresented: $isMailViewPresented,
+                onDismiss: { dismiss() },
+                content: {
+                    MailView(model: viewModel.makeMailViewModel())
+                }
+            )
         .alert(isPresented: $isMailAlertPresented) {
             Alert(title: Text(""),
                   message: Text(L10n.Core.kwSharingNoEmailAccount),
@@ -77,7 +81,6 @@ public struct RateAppView: View {
                 })
             }
 
-
         }
         .buttonStyle(RateAppButtonStyle())
         .foregroundColor(.ds.text.neutral.standard)
@@ -102,4 +105,3 @@ struct RateAppView_Previews: PreviewProvider {
         }
     }
 }
-

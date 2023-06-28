@@ -3,6 +3,7 @@ import DashTypes
 import CoreSharing
 import CoreSession
 import CorePersonalData
+import CorePremium
 import Combine
 import VaultKit
 
@@ -16,12 +17,21 @@ class SharingUserGroupsSectionViewModel: ObservableObject, SessionServicesInject
 
     public init(itemsProvider: SharingToolItemsProvider,
                 detailViewModelFactory: SharingItemsUserGroupDetailViewModel.Factory,
-                sharingService: SharingServiceProtocol) {
+                sharingService: SharingServiceProtocol,
+                teamSpacesService: VaultKit.TeamSpacesServiceProtocol) {
         self.itemsProvider = itemsProvider
         self.detailViewModelFactory = detailViewModelFactory
 
-        sharingService.sharingUserGroupsPublisher()
-            .map { $0 }
+        let sharingItemUserGroups = sharingService.sharingUserGroupsPublisher()
+        sharingItemUserGroups
+            .combineLatest(teamSpacesService.selectedSpacePublisher) { sharingItemUserGroups, selectedSpace in
+                switch selectedSpace {
+                case .both, .business:
+                    return sharingItemUserGroups
+                case .personal:
+                    return []
+                }
+            }
             .receive(on: DispatchQueue.main)
             .assign(to: &$userGroups)
     }

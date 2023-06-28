@@ -27,6 +27,6 @@ struct EvaluatePasswordHandler: MaverickOrderHandleable, SessionServicesInjectin
         }
 
         let evaluation = passwordEvaluator.evaluate(request.password)
-        return Response(id: actionMessageID, score: evaluation.strength.percentScore)
+        return Response(id: actionMessageID, score: evaluation.percentScore)
     }
 }

@@ -34,9 +34,7 @@ public enum CryptoConfig {
              .pbkdf2Based(_, let baseConfig),
              .noDerivation(let baseConfig):
             return baseConfig.cipherMode
-        case .kwc3:
-            fallthrough
-        case .kwc5:
+        case .kwc3, .kwc5:
             return .cbc
         }
     }
@@ -49,9 +47,7 @@ public enum CryptoConfig {
             return argon2config.saltLength
         case .pbkdf2Based(let derivationAlgorithm, baseConfig: _):
             return derivationAlgorithm.saltLength
-        case .noDerivation:
-            fallthrough
-        case .kwc5:
+        case .noDerivation, .kwc5:
             return 0
         }
     }
@@ -82,7 +78,7 @@ public enum CryptoConfig {
             return baseConfig.encryptionAlgorithm
         }
     }
-    
+
     public var derivationAlgorithm: DerivationAlgorithm {
         switch self {
         case .kwc3:

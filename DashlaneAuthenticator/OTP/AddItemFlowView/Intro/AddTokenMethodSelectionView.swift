@@ -4,19 +4,19 @@ import UIComponents
 import DesignSystem
 
 struct AddTokenMethodSelectionView: View {
-    
+
     @Environment(\.dismiss)
     private var dismiss
-    
+
     @State var showSupportPage = false
 
     enum Action {
         case scanCode
         case enterCodeManually
     }
-    
+
     let completion: (Action) -> Void
-    
+
     var body: some View {
         VStack(alignment: .leading) {
             ScrollView {
@@ -40,7 +40,6 @@ struct AddTokenMethodSelectionView: View {
         })
         .padding(.horizontal, 24)
         .backgroundColorIgnoringSafeArea(.ds.background.alternate)
-        .hiddenNavigationTitle()
         .navigationTitle(L10n.Localizable.addOtpFlowSetupLabel)
         .safariSheet(isPresented: $showSupportPage, .dashlaneTwoStepsVerification)
     }
@@ -49,13 +48,13 @@ struct AddTokenMethodSelectionView: View {
             .font(.authenticator(.largeTitle))
             .foregroundColor(.ds.text.neutral.catchy)
     }
-    
+
     var buttons: some View {
         VStack(spacing: 24) {
             RoundedButton(L10n.Localizable.addOtpFlowScanCodeCta) {
                 self.completion(.scanCode)
             }.roundedButtonLayout(.fill)
-            
+
             Button(L10n.Localizable.addOtpFlowEnterManualCta) {
                 self.completion(.enterCodeManually)
             }
@@ -69,10 +68,10 @@ struct AddTokenMethodSelectionView_Previews: PreviewProvider {
     static var previews: some View {
         MultiContextPreview(dynamicTypePreview: true) {
             NavigationView {
-                AddTokenMethodSelectionView(){ _ in }
+                AddTokenMethodSelectionView { _ in }
             }
             NavigationView {
-                AddTokenMethodSelectionView(){ _ in }
+                AddTokenMethodSelectionView { _ in }
             }
         }
     }

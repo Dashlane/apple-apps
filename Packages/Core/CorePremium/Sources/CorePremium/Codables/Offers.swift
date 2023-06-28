@@ -32,7 +32,7 @@ public struct OffersGroup: Decodable {
 }
 
 public extension Offer {
-    
+
                 var discountOfferIdentifier: String? {
         let planParts =  planName.components(separatedBy: ".")
         guard planParts.count == 2 else {
@@ -40,7 +40,7 @@ public extension Offer {
         }
         return planParts.last
     }
-    
+
                     var storeKitProductIdentifier: String? {
         return planName.components(separatedBy: ".").first
     }

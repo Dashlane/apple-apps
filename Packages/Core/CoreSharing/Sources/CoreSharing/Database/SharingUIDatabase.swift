@@ -21,11 +21,11 @@ public struct ItemSharingMembers: Decodable, Identifiable {
     public let itemGroupInfo: ItemGroupInfo
     public let users: [User]
     public let userGroupMembers: [UserGroupMember]
-    
+
     public var id: Identifier {
         return itemGroupInfo.id
     }
-    
+
     public init(itemGroupInfo: ItemGroupInfo, users: [User], userGroupMembers: [UserGroupMember]) {
         self.itemGroupInfo = itemGroupInfo
         self.users = users
@@ -71,9 +71,9 @@ public struct SharingItemsUserGroup: Identifiable, Hashable {
 }
 
 public struct SharingItemsUser: Identifiable, Hashable {
-    public let id:  UserId
+    public let id: UserId
     public var items: [SharedItemInfo<User>] = []
-    
+
     public init(id: UserId, items: [SharedItemInfo<User>] = []) {
         self.id = id
         self.items = items
@@ -104,19 +104,18 @@ public struct PendingItemGroup: Identifiable {
         case itemIds
         case referrer
     }
-    
+
     public let itemGroupInfo: ItemGroupInfo
     public let itemIds: Set<Identifier>
     public let referrer: String?
-    
+
     public var id: Identifier {
         return itemGroupInfo.id
     }
-    
+
     public init(itemGroupInfo: ItemGroupInfo, itemIds: Set<Identifier>, referrer: String) {
         self.itemGroupInfo = itemGroupInfo
         self.itemIds = itemIds
         self.referrer = referrer
     }
 }
-

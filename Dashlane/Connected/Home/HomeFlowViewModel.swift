@@ -4,9 +4,13 @@ import CoreSettings
 import Foundation
 import ImportKit
 import SwiftUI
+import UIComponents
+import VaultKit
+import NotificationKit
+import CoreLocalization
 
 @MainActor
-final class HomeFlowViewModel: ObservableObject, TabCoordinator, SessionServicesInjecting, OnboardingChecklistActionHandler {
+final class HomeFlowViewModel: ObservableObject, SessionServicesInjecting, OnboardingChecklistActionHandler {
 
     enum DisplayedScreen: Equatable {
         case onboardingChecklist(OnboardingChecklistFlowViewModel)
@@ -24,26 +28,7 @@ final class HomeFlowViewModel: ObservableObject, TabCoordinator, SessionServices
         }
     }
 
-        let tag: Int = 0
-    let id: UUID = .init()
-
-    let title: String = L10n.Localizable.mainMenuHomePage
-    let tabBarImage = NavigationImageSet(
-        image: FiberAsset.tabIconHomeOff,
-        selectedImage: FiberAsset.tabIconHomeOn
-    )
-    let sidebarImage = NavigationImageSet(
-        image: FiberAsset.sidebarHome,
-        selectedImage: FiberAsset.sidebarHomeSelected
-    )
-
-    var viewController: UIViewController {
-        let controller = UIHostingController(rootView: HomeFlow(viewModel: self))
-        controller.tabBarItem.selectedImage = FiberAsset.tabIconHomeOn.image
-        controller.tabBarItem.image = FiberAsset.tabIconHomeOff.image
-        controller.tabBarItem.title = L10n.Localizable.mainMenuHomePage
-        return controller
-    }
+    let origin: OnboardingChecklistOrigin = .home
 
         @Published
     var currentScreen: DisplayedScreen?
@@ -59,14 +44,16 @@ final class HomeFlowViewModel: ObservableObject, TabCoordinator, SessionServices
         let sessionServices: SessionServicesContainer
     private let userSettings: UserSettings
     private let onboardingService: OnboardingService
+    let homeModalAnnouncementsViewModel: HomeModalAnnouncementsViewModel
+    let deeplinkPublisher: AnyPublisher<DeepLink, Never>
 
     init(sessionServices: SessionServicesContainer) {
         self.sessionServices = sessionServices
         self.userSettings = sessionServices.spiegelUserSettings
         self.onboardingService = sessionServices.onboardingService
-    }
+        self.deeplinkPublisher = sessionServices.appServices.deepLinkingService.homeDeeplinkPublisher()
+        self.homeModalAnnouncementsViewModel = sessionServices.makeHomeModalAnnouncementsViewModel()
 
-    func start() {
         update()
     }
 
@@ -87,6 +74,11 @@ final class HomeFlowViewModel: ObservableObject, TabCoordinator, SessionServices
         default:
             break
         }
+
+        sessionServices.lockService.locker.unlocked
+            .sinkOnce { [weak self] _ in
+                self?.homeModalAnnouncementsViewModel.trigger.send(.sessionUnlocked)
+            }
     }
 
     private func setupSettingsSubscription() {
@@ -156,7 +148,7 @@ extension HomeFlowViewModel {
 
 extension HomeFlowViewModel {
     func presentImport(for importMethod: ImportMethodDeeplink) {
-        func makeImportFlowView<Model: ImportFlowViewModel>(viewModel: Model) -> ImportFlowView<Model> {
+        func makeImportFlowView<Model: ImportFlowViewModel>(viewModel: Model) -> some View {
             return ImportFlowView(viewModel: viewModel) { [weak self] action in
                 guard let self = self else { return }
                 switch action {
@@ -166,27 +158,27 @@ extension HomeFlowViewModel {
                     self.genericFullCover = nil
                 }
             }
+            .toolbar {
+                ToolbarItem(placement: .navigationBarLeading) {
+                    NavigationBarButton(CoreLocalization.L10n.Core.cancel) {
+                        self.genericFullCover = nil
+                    }
+                }
+            }
         }
 
         switch importMethod {
         case .import(.csv):
             guard sessionServices.featureService.isEnabled(.keychainImport) else { return }
-            let importFlowViewModel = KeychainImportFlowViewModel(
-                fromDeeplink: true,
-                personalDataURLDecoder: sessionServices.appServices.personalDataURLDecoder,
-                applicationDatabase: sessionServices.database,
-                iconService: sessionServices.iconService,
-                activityReporter: sessionServices.activityReporter)
+            let importFlowViewModel = sessionServices.makeKeychainImportFlowViewModel(applicationDatabase: sessionServices.database)
             genericFullCover = .init(view: makeImportFlowView(viewModel: importFlowViewModel))
         case .import(.dash):
             guard sessionServices.featureService.isEnabled(.dashImport) else { return }
-            let importFlowViewModel = DashImportFlowViewModel(
-                fromDeeplink: true,
-                personalDataURLDecoder: sessionServices.appServices.personalDataURLDecoder,
-                applicationDatabase: sessionServices.database,
-                databaseDriver: sessionServices.databaseDriver,
-                iconService: sessionServices.iconService,
-                activityReporter: sessionServices.activityReporter)
+            let importFlowViewModel = sessionServices.makeDashImportFlowViewModel(applicationDatabase: sessionServices.database, databaseDriver: sessionServices.databaseDriver)
+            genericFullCover = .init(view: makeImportFlowView(viewModel: importFlowViewModel))
+        case .import(.lastpass):
+            guard sessionServices.featureService.isEnabled(.lastpassImport) else { return }
+            let importFlowViewModel = sessionServices.makeLastpassImportFlowViewModel(applicationDatabase: sessionServices.database, userSettings: sessionServices.userSettings)
             genericFullCover = .init(view: makeImportFlowView(viewModel: importFlowViewModel))
         }
     }

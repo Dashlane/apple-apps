@@ -8,15 +8,22 @@ import UIComponents
 import DesignSystem
 
 struct FastLocalSetupView<Model: FastLocalSetupViewModel>: View {
+    @Environment(\.layoutDirection) private var layoutDirection
 
-    @ObservedObject
+    @ScaledMetric(relativeTo: .callout) private var arrowDimension = 14
+    @ScaledMetric private var buttonsArrowSpacing = 6
+    @ScaledMetric private var togglesInnerSpacing = 2
+
+    @StateObject
     var model: Model
 
-    @State
-    private var shouldDisplayHowItWorksDescription: Bool = false
+    @State private var shouldDisplayHowItWorksDescription = false
 
-        @Environment(\.toast)
-    var toast
+        @Environment(\.toast) var toast
+
+    init(model: @autoclosure @escaping () -> Model) {
+        self._model = .init(wrappedValue: model())
+    }
 
     var body: some View {
         FullScreenScrollView {
@@ -37,7 +44,7 @@ struct FastLocalSetupView<Model: FastLocalSetupViewModel>: View {
                     }
                 }
                 .padding(24)
-                .background(Color(asset: FiberAsset.fastSetupCardBackground))
+                .background(.ds.container.agnostic.neutral.supershy)
                 .cornerRadius(8)
 
                 Spacer()
@@ -53,7 +60,6 @@ struct FastLocalSetupView<Model: FastLocalSetupViewModel>: View {
         .onReceive(model.biometryNeededPublisher, perform: showBiometryNeededToast)
         .onAppear {
             model.markDisplay()
-            model.logDisplay()
         }
         .navigationBarStyle(.transparent)
     }
@@ -70,90 +76,96 @@ struct FastLocalSetupView<Model: FastLocalSetupViewModel>: View {
 
     private func biometryView(biometry: Biometry) -> some View {
         Group {
-            Toggle(isOn: $model.isBiometricsOn, label: {
-                VStack(alignment: .leading, spacing: 2) {
+            DS.Toggle(isOn: $model.isBiometricsOn) {
+                VStack(alignment: .leading, spacing: togglesInnerSpacing) {
                     Text(biometry.displayableName)
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundColor(Color(asset: FiberAsset.dashlaneColorTealBackground))
+                        .font(.system(.body).weight(.semibold))
+                        .foregroundColor(.ds.text.neutral.standard)
 
                     Text(biometry.localizedDescription)
-                        .font(.system(size: 13))
-                        .foregroundColor(Color(asset: FiberAsset.fastSetupSubtitle))
+                        .font(.system(.footnote))
+                        .foregroundColor(.ds.text.neutral.quiet)
                 }
-            })
+            }
 
-            Toggle(isOn: $model.isMasterPasswordResetOn, label: {
-                VStack(alignment: .leading, spacing: 2) {
-                    Text(L10n.Localizable.fastLocalSetupMasterPasswordReset)
-                        .font(.system(size: 17, weight: .semibold))
-                        .foregroundColor(Color(asset: FiberAsset.dashlaneColorTealBackground))
+            if model.shouldShowMasterPasswordReset {
+                DS.Toggle(isOn: $model.isMasterPasswordResetOn) {
+                    VStack(alignment: .leading, spacing: togglesInnerSpacing) {
+                        Text(L10n.Localizable.fastLocalSetupMasterPasswordReset)
+                            .font(.system(.body).weight(.semibold))
+                            .foregroundColor(.ds.text.neutral.standard)
 
-                    Text(L10n.Localizable.fastLocalSetupMasterPasswordResetDescription)
-                        .font(.system(size: 13))
-                        .foregroundColor(Color(asset: FiberAsset.fastSetupSubtitle))
+                        Text(L10n.Localizable.fastLocalSetupMasterPasswordResetDescription)
+                            .font(.system(.footnote))
+                            .foregroundColor(.ds.text.neutral.quiet)
+                    }
                 }
-            }).hidden(!model.shouldShowMasterPasswordReset)
+            }
 
-            Button(action: showHowItWorksDescription, label: {
-                howItWorksButtonTitle
-            })
+            Button(action: showHowItWorksDescription) {
+                howItWorksButtonLabel
+            }
         }
     }
 
     private var rememberMasterPasswordView: some View {
-        Toggle(isOn: $model.isRememberMasterPasswordOn, label: {
-            VStack(alignment: .leading, spacing: 2) {
+        DS.Toggle(isOn: $model.isRememberMasterPasswordOn) {
+            VStack(alignment: .leading, spacing: togglesInnerSpacing) {
                 Text(L10n.Localizable.fastLocalSetupRememberMPTitle)
-                    .font(.system(size: 17, weight: .semibold))
-                    .foregroundColor(Color(asset: FiberAsset.dashlaneColorTealBackground))
+                    .font(.system(.body).weight(.semibold))
+                    .foregroundColor(.ds.text.neutral.standard)
 
                 Text(L10n.Localizable.fastLocalSetupRememberMPDescription)
-                    .font(.system(size: 13))
-                    .foregroundColor(Color(asset: FiberAsset.fastSetupSubtitle))
+                    .font(.system(.footnote))
+                    .foregroundColor(.ds.text.neutral.quiet)
             }
-        })
-
+        }
     }
 
-    private var howItWorksButtonTitle: some View {
-        let text = Text(L10n.Localizable.fastLocalSetupHowItWorksTitle)
-            .font(.system(size: 16, weight: .semibold))
-        let arrow = Text("→")
-            .font(.system(size: 16, weight: .regular))
-        let combinedTitle = text + Text(" ") + arrow
-
-        return combinedTitle.foregroundColor(Color(asset: FiberAsset.midGreen))
+    private var howItWorksButtonLabel: some View {
+        Label {
+            Text(L10n.Localizable.fastLocalSetupHowItWorksTitle)
+                .font(.system(.callout).weight(.semibold))
+        } icon: {
+            (layoutDirection == .rightToLeft ? Image.ds.arrowLeft.outlined : .ds.arrowRight.outlined)
+                .resizable()
+                .frame(width: arrowDimension, height: arrowDimension)
+        }
+        .labelStyle(TrailingIconLabelStyle(spacing: buttonsArrowSpacing))
+        .fixedSize(horizontal: false, vertical: true)
     }
 
     private var backButtonTitle: some View {
-        let arrow = Text("←")
-            .font(.system(size: 16, weight: .regular))
-        let text = Text(L10n.Localizable.fastLocalSetupHowItWorksBack)
-            .font(.system(size: 16, weight: .semibold))
-        let combinedTitle = arrow + Text(" ") + text
-
-        return combinedTitle.foregroundColor(Color(asset: FiberAsset.midGreen))
+        Label {
+            Text(L10n.Localizable.fastLocalSetupHowItWorksBack)
+                .font(.system(.callout).weight(.semibold))
+        } icon: {
+            (layoutDirection == .rightToLeft ? Image.ds.arrowRight.outlined : .ds.arrowLeft.outlined)
+                .resizable()
+                .frame(width: arrowDimension, height: arrowDimension)
+        }
+        .labelStyle(LeadingIconLabelStyle(spacing: buttonsArrowSpacing))
+        .fixedSize()
     }
 
     private func howItWorksDescription(biometry: Biometry) -> some View {
         Group {
-            Button(action: hideHowItWorksDescription, label: {
+            Button(action: hideHowItWorksDescription) {
                 backButtonTitle
-            })
+            }
 
             Group {
                 Text(L10n.Localizable.fastLocalSetupHowItWorksResetAvailableDescription(biometry.displayableName))
                 Text(L10n.Localizable.fastLocalSetupHowItWorksNote(biometry.displayableName))
             }
-            .foregroundColor(Color(asset: FiberAsset.fastSetupInfo))
+            .foregroundColor(.ds.text.neutral.quiet)
         }
     }
 
     private var continueButton: some View {
-        RoundedButton(L10n.Localizable.fastLocalSetupContinue,
-                      action: model.next)
-        .roundedButtonLayout(.fill)
-        .padding(.bottom, 35)
+        RoundedButton(L10n.Localizable.fastLocalSetupContinue, action: model.next)
+            .roundedButtonLayout(.fill)
+            .padding(.bottom, 35)
     }
 
     func showHowItWorksDescription() {
@@ -196,7 +208,6 @@ struct FastLocalSetupView_Previews: PreviewProvider {
         func next() {}
         func back() {}
         func markDisplay() {}
-        func logDisplay() {}
 
         init(mode: FastLocalSetupMode = .biometry(.faceId)) {
             self.mode = mode

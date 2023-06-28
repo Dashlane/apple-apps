@@ -2,6 +2,7 @@ import Foundation
 import CoreSession
 import Combine
 import LoginKit
+import UIComponents
 
 extension ModalCoordinator {
         func configureDeviceLimitRequest() {
@@ -44,7 +45,6 @@ extension ModalCoordinator {
             deviceUnlinker: deviceUnlinker,
             login: sessionServices.session.login,
             authentication: sessionServices.session.configuration.keys.serverAuthentication,
-            loginUsageLogService: sessionServices.appServices.loginUsageLogService,
             logger: sessionServices.appServices.rootLogger[.session],
             purchasePlanFlowProvider: PurchasePlanFlowProvider(appServices: sessionServices.appServices),
             userTrackingSessionActivityReporter: sessionServices.activityReporter.activityReporter) { completion in

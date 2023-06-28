@@ -143,7 +143,7 @@ class AutofillViewModel: ObservableObject, TabActivable {
 
             func correctPageValues(_ value: AutofillPolicy.Policy) {
         let pagePolicies = preferences.pagePolicies(forDomain: domainTitle)
-            .filter({ !$0.policy.isStrictierThan(other: value) })
+            .filter({ !$0.policy.isStricterThan(other: value) })
         
         guard !pagePolicies.isEmpty else { return }
         preferences.subtract(preferences.pagePolicies(forDomain: domainTitle))
@@ -288,7 +288,7 @@ extension AutofillViewModel {
                      rules: Set<UserDefinedRule> = []) -> AutofillViewModel {
         let container = MockServicesContainer()
         return AutofillViewModel(domainParser: container.domainParser,
-                                 userEncryptedSettings: UserEncryptedSettings(internalStore: InMemoryLocalSettingsStore()),
+                                 userEncryptedSettings: UserEncryptedSettings(internalStore: .mock()),
                                  popoverOpeningService: PopoverOpeningService(),
                                  autofillStorage: AutofillStorageMock(rules: rules),
                                  adminDisabledWebsites: [])

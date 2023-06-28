@@ -7,26 +7,22 @@ import SwiftUI
 import DesignSystem
 
 class UnresolvedAlertViewModel: SessionServicesInjecting {
-    let logger: SecurityBreachLogger
     let service: IdentityDashboardServiceProtocol
     let deeplinkService: DeepLinkingServiceProtocol
     let passwordHealthFlowViewModelFactory: PasswordHealthFlowViewModel.Factory
 
     init(
-        usageLogService: UsageLogServiceProtocol,
         identityDashboardService: IdentityDashboardServiceProtocol,
         deeplinkService: DeepLinkingServiceProtocol,
         passwordHealthFlowViewModelFactory: PasswordHealthFlowViewModel.Factory
     ) {
-        self.logger = usageLogService.securityBreach
         self.service = identityDashboardService
         self.deeplinkService = deeplinkService
         self.passwordHealthFlowViewModelFactory = passwordHealthFlowViewModelFactory
     }
 
     static var mock: UnresolvedAlertViewModel {
-        .init(usageLogService: UsageLogService.fakeService,
-              identityDashboardService: IdentityDashboardService.mock,
+        .init(identityDashboardService: IdentityDashboardService.mock,
               deeplinkService: DeepLinkingService.fakeService,
               passwordHealthFlowViewModelFactory: .init({ _ in .mock }))
     }
@@ -59,6 +55,7 @@ struct UnresolvedAlertView: View {
         VStack(alignment: .leading, spacing: 8) {
             HStack {
                 Image(asset: alert.alert.breach.kind == .default ? FiberAsset.securityBreachRegular : FiberAsset.securityBreachDataleak)
+                    .accessibilityHidden(true)
                 VStack {
                     if let title = alert.title {
                         Text(AttributedString(title))
@@ -67,9 +64,7 @@ struct UnresolvedAlertView: View {
                 }
             }
 
-            if let message = alert.message {
-                Text(AttributedString(message))
-            }
+            Text(AttributedString(alert.message))
 
             if let actionable = alert.actionableMessage {
                 Text(AttributedString(actionable.message))

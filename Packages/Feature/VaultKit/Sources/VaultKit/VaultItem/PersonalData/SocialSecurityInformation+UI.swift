@@ -24,7 +24,7 @@ extension SocialSecurityInformation: VaultItem {
     public static var addTitle: String {
         L10n.Core.kwadddatakwSocialSecurityStatementIOS
     }
-    
+
     public static var nativeMenuAddTitle: String {
         L10n.Core.addSocialSecurityNumber
     }

@@ -1,7 +1,6 @@
 import Foundation
 import CoreSession
 import Combine
-import DashlaneReportKit
 import CoreUserTracking
 import DashlaneAppKit
 import SwiftUI
@@ -97,7 +96,7 @@ extension AppCoordinator: SessionLifeCycleHandler {
                 .buildSessionServices(from: newSession,
                                       appServices: self.appServices,
                                       logger: self.sessionLogger,
-                                      loadingContext: .localLogin) { [weak self] result in
+                                      loadingContext: .localLogin(reason == .masterPasswordChangedForARK)) { [weak self] result in
                                         DispatchQueue.main.async {
                                             guard let self = self else { return }
 

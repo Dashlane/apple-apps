@@ -5,7 +5,7 @@ import SwiftTreats
 
 struct OnDiskRemoteFileCache {
     private static let etagFilenameSuffix = "Etag"
-    
+
     enum Error: Swift.Error {
         case cannotCreateObfuscatedCacheKey
     }
@@ -40,14 +40,14 @@ struct OnDiskRemoteFileCache {
             let modificationDate = attributes[.modificationDate] as? Date else {
             return nil
         }
-        
+
         let data = try Data(contentsOf: url)
         guard let plaintext = cryptoEngine.decrypt(data: data) else {
             return nil
         }
         return (plaintext, modificationDate)
     }
-    
+
     func modificationDate(forKey key: String) throws -> Date? {
         let url = try localCacheURL(for: key)
         guard fileManager.fileExists(atPath: url.path),
@@ -57,27 +57,27 @@ struct OnDiskRemoteFileCache {
         }
         return modificationDate
     }
-    
+
     func etag(forKey key: String) throws -> String? {
         let url = try localCacheURL(for: key).appendingPathExtension(OnDiskRemoteFileCache.etagFilenameSuffix)
         guard FileManager.default.fileExists(atPath: url.path) else {
             return nil
         }
-        
+
         return try String(contentsOf: url)
     }
-    
+
         func save(_ data: Data?, forKey key: String) throws {
         let url = try localCacheURL(for: key)
         if let data = data {
             let encryptedData = cryptoEngine.encrypt(data: data)
             try encryptedData?.write(to: url)
-            
+
         } else if FileManager.default.fileExists(atPath: url.path) {
             try FileManager.default.removeItem(at: url)
         }
     }
-    
+
     func saveETag(_ etag: String?, forKey key: String) throws {
         let url = try localCacheURL(for: key)
         let etagURL = url.appendingPathExtension(OnDiskRemoteFileCache.etagFilenameSuffix)

@@ -8,40 +8,39 @@ public enum CryptoCenterError: Error {
     case keyOrPasswordNotProvided
 }
 
-
 public struct CryptoCenter {
-    
+
         public let config: CryptoConfig
-    
+
         public var header: String {
         return CryptoConfigParser.header(from: config)
     }
-    
+
         public var derivationKeyCacheDelegate: DerivationKeyCacheDelegate?
-    
+
             public init(configuration: CryptoConfig) {
         self.config = configuration
     }
-    
+
             public init?(from configurationString: String) {
         guard let configuration = CryptoConfigParser.configuration(from: configurationString) else {
             return nil
         }
         self.init(configuration: configuration)
     }
-    
+
             public init?(from data: Data) {
         guard let configuration = CryptoConfigParser.configuration(from: data) else {
             return nil
         }
         self.init(configuration: configuration)
     }
-    
+
                         public func encrypt(data: Data,
                         with secret: EncryptionSecret) throws -> Data? {
         try self.encrypt(data: data, with: secret, initialisationVector: nil)
     }
-    
+
                         public func decrypt(data: Data,
                         with secret: EncryptionSecret) throws -> Data? {
         switch secret {
@@ -54,10 +53,10 @@ public struct CryptoCenter {
 }
 
 internal extension CryptoCenter {
-    
+
         func encrypt(data: Data,
-                        with secret: EncryptionSecret,
-                        initialisationVector: Data?) throws -> Data? {
+                 with secret: EncryptionSecret,
+                 initialisationVector: Data?) throws -> Data? {
 
         switch secret {
         case .key(let key):
@@ -75,7 +74,7 @@ internal extension CryptoCenter {
         }
         return salt
     }
-    
+
     func saveFixedSaltIfNotSetAlready(_ salt: Data) {
         guard derivationKeyCacheDelegate?.fixedSalt(ofSize: UInt(salt.count)) == nil else {
             return
@@ -195,13 +194,13 @@ private extension CryptoCenter {
             return SHA.hash(data: data, using: .sha512)
         }
     }
-    
+
                         private func derivedKey(from password: String, salt: [UInt8]) -> Data? {
-        
+
         if let key = derivationKeyCacheDelegate?.value(forConfig: config, password: password, salt: Data(salt)) {
             return key
         }
-        
+
         switch config {
             case .argon2dBased(let argon2Conf, _):
                 guard let key = Derivation.argon2d(of: password,

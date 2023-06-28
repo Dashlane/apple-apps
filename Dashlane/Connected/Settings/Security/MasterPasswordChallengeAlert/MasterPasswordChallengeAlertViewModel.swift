@@ -13,22 +13,17 @@ final class MasterPasswordChallengeAlertViewModel: ObservableObject {
         case validated
     }
 
-    private let session: Session
-
+    let masterPassword: String
     let intent: Intent
     let completion: (Completion) -> Void
 
-    init(session: Session, intent: Intent, completion: @escaping (Completion) -> Void) {
-        self.session = session
+    init(masterPassword: String, intent: Intent, completion: @escaping (Completion) -> Void) {
+        self.masterPassword = masterPassword
         self.intent = intent
         self.completion = completion
     }
 
-    var masterPassword: String? {
-        session.configuration.masterKey.masterPassword
-    }
-
         static func mock(intent: Intent) -> MasterPasswordChallengeAlertViewModel {
-        .init(session: Session.mock, intent: intent, completion: { _ in })
+        .init(masterPassword: "Dashlane12", intent: intent, completion: { _ in })
     }
 }

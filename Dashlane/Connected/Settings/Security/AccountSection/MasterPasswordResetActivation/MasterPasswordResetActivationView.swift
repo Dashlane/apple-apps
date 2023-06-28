@@ -3,6 +3,8 @@ import Combine
 import DashlaneAppKit
 import CoreSession
 import SwiftTreats
+import DesignSystem
+import CoreLocalization
 
 struct MasterPasswordResetActivationView: View {
     typealias Confirmed = Bool
@@ -14,9 +16,8 @@ struct MasterPasswordResetActivationView: View {
     var masterPasswordChallengeItem: MasterPasswordChallengeAlertViewModel?
 
     var body: some View {
-        Toggle(L10n.Localizable.resetMasterPasswordSettingsItemTitle, isOn: $viewModel.isToggleOn)
-            .toggleStyle(SwitchToggleStyle(tint: .green))
-            .onChange(of: viewModel.isToggleOn, perform: viewModel.handleToggleValueChange)
+        DS.Toggle(L10n.Localizable.resetMasterPasswordSettingsItemTitle, isOn: $viewModel.isToggleOn)
+            .onChange(of: viewModel.isToggleOn, perform: { viewModel.handleToggleValueChange(newValue: $0) })
             .onChange(of: viewModel.displayMasterPasswordChallenge) { display in
                 guard display else {
                     masterPasswordChallengeItem = nil
@@ -39,7 +40,7 @@ struct MasterPasswordResetActivationView: View {
         private func makeWrongPasswordAlert(completion: @escaping () -> Void) -> Alert {
         Alert(title: Text(L10n.Localizable.kwWrongMasterPasswordMessage),
               message: nil,
-              dismissButton: .default(Text(L10n.Localizable.kwButtonOk), action: completion))
+              dismissButton: .default(Text(CoreLocalization.L10n.Core.kwButtonOk), action: completion))
     }
 
     private func makeBiometricActivationAlert(completion: @escaping (Confirmed) -> Void) -> Alert {
@@ -69,7 +70,7 @@ struct MasterPasswordResetActivationView: View {
 
 struct MasterPasswordResetActivationView_Previews: PreviewProvider {
     static var previews: some View {
-        MasterPasswordResetActivationView(viewModel: .init(session: Session.mock,
+        MasterPasswordResetActivationView(viewModel: .init(masterPassword: "Azerty12",
                                                            resetMasterPasswordService: ResetMasterPasswordServiceMock(),
                                                            lockService: LockServiceMock(),
                                                            actionHandler: { _ in }),

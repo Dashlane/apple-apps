@@ -1,3 +1,4 @@
+import DesignSystem
 import SwiftUI
 import SwiftTreats
 import UIDelight
@@ -11,15 +12,14 @@ struct SharingEditLabel: View {
         } else {
             if Device.isIpadOrMac {
                 Text(L10n.Localizable.kwSharingItemEditAccess)
-                    .foregroundColor(Color(asset: FiberAsset.accentColor))
-
+                    .foregroundColor(.ds.text.brand.standard)
             } else {
-                Image(asset: FiberAsset.quickaction)
+                Image.ds.action.more.outlined
                     .resizable()
                     .aspectRatio(contentMode: .fit)
                     .accessibilityLabel(Text(L10n.Localizable.kwSharingItemEditAccess))
                     .frame(width: 24, height: 40)
-                    .foregroundColor(Color(asset: FiberAsset.accentColor))
+                    .foregroundColor(.ds.text.brand.quiet)
             }
         }
     }

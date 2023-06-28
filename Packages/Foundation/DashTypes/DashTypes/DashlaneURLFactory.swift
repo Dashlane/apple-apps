@@ -41,10 +41,6 @@ public struct DashlaneURLFactory {
         return URL(string: "_")!
     }
 
-    public static var authenticator: URL {
-        return URL(string: "dashlane-authenticator:///")!
-    }
-
     public static var aboutAuthenticator: URL {
         return URL(string: "_")!
     }

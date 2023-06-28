@@ -6,8 +6,7 @@ struct SharingRequestNotificationRowView: View {
     var body: some View {
         BaseNotificationRowView(icon: model.notification.icon,
                                 title: model.notification.title,
-                                description: model.notification.description,
-                                reportClick: model.notification.notificationActionHandler.reportClick) {
+                                description: model.notification.description) {
             model.openSharingCenter()
         }
     }

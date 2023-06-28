@@ -11,7 +11,7 @@ class SQLiteDriverEventNotifier {
         interProcessCommunicator = SQLiteInterProcessCommunicator(identifier: identifier)
         configureEvents()
     }
-    
+
     private func configureEvents() {
                 interProcessCommunicator.receivedActions
             .debounce(for: .milliseconds(200), scheduler: DispatchQueue.main, options: nil)
@@ -20,7 +20,7 @@ class SQLiteDriverEventNotifier {
             }.sink { [internalEventPublisher] _ in
                 internalEventPublisher.send(.invalidation)
             }.store(in: &subscriptions)
-        
+
         internalEventPublisher
             .collect(.byTime(DispatchQueue.global(qos: .background), .milliseconds(50)))
             .map { events -> DatabaseEvent in
@@ -40,7 +40,7 @@ class SQLiteDriverEventNotifier {
             }
             .store(in: &subscriptions)
     }
-    
+
     func notify(_ event: DatabaseEvent) {
         internalEventPublisher.send(event)
         interProcessCommunicator.post(.databaseUpdated) 

@@ -6,7 +6,7 @@ import DashlaneAPI
 
 public typealias UserKeyProvider = @SharingActor () throws -> AsymmetricKeyPair
 
-public struct SharingEngine<UIDatabase : SharingUIDatabase> {
+public struct SharingEngine<UIDatabase: SharingUIDatabase> {
         public let database: UIDatabase
     let operationDatabase: SharingOperationsDatabase
     let personalDataDB: SharingPersonalDataDB
@@ -18,12 +18,12 @@ public struct SharingEngine<UIDatabase : SharingUIDatabase> {
         private let serialExecutionQueue: AsyncQueue
     let groupKeyProvider: GroupKeyProvider
     let updater: SharingUpdater
-       
+
     @SharingActor
     public var needsKey: Bool {
         return userKeyStore.needsKey
     }
-    
+
     @SharingActor
     init(userId: UserId,
          serialExecutionQueue: AsyncQueue,
@@ -32,6 +32,7 @@ public struct SharingEngine<UIDatabase : SharingUIDatabase> {
          sharingClientAPI: SharingClientAPI,
          personalDataDB: SharingPersonalDataDB,
          cryptoProvider: SharingCryptoProvider,
+         autoRevokeUsersWithInvalidProposeSignature: Bool,
          logger: Logger) {
         self.userKeyStore = UserKeyStore()
         self.userId = userId
@@ -46,7 +47,7 @@ public struct SharingEngine<UIDatabase : SharingUIDatabase> {
                                             userKeyProvider: userKeyStore.get,
                                             database: operationDatabase,
                                             cryptoProvider: cryptoProvider)
-        
+
         updater = SharingUpdater(userId: userId,
                                  userKeyProvider: userKeyStore.get,
                                  groupKeyProvider: groupKeyProvider,
@@ -54,21 +55,22 @@ public struct SharingEngine<UIDatabase : SharingUIDatabase> {
                                  database: operationDatabase,
                                  cryptoProvider: cryptoProvider,
                                  personalDataDB: personalDataDB,
+                                 autoRevokeUsersWithInvalidProposeSignature: autoRevokeUsersWithInvalidProposeSignature,
                                  logger: logger)
     }
-    
+
                     func execute(maxIteration: Int = 5, _ action: @escaping @SharingActor (_ nextRequest: inout SharingUpdater.UpdateRequest) async throws -> Void) async throws {
         try await serialExecutionQueue {
             try await updater.execute(maxIteration: maxIteration, action)
         }
     }
-    
-                public func update(from summary: SharingSummary) async throws  {
+
+                public func update(from summary: SharingSummary) async throws {
         try await serialExecutionQueue {
             try await updater.update(from: summary)
         }
     }
-    
+
         public func updateUserKey(_ userKey: AsymmetricKeyPair) async throws {
         try await serialExecutionQueue {
             await userKeyStore.update(userKey)
@@ -86,6 +88,7 @@ extension SharingEngine where UIDatabase == SQLiteDatabase {
                 apiClient: UserDeviceAPIClient.SharingUserdevice,
                 personalDataDB: SharingPersonalDataDB,
                 cryptoProvider: SharingCryptoProvider,
+                autoRevokeUsersWithInvalidProposeSignature: Bool,
                 logger: Logger) async throws {
         let sqlDatabase = try SQLiteDatabase(url: url)
         self.init(userId: userId,
@@ -95,8 +98,9 @@ extension SharingEngine where UIDatabase == SQLiteDatabase {
                   sharingClientAPI: SharingClientAPIImpl(apiClient: apiClient),
                   personalDataDB: personalDataDB,
                   cryptoProvider: cryptoProvider,
+                  autoRevokeUsersWithInvalidProposeSignature: autoRevokeUsersWithInvalidProposeSignature,
                   logger: logger)
-        
+
         if let keys = userKeys {
            try await self.updateUserKey(keys)
         }

@@ -3,6 +3,7 @@ import CoreSettings
 import CorePremium
 import Combine
 import LocalAuthentication
+import LoginKit
 
 class SSOEnableBiometricsOrPinViewModel: ObservableObject, SessionServicesInjecting {
 
@@ -13,16 +14,13 @@ class SSOEnableBiometricsOrPinViewModel: ObservableObject, SessionServicesInject
 
     private let userSettings: UserSettings
     private let lockService: LockServiceProtocol
-    private let usageLogService: UsageLogServiceProtocol
 
     let isBiometryAvailable: Bool
 
     init(userSettings: UserSettings,
-         lockService: LockServiceProtocol,
-         usageLogService: UsageLogServiceProtocol) {
+         lockService: LockServiceProtocol) {
         self.userSettings = userSettings
         self.lockService = lockService
-        self.usageLogService = usageLogService
 
         let context = LAContext()
         isBiometryAvailable = context.canEvaluatePolicy(.deviceOwnerAuthenticationWithBiometrics, error: nil)
@@ -43,13 +41,11 @@ class SSOEnableBiometricsOrPinViewModel: ObservableObject, SessionServicesInject
 
     func enableBiometry() {
         try? self.lockService.secureLockConfigurator.enableBiometry()
-        self.usageLogService.securitySettings.logBiometryStatus(isEnabled: true, origin: SecuritySettingsLogger.Origin.onboarding)
         dismiss.send()
     }
 
     func enablePincode(_ code: String) throws {
         try lockService.secureLockConfigurator.enablePinCode(code)
-        usageLogService.securitySettings.logPinStatus(isEnabled: true, origin: SecuritySettingsLogger.Origin.onboarding)
         dismiss.send()
     }
 }
@@ -57,7 +53,6 @@ class SSOEnableBiometricsOrPinViewModel: ObservableObject, SessionServicesInject
 extension SSOEnableBiometricsOrPinViewModel {
     static var mock: SSOEnableBiometricsOrPinViewModel {
         .init(userSettings: .mock,
-              lockService: LockServiceMock(),
-              usageLogService: UsageLogService.fakeService)
+              lockService: LockServiceMock())
     }
 }

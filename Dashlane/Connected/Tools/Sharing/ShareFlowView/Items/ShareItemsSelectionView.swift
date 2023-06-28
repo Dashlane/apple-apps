@@ -2,6 +2,7 @@ import SwiftUI
 import VaultKit
 import UIDelight
 import UIComponents
+import CoreLocalization
 
 struct ShareItemsSelectionView: View {
     @StateObject
@@ -18,6 +19,7 @@ struct ShareItemsSelectionView: View {
         ItemsList(sections: model.sections, rowProvider: rowView)
             .indexed()
             .searchable(text: $model.search)
+            .autocorrectionDisabled()
             .navigationTitle(L10n.Localizable.kwShareItem)
             .navigationBarTitleDisplayMode(.inline)
             .reportPageAppearance(.sharingCreateItem)
@@ -44,14 +46,14 @@ struct ShareItemsSelectionView: View {
     @ToolbarContentBuilder
     var toolbarContent: some ToolbarContent {
         ToolbarItem(placement: .navigationBarLeading) {
-            Button(L10n.Localizable.cancel) {
+            Button(CoreLocalization.L10n.Core.cancel) {
                 dismiss()
             }
         }
 
         ToolbarItem(placement: .navigationBarTrailing) {
             let suffix = model.selectedItems.isEmpty ? "" : "(\(model.selectedItems.count))"
-            Button(L10n.Localizable.kwNext + suffix) {
+            Button(CoreLocalization.L10n.Core.kwNext + suffix) {
                 model.complete()
             }
             .disabled(model.selectedItems.isEmpty)

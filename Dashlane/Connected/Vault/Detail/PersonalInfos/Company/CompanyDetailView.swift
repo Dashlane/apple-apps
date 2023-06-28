@@ -3,6 +3,8 @@ import SwiftUI
 import CorePersonalData
 import UIDelight
 import DashlaneAppKit
+import VaultKit
+import CoreLocalization
 
 struct CompanyDetailView: View {
     @ObservedObject
@@ -16,10 +18,10 @@ struct CompanyDetailView: View {
         DetailContainerView(service: model.service) {
             Section {
                 if model.mode.isEditing {
-                    TextDetailField(title: L10n.Localizable.KWCompanyIOS.name, text: $model.item.name)
+                    TextDetailField(title: CoreLocalization.L10n.Core.KWCompanyIOS.name, text: $model.item.name)
                         .textInputAutocapitalization(.words)
                 }
-                TextDetailField(title: L10n.Localizable.KWCompanyIOS.jobTitle, text: $model.item.jobTitle)
+                TextDetailField(title: CoreLocalization.L10n.Core.KWCompanyIOS.jobTitle, text: $model.item.jobTitle)
                     .textInputAutocapitalization(.words)
             }
         }

@@ -6,7 +6,6 @@ import Combine
 public protocol NotificationActionHandler {
     func dismiss()
     func reportAsDisplayed()
-    func reportClick()
 }
 
 struct NotificationSettings: NotificationActionHandler {
@@ -30,14 +29,11 @@ struct NotificationSettings: NotificationActionHandler {
     private let prefix: String
     private let settings: KeyedSettings<SettingsKey>
     let creationDate: Date
-    private let logger: NotificationCenterLogger
 
     init(prefix: String,
-         settings: LocalSettingsStore,
-         logger: NotificationCenterLogger) {
+         settings: LocalSettingsStore) {
         self.prefix = prefix
         self.settings = KeyedSettings<SettingsKey>(internalStore: settings, withPrefix: prefix)
-        self.logger = logger
                 if self.settings[.creationDate] as Date? == nil {
             self.settings[.creationDate] = Date()
         }
@@ -58,21 +54,11 @@ struct NotificationSettings: NotificationActionHandler {
     }
 
     func dismiss() {
-        if settings[.hasBeenDismissed] != true {
-            logger.log(subaction: .dismiss, for: prefix)
-        }
         settings[.hasBeenDismissed] = true
     }
 
     func reportAsDisplayed() {
-        if settings[.hasBeenDisplayed] != true {
-            logger.log(subaction: .show, for: prefix)
-        }
         settings[.hasBeenDisplayed] = true
-    }
-
-    func reportClick() {
-        logger.log(subaction: .click, for: prefix)
     }
 }
 
@@ -91,7 +77,6 @@ private extension KeyedSettings where Key == NotificationSettings.SettingsKey {
 private struct FakeNotificationActionHandler: NotificationActionHandler {
     func dismiss() {}
     func reportAsDisplayed() {}
-    func reportClick() {}
 }
 
 extension NotificationSettings {

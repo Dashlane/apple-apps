@@ -134,6 +134,7 @@ public class ScreenLocker {
 
                 if setting.lockTimeInterval != nil && !setting.paused {
             NotificationCenter.default.publisher(for: FiberUIApplication.didReceiveTouchNotification)
+                .receive(on: DispatchQueue.main)
                 .sink { [weak self] _ in
                     self?.resetAutoLockTimer()
             }.store(in: &cancellables)
@@ -143,6 +144,7 @@ public class ScreenLocker {
         }
 
                 $secureLockMode
+            .receive(on: DispatchQueue.main)
             .sink { [weak self] mode in
                 if mode != nil {
                     self?.stopAutoLockTimer()
@@ -268,7 +270,7 @@ public class ScreenLocker {
 
 extension ScreenLocker: UnlockSessionHandler {
     @MainActor
-    public func unlock(with masterKey: MasterKey, loginContext: LoginContext) async throws {
+    public func unlock(with masterKey: MasterKey, loginContext: LoginContext, isRecoveryLogin: Bool) async throws {
         guard masterKey == self.masterKey else {
             throw LocalLoginHandler.Error.wrongMasterKey
         }

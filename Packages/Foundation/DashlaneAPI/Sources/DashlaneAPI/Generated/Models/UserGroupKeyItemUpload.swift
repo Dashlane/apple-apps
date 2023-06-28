@@ -2,6 +2,13 @@ import Foundation
 
 public struct UserGroupKeyItemUpload: Codable, Equatable {
 
+    private enum CodingKeys: String, CodingKey {
+        case itemId = "itemId"
+        case itemKey = "itemKey"
+        case content = "content"
+        case itemGroupRevision = "itemGroupRevision"
+    }
+
         public let itemId: String
 
         public let itemKey: String

@@ -8,7 +8,7 @@ import SwiftTreats
 import SecurityDashboard
 
 @MainActor
-class ToolsFlowViewModel: ObservableObject, TabCoordinator, SessionServicesInjecting {
+class ToolsFlowViewModel: ObservableObject, SessionServicesInjecting {
 
     enum Step: Equatable {
         case root
@@ -37,17 +37,6 @@ class ToolsFlowViewModel: ObservableObject, TabCoordinator, SessionServicesInjec
     @Published
     var presentedSheet: Sheet?
 
-        let tag: Int = 0
-    let id: UUID = .init()
-
-    lazy var viewController: UIViewController = {
-        UIHostingController(rootView: ToolsFlow(viewModel: self))
-    }()
-
-    let title: String
-    let tabBarImage: NavigationImageSet
-    let sidebarImage: NavigationImageSet
-
     @Published
     var steps: [Step]
 
@@ -63,12 +52,13 @@ class ToolsFlowViewModel: ObservableObject, TabCoordinator, SessionServicesInjec
     let sharingToolsFlowViewModelFactory: SharingToolsFlowViewModel.Factory
     let darkWebToolsFlowViewModelFactory: DarkWebToolsFlowViewModel.Factory
     let unresolvedAlertViewModelFactory: UnresolvedAlertViewModel.Factory
+    let collectionsFlowViewModelFactory: CollectionsFlowViewModel.Factory
+    let toolsItem: ToolsItem?
 
     let didSelectItem = PassthroughSubject<ToolsItem, Never>()
     var cancellables = Set<AnyCancellable>()
     let deepLinkingService: DeepLinkingServiceProtocol
-
-    let detailInformationValue: CurrentValueSubject<TabElementDetail, Never>? = .init(.text(""))
+    let deeplinkPublisher: AnyPublisher<DeepLink, Never>
 
     init(toolsItem: ToolsItem?,
          userSettings: UserSettings,
@@ -83,8 +73,10 @@ class ToolsFlowViewModel: ObservableObject, TabCoordinator, SessionServicesInjec
          vpnAvailableToolsFlowViewModelFactory: VPNAvailableToolsFlowViewModel.Factory,
          sharingToolsFlowViewModelFactory: SharingToolsFlowViewModel.Factory,
          darkWebToolsFlowViewModelFactory: DarkWebToolsFlowViewModel.Factory,
-         unresolvedAlertViewModelFactory: UnresolvedAlertViewModel.Factory) {
+         unresolvedAlertViewModelFactory: UnresolvedAlertViewModel.Factory,
+         collectionsFlowViewModelFactory: CollectionsFlowViewModel.Factory) {
         self.userSettings = userSettings
+        self.toolsItem = toolsItem
         self.vpnService = vpnService
         self.capabilityService = capabilityService
         self.deepLinkingService = deepLinkingService
@@ -97,17 +89,12 @@ class ToolsFlowViewModel: ObservableObject, TabCoordinator, SessionServicesInjec
         self.sharingToolsFlowViewModelFactory = sharingToolsFlowViewModelFactory
         self.darkWebToolsFlowViewModelFactory = darkWebToolsFlowViewModelFactory
         self.unresolvedAlertViewModelFactory = unresolvedAlertViewModelFactory
-
-        self.title = toolsItem?.title ?? L10n.Localizable.tabToolsTitle
-        let tabBarSet = NavigationImageSet(image: FiberAsset.tabIconToolsOff,
-                                           selectedImage: FiberAsset.tabIconToolsOn)
-        self.tabBarImage = toolsItem?.tabBarImage ?? tabBarSet
-        self.sidebarImage = toolsItem?.sidebarImage ?? tabBarSet
+        self.collectionsFlowViewModelFactory = collectionsFlowViewModelFactory
+        self.deeplinkPublisher = deepLinkingService.toolsDeeplinkPublisher()
 
         if let toolsItem {
             steps = []
             setupSecondaryView(for: toolsItem)
-            setupDetailInformationValue(for: toolsItem)
         } else {
             steps = [.root]
         }
@@ -116,25 +103,6 @@ class ToolsFlowViewModel: ObservableObject, TabCoordinator, SessionServicesInjec
             guard let self else { return }
             self.didSelect(item: item)
         }.store(in: &cancellables)
-    }
-
-    func start() {
-
-    }
-
-    func setupDetailInformationValue(for toolsItem: ToolsItem) {
-        let data = ToolsViewCellData(withItem: toolsItem, capabilityService: capabilityService)
-
-        data.badgeConfiguration.sink { [weak self] configuration in
-            guard let self else { return }
-            guard let configuration else {
-                self.detailInformationValue?.send(.text(""))
-                return
-            }
-            let detail = TabElementDetail.badge(configuration)
-            self.detailInformationValue?.send(detail)
-        }
-        .store(in: &cancellables)
     }
 
     func didSelect(item: ToolsItem) {
@@ -214,16 +182,17 @@ extension ToolsFlowViewModel {
         return .init(toolsItem: item,
                      userSettings: .mock,
                      vpnService: vpnService,
-                     capabilityService: CapabilityServiceMock(),
+                     capabilityService: .mock(),
                      deepLinkingService: DeepLinkingService.fakeService,
                      darkWebMonitoringService: DarkWebMonitoringServiceMock(),
                      toolsViewModelFactory: .init({ _ in .mock }),
                      passwordHealthFlowViewModelFactory: .init({ _ in .mock }),
                      authenticatorToolFlowViewModelFactory: .init({ .mock }),
-                     passwordGeneratorToolsFlowViewModelFactory: .init({ .mock }),
+                     passwordGeneratorToolsFlowViewModelFactory: .init({ _ in .mock }),
                      vpnAvailableToolsFlowViewModelFactory: .init({ .mock }),
                      sharingToolsFlowViewModelFactory: .init({ .mock }),
                      darkWebToolsFlowViewModelFactory: .init({ .mock }),
-                     unresolvedAlertViewModelFactory: .init({ .mock }))
+                     unresolvedAlertViewModelFactory: .init({ .mock }),
+                     collectionsFlowViewModelFactory: .init { _ in .mock })
     }
 }

@@ -5,6 +5,8 @@ import DashlaneAppKit
 import UIComponents
 import VaultKit
 import DesignSystem
+import IconLibrary
+import CoreLocalization
 
 struct AddPrefilledCredentialView: View {
     @ObservedObject
@@ -38,7 +40,7 @@ struct AddPrefilledCredentialView: View {
     @ViewBuilder
     var backButton: some View {
         if let dismissView {
-            NavigationBarButton(specificBackButton == .back ? L10n.Localizable.kwBack : L10n.Localizable.cancel) {
+            NavigationBarButton(specificBackButton == .back ? CoreLocalization.L10n.Core.kwBack : CoreLocalization.L10n.Core.cancel) {
                 dismissView()
             }
         } else if isPresented {
@@ -46,7 +48,7 @@ struct AddPrefilledCredentialView: View {
                 dismiss()
             }
         } else {
-            NavigationBarButton(L10n.Localizable.cancel) {
+            NavigationBarButton(CoreLocalization.L10n.Core.cancel) {
                 self.navigator()?.dismiss()
             }
         }
@@ -66,34 +68,37 @@ struct AddPrefilledCredentialView: View {
         .edgesIgnoringSafeArea(.bottom)
         .frame(maxWidth: .infinity)
         .navigationBarBackButtonHidden(true)
-        .navigationTitle(L10n.Localizable.kwadddatakwAuthentifiantIOS)
+        .navigationTitle(CoreLocalization.L10n.Core.kwadddatakwAuthentifiantIOS)
         .navigationBarTitleDisplayMode(.inline)
         .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
                 backButton
             }
             ToolbarItem(placement: .navigationBarTrailing) {
-                NavigationBarButton(L10n.Localizable.kwNext, action: model.validate)
+                NavigationBarButton(CoreLocalization.L10n.Core.kwNext, action: model.validate)
             }
         }
         .reportPageAppearance(.itemCredentialCreateSelectWebsite)
-        .didAppear { 
+        .onAppear {
             self.isSearchFieldFocused = true
         }
     }
 
     private var searchBar: some View {
-        TextInput(L10n.Localizable.kwPadFindAppNameOrUrlOnboarding, text: $model.searchCriteria)
-            .style(intensity: .supershy)
-            .focused($isSearchFieldFocused)
-            .submitLabel(.search)
-            .textInputAutocapitalization(.never)
-            .disableAutocorrection(true)
-            .fiberAccessibilityAddTraits(.isSearchField)
-            .background(.ds.container.agnostic.neutral.supershy)
-            .cornerRadius(10)
-            .padding(.horizontal, 20)
-            .padding(.top, 20)
+        DS.TextField(
+            L10n.Localizable.kwPadFindAppNameOrUrlOnboarding,
+            text: $model.searchCriteria
+        )
+        .style(intensity: .supershy)
+        .focused($isSearchFieldFocused)
+        .submitLabel(.search)
+        .textInputAutocapitalization(.never)
+        .autocorrectionDisabled()
+        .fiberAccessibilityAddTraits(.isSearchField)
+        .background(.ds.container.agnostic.neutral.supershy)
+        .cornerRadius(10)
+        .padding(.horizontal, 20)
+        .padding(.top, 20)
     }
 
     var onboarding: some View {
@@ -119,7 +124,6 @@ struct AddPrefilledCredentialView: View {
             LazyVGrid(columns: [gridItem, gridItem, gridItem], spacing: 18) {
                 ForEach(Array(model.onboardingItems.enumerated()), id: \.offset) { index, credential in
                     Button(action: {
-                        self.model.logger.selectedWebsiteUsageLog(website: credential.url?.rawValue)
                         self.model.didChooseCredential(credential, true)
                     }, label: {
                         PrefilledCredentialView(title: credential.title,

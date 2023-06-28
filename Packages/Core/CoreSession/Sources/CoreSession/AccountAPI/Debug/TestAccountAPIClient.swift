@@ -9,7 +9,7 @@ public struct TestAccountAPIClient {
     private struct TokenRequest: Encodable {
         let login: String
     }
-    
+
     public struct TokenResponse: Decodable {
         public let token: String
     }
@@ -30,7 +30,7 @@ public struct TestAccountAPIClient {
         let response: TokenResponse = try await engine.sendRequest(to: Self.tokenEndpoint,
                                                                    using: .post,
                                                                    input: TokenRequest(login: login.email))
-        
+
         return response.token
     }
 

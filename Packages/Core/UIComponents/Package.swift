@@ -3,13 +3,13 @@ import PackageDescription
 let package = Package(
     name: "UIComponents",
     platforms: [
-        .iOS(.v15),
-        .macOS(.v12)
+        .iOS(.v16),
+        .macOS(.v13)
     ],
     products: [
                 .library(
             name: "UIComponents",
-            targets: ["UIComponents"]),
+            targets: ["UIComponents"])
     ],
     dependencies: [
                         .package(path: "../../Foundation/UIDelight"),

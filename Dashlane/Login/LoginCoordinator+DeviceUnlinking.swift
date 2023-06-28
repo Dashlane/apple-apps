@@ -17,21 +17,26 @@ extension LoginCoordinator {
                      remoteLoginHandler: RemoteLoginHandler) {
         Task {
             do {
-                try await remoteLoginHandler.load(remoteLoginSession, using: loginKitServices.remoteLoginInfoProvider, authTicket: nil)
-                self.appServices.loginUsageLogService.refreshTimer(.login)
-                guard case let .completed(session) = remoteLoginHandler.step else { return }
+                guard let session = try await remoteLoginHandler.load(remoteLoginSession, using: loginKitServices.remoteLoginInfoProvider, authTicket: nil) else {
+                    return
+                }
+                self.appServices.loginMetricsReporter.refreshTimer(.login)
                 sessionServicesSubscription = SessionServicesContainer
                     .buildSessionServices(from: session,
                                           appServices: appServices,
                                           logger: sessionLogger,
-                                          loadingContext: .remoteLogin) { [weak self] result in
+                                          loadingContext: .remoteLogin(remoteLoginSession.isRecoveryLogin)) { [weak self] result in
                         guard let self = self else { return }
                         loadActionPublisher.send(.finish {
                             switch result {
                             case let .success(sessionServices):
-                                sessionServices.activityReporter.logSuccessfulLogin(logInfo: logInfo,
-                                                                                    isFirstLogin: true)
-                                self.completion(.servicesLoaded(sessionServices))
+                                if remoteLoginSession.isRecoveryLogin, let newMasterPassword = remoteLoginSession.newMasterPassword {
+                                    self.changeMasterPassword(sessionServices: sessionServices, newMasterPassword: newMasterPassword)
+                                } else {
+                                    sessionServices.activityReporter.logSuccessfulLogin(logInfo: logInfo,
+                                                                                        isFirstLogin: true)
+                                    self.completion(.servicesLoaded(sessionServices))
+                                }
                             case let .failure(error):
                                 self.handle(error: error)
                             }
@@ -84,7 +89,6 @@ class PurchasePlanFlowProvider: LoginKit.PurchasePlanFlowProvider, PremiumSessio
 
         return PlanPurchaseServicesContainer(manager: DashlanePremiumManager.shared,
                                              apiClient: dashlaneAPI,
-                                             premiumStatusLogger: PremiumStatusLogger(premiumLogService: appServices.loginUsageLogService),
                                              logger: appServices.rootLogger[.session],
                                              screenLocker: nil,
                                              activityReporter: appServices.activityReporter)

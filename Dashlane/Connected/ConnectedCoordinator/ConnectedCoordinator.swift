@@ -1,16 +1,17 @@
+import DesignSystem
 import UIKit
 import SwiftUI
 import CoreSession
 import CoreCategorizer
 import CorePersonalData
 import Combine
-import DashlaneReportKit
 import Lottie
 import DashlaneAppKit
 import SwiftTreats
 import CoreSync
 import LoginKit
 import UIDelight
+import UIComponents
 
 class ConnectedCoordinator: NSObject, Coordinator, SubcoordinatorOwner {
 
@@ -61,7 +62,7 @@ class ConnectedCoordinator: NSObject, Coordinator, SubcoordinatorOwner {
                 splitViewController.minimumPrimaryColumnWidth = 280
                 splitViewController.maximumPrimaryColumnWidth = 400
             }
-            splitViewController.view.backgroundColor = FiberAsset.sidebarSeparator.color
+            splitViewController.view.backgroundColor = .ds.background.alternate
         } else {
             splitViewController = UISplitViewController()
             splitViewController.preferredDisplayMode = .oneBesideSecondary
@@ -73,10 +74,9 @@ class ConnectedCoordinator: NSObject, Coordinator, SubcoordinatorOwner {
         return splitViewController
     }()
 
-    let sessionCoordinatorsContainer: SessionCoordinatorsContainer
+    let sessionFlowsContainer: SessionFlowsContainer
 
-    @available(iOS 14, *)
-    private lazy var sidebarViewController = SidebarViewController()
+    private lazy var sidebarViewController = SidebarHostingViewController(sessionServices: sessionServices)
     private lazy var tabBarController = DashlaneTabBarController()
 
     var currentNavigationStyle: NavigationStyle {
@@ -92,7 +92,7 @@ class ConnectedCoordinator: NSObject, Coordinator, SubcoordinatorOwner {
          logoutHandler: SessionLifeCycleHandler,
          applicationMainMenuHandler: ApplicationMainMenuHandler) {
         self.window = window
-        self.sessionCoordinatorsContainer = SessionCoordinatorsContainer(sessionServices: sessionServices)
+        self.sessionFlowsContainer = SessionFlowsContainer(sessionServices: sessionServices)
         self.lockCoordinator = LockCoordinator(sessionServices: sessionServices,
                                                baseWindow: window)
         self.sessionServices = sessionServices
@@ -116,18 +116,20 @@ class ConnectedCoordinator: NSObject, Coordinator, SubcoordinatorOwner {
                 self?.syncStatusDidChange(to: status)
         }
 
-        if sessionServices.loadingContext == .accountCreation {
+        if case .accountCreation = sessionServices.loadingContext {
             appTrackingTransparencyService.requestAuthorization()
         }
 
                 if onboardingService.shouldShowAccountCreationOnboarding {
-            LottieAnimation.preloadAnimationsForGuidedOnboarding()
+            Task {
+                await DefaultAnimationCache.sharedCache.preloadAnimationsForGuidedOnboarding()
+            }
         }
         configureAppearance()
     }
 
     func configureAppearance() {
-        UITableView.appearance().backgroundColor = FiberAsset.tableBackground.color
+        UITableView.appearance().backgroundColor = UIColor.ds.background.default
         UITableView.appearance().sectionHeaderTopPadding = 0.0
     }
 
@@ -135,8 +137,8 @@ class ConnectedCoordinator: NSObject, Coordinator, SubcoordinatorOwner {
         mainMenuHandler.unload()
         lockCoordinator.dismiss()
         accessControlCoordinator.dismiss()
-        self.sessionCoordinatorsContainer.coordinators.forEach {
-            $0.value.dismiss()
+        self.sessionFlowsContainer.flows.forEach {
+            $0.value.viewController.dismiss(animated: false)
         }
         syncStatusSubscription?.cancel()
         completion()
@@ -149,7 +151,7 @@ class ConnectedCoordinator: NSObject, Coordinator, SubcoordinatorOwner {
             showFastLocalSetup(for: biometry)
         } else if Device.isMac, onboardingService.shouldShowFastLocalSetupForFirstLogin {
             showFastLocalSetupForRememberMasterPassword()
-        } else if onboardingService.shouldShowBrowsersExtensionsOnboarding {
+        } else if onboardingService.shouldShowBrowsersExtensionsOnboarding() {
             #if targetEnvironment(macCatalyst)
             showBrowsersExtensionOnboarding()
             #else
@@ -203,8 +205,7 @@ class ConnectedCoordinator: NSObject, Coordinator, SubcoordinatorOwner {
         tabBarController.tabBar.standardAppearance.stackedLayoutAppearance.normal.iconColor = .ds.text.neutral.quiet
         tabBarController.tabBar.standardAppearance.stackedLayoutAppearance.selected.iconColor = .ds.text.brand.quiet
         tabBarController.tabBar.scrollEdgeAppearance = tabBarController.tabBar.standardAppearance
-        let setup = self.tabBarCoordinatorsSetup()
-        tabBarController.viewControllers = setup.controllers
+        tabBarController.viewControllers = self.tabBarCoordinatorsSetup()
     }
 
     private func setupTabBarNavigationForSidebar(_ tabBarController: DashlaneTabBarController) {
@@ -213,39 +214,42 @@ class ConnectedCoordinator: NSObject, Coordinator, SubcoordinatorOwner {
             guard let self = self else {
                 return
             }
-            let setup = self.tabBarCoordinatorsSetup()
-            tabBarController.viewControllers = setup.controllers
+            tabBarController.viewControllers = self.tabBarCoordinatorsSetup()
         }
 
         tabBarController.willDisappear = { [weak self] in
             guard let self = self else {
                 return
             }
-            self.sidebarViewController.configure(with: self.sessionCoordinatorsContainer)
+            self.sidebarViewController.configure(with: self.sessionFlowsContainer)
         }
     }
 
-    private func tabBarCoordinatorsSetup() -> (controllers: [UIViewController], coordinators: [TabCoordinator]) {
+    private func tabBarCoordinatorsSetup() -> [UIViewController] {
         var viewControllers = [UIViewController]()
-        let tabBarCoordinators = self.sessionCoordinatorsContainer.tabBarCoordinators()
-        tabBarCoordinators.forEach { coordinator in
-            let tabBarItem = UITabBarItem(title: coordinator.title,
-                                          image: coordinator.tabBarImage.image.image,
-                                          tag: coordinator.tag)
-            tabBarItem.selectedImage = coordinator.tabBarImage.selectedImage.image
-            coordinator.viewController.tabBarItem = tabBarItem
-            viewControllers.append(coordinator.viewController)
-            coordinator.start()
+        let tabBarFlows = self.sessionFlowsContainer.tabBarFlows()
+        tabBarFlows.forEach { flow in
+            let tabBarItem = UITabBarItem(title: flow.title,
+                                          image: flow.tabBarImage.image,
+                                          tag: flow.tag)
+            tabBarItem.selectedImage = flow.tabBarImage.selectedImage
+            let viewController = flow.viewController
+            viewController.tabBarItem = tabBarItem
+            viewControllers.append(viewController)
+
+            flow.badgeValue?
+                .assign(to: \.tabBarItem.badgeValue, on: viewController)
+                .store(in: &self.subscriptions)
         }
-        return (viewControllers, tabBarCoordinators)
+        return viewControllers
     }
 
         private func setupSidebarNavigation(_ splitViewController: UISplitViewController, _ tabBarController: DashlaneTabBarController) {
         splitViewController.view.tintColor = .ds.text.neutral.standard
-        sidebarViewController.configure(with: self.sessionCoordinatorsContainer)
-        sidebarViewController.didSelectTabCoordinator = { [weak self] tabCoordinator in
+        sidebarViewController.configure(with: self.sessionFlowsContainer)
+        sidebarViewController.didSelectTabFlow = { [weak self] tabFlow in
             guard let self = self else { return }
-            if tabCoordinator is HomeFlowViewModel {
+            if tabFlow.tag == ConnectedCoordinator.Tab.home.tabBarIndexValue {
                 self.modalCoordinator.homeTabDidSelect()
             }
         }
@@ -268,6 +272,7 @@ class ConnectedCoordinator: NSObject, Coordinator, SubcoordinatorOwner {
         self.lockCoordinator.showBiometryChangeIfNeeded()
         self.showVersionValidityAlertIfNeeded()
         self.configure2FAEnforcement()
+        self.sessionServices.lockService.locker.didLoadSession()
     }
 
     private func setupDeepLinking() {
@@ -276,11 +281,13 @@ class ConnectedCoordinator: NSObject, Coordinator, SubcoordinatorOwner {
             .sink { [weak self] in
                 guard let self = self else { return }
                 self.didReceiveDeepLink($0)
-                self.sessionServices.appServices.deepLinkingService.resetLastLink()
+                                DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
+                    self.sessionServices.appServices.deepLinkingService.resetLastLink()
+                }
             }.store(in: &subscriptions)
     }
 
-    func presentSettings() {
+    func presentSettingsFromSidebar() {
         self.sidebarViewController.showSettings()
     }
 }
@@ -311,7 +318,7 @@ extension ConnectedCoordinator: UIViewControllerTransitioningDelegate {
 extension ConnectedCoordinator {
     func syncStatusDidChange(to newStatus: SyncService.SyncStatus) {
         switch newStatus {
-                                        case .error(SyncLoopError.unknownUserDevice):
+                                        case .error(SyncError.unknownUserDevice):
             self.logoutHandler?.logoutAndPerform(action: .deleteCurrentSessionLocalData)
         #if targetEnvironment(macCatalyst)
         case .idle:
@@ -326,8 +333,8 @@ extension ConnectedCoordinator {
 extension ConnectedCoordinator: UISplitViewControllerDelegate {
     func splitViewControllerDidCollapse(_ svc: UISplitViewController) {
         DispatchQueue.main.async {
-                        self.tabBarController.selectTab(.vault, coordinator: nil)
-            self.tabBarController.selectTab(.home, coordinator: nil)
+                        self.tabBarController.selectTab(.vault)
+            self.tabBarController.selectTab(.home)
         }
     }
 
@@ -357,7 +364,6 @@ private extension ConnectedCoordinator {
 
 private extension AppTrackingTransparencyService {
     convenience init(sessionServices: SessionServicesContainer) {
-        let appTrackingTransparencyLogger = AppTrackingTransparencyLogger(usageLogService: sessionServices.activityReporter.legacyUsage)
-        self.init(authenticatedABTestingService: sessionServices.authenticatedABTestingService, appTrackingTransparencyLogger: appTrackingTransparencyLogger, logger: sessionServices.appServices.rootLogger[.appTrackingTransparency])
+        self.init(authenticatedABTestingService: sessionServices.authenticatedABTestingService, logger: sessionServices.appServices.rootLogger[.appTrackingTransparency])
     }
 }

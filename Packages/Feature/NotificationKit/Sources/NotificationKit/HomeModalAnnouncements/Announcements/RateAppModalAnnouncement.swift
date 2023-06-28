@@ -11,7 +11,7 @@ public class RateAppModalAnnouncement: HomeModalAnnouncement, HomeAnnouncementsS
         RateAppConfig.default()
     }
 
-    let triggers: Set<HomeModalAnnouncementTrigger> = [.homeTabSelected]
+    let triggers: Set<HomeModalAnnouncementTrigger> = [.sessionUnlocked]
 
     private let login: Login
     private let userSettings: UserSettings

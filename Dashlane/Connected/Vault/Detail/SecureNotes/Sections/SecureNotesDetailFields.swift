@@ -1,5 +1,8 @@
 import DesignSystem
 import SwiftUI
+import UIComponents
+import VaultKit
+import CoreLocalization
 
 struct SecureNotesDetailFields: View {
 
@@ -23,7 +26,7 @@ struct SecureNotesDetailFields: View {
 
             MultilineDetailTextView(
                 text: $model.item.content,
-                placeholder: L10n.Localizable.KWSecureNoteIOS.emptyContent,
+                placeholder: CoreLocalization.L10n.Core.KWSecureNoteIOS.emptyContent,
                 isEditable: model.mode.isEditing,
                 isSelectable: model.canEdit
             )

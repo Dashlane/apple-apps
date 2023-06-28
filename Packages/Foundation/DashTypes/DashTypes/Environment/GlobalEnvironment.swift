@@ -2,7 +2,7 @@ import SwiftUI
 
 @MainActor
 public class GlobalEnvironmentValues {
-    fileprivate static let shared: GlobalEnvironmentValues = .init()
+        fileprivate static let shared: GlobalEnvironmentValues = .init()
     private let defaultEnvironmentValues = EnvironmentValues()
 
     private init() {
@@ -27,7 +27,6 @@ public class GlobalEnvironmentValues {
             environments[0][key] = newValue
         }
     }
-
 
     private func pushNewEnvironment() {
         let previous = environments.first ?? defaultEnvironmentValues
@@ -60,7 +59,7 @@ public struct GlobalEnvironment<Value>: DynamicProperty {
         init(keyPath: KeyPath<GlobalEnvironmentValues, Value>) {
             let globalEnvironment = GlobalEnvironmentValues.shared
             self.value = globalEnvironment[keyPath: keyPath]
-            
+
             let currentEnvCount = globalEnvironment.environments.count
 
             globalEnvironment

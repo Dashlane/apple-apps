@@ -1,7 +1,14 @@
 import SwiftUI
 import UIDelight
+import DesignSystem
 
-struct SharingToolsFlow: View {
+struct SharingToolsFlow: TabFlow {
+
+        let tag: Int = ConnectedCoordinator.Tab.contacts.tabBarIndexValue
+    let id: UUID = .init()
+    let title: String = L10n.Localizable.tabContactsTitle
+    let tabBarImage = NavigationImageSet(image: .ds.users.outlined,
+                                         selectedImage: .ds.users.outlined)
 
     @StateObject
     var viewModel: SharingToolsFlowViewModel

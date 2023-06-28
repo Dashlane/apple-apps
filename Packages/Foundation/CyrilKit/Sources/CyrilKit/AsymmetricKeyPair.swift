@@ -3,7 +3,7 @@ import Foundation
 public struct AsymmetricKeyPair {
     public let publicKey: PublicKey
     public let privateKey: PrivateKey
-    
+
     public init(publicKey: PublicKey, privateKey: PrivateKey) {
         self.publicKey = publicKey
         self.privateKey = privateKey
@@ -31,7 +31,7 @@ public extension Data {
         defer {
             error?.release()
         }
-        
+
         guard let keyData = SecKeyCopyExternalRepresentation(key, &error) else {
             throw RSA.RSAError.keyConversionFailed
         }

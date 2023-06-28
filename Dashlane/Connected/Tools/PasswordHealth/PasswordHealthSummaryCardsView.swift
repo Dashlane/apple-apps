@@ -45,12 +45,12 @@ struct PasswordHealthSummaryCardsView: View {
         )
 
         .fiberAccessibilityElement(children: .combine)
-        .accessibilityAddTraits(.isButton) 
         .onTapGesture {
             if item.count > 0 {
                 tappedCell(item.kind)
             }
         }
+        .accessibilityRemoveTraits(item.accessibilityTraitToRemove)
     }
 
     private func onCellSizeChange(_ size: CGSize) {
@@ -87,5 +87,14 @@ private extension PasswordHealthKind {
 struct PasswordHealthSummaryCardsView_Previews: PreviewProvider {
     static var previews: some View {
         PasswordHealthSummaryCardsView(summary: PasswordHealthViewModel.mock.summary, tappedCell: { _ in })
+    }
+}
+
+private extension PasswordHealthViewModel.SummaryItem {
+    var accessibilityTraitToRemove: AccessibilityTraits {
+        switch kind {
+        case .total: return .isButton
+        default: return count > 0 ? .isStaticText : .isButton
+        }
     }
 }

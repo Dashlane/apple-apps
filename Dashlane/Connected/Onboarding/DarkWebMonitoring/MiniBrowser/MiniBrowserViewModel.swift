@@ -26,13 +26,12 @@ class MiniBrowserViewModel: ObservableObject, SessionServicesInjecting {
          displayableDomain: String,
          url: URL,
          domainParser: DomainParserProtocol,
-         usageLogService: DWMLogService,
          userSettings: UserSettings,
          completion: @escaping (MiniBrowserViewModel.Completion) -> Void) {
         self.url = url
         self.domain = url.host.flatMap(domainParser.parse)?.domain ?? ""
         self.completion = completion
-        self.cardViewModel = MiniBrowserCardViewModel(email: email, password: password, domain: displayableDomain, usageLogService: usageLogService, userSettings: userSettings) { result in
+        self.cardViewModel = MiniBrowserCardViewModel(email: email, password: password, domain: displayableDomain, userSettings: userSettings) { result in
             switch result {
             case .generatedPasswordCopiedToClipboard(let password):
                 completion(.generatedPasswordCopiedToClipboard(password))
@@ -65,7 +64,7 @@ class MiniBrowserViewModel: ObservableObject, SessionServicesInjecting {
 
 extension MiniBrowserViewModel {
     private static var cardViewModel: MiniBrowserCardViewModel {
-        MiniBrowserCardViewModel(email: "_", password: "123", domain: "test.com", usageLogService: DWMLogService.fakeService, userSettings: UserSettings(internalStore: InMemoryLocalSettingsStore())) {_ in}
+        MiniBrowserCardViewModel(email: "_", password: "123", domain: "test.com", userSettings: UserSettings(internalStore: .mock())) {_ in}
     }
 
     static func mock(url: URL, domain: String) -> MiniBrowserViewModel {

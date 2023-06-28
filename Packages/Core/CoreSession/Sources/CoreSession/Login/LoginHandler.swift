@@ -1,80 +1,80 @@
 import Foundation
 import DashTypes
 import SwiftTreats
+import DashlaneAPI
 
 public class LoginHandler {
     public enum Error: Swift.Error {
         case loginDoesNotExist
         case cantAutologin
     }
-    
+
     public enum LoginResult {
         case localLoginRequired(LocalLoginHandler)
-        case remoteLoginRequired(RemoteLoginHandler)
+        case remoteLoginRequired(RegularRemoteLoginHandler)
         case ssoAccountCreation(_ login: Login, SSOLoginInfo)
+        case deviceToDeviceRemoteLogin(DeviceToDeviceLoginHandler)
     }
-    
+
     let logger: Logger
     let sessionsContainer: SessionsContainerProtocol
-    let accountAPIClient: AccountAPIClientProtocol
     let deviceInfo: DeviceInfo
     let removeLocalData: (Login) -> Void
-    let workingQueue: DispatchQueue
     let cryptoEngineProvider: CryptoEngineProvider
-    
+    let appApiClient: AppAPIClient
     public convenience init(sessionsContainer: SessionsContainerProtocol,
+                            appApiClient: AppAPIClient,
                             apiClient: DeprecatedCustomAPIClient,
                             deviceInfo: DeviceInfo,
                             logger: Logger,
-                            workingQueue: DispatchQueue = DispatchQueue.global(qos: .userInitiated),
                             cryptoEngineProvider: CryptoEngineProvider,
                             removeLocalDataHandler: @escaping (Login) -> Void) {
-        let accountAPIClient = AccountAPIClient(apiClient: apiClient)
         self.init(sessionsContainer: sessionsContainer,
-                  accountAPIClient: accountAPIClient,
+                  appApiClient: appApiClient,
                   deviceInfo: deviceInfo,
                   logger: logger,
                   cryptoEngineProvider: cryptoEngineProvider,
                   removeLocalDataHandler: removeLocalDataHandler)
     }
-    
+
     init(sessionsContainer: SessionsContainerProtocol,
-         accountAPIClient: AccountAPIClientProtocol,
+         appApiClient: AppAPIClient,
          deviceInfo: DeviceInfo,
          logger: Logger,
          workingQueue: DispatchQueue = DispatchQueue.global(qos: .userInitiated),
          cryptoEngineProvider: CryptoEngineProvider,
          removeLocalDataHandler: @escaping (Login) -> Void) {
-        
+
         self.sessionsContainer = sessionsContainer
-        self.accountAPIClient = accountAPIClient
+        self.appApiClient = appApiClient
         self.deviceInfo = deviceInfo
         self.logger = logger
         self.removeLocalData = removeLocalDataHandler
-        self.workingQueue = workingQueue
         self.cryptoEngineProvider = cryptoEngineProvider
     }
-    
+
             private func deleteLocalDataForUnregisteredLogins(login: Login, deviceAccessKey: String, logins: [Login]) async throws -> ([Login], SSOInfo?) {
         do {
-            let response = try await accountAPIClient.requestLogin(with: LoginRequestInfo(login: login.email, deviceAccessKey: deviceAccessKey, loginsToCheckForDeletion: logins), timeout: 1)
-            let logins = response.profilesToDelete.map {
+            let profiles = logins.map { AuthenticationGetMethodsForLoginProfiles(login: $0.email, deviceAccessKey: deviceAccessKey)}
+            let response = try await appApiClient.authentication.getAuthenticationMethodsForLogin(login: login.email, deviceAccessKey: deviceAccessKey, methods: [.totp, .duoPush, .dashlaneAuthenticator, .emailToken], profiles: profiles, timeout: 1)
+            let profilesToDelete = response.profilesToDelete ?? []
+            let logins = profilesToDelete.map {
                 Login($0.login)
             }
             logins.forEach {
                 self.removeLocalData($0)
             }
-            return (logins, response.ssoInfo)
-        } catch let error as APIErrorResponse where error.errors.first?.accountError == .ssoMigrationNotSupported {
+            return (logins, response.verifications.ssoInfo)
+        } catch let error as DashlaneAPI.APIError where error.hasAuthenticationCode(.clientVersionDoesNotSupportSsoMigration) {
             throw AccountError.ssoMigrationNotSupported
-        } catch let error as APIErrorResponse where error.errors.first?.accountError == .deviceDeactivated {
+        } catch let error as DashlaneAPI.APIError where error.hasAuthenticationCode(.deviceDeactivated) {
                         self.removeLocalData(login)
             return ([login], nil)
         } catch {
                         return ([], nil)
         }
     }
-    
+
                     @MainActor
     public func createLocalLoginHandler(using login: Login,
                                         deviceId: String,
@@ -83,20 +83,19 @@ public class LoginHandler {
                                                    deviceInfo: deviceInfo,
                                                    deviceId: deviceId,
                                                    sessionsContainer: sessionsContainer,
-                                                   accountAPIClient: accountAPIClient,
+                                                   appAPIClient: appApiClient,
                                                    context: context,
-                                                   workingQueue: workingQueue,
                                                    logger: logger,
                                                    cryptoEngineProvider: cryptoEngineProvider) else {
             throw AccountError.unknown
         }
-        
+
         await loginHandler.configureFirstStep()
-        
+
         guard let deviceAccessKey = try? self.sessionsContainer.info(for: login).deviceAccessKey ?? deviceId else {
             return loginHandler
         }
-        
+
         let (deletedLogins, ssoMigration) = try await self.deleteLocalDataForUnregisteredLogins(login: login, deviceAccessKey: deviceAccessKey, logins: [login])
         loginHandler.ssoInfo = ssoMigration
         guard !deletedLogins.contains(login) else {
@@ -104,40 +103,36 @@ public class LoginHandler {
         }
         return loginHandler
     }
-    
-        public func createRemoteLoginHandler(using login: Login, context: LoginContext?, cryptoEngineProvider: CryptoEngineProvider) async throws -> RemoteLoginHandler {
-        let accountInfo = try await accountAPIClient.requestDeviceRegistration(for: login)
-        guard let method = accountInfo.loginMethod(for: login, with: context) else {
+
+        public func createRemoteLoginHandler(using login: Login, context: LoginContext?, cryptoEngineProvider: CryptoEngineProvider, accountInfo: AppAPIClient.Authentication.GetAuthenticationMethodsForDevice.Response) async throws -> RegularRemoteLoginHandler {
+
+        guard let method = accountInfo.verifications.loginMethod(for: login, with: context) else {
             throw Error.loginDoesNotExist
         }
-        
-        let remoteHandler = RemoteLoginHandler(login: login,
-                                               deviceRegistrationMethod: method,
-                                               deviceInfo: self.deviceInfo,
-                                               ssoInfo: accountInfo.ssoInfo,
-                                               accountAPIClient: self.accountAPIClient,
-                                               sessionsContainer: self.sessionsContainer,
-                                               context: context,
-                                               workingQueue: self.workingQueue,
-                                               logger: self.logger,
-                                               cryptoEngineProvider: cryptoEngineProvider)
+
+        let remoteHandler = RegularRemoteLoginHandler(login: login,
+                                                      deviceRegistrationMethod: method,
+                                                      deviceInfo: self.deviceInfo,
+                                                      ssoInfo: accountInfo.verifications.ssoInfo,
+                                                      appAPIClient: appApiClient,
+                                                      sessionsContainer: self.sessionsContainer,
+                                                      context: context,
+                                                      logger: self.logger,
+                                                      cryptoEngineProvider: cryptoEngineProvider)
         return remoteHandler
     }
-    
-    public func createSession(with configuration: SessionConfiguration, cryptoConfig: CryptoRawConfig, completion: @escaping CompletionBlock<Session, Swift.Error>) {
-                self.removeLocalData(configuration.login)
-        
-        workingQueue.async {
-            
-            let result =  Result {
-                try self.sessionsContainer.createSession(with: configuration, cryptoConfig: cryptoConfig)
-            }
-            DispatchQueue.main.async {
-                completion(result)
-            }
-        }
+
+    private func accountInfo(for login: Login) async throws -> AppAPIClient.Authentication.GetAuthenticationMethodsForDevice.Response {
+        let accountInfo = try await appApiClient.authentication.getAuthenticationMethodsForDevice(login: login.email, methods: [.emailToken, .totp, .duoPush, .dashlaneAuthenticator])
+        return accountInfo
     }
-    
+
+    public func createSession(with configuration: SessionConfiguration, cryptoConfig: CryptoRawConfig) async throws -> Session {
+                self.removeLocalData(configuration.login)
+
+		return try self.sessionsContainer.createSession(with: configuration, cryptoConfig: cryptoConfig)
+    }
+
             public func login(using login: Login,
                       deviceId: String,
                       context: LoginContext?) async throws -> LoginResult {
@@ -147,8 +142,31 @@ public class LoginHandler {
         } catch let error as AccountError where error == .ssoMigrationNotSupported {
             throw error
         } catch {
-            let result = try await self.createRemoteLoginHandler(using: login, context: context, cryptoEngineProvider: self.cryptoEngineProvider)
-            return LoginResult.remoteLoginRequired(result)
+            let accountInfo = try await accountInfo(for: login)
+            switch accountInfo.accountType {
+            case .invisibleMasterPassword:
+                let handler = makeDeviceToDeviceLoginHandler(login: login, context: context)
+                return LoginResult.deviceToDeviceRemoteLogin(handler)
+            default:
+                let result = try await self.createRemoteLoginHandler(using: login, context: context, cryptoEngineProvider: self.cryptoEngineProvider, accountInfo: accountInfo)
+                return LoginResult.remoteLoginRequired(result)
+            }
         }
+    }
+
+    public func makeDeviceToDeviceLoginHandler(login: Login? = nil, context: LoginContext?) -> DeviceToDeviceLoginHandler {
+        return DeviceToDeviceLoginHandler(login: login,
+                                          deviceInfo: deviceInfo,
+                                          apiClient: appApiClient,
+                                          sessionsContainer: sessionsContainer,
+                                          logger: logger,
+                                          cryptoEngineProvider: self.cryptoEngineProvider,
+                                          context: context)
+    }
+}
+
+public extension LoginHandler {
+    static var mock: LoginHandler {
+        LoginHandler(sessionsContainer: FakeSessionsContainer(), appApiClient: .fake, deviceInfo: .mock, logger: LoggerMock(), cryptoEngineProvider: FakeCryptoEngineProvider(), removeLocalDataHandler: {_ in})
     }
 }

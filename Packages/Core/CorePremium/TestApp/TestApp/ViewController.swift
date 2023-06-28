@@ -4,45 +4,44 @@ import CoreNetworking
 import CorePremium
 import StoreKit
 
-
 class ViewController: UIViewController, PremiumSessionDelegate {
 
     @IBOutlet var textView: UITextView!
-    
+
     var discountProduct: SKProductDiscount?
-    
+
     let dashlaneAPI = LegacyWebServiceImpl(logger: Log())
     let webservice = LegacyWebServiceImpl(logger: Log())
-    
+
     static var appCredentials: AppCredentials {
         return AppCredentials(accessKey: ApplicationSecrets.Server.apiKey,
                               secretKey: ApplicationSecrets.Server.apiSecret)
     }
-    
+
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+
         DashlanePremiumManager.shared.registerHandlerForPurchasePlan { products in
             self.log(products.description)
         }
-        
+
                 dashlaneAPI.configureAuthentication(method: .signatureBased(appCredentials: ViewController.appCredentials, userCredentials: TestAccount.userCredentials))
-        
+
                 try! DashlanePremiumManager.shared.updateSessionWith(login: TestAccount.login,
                                                              applicationUsernameHash: TestAccount.hashedAccountName,
                                                              webservice: webservice,
                                                              dashlaneAPI: dashlaneAPI,
                                                              delegate: self)
-        
+
                 webservice.configureAuthentication(usingLogin: TestAccount.login, uki: TestAccount.uki)
-        
+
                 let receiptService = ReceiptVerificationService(webservice: webservice)
         DashlanePremiumManager.shared.verificationService = receiptService
-        
+
                 fetchProducts(handler: fetchProductsResponse)
     }
 
-        func signatureResponse(result: Result<SignatureResponse, Error>) -> Void {
+        func signatureResponse(result: Result<SignatureResponse, Error>) {
         self.log("Signature fetched.")
 
         switch result {
@@ -64,10 +63,10 @@ class ViewController: UIViewController, PremiumSessionDelegate {
             self.textView.appendText(text)
         }
     }
-    
+
         func fetchSignatureWithProducts(_ products: [SKProduct]) {
         self.log("Fetching signature...")
-        
+
         SignatureService.getSignature(appBundleID: "com.dashlane.dashlanephonefinal",
                                       productIdentifier: products.first!.productIdentifier,
                                       offerIdentifier: self.discountProduct!.identifier!,
@@ -75,10 +74,10 @@ class ViewController: UIViewController, PremiumSessionDelegate {
                                       authenticatedAPIClient: self.dashlaneAPI,
                                       completion: signatureResponse)
     }
-    
-        func fetchProductsResponse(result: Result<[SKProduct], Error>) -> Void {
+
+        func fetchProductsResponse(result: Result<[SKProduct], Error>) {
         log("Products fetched.")
-        
+
         switch result {
         case .success(let products):
             self.log(products.debugDescription)
@@ -91,13 +90,13 @@ class ViewController: UIViewController, PremiumSessionDelegate {
 
         func fetchProducts(handler: @escaping (Result<[SKProduct], Error>) -> Void) {
         log("Fetching products...")
-        
+
         DashlanePremiumManager.shared.fetchPurchasePlansForCurrentSession { _ in
             DashlanePremiumManager.shared.fetchProducts(with: ["IOSAutoYearlyA"], handler: handler)
         }
     }
 
-    func purchaseDiscountedProduct() -> Void {
+    func purchaseDiscountedProduct() {
         self.log("Purchasing product...")
         DashlanePremiumManager.shared.purchase(DashlanePremiumManager.shared.purchasePlans!.first!,
                                                authenticatedAPIClient: self.dashlaneAPI,
@@ -106,17 +105,15 @@ class ViewController: UIViewController, PremiumSessionDelegate {
         })
     }
 
-    
     func premiumStatusData(for login: String) -> Data? {
         print("premiumStatusData called")
         return nil
     }
-    
+
     func setPremiumStatusData(_ data: Data?, for login: String) {
         print("setPremiumStatusData called")
     }
 }
-
 
 extension UITextView {
     func appendText(_ text: String) {
@@ -127,7 +124,6 @@ extension UITextView {
     }
 }
 
-
 struct TestAccount {
     static let login = "_"
     static let hashedAccountName = "QUM0NERGQTlDNjQwQTU3OTUQUM0NERGQTlDNjQwQTU3OTUQUM0NERGQTlDNjQwQTU3OTU"
@@ -137,7 +133,7 @@ struct TestAccount {
 }
 
 struct Log: Logger {
-    
+
     func fatal(_ message: @escaping () -> String, location: Location) {
         print(message(), location)
     }
@@ -150,11 +146,11 @@ struct Log: Logger {
     func info(_ message: @escaping () -> String, location: Location) {
         print(message(), location)
     }
-    
+
     func debug(_ message: @escaping () -> String, location: Location) {
         print(message(), location)
     }
-    
+
     func sublogger(for identifier: LoggerIdentifier) -> Logger {
         return self
     }
@@ -177,14 +173,14 @@ extension SKProductDiscount {
             payment mode: \(self.paymentMode)
             price: \(self.price)
             price locale: (self.priceLocale)
-            subsciption period: \(self.subscriptionPeriod.debugDescription)
+            subscription period: \(self.subscriptionPeriod.debugDescription)
             """
     }
 }
 
 extension SKProductDiscount.PaymentMode: CustomDebugStringConvertible {
     public var debugDescription: String {
-        
+
         switch self {
         case .freeTrial:
             return "free trial"
@@ -210,7 +206,7 @@ extension SKProductSubscriptionPeriod {
         case .year:
             return "\(self.numberOfUnits) year(s)"
         default:
-            return "unkonwn"
+            return "unknown"
         }
     }
 }
@@ -228,7 +224,7 @@ extension SignatureResponse: CustomDebugStringConvertible {
 }
 
 struct ReceiptVerificationServiceParser: ResponseParserProtocol {
-    
+
     func parse(data: Data) throws -> VerificationResult {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .secondsSince1970

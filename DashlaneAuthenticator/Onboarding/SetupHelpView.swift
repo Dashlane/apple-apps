@@ -14,7 +14,7 @@ struct SetupHelpView: View {
     let skipAction: () -> Void
     @State
     var showHelp: Bool = false
-    
+
     var body: some View {
         VStack(alignment: .leading, spacing: 100) {
             mainView
@@ -41,7 +41,7 @@ struct SetupHelpView: View {
                 .padding(.vertical, 50)
                 .cornerRadius(10)
                 .background(Color.ds.background.alternate)
-                   
+
             }
             .toolbar {
                 ToolbarItem(placement: .navigationBarTrailing) {
@@ -51,7 +51,7 @@ struct SetupHelpView: View {
                 }
             }
     }
-    
+
     var mainView: some View {
         FullScreenScrollView {
             VStack(alignment: .center, spacing: 0) {
@@ -68,7 +68,7 @@ struct SetupHelpView: View {
             }.padding(.horizontal, 23)
         }
     }
-    
+
     var buttonView: some View {
         VStack(spacing: 23) {
             RoundedButton(primaryButton.title, action: primaryButton.action)
@@ -84,8 +84,32 @@ struct SetupHelpView: View {
 
 struct SetupHelpView_Previews: PreviewProvider {
     static var previews: some View {
-        SetupHelpView(image: AuthenticatorAsset.onboardingStep1, caption: L10n.Localizable.stepLabel("1"), title: L10n.Localizable.tokenAccountHelpTitle, helpTitle: L10n.Localizable.tokenAccountHelpCta, helpMessage: L10n.Localizable.tokenAccountHelpMessage, primaryButton: (title: L10n.Localizable.buttonTitleNext, action: {}), secondaryButtonTitle: L10n.Localizable.tokenAccountHelpCta){}
-        SetupHelpView(image: AuthenticatorAsset.onboardingStep2, caption: L10n.Localizable.stepLabel("2"), title: L10n.Localizable.tokenSettingsHelpTitle, helpTitle: L10n.Localizable.tokenSettingsHelpCta, helpMessage: L10n.Localizable.tokenSettingsHelpMessage, primaryButton: (title: L10n.Localizable.buttonTitleNext, action: {}), secondaryButtonTitle: L10n.Localizable.tokenSettingsHelpCta){}
-        SetupHelpView(image: AuthenticatorAsset.onboardingStep3, caption: L10n.Localizable.stepLabel("3"), title: L10n.Localizable.tokenCodesHelpTitle, helpTitle: L10n.Localizable.tokenCodesHelpCta, helpMessage: L10n.Localizable.tokenCodesHelpMessage, primaryButton: (title: L10n.Localizable.setupHelpAddTokenCta, action: {}), secondaryButtonTitle: L10n.Localizable.tokenCodesHelpCta){}
+        SetupHelpView(
+            image: AuthenticatorAsset.onboardingStep1,
+            caption: L10n.Localizable.stepLabel("1"),
+            title: L10n.Localizable.tokenAccountHelpTitle,
+            helpTitle: L10n.Localizable.tokenAccountHelpCta,
+            helpMessage: L10n.Localizable.tokenAccountHelpMessage,
+            primaryButton: (title: L10n.Localizable.buttonTitleNext, action: {}),
+            secondaryButtonTitle: L10n.Localizable.tokenAccountHelpCta
+        ) {}
+        SetupHelpView(
+            image: AuthenticatorAsset.onboardingStep2,
+            caption: L10n.Localizable.stepLabel("2"),
+            title: L10n.Localizable.tokenSettingsHelpTitle,
+            helpTitle: L10n.Localizable.tokenSettingsHelpCta,
+            helpMessage: L10n.Localizable.tokenSettingsHelpMessage,
+            primaryButton: (title: L10n.Localizable.buttonTitleNext, action: {}),
+            secondaryButtonTitle: L10n.Localizable.tokenSettingsHelpCta
+        ) {}
+        SetupHelpView(
+            image: AuthenticatorAsset.onboardingStep3,
+            caption: L10n.Localizable.stepLabel("3"),
+            title: L10n.Localizable.tokenCodesHelpTitle,
+            helpTitle: L10n.Localizable.tokenCodesHelpCta,
+            helpMessage: L10n.Localizable.tokenCodesHelpMessage,
+            primaryButton: (title: L10n.Localizable.setupHelpAddTokenCta, action: {}),
+            secondaryButtonTitle: L10n.Localizable.tokenCodesHelpCta
+        ) {}
     }
 }

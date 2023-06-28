@@ -1,29 +1,69 @@
 import Foundation
 import DashTypes
+import Combine
 
-public struct HomeBannersAnnouncementsViewModel {
+public class HomeBannersAnnouncementsViewModel: ObservableObject {
 
-    let premiumAnnouncementsViewModel: PremiumAnnouncementsViewModel?
+    enum Banner {
+        case premium
+        case lastpassImport
+    }
+
+    let premiumAnnouncementsViewModel: PremiumAnnouncementsViewModel
     let autofillBannerViewModel: AutofillBannerViewModel
-    var showAutofillBanner: Bool
+    let lastpassImportBannerViewModel: LastpassImportBannerViewModel
+    @Published
+    var showAutofillBanner: Bool = false
+    let shouldShowLastpassBanner: Bool
+    private let credentialsCount: Int
 
-    public init(premiumAnnouncementsViewModel: PremiumAnnouncementsViewModel? = nil,
+    private var shouldShowPremiumBannerView: Bool {
+        hasPremiumAnnouncements
+    }
+
+    @Published
+    var additionnalBanner: Banner?
+
+    public init(premiumAnnouncementsViewModel: PremiumAnnouncementsViewModel,
                 autofillBannerViewModel: AutofillBannerViewModel,
-                showAutofillBanner: Bool) {
-        self.showAutofillBanner = showAutofillBanner
+                lastpassImportBannerViewModel: LastpassImportBannerViewModel,
+                showAutofillBannerPublisher: AnyPublisher<Bool, Never>,
+                shouldShowLastpassBanner: Bool,
+                credentialsCount: Int) {
         self.autofillBannerViewModel = autofillBannerViewModel
+        self.shouldShowLastpassBanner = shouldShowLastpassBanner
+        self.lastpassImportBannerViewModel = lastpassImportBannerViewModel
+        self.credentialsCount = credentialsCount
         self.premiumAnnouncementsViewModel = premiumAnnouncementsViewModel
+
+        premiumAnnouncementsViewModel.$announcements.map { announcements -> Banner? in
+            switch (shouldShowLastpassBanner, !announcements.isEmpty, credentialsCount) {
+            case (true, true, let credentialsCount):
+                return credentialsCount > 5 ? .premium : .lastpassImport
+            case (false, true, _):
+                return .premium
+            case (true, false, _):
+                return .lastpassImport
+            default:
+                return nil
+            }
+        }.assign(to: &$additionnalBanner)
+
+        showAutofillBannerPublisher.assign(to: &$showAutofillBanner)
     }
 
     var hasPremiumAnnouncements: Bool {
-        guard let premiumAnnouncementsViewModel else { return false }
         return !premiumAnnouncementsViewModel.announcements.isEmpty
     }
 }
 
 extension HomeBannersAnnouncementsViewModel {
     static var mock: HomeBannersAnnouncementsViewModel {
-        .init(autofillBannerViewModel: AutofillBannerViewModel.mock,
-              showAutofillBanner: true)
+        .init(premiumAnnouncementsViewModel: .mock(announcements: [.premiumExpiredAnnouncement]),
+              autofillBannerViewModel: AutofillBannerViewModel.mock,
+              lastpassImportBannerViewModel: .mock,
+              showAutofillBannerPublisher: Just<Bool>(true).eraseToAnyPublisher(),
+              shouldShowLastpassBanner: false,
+              credentialsCount: 6)
     }
 }
