@@ -1,80 +1,112 @@
-import Foundation
-import DashlaneAPI
 import Combine
 import DashTypes
+import DashlaneAPI
+import Foundation
 
 public protocol ActivityLogsServiceProtocol {
 
-            var isCollectionEnabled: Bool { get }
+  var isEnabled: Bool { get }
 
-                                func makeActivityLog(dataType: ActivityLogDataType, spaceId: String?) throws -> AuditLogDetails
+  func makeActivityLog(dataType: ActivityLogDataType, spaceId: String?) throws -> AuditLogDetails
 
-                                    func report(_ action: ActivityLogsService.ItemAction, for info: ActivityLogReportableInfo) throws
+  func report(_ action: ActivityLogsService.ItemAction, for info: ActivityLogReportableInfo) throws
+
+  func report(
+    _ action: ActivityLogsService.CollectionAction, for info: ActivityLogReportableInfoCollection)
+    throws
 }
 
 public class ActivityLogsService: ActivityLogsServiceProtocol {
+  public var isEnabled: Bool {
+    return spaceIdWithActivtyLogsEnabled != nil
+  }
 
-    private let spacesUsingActivityLogsCollection: [SpaceInformation]
-    private let reportService: ActivityLogsReportService
+  private let spaceIdWithActivtyLogsEnabled: String?
+  private let reportService: ActivityLogsReportService
 
-    public var isCollectionEnabled: Bool {
-        return !spacesUsingActivityLogsCollection.isEmpty
+  public init(
+    space: SpaceInformation?,
+    apiClient: UserDeviceAPIClient.Teams.StoreActivityLogs,
+    cryptoEngine: CryptoEngine,
+    logger: Logger
+  ) {
+
+    if let space, space.collectSensitiveDataActivityLogsEnabled {
+      spaceIdWithActivtyLogsEnabled = space.id
+    } else {
+      spaceIdWithActivtyLogsEnabled = nil
     }
 
-    public init(spaces: [SpaceInformation],
-                apiClient: UserDeviceAPIClient.Teams.StoreActivityLogs,
-                cryptoEngine: CryptoEngine,
-                logger: Logger) {
-        self.spacesUsingActivityLogsCollection = spaces.filter({ $0.collectSensitiveDataActivityLogsEnabled })
-        self.reportService = ActivityLogsReportService(apiClient: apiClient,
-                                                       cryptoEngine: cryptoEngine,
-                                                       logger: logger)
-    }
+    self.reportService = ActivityLogsReportService(
+      apiClient: apiClient,
+      cryptoEngine: cryptoEngine,
+      logger: logger)
+  }
 
-    private func validateShouldSendActivityLogs(forSpaceID spaceId: String?) throws {
-        guard let spaceId, !spaceId.isEmpty else {
-            throw ActivityLogError.nonBusinessItem
-        }
-        guard spacesUsingActivityLogsCollection.isActivityLogsCollectionEnabled(forTeamWithId: spaceId) else {
-            throw ActivityLogError.noBusinessTeamEnabledCollection
-        }
+  private func validateShouldSendActivityLogs(forSpaceID spaceId: String?) throws {
+    guard let spaceId, !spaceId.isEmpty else {
+      throw ActivityLogError.nonBusinessItem
     }
+    guard spaceIdWithActivtyLogsEnabled == spaceId else {
+      throw ActivityLogError.noBusinessTeamEnabledCollection
+    }
+  }
 
-    public func makeActivityLog(dataType: ActivityLogDataType, spaceId: String?) throws -> AuditLogDetails {
-        try validateShouldSendActivityLogs(forSpaceID: spaceId)
-        return dataType.makeActivityLog()
-    }
+  public func makeActivityLog(dataType: ActivityLogDataType, spaceId: String?) throws
+    -> AuditLogDetails
+  {
+    try validateShouldSendActivityLogs(forSpaceID: spaceId)
+    return dataType.makeActivityLog()
+  }
 
-    private func isActivityLogsCollectionEnabled(forTeamWithId spaceId: String) -> Bool {
-        return spacesUsingActivityLogsCollection.first(where: { $0.id == spaceId }) != nil
+  public func report(_ action: ItemAction, for info: ActivityLogReportableInfo) throws {
+    try validateShouldSendActivityLogs(forSpaceID: info.spaceId)
+    Task {
+      let log = ActivityLog(
+        logType: info.logType(for: action),
+        properties: info.properties)
+      await self.reportService.report(log)
     }
+  }
 
-    public func report(_ action: ItemAction, for info: ActivityLogReportableInfo) throws {
-        try validateShouldSendActivityLogs(forSpaceID: info.spaceId)
-        Task {
-            let log = ActivityLog(logType: info.logType(for: action),
-                                  properties: info.properties)
-            await self.reportService.report(log)
-        }
+  public func report(_ action: CollectionAction, for info: ActivityLogReportableInfoCollection)
+    throws
+  {
+    try validateShouldSendActivityLogs(forSpaceID: info.spaceId)
+    Task {
+      let log = ActivityLog(
+        logType: info.logType(for: action),
+        properties: info.properties)
+      await self.reportService.report(log)
     }
+  }
 }
 
 extension [SpaceInformation] {
-    func isActivityLogsCollectionEnabled(forTeamWithId spaceId: String) -> Bool {
-        return first(where: { $0.id == spaceId }) != nil
-    }
+  func isActivityLogsCollectionEnabled(forTeamWithId spaceId: String) -> Bool {
+    return first(where: { $0.id == spaceId }) != nil
+  }
 }
 
-public extension ActivityLogsServiceProtocol where Self == ActivityLogsServiceMock {
-    static func mock(isActivityLogEnabled: Bool = true) -> ActivityLogsServiceMock {
-        ActivityLogsServiceMock(isActivityLogEnabled: isActivityLogEnabled)
-    }
+extension ActivityLogsServiceProtocol where Self == ActivityLogsServiceMock {
+  public static func mock(isEnabled: Bool = true) -> ActivityLogsServiceMock {
+    ActivityLogsServiceMock(isEnabled: isEnabled)
+  }
 }
 
 extension ActivityLogsService {
-        public enum ItemAction {
-        case creation
-        case update
-        case deletion
-    }
+  public enum ItemAction {
+    case creation
+    case update
+    case deletion
+  }
+
+  public enum CollectionAction {
+    case creation
+    case update
+    case deletion
+    case importCollection
+    case addCredential
+    case deleteCredential
+  }
 }

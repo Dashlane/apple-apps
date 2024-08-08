@@ -1,43 +1,62 @@
 import CoreLocalization
+import CorePersonalData
 import DesignSystem
 import SwiftUI
 import UIDelight
 import VaultKit
 
-public struct CollectionsFlow: TabFlow {
+public struct CollectionsFlow: View {
+  @StateObject
+  var viewModel: CollectionsFlowViewModel
 
-        let tag: Int = 0
-    let id: UUID = .init()
-    let title: String
-    let tabBarImage: NavigationImageSet
+  @Environment(\.toast)
+  var toast
 
-    @StateObject
-    var viewModel: CollectionsFlowViewModel
+  init(viewModel: @autoclosure @escaping () -> CollectionsFlowViewModel) {
+    self._viewModel = .init(wrappedValue: viewModel())
+  }
 
-    init(viewModel: @autoclosure @escaping () -> CollectionsFlowViewModel) {
-        self._viewModel = .init(wrappedValue: viewModel())
-        self.title = CoreLocalization.L10n.Core.KWVaultItem.Collections.toolsTitle
-        self.tabBarImage = .init(image: .ds.folder.outlined, selectedImage: .ds.folder.filled)
-    }
-
-    public var body: some View {
-        StepBasedContentNavigationView(steps: $viewModel.steps) { step in
-            switch step {
-            case .list:
-                CollectionsListView(viewModel: viewModel.collectionsListViewModelFactory.make()) { viewModel.handleCollectionsListAction($0) }
-            case .collectionDetail(let collection):
-                CollectionDetailView(viewModel: viewModel.collectionDetailViewModelFactory.make(collection: collection)) { viewModel.handleCollectionDetailAction($0) }
-            case .itemDetail(let item):
-                viewModel.detailViewFactory.make(itemDetailViewType: .viewing(item))
-                    .navigationBarHidden(true) 
-            }
+  public var body: some View {
+    StepBasedContentNavigationView(steps: $viewModel.steps) { step in
+      switch step {
+      case .list:
+        CollectionsListView(viewModel: viewModel.collectionsListViewModelFactory.make()) {
+          viewModel.handleCollectionsListAction($0)
         }
-        .resetTabBarItemTitle(L10n.Localizable.toolsTitle)
+      case .collectionDetail(let collection):
+        CollectionDetailView(
+          viewModel: viewModel.collectionDetailViewModelFactory.make(collection: collection)
+        ) { viewModel.handleCollectionDetailAction($0) }
+      case .itemDetail(let item):
+        VaultDetailView(model: viewModel.makeDetailViewModel(), itemDetailViewType: .viewing(item))
+          .navigationBarHidden(true)
+      }
     }
+    .alert(
+      CoreLocalization.L10n.Core.KWVaultItem.Collections.AttachmentsLimitation.Message.share,
+      isPresented: $viewModel.showCannotShareWithAttachments
+    ) {
+      Button(CoreLocalization.L10n.Core.kwButtonClose, role: .cancel) {
+
+      }
+    }
+    .sheet(item: $viewModel.collectionToShare) { collection in
+      CollectionShareFlowView(model: viewModel.makeCollectionShareFlowViewModel(for: collection))
+    }
+    .sheet(item: $viewModel.collectionAccessToChange) { collection in
+      NavigationView {
+        SharingCollectionMembersDetailView(
+          model: viewModel.makeSharingCollectionMembersViewModel(for: collection)
+        ) {
+          viewModel.handleSharingCollectionMembersDetailAction($0, with: toast)
+        }
+      }
+    }
+  }
 }
 
 struct CollectionsFlow_Previews: PreviewProvider {
-    static var previews: some View {
-        CollectionsFlow(viewModel: .mock)
-    }
+  static var previews: some View {
+    CollectionsFlow(viewModel: .mock)
+  }
 }

@@ -1,37 +1,58 @@
-import Foundation
-import CoreNetworking
 import CoreRegion
-import DashlaneAppKit
 import DashTypes
+import DashlaneAPI
+import Foundation
+import VaultKit
 
-class UserCountryProvider {
+public typealias UserCountryInfo = AppAPIClient.Country.GetIpCountry.Response
 
-        var userCountry: UserCountry
+struct UserCountryProvider {
+  let defaultUserCountry: UserCountryInfo
+  let appAPIClient: AppAPIClient
 
-    init(regionInformationService: RegionInformationService) {
+  init(regionInformationService: RegionInformationService, appAPIClient: AppAPIClient) {
+    let country = Locale.current.region?.identifier ?? "US"
+    let isEu = regionInformationService.europeanUnionInfo.contains(countryCode: country)
 
-        let country = (Locale.current as NSLocale).countryCode ?? "US"
-        let isEu = regionInformationService.europeanUnionInfo.contains(countryCode: country)
+    defaultUserCountry = UserCountryInfo(country: country, isEu: isEu, isUS: country == "US")
+    self.appAPIClient = appAPIClient
+  }
 
-        userCountry = UserCountry(country: country, isEu: isEu)
+  fileprivate init(defaultUserCountry: UserCountryInfo, appAPIClient: AppAPIClient) {
+    self.defaultUserCountry = defaultUserCountry
+    self.appAPIClient = appAPIClient
+  }
+
+  var userCountry: UserCountryInfo {
+    get async {
+      do {
+        let userCountry = try await appAPIClient.country.getIpCountry(timeout: 10)
+        return userCountry
+      } catch {
+        return defaultUserCountry
+      }
     }
+  }
+}
 
-        public func load(ukiBasedWebService: LegacyWebService) {
-        ukiBasedWebService.sendRequest(to: "/1/country/get",
-                                       using: .post,
-                                       params: [:],
-                                       contentFormat: .json,
-                                       needsAuthentication: false,
-                                       responseParser: CountryResponse()) { result in
-            if case let .success(country) = result {
-                self.userCountry = country
-            }
-                    }
-    }
+extension UserCountryProvider {
+  static func mock(userCountryInfos: UserCountryInfo) -> UserCountryProvider {
+    UserCountryProvider(defaultUserCountry: userCountryInfos, appAPIClient: .fake)
+  }
+}
 
-    struct CountryResponse: ResponseParserProtocol {
-        func parse(data: Data) throws -> UserCountry {
-            return try JSONDecoder().decode(DashlaneResponse<UserCountry>.self, from: data).content
-        }
-    }
+extension UserCountryInfo {
+  static var france: UserCountryInfo {
+    .init(country: "FR", isEu: true, isUS: false)
+  }
+
+  static var usa: UserCountryInfo {
+    .init(country: "US", isEu: false, isUS: true)
+  }
+}
+
+extension AppServicesContainer {
+  var userCountryProvider: UserCountryProvider {
+    return .init(regionInformationService: regionInformationService, appAPIClient: appAPIClient)
+  }
 }

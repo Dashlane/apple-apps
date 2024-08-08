@@ -1,69 +1,116 @@
-import Foundation
-import CorePremium
 import Combine
-import CoreUserTracking
 import CoreLocalization
+import CorePremium
+import CoreUserTracking
+import Foundation
 
 public struct PaywallViewModel {
 
+  public enum Trigger {
+    case capability(key: CapabilityKey)
+    case frozenAccount(firstAnnouncement: Bool)
+  }
+
+  public struct OldPaywallContent {
     let image: ImageAsset
     let title: String
     let text: String
-    let page: Page
-    let upgradePlanKind: PurchasePlan.Kind?
-    let purchasePlanGroup: PlanTier?
+  }
 
-    public init?(_ capability: CapabilityKey, purchasePlanGroup: PlanTier?) {
-        self.purchasePlanGroup = purchasePlanGroup
-        self.upgradePlanKind = purchasePlanGroup?.kind
-        self.page = capability.page
+  let trigger: Trigger
+  let page: Page
+  let upgradePlanKind: PurchasePlan.Kind?
+  let purchasePlanGroup: PlanTier?
 
-        guard let image = capability.image, let title = capability.title, let text = capability.text(upgradePlanKind: upgradePlanKind) else {
-            return nil
-        }
-        self.image = image
-        self.title = title
-        self.text = text
-    }
+  public init?(_ trigger: Trigger, purchasePlanGroup: PlanTier?) {
+    self.trigger = trigger
+    self.purchasePlanGroup = purchasePlanGroup
+    self.upgradePlanKind = purchasePlanGroup?.kind
+    self.page = trigger.page
+  }
 }
 
-fileprivate extension CapabilityKey {
-    var image: ImageAsset? {
-        switch self {
-        case .secureWiFi:       return Asset.paywallVpn
-        case .securityBreach:   return Asset.paywallDwm
-        case .sharingLimit:     return Asset.sharingPaywall
-        case .secureNotes:      return Asset.paywallSecurenotes
-        default:                return nil
-        }
+extension PaywallViewModel {
+  var upgradeText: String? {
+    if case .frozenAccount(let isFirstAnnouncement) = trigger, isFirstAnnouncement {
+      return L10n.Core.paywallsFrozenCTARegain
     }
 
-    var title: String? {
-        switch self {
-        case .secureWiFi:       return L10n.Core.paywallsVpnTitle
-        case .securityBreach:   return L10n.Core.paywallsDwmTitle
-        case .sharingLimit:     return L10n.Core.paywallsSharingLimitTitle
-        case .secureNotes:      return L10n.Core.paywallsSecureNotesTitle
-        default:                return nil
-        }
-    }
+    return upgradePlanKind.map { $0.upgradeText }
+  }
+}
 
-    func text(upgradePlanKind: PurchasePlan.Kind?) -> String? {
-        switch self {
-        case .secureWiFi:       return L10n.Core.paywallsVpnMessage
-        case .securityBreach:   return L10n.Core.paywallsDwmMessage
-        case .secureNotes:      return L10n.Core.paywallsSecureNotesPremiumMessage
-        default:                return nil
-        }
+extension PaywallViewModel.Trigger {
+  var oldContent: PaywallViewModel.OldPaywallContent? {
+    switch self {
+    case .capability(let key):
+      switch key {
+      case .secureWiFi:
+        return PaywallViewModel.OldPaywallContent(
+          image: Asset.paywallVpn,
+          title: L10n.Core.paywallsVpnTitle,
+          text: L10n.Core.paywallsVpnMessage)
+      case .securityBreach:
+        return PaywallViewModel.OldPaywallContent(
+          image: Asset.paywallDwm,
+          title: L10n.Core.paywallsDwmTitle,
+          text: L10n.Core.paywallsDwmMessage)
+      case .sharingLimit:
+        return PaywallViewModel.OldPaywallContent(
+          image: Asset.sharingPaywall,
+          title: L10n.Core.paywallsSharingLimitTitle,
+          text: L10n.Core.paywallsSharingLimitMessage)
+      case .secureNotes:
+        return PaywallViewModel.OldPaywallContent(
+          image: Asset.paywallSecurenotes,
+          title: L10n.Core.paywallsSecureNotesTitle,
+          text: L10n.Core.paywallsSecureNotesPremiumMessage)
+      case .passwordsLimit:
+        return PaywallViewModel.OldPaywallContent(
+          image: Asset.paywallDiamond,
+          title: L10n.Core.paywallsPasswordLimitTitle,
+          text: L10n.Core.paywallsPasswordLimitAddManually)
+      default: return nil
+      }
+    case .frozenAccount:
+      return nil
     }
+  }
 
-    var page: Page {
-        switch self {
-        case .secureWiFi:   return .paywallVpn
-        case .securityBreach: return .paywallDarkWebMonitoring
-        case .sharingLimit: return .paywallSharingLimit
-        case .secureNotes:  return .paywallSecureNotes
-        default: return .paywall
-        }
+  var page: Page {
+    switch self {
+    case .capability(let key):
+      return key.page
+    case .frozenAccount:
+      return .paywallFreeUserPasswordLimitReached
     }
+  }
+}
+
+extension CapabilityKey {
+  fileprivate var page: Page {
+    switch self {
+    case .secureWiFi: return .paywallVpn
+    case .securityBreach: return .paywallDarkWebMonitoring
+    case .sharingLimit: return .paywallSharingLimit
+    case .secureNotes: return .paywallSecureNotes
+    case .passwordsLimit: return .paywallFreeUserPasswordLimitReached
+    default: return .paywall
+    }
+  }
+}
+
+extension PurchasePlan.Kind {
+  fileprivate var upgradeText: String {
+    switch self {
+    case .premium:
+      return L10n.Core.paywallsUpgradeToPremiumCTA
+    case .essentials:
+      return L10n.Core.paywallsUpgradeToEssentialsCTA
+    case .advanced:
+      return L10n.Core.paywallsUpgradeToAdvancedCTA
+    default:
+      return ""
+    }
+  }
 }

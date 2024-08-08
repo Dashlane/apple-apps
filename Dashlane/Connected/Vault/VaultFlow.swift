@@ -1,131 +1,119 @@
+import AuthenticatorKit
+import Combine
+import CoreFeature
 import CorePersonalData
 import DesignSystem
+import NotificationKit
 import SwiftTreats
 import SwiftUI
 import UIDelight
-import NotificationKit
-import Combine
+import VaultKit
 
-struct VaultFlow: TabFlow {
+struct VaultFlow: View {
+  @ObservedObject
+  var viewModel: VaultFlowViewModel
 
-    let tag: Int = 0
-    let id: UUID = .init()
-    var title: String {
-        viewModel.mode.title
-    }
+  @FeatureState(.newSecureNoteDetailView)
+  var newSecureNoteDetailViewEnabled
 
-    var tabBarImage: NavigationImageSet {
-        viewModel.mode.tabBarSet
-    }
+  init(viewModel: VaultFlowViewModel) {
+    self.viewModel = viewModel
+  }
 
-    var sidebarImage: NavigationImageSet {
-        viewModel.mode.sidebarImage
-    }
-
-    let badgeValue: CurrentValueSubject<String?, Never>?
-
-    @ObservedObject
-    var viewModel: VaultFlowViewModel
-
-    init(viewModel: VaultFlowViewModel) {
-        self.viewModel = viewModel
-        self.badgeValue = viewModel.badgeValues
-    }
-
-    var body: some View {
-        StepBasedContentNavigationView(steps: $viewModel.steps) { step in
-            switch step {
-            case .list(let model):
-                HomeView(model: model)
-            case .category(let model):
-                VaultListView(model: model, shouldHideFilters: true)
-            case .detail(let view):
-                detailView(view)
-            case .autofillDemoDummyFields(let credential):
-                autofillDemoDummyFields(credential)
-            }
-        }
-        .navigationBarStyle(.init(tintColor: .ds.text.neutral.catchy, backgroundColor: .ds.background.default))
-        .fullScreenCoverOrSheet(isPresented: $viewModel.showAddItemFlow) {
-            NavigationView {
-                AddItemFlow(viewModel: viewModel.makeAddItemFlowViewModel())
-            }
-        }
-        .onReceive(viewModel.deeplinkPublisher) { deeplink in
-            guard Device.isIpadOrMac, self.viewModel.canHandle(deepLink: deeplink) else { return }
-            self.viewModel.handle(deeplink)
-        }
-        .sheet(isPresented: $viewModel.showAutofillFlow) {
-            AutofillOnboardingFlowView(model: viewModel.makeAutofillOnboardingFlowViewModel())
-        }
-        .sheet(item: $viewModel.autofillDemoDummyFieldsCredential) { credential in
-            autofillDemoDummyFields(credential)
-        }
-        .sheet(isPresented: $viewModel.showOnboardingChecklist) {
-            OnboardingChecklistFlow(viewModel: viewModel.makeOnboardingChecklistFlowViewModel())
-        }
-    }
-
-    @ViewBuilder
-    private func autofillDemoDummyFields(_ credential: Credential) -> some View {
-        viewModel.autofillDemoDummyFields(
-            credential: credential,
-            completion: { viewModel.handleAutofillDemoDummyFieldsAction($0) }
+  var body: some View {
+    StepBasedContentNavigationView(steps: $viewModel.steps) { step in
+      switch step {
+      case .home(let action):
+        HomeView(
+          model: viewModel.makeHomeViewModel(onboardingChecklistViewAction: action),
+          activeFilter: $viewModel.activeFilter
         )
-    }
+        .toolbar(.visible, for: .tabBar)
+      case .vaultList(let category):
+        VaultListView(model: viewModel.makeVaultListViewModel(category: category))
+          .toolbar(.visible, for: .tabBar)
 
-    @ViewBuilder
-    private func detailView(_ view: some View) -> some View {
-        view
-            .navigationBarHidden(true)
-            .hideNavigationBar()
-            .hideTabBar()
+      case let .vaultDetail(item, type):
+        detailView(for: item, viewType: type)
+          .toolbar(.hidden, for: .tabBar)
+
+      case .autofillDemoDummyFields(let credential):
+        autofillDemoDummyFields(credential)
+          .toolbar(.visible, for: .tabBar)
+
+      case .authenticatorSunset:
+        AuthenticatorSunsetView()
+      }
     }
+    .fullScreenCoverOrSheet(isPresented: $viewModel.showAddItemFlow) {
+      NavigationView {
+        AddItemFlow(viewModel: viewModel.makeAddItemFlowViewModel())
+      }
+    }
+    .onReceive(viewModel.deeplinkPublisher) { deeplink in
+      guard Device.isIpadOrMac, self.viewModel.canHandle(deepLink: deeplink) else { return }
+      self.viewModel.handle(deeplink)
+    }
+    .sheet(isPresented: $viewModel.showAutofillFlow) {
+      AutofillOnboardingFlowView(model: viewModel.makeAutofillOnboardingFlowViewModel())
+    }
+    .sheet(item: $viewModel.autofillDemoDummyFieldsCredential) { credential in
+      autofillDemoDummyFields(credential)
+    }
+    .sheet(isPresented: $viewModel.showOnboardingChecklist) {
+      OnboardingChecklistFlow(viewModel: viewModel.makeOnboardingChecklistFlowViewModel())
+    }
+  }
+
+  @ViewBuilder
+  private func autofillDemoDummyFields(_ credential: Credential) -> some View {
+    viewModel.autofillDemoDummyFields(
+      credential: credential,
+      completion: { viewModel.handleAutofillDemoDummyFieldsAction($0) }
+    )
+  }
+
+  @ViewBuilder
+  private func detailView(for item: VaultItem, viewType: ItemDetailViewType) -> some View {
+    if item is SecureNote, !newSecureNoteDetailViewEnabled {
+      VaultDetailView(
+        model: viewModel.makeDetailViewModel(), itemDetailViewType: viewType,
+        dismiss: .init {
+          if viewModel.steps.isEmpty == false {
+            viewModel.steps.removeLast()
+          }
+        }
+      )
+      .navigationBarHidden(true)
+    } else {
+      VaultDetailView(model: viewModel.makeDetailViewModel(), itemDetailViewType: viewType)
+        .navigationBarHidden(true)
+    }
+  }
 }
 
-private extension View {
+extension View {
 
-            @ViewBuilder
-    func fullScreenCoverOrSheet<Content: View>(
-        isPresented: Binding<Bool>,
-        @ViewBuilder content: @escaping () -> Content
-    ) -> some View {
-        if Device.isIpadOrMac {
-            sheet(isPresented: isPresented, content: content)
-        } else {
-            fullScreenCover(isPresented: isPresented, content: content)
-        }
+  @ViewBuilder
+  fileprivate func fullScreenCoverOrSheet<Content: View>(
+    isPresented: Binding<Bool>,
+    @ViewBuilder content: @escaping () -> Content
+  ) -> some View {
+    if Device.isIpadOrMac {
+      sheet(isPresented: isPresented, content: content)
+    } else {
+      fullScreenCover(isPresented: isPresented, content: content)
     }
+  }
 }
 
-private extension VaultFlowViewModel.Mode {
-    var title: String {
-        switch self {
-        case .allItems:
-            return L10n.Localizable.recentTitle
-        case .category(let category):
-            return category.title
-        }
+extension VaultFlowViewModel.Mode {
+  fileprivate var title: String {
+    switch self {
+    case .allItems:
+      return L10n.Localizable.recentTitle
+    case .category(let category):
+      return category.title
     }
-
-    var tabBarSet: NavigationImageSet {
-        switch self {
-        case .allItems:
-            return NavigationImageSet(
-                image: .ds.home.outlined,
-                selectedImage: .ds.home.filled
-            )
-        case .category(let category):
-            return category.tabBarImage
-        }
-    }
-
-    var sidebarImage: NavigationImageSet {
-        switch self {
-        case .allItems:
-            return tabBarSet
-        case .category(let category):
-            return category.sidebarImage
-        }
-    }
+  }
 }

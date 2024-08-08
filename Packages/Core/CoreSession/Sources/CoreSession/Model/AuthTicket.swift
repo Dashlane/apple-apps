@@ -1,9 +1,14 @@
 import Foundation
 
-public struct AuthTicket: Equatable {
-    public let value: String
+public struct AuthTicket: Hashable, ExpressibleByStringLiteral {
 
-    public init(value: String) {
-        self.value = value
-    }
+  public let value: String
+
+  public init(value: String) {
+    self.value = value
+  }
+
+  public init(stringLiteral value: StringLiteralType) {
+    self.init(value: value)
+  }
 }

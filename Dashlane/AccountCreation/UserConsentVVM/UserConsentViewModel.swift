@@ -1,127 +1,130 @@
-import Foundation
 import Combine
+import CoreLocalization
 import DashTypes
+import DashlaneAPI
+import DesignSystem
+import Foundation
 import LoginKit
 import SwiftTreats
-import DesignSystem
-import CoreLocalization
+import UIKit
 
 protocol UserConsentViewModelProtocol {
-    var legalNoticeEUAttributedString: AttributedString { get }
-    var legalNoticeNonEUAttributedString: AttributedString { get }
+  var legalNoticeEUString: String { get }
 }
 
-class UserConsentViewModel: ObservableObject, UserConsentViewModelProtocol, AccountCreationFlowDependenciesInjecting {
-    @Published
-    var hasUserAcceptedEmailMarketing: Bool
+@MainActor
+class UserConsentViewModel: ObservableObject, UserConsentViewModelProtocol,
+  AccountCreationFlowDependenciesInjecting
+{
+  @Published
+  var hasUserAcceptedEmailMarketing: Bool = false
 
-    @Published
-    var hasUserAcceptedTermsAndConditions: Bool = false
+  @Published
+  var hasUserAcceptedTermsAndConditions: Bool = false
 
-    @Published
-    var shouldDisplayMissingRequiredConsentAlert: Bool = false
+  @Published
+  var shouldDisplayMissingRequiredConsentAlert: Bool = false
 
-    @Published
-    var isAccountCreationRequestInProgress: Bool = false
+  @Published
+  var isAccountCreationRequestInProgress: Bool = false
 
-    let isEmailMarketingOptInRequired: Bool
+  private let userCountryProvider: UserCountryProvider
+  let completion: (Completion) -> Void
 
-    let completion: (Completion) -> Void
+  enum Completion {
+    case back(hasUserAcceptedTermsAndConditions: Bool, hasUserAcceptedEmailMarketing: Bool)
+    case next(hasUserAcceptedTermsAndConditions: Bool, hasUserAcceptedEmailMarketing: Bool)
+  }
 
-    enum Completion {
-        case back(hasUserAcceptedTermsAndConditions: Bool, hasUserAcceptedEmailMarketing: Bool)
-        case next(hasUserAcceptedTermsAndConditions: Bool, hasUserAcceptedEmailMarketing: Bool)
+  init(
+    userCountryProvider: UserCountryProvider,
+    completion: @escaping (UserConsentViewModel.Completion) -> Void
+  ) {
+    self.completion = completion
+    self.userCountryProvider = userCountryProvider
+
+    Task {
+      await optIntMarketing()
+    }
+  }
+
+  func optIntMarketing() async {
+    let isEU = await userCountryProvider.userCountry.isEu
+    if !isEU {
+      self.hasUserAcceptedEmailMarketing = true
+    }
+  }
+
+  func back() {
+    completion(
+      .back(
+        hasUserAcceptedTermsAndConditions: hasUserAcceptedTermsAndConditions,
+        hasUserAcceptedEmailMarketing: hasUserAcceptedEmailMarketing))
+  }
+
+  func goToTerms() {
+    guard let url = URL(string: "_") else {
+      return
+    }
+    UIApplication.shared.open(url)
+  }
+
+  func goToPrivacy() {
+    guard let url = URL(string: "_") else {
+      return
+    }
+    UIApplication.shared.open(url)
+  }
+
+  func validate() {
+    if skipValidationInDebug() { return }
+
+    guard hasUserAcceptedTermsAndConditions else {
+      shouldDisplayMissingRequiredConsentAlert = true
+      return
     }
 
-    init(isEmailMarketingOptInRequired: Bool,
-         completion: @escaping (UserConsentViewModel.Completion) -> Void) {
-        self.isEmailMarketingOptInRequired = isEmailMarketingOptInRequired
-        self.completion = completion
+    isAccountCreationRequestInProgress = true
 
-                self.hasUserAcceptedEmailMarketing = isEmailMarketingOptInRequired ? false : true
-    }
+    completion(
+      .next(
+        hasUserAcceptedTermsAndConditions: hasUserAcceptedTermsAndConditions,
+        hasUserAcceptedEmailMarketing: hasUserAcceptedEmailMarketing))
+  }
 
-        func back() {
-        completion(.back(hasUserAcceptedTermsAndConditions: hasUserAcceptedTermsAndConditions, hasUserAcceptedEmailMarketing: hasUserAcceptedEmailMarketing))
-    }
-
-        func validate() {
-                if skipValidationInDebug() { return }
-
-                guard hasUserAcceptedTermsAndConditions else {
-            shouldDisplayMissingRequiredConsentAlert = true
-            return
-        }
-
+  private func skipValidationInDebug() -> Bool {
+    #if DEBUG
+      if !ProcessInfo.isTesting {
         isAccountCreationRequestInProgress = true
-
-        completion(.next(hasUserAcceptedTermsAndConditions: hasUserAcceptedTermsAndConditions, hasUserAcceptedEmailMarketing: hasUserAcceptedEmailMarketing))
-    }
-
-        private func skipValidationInDebug() -> Bool {
-        #if DEBUG
-        if !ProcessInfo.isTesting {
-            isAccountCreationRequestInProgress = true
-            hasUserAcceptedEmailMarketing = true
-            hasUserAcceptedTermsAndConditions = true
-            completion(.next(hasUserAcceptedTermsAndConditions: hasUserAcceptedTermsAndConditions, hasUserAcceptedEmailMarketing: hasUserAcceptedEmailMarketing))
-            return true
-        }
-        #endif
-        return false
-    }
+        hasUserAcceptedEmailMarketing = true
+        hasUserAcceptedTermsAndConditions = true
+        completion(
+          .next(
+            hasUserAcceptedTermsAndConditions: hasUserAcceptedTermsAndConditions,
+            hasUserAcceptedEmailMarketing: hasUserAcceptedEmailMarketing))
+        return true
+      }
+    #endif
+    return false
+  }
 }
 
 extension UserConsentViewModelProtocol {
 
-    private static func linkAttributes(for url: URL) -> AttributeContainer {
-        var attributeContainer = AttributeContainer()
-        attributeContainer.link = url
-        attributeContainer.underlineStyle = .single
-        attributeContainer.foregroundColor = .ds.text.brand.standard
-        return attributeContainer
-    }
+  private static func linkAttributes(for url: URL) -> AttributeContainer {
+    var attributeContainer = AttributeContainer()
+    attributeContainer.link = url
+    attributeContainer.underlineStyle = .single
+    attributeContainer.foregroundColor = .ds.text.brand.standard
+    return attributeContainer
+  }
 
-    var legalNoticeEUAttributedString: AttributedString {
-        let termsURL = URL(string: "_")!
-        let privacyPolicyURL = URL(string: "_")!
+  var legalNoticeEUString: String {
+    let termString = L10n.Localizable.createaccountPrivacysettingsTermsConditions
+    let privacyString = CoreLocalization.L10n.Core.kwCreateAccountPrivacy
+    let requiredString = L10n.Localizable.createaccountPrivacysettingsRequiredLabel
 
-        let termString = L10n.Localizable.createaccountPrivacysettingsTermsConditions
-        let privacyString = CoreLocalization.L10n.Core.kwCreateAccountPrivacy
-        let requiredString = L10n.Localizable.createaccountPrivacysettingsRequiredLabel
-
-        let legalNotice = L10n.Localizable.minimalisticOnboardingRecapCheckboxTerms(termString, privacyString, requiredString)
-
-        var attributedString = AttributedString(legalNotice)
-        attributedString.foregroundColor = .ds.text.neutral.standard
-        attributedString.font = .system(.body)
-
-        for (text, url) in [termString: termsURL, privacyString: privacyPolicyURL] {
-            guard let range = attributedString.range(of: text) else { continue }
-            attributedString[range].setAttributes(Self.linkAttributes(for: url))
-        }
-
-        return attributedString
-    }
-
-    var legalNoticeNonEUAttributedString: AttributedString {
-        let termsURL = URL(string: "_")!
-        let privacyPolicyURL = URL(string: "_")!
-
-        let termString = CoreLocalization.L10n.Core.kwCreateAccountTermsConditions
-        let privacyString = CoreLocalization.L10n.Core.kwCreateAccountPrivacy
-
-        let legalNotice = L10n.Localizable.kwCreateAccountTermsConditionsPrivacyNotice(termString, privacyString)
-
-        var attributedString = AttributedString(legalNotice)
-        attributedString.font = .system(.footnote)
-        attributedString.foregroundColor = .ds.text.neutral.standard
-
-        for (text, url) in [termString: termsURL, privacyString: privacyPolicyURL] {
-            guard let range = attributedString.range(of: text) else { continue }
-            attributedString[range].setAttributes(Self.linkAttributes(for: url))
-        }
-
-        return attributedString
-    }
+    return L10n.Localizable.minimalisticOnboardingRecapCheckboxTerms(
+      termString, privacyString, requiredString)
+  }
 }

@@ -1,24 +1,25 @@
-import Foundation
-import CoreIPC
-import Logger
 import AuthenticatorKit
-import DashlaneCrypto
+import CoreCrypto
+import CoreIPC
 import DashTypes
-import DashlaneAppKit
+import Foundation
+import Logger
 
 extension AuthenticatorDatabaseService {
-    convenience init(logger: Logger) {
-        self.init(logger: logger,
-                  storeURL: ApplicationGroup.otpCodesStoreURL,
-                  makeCryptoEngine: { KeychainBasedCryptoEngine.database(encryptionKeyId: $0) })
-    }
+  convenience init(logger: Logger) {
+    self.init(
+      logger: logger,
+      storeURL: ApplicationGroup.otpCodesStoreURL,
+      makeCryptoEngine: { KeychainBasedCryptoEngine.database(encryptionKeyId: $0) })
+  }
 }
 
-private extension KeychainBasedCryptoEngine {
-    static func database(encryptionKeyId: String) -> KeychainBasedCryptoEngine {
-        KeychainBasedCryptoEngine(encryptionKeyId: encryptionKeyId,
-                                  accessGroup: ApplicationGroup.keychainAccessGroup,
-                                  allowKeyRegenerationIfFailure: false,
-                                  shouldAccessAfterFirstUnlock: false)
-    }
+extension KeychainBasedCryptoEngine {
+  fileprivate static func database(encryptionKeyId: String) -> KeychainBasedCryptoEngine {
+    KeychainBasedCryptoEngine(
+      encryptionKeyId: encryptionKeyId,
+      accessGroup: ApplicationGroup.keychainAccessGroup,
+      allowKeyRegenerationIfFailure: false,
+      shouldAccessAfterFirstUnlock: false)
+  }
 }

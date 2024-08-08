@@ -1,46 +1,54 @@
-import Foundation
-import CoreActivityLogs
-import CorePremium
 import Combine
+import CoreActivityLogs
 import CoreFeature
+import CorePremium
 import DashTypes
 import DashlaneAPI
+import Foundation
 
-public extension ActivityLogsService {
-    convenience init(premiumService: PremiumServiceProtocol,
-                     featureService: FeatureServiceProtocol,
-                     apiClient: UserDeviceAPIClient.Teams.StoreActivityLogs,
-                     cryptoEngine: CryptoEngine,
-                     logger: Logger) {
-        self.init(spaces: premiumService.status?.spaces ?? [],
-                  featureService: featureService,
-                  apiClient: apiClient,
-                  cryptoEngine: cryptoEngine,
-                  logger: logger)
+extension ActivityLogsService {
+  public convenience init(
+    premiumStatusProvider: PremiumStatusProvider,
+    featureService: FeatureServiceProtocol,
+    apiClient: UserDeviceAPIClient.Teams.StoreActivityLogs,
+    cryptoEngine: CryptoEngine,
+    logger: Logger
+  ) {
+    self.init(
+      team: premiumStatusProvider.status.b2bStatus?.currentTeam,
+      featureService: featureService,
+      apiClient: apiClient,
+      cryptoEngine: cryptoEngine,
+      logger: logger)
+  }
+
+  public convenience init(
+    team: CurrentTeam?,
+    featureService: FeatureServiceProtocol,
+    apiClient: UserDeviceAPIClient.Teams.StoreActivityLogs,
+    cryptoEngine: CryptoEngine,
+    logger: Logger
+  ) {
+    guard featureService.isEnabled(.auditLogsIsAvailable) else {
+      self.init(
+        space: nil,
+        apiClient: apiClient,
+        cryptoEngine: cryptoEngine,
+        logger: logger)
+      return
     }
 
-    convenience init(spaces: [Space],
-                     featureService: FeatureServiceProtocol,
-                     apiClient: UserDeviceAPIClient.Teams.StoreActivityLogs,
-                     cryptoEngine: CryptoEngine,
-                     logger: Logger) {
-        guard featureService.isEnabled(.auditLogsIsAvailable) else {
-            self.init(spaces: [],
-                      apiClient: apiClient,
-                      cryptoEngine: cryptoEngine,
-                      logger: logger)
-            return
-        }
-
-        let spaces = spaces
-            .filter({ $0.info.collectSensitiveDataAuditLogsEnabled ?? false })
-            .map({
-                CoreActivityLogs.SpaceInformation(id: $0.teamId,
-                                                  collectSensitiveDataActivityLogsEnabled: $0.info.collectSensitiveDataAuditLogsEnabled ?? false)
-            })
-        self.init(spaces: spaces,
-                  apiClient: apiClient,
-                  cryptoEngine: cryptoEngine,
-                  logger: logger)
+    let space = team.map {
+      SpaceInformation(
+        id: String($0.teamId),
+        collectSensitiveDataActivityLogsEnabled: $0.teamInfo.collectSensitiveDataAuditLogsEnabled
+          == true)
     }
+
+    self.init(
+      space: space,
+      apiClient: apiClient,
+      cryptoEngine: cryptoEngine,
+      logger: logger)
+  }
 }

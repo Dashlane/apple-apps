@@ -1,5 +1,5 @@
 public enum ItemDetailOrigin {
-    case adding
-    case darkWebMonitoring
-    case unknown
+  case adding
+  case darkWebMonitoring
+  case unknown
 }

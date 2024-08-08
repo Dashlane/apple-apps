@@ -1,54 +1,66 @@
+import AuthenticatorKit
+import CorePersonalData
+import CoreSync
+import DesignSystem
 import Foundation
 import SwiftTreats
 import SwiftUI
-import UIDelight
 import TOTPGenerator
-import CoreSync
-import CorePersonalData
+import UIDelight
 import VaultKit
-import AuthenticatorKit
-import DesignSystem
 
 struct AddOTPManuallyFlowView: View {
 
-    @StateObject
-    private var viewModel: AddOTPManuallyFlowViewModel
+  @StateObject
+  private var viewModel: AddOTPManuallyFlowViewModel
 
-    init(viewModel: @autoclosure @escaping () -> AddOTPManuallyFlowViewModel) {
-        self._viewModel = .init(wrappedValue: viewModel())
-    }
+  init(viewModel: @autoclosure @escaping () -> AddOTPManuallyFlowViewModel) {
+    self._viewModel = .init(wrappedValue: viewModel())
+  }
 
-    var body: some View {
-        StepBasedContentNavigationView(steps: $viewModel.steps) { step in
-            switch step {
-            case let .manuallyChooseWebsite(viewModel):
-                ChooseWebsiteView(viewModel: viewModel)
-            case let .enterLoginDetails(viewModel):
-                AddLoginDetailsView(viewModel: viewModel)
-            case let .chooseCredential(viewModel):
-                MatchingCredentialsListView(viewModel: viewModel)
-            case let .enterToken(viewModel):
-                AddOTPSecretKeyView(viewModel: viewModel)
-            case let .success(mode, configuration):
-                AddOTPSuccessView(mode: mode, action: {
-                    viewModel.handleSuccessCompletion(for: mode, configuration: configuration)
-                })
-            case let .addCredential(viewModel):
-                CredentialDetailView(model: viewModel).navigationBarHidden(true)
-            }
-        }
-        .accentColor(.ds.text.brand.standard)
+  var body: some View {
+    StepBasedContentNavigationView(steps: $viewModel.steps) { step in
+      switch step {
+      case .manuallyChooseWebsite:
+        ChooseWebsiteView(viewModel: viewModel.makeChooseWebsiteViewModel())
+      case let .enterLoginDetails(website, credential):
+        AddLoginDetailsView(
+          viewModel: viewModel.makeAddLoginDetailsViewModel(
+            website: website,
+            credential: credential))
+      case let .chooseCredential(website, matchingCredentials):
+        MatchingCredentialsListView(
+          viewModel: viewModel.makeMatchingCredentialListViewModel(
+            website: website, matchingCredentials: matchingCredentials))
+      case let .enterToken(credential):
+        AddOTPSecretKeyView(
+          viewModel: viewModel.makeAddOTPSecretKeyViewModel(credential: credential))
+      case let .success(mode, configuration):
+        AddOTPSuccessView(
+          mode: mode,
+          action: {
+            viewModel.handleSuccessCompletion(for: mode, configuration: configuration)
+          })
+      case let .addCredential(credential, configuration):
+        CredentialDetailView(
+          model: viewModel.makeCredentialDetailViewModel(
+            credential: credential, configuration: configuration)
+        )
+        .navigationBarHidden(true)
+      }
     }
+    .accentColor(.ds.text.brand.standard)
+  }
 }
 
 struct AddOTPManuallyFlowView_Previews: PreviewProvider {
 
-    static var previews: some View {
-        Group {
-            EmptyView()
-        }
-        .sheet(isPresented: .constant(true), onDismiss: nil) {
-            AddOTPManuallyFlowView(viewModel: .mock)
-        }
+  static var previews: some View {
+    Group {
+      EmptyView()
     }
+    .sheet(isPresented: .constant(true), onDismiss: nil) {
+      AddOTPManuallyFlowView(viewModel: .mock)
+    }
+  }
 }

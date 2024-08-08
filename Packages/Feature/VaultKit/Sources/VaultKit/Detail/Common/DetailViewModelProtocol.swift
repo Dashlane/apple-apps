@@ -1,4 +1,3 @@
-#if os(iOS)
 import Combine
 import CorePersonalData
 import CorePremium
@@ -8,191 +7,191 @@ import Foundation
 import UIComponents
 
 public protocol DetailViewModelProtocol: ObservableObject {
-    associatedtype Item: VaultItem, Equatable
+  associatedtype Item: VaultItem, Equatable
 
-    var service: DetailService<Item> { get }
+  var service: DetailService<Item> { get }
 }
 
-public extension DetailViewModelProtocol {
+extension DetailViewModelProtocol {
 
-    var item: Item {
-        get {
-            service.item
-        }
-        set {
-            service.item = newValue
-        }
+  public var item: Item {
+    get {
+      service.vaultItemEditionService.item
     }
+    set {
+      service.vaultItemEditionService.item = newValue
+    }
+  }
 
-    var originalItem: Item {
-        service.originalItem
-    }
+  public var originalItem: Item {
+    service.vaultItemEditionService.originalItem
+  }
 
-    var allVaultCollections: [VaultCollection] {
-        get {
-            service.allVaultCollections
-        }
-        set {
-            service.allVaultCollections = newValue
-        }
+  public var allVaultCollections: [VaultCollection] {
+    get {
+      service.vaultCollectionEditionService.allVaultCollections
     }
+    set {
+      service.vaultCollectionEditionService.allVaultCollections = newValue
+    }
+  }
 
-    var originalAllVaultCollections: [VaultCollection] {
-        service.originalAllVaultCollections
+  public var itemCollections: [VaultCollection] {
+    get {
+      service.vaultCollectionEditionService.itemCollections
     }
+    set {
+      service.vaultCollectionEditionService.itemCollections = newValue
+    }
+  }
 
-    var itemCollections: [VaultCollection] {
-        get {
-            service.itemCollections
-        }
-        set {
-            service.itemCollections = newValue
-        }
+  public var unusedCollections: [VaultCollection] {
+    get {
+      service.vaultCollectionEditionService.unusedCollections
     }
+    set {
+      service.vaultCollectionEditionService.unusedCollections = newValue
+    }
+  }
 
-    var originalItemCollections: [VaultCollection] {
-        service.originalItemCollections
+  public var mode: DetailMode {
+    get {
+      service.mode
     }
+    set {
+      service.mode = newValue
+    }
+  }
 
-    var unusedCollections: [VaultCollection] {
-        get {
-            service.unusedCollections
-        }
-        set {
-            service.unusedCollections = newValue
-        }
-    }
+  public var eventPublisher: PassthroughSubject<DetailServiceEvent, Never> {
+    service.eventPublisher
+  }
 
-    var mode: DetailMode {
-        get {
-            service.mode
-        }
-        set {
-            service.mode = newValue
-        }
-    }
+  public var sharingPermission: SharingPermission? {
+    service.sharingPermission()
+  }
 
-        var eventPublisher: PassthroughSubject<DetailServiceEvent, Never> {
-        service.eventPublisher
-    }
+  public var hasLimitedRights: Bool {
+    service.hasLimitedRights()
+  }
 
-        var sharingPermission: SharingPermission? {
-        service.sharingPermission()
-    }
+  public var isUserSpaceForced: Bool {
+    service.isUserSpaceForced
+  }
 
-    var hasLimitedRights: Bool {
-        service.hasLimitedRights()
+  public var selectedUserSpace: UserSpace {
+    get {
+      service.selectedUserSpace
     }
+    set {
+      service.selectedUserSpace = newValue
+    }
+  }
 
-        var isUserSpaceForced: Bool {
-        service.isUserSpaceForced
-    }
+  public var availableUserSpaces: [UserSpace] {
+    service.availableUserSpaces
+  }
 
-    var selectedUserSpace: UserSpace {
-        get {
-            service.selectedUserSpace
-        }
-        set {
-            service.selectedUserSpace = newValue
-        }
-    }
+  public var advertiseUserActivity: Bool {
+    service.advertiseUserActivity
+  }
 
-    var availableUserSpaces: [UserSpace] {
-        service.availableUserSpaces
+  public var alert: DetailViewAlert? {
+    get {
+      service.alert
     }
+    set {
+      service.alert = newValue
+    }
+  }
 
-    var advertiseUserActivity: Bool {
-        service.advertiseUserActivity
-    }
+  public var isLoading: Bool {
+    service.isLoading
+  }
 
-        var alert: DetailViewAlert? {
-        get {
-            service.alert
-        }
-        set {
-            service.alert = newValue
-        }
-    }
+  public var isSaving: Bool {
+    service.isSaving
+  }
 
-    var isLoading: Bool {
-        service.isLoading
+  public var shouldReveal: Bool {
+    get {
+      service.shouldReveal
     }
+    set {
+      service.shouldReveal = newValue
+    }
+  }
 
-    var shouldReveal: Bool {
-        get {
-            service.shouldReveal
-        }
-        set {
-            service.shouldReveal = newValue
-        }
-    }
+  public func reveal(fieldType: DetailFieldType) {
+    service.reveal(fieldType: fieldType)
+  }
 
-    func reveal(fieldType: DetailFieldType) {
-        service.reveal(fieldType: fieldType)
-    }
+  public func copy(_ value: String, fieldType: DetailFieldType) {
+    service.copy(value, fieldType: fieldType)
+  }
 
-    func copy(_ value: String, fieldType: DetailFieldType) {
-        service.copy(value, fieldType: fieldType)
-    }
+  public func requestAccess(forReason reason: AccessControlReason) -> AccessControlPublisher {
+    service.requestAccess(forReason: reason)
+  }
 
-    func requestAccess(forReason reason: AccessControlReason) -> AccessControlPublisher {
-        service.requestAccess(forReason: reason)
-    }
+  public func requestAccess(_ completion: @escaping (Bool) -> Void) {
+    service.requestAccess(completion)
+  }
 
-    func requestAccess(_ completion: @escaping (Bool) -> Void) {
-        service.requestAccess(completion)
-    }
+  public func showInVault() {
+    service.showInVault()
+  }
 
-    func showInVault() {
-        service.showInVault()
-    }
+  public func addItemToNewCollection(named: String) {
+    service.vaultCollectionEditionService.addItem(toNewCollectionNamed: named)
+  }
 
-    func addItemToCollection(named: String) {
-        service.addItemToCollection(named: named)
-    }
+  public func addItem(to existingCollection: VaultCollection) {
+    service.vaultCollectionEditionService.addItem(to: existingCollection)
+  }
 
-    func removeItem(from collection: VaultCollection) {
-        service.removeItem(from: collection)
-    }
+  public func removeItem(from collection: VaultCollection) {
+    service.vaultCollectionEditionService.removeItem(from: collection)
+  }
 
-        func cancel() {
-        service.cancel()
-    }
+  public func cancel() {
+    service.cancel()
+  }
 
-    func confirmCancel() {
-        service.confirmCancel()
-    }
+  public func confirmCancel() {
+    service.confirmCancel()
+  }
 
-        func itemDeleteBehavior() async throws -> ItemDeleteBehaviour {
-        try await service.itemDeleteBehavior()
-    }
+  public func itemDeleteBehavior() async throws -> ItemDeleteBehaviour {
+    try await service.itemDeleteBehavior()
+  }
 
-    func delete() async {
-        await service.delete()
-    }
+  public func delete() async {
+    await service.delete()
+  }
 
-        var canSave: Bool {
-        service.canSave
-    }
+  public var canSave: Bool {
+    service.canSave
+  }
 
-    func prepareForSaving() throws {
-        try service.prepareForSaving()
-    }
+  public func prepareForSaving() throws {
+    try service.prepareForSaving()
+  }
 
-    func save() {
-        service.save()
-    }
+  @MainActor
+  public func save() async {
+    await service.save()
+  }
 
-    func saveIfViewing() {
-        service.saveIfViewing()
-    }
+  public func saveIfViewing() {
+    service.saveIfViewing()
+  }
 
-        func reportDetailViewAppearance() {
-        service.reportDetailViewAppearance()
-    }
+  public func reportDetailViewAppearance() {
+    service.reportDetailViewAppearance()
+  }
 
-        var iconViewModel: VaultItemIconViewModel {
-        service.iconViewModel
-    }
+  public var iconViewModel: VaultItemIconViewModel {
+    service.iconViewModel
+  }
 }
-#endif

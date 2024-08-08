@@ -1,5 +1,5 @@
 import Foundation
 
 public enum Padding {
-    case pkcs7
+  case pkcs7
 }

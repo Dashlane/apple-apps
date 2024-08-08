@@ -1,47 +1,40 @@
+import DashTypes
 import Foundation
 import SwiftUI
-import DashTypes
 
-public extension View {
-        func reportPageAppearance(_ page: Page) -> some View {
-        return modifier(PageAppearanceReporterViewModifier(page: page))
-    }
+extension View {
+  public func reportPageAppearance(_ page: Page) -> some View {
+    return modifier(PageAppearanceReporterViewModifier(page: page))
+  }
 }
 
 private struct PageAppearanceReporterViewModifier: ViewModifier {
-    let page: Page
+  let page: Page
 
-    @GlobalEnvironment(\.report)
-    var globalReport
+  @Environment(\.report)
+  var report
 
-    @Environment(\.report)
-    var localReport
+  @Environment(\.isPreview)
+  var isPreview
 
-    var report: ReportAction? {
-        localReport ?? globalReport
+  func body(content: Content) -> some View {
+    content.onAppear {
+
+      if !ProcessInfo.processInfo.isPreview {
+        assert(report != nil, "The report action should be set")
+      }
+
+      report?(page)
     }
-
-    @Environment(\.isPreview)
-    var isPreview
-
-    func body(content: Content) -> some View {
-        content.onAppear {
-
-            if !ProcessInfo.processInfo.isPreview {
-                assert(report != nil, "The report action should be set")
-            }
-
-            report?(page)
-        }
-    }
+  }
 }
 
-private extension EnvironmentValues {
-    var isPreview: Bool {
-        #if DEBUG
-        return ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
-        #else
-        return false
-        #endif
-    }
+extension EnvironmentValues {
+  fileprivate var isPreview: Bool {
+    #if DEBUG
+      return ProcessInfo.processInfo.environment["XCODE_RUNNING_FOR_PREVIEWS"] == "1"
+    #else
+      return false
+    #endif
+  }
 }

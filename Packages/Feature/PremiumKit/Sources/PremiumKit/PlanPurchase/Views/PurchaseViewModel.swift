@@ -1,34 +1,31 @@
-import Foundation
-import CorePremium
-import SwiftUI
 import Combine
+import CorePremium
+import Foundation
+import SwiftUI
 
+@MainActor
 class PurchaseViewModel: ObservableObject {
-    enum State {
-        case loading
-        case empty
-        case fetched([PurchasePlan.Kind: PlanTier])
+  enum State {
+    case loading
+    case empty
+    case fetched([PurchasePlan.Kind: PlanTier])
+  }
+
+  @Published
+  var state: State = .loading
+
+  init(purchaseService: PurchaseService) {
+    Task {
+      do {
+        let groups = try await purchaseService.fetchPurchasePlanGroups()
+        state = groups.isEmpty ? .empty : .fetched(groups)
+      } catch {
+        state = .empty
+      }
     }
+  }
 
-    @Published
-    var state: State = .loading
-
-    private var subcription: AnyCancellable?
-
-    init(manager: DashlanePremiumManager) {
-        subcription = manager.fetchPurchasePlanGroupsForCurrentSession().map { groups in
-            groups.isEmpty ? .empty : .fetched(groups)
-        }
-        .replaceError(with: .empty)
-        .handleEvents(receiveOutput: { state in
-            guard case .empty = state else {
-                return
-            }
-        })
-        .assign(to: \.state, on: self)
-    }
-
-    init(initialState: State) {
-        state = initialState
-    }
+  init(initialState: State) {
+    state = initialState
+  }
 }

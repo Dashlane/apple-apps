@@ -2,7 +2,7 @@ import Foundation
 
 extension Definition {
 
-public enum `AuthenticatorPushType`: String, Encodable {
-case `otpCode` = "otp_code"
-}
+  public enum `AuthenticatorPushType`: String, Encodable, Sendable {
+    case `otpCode` = "otp_code"
+  }
 }

@@ -1,81 +1,91 @@
-import Foundation
 import Combine
-import DashTypes
+import CoreCategorizer
+import CoreKeychain
 import CoreNetworking
-import CoreSync
+import CorePersonalData
 import CoreSession
 import CoreSettings
-import DashlaneAppKit
-import DashlaneCrypto
-import Logger
-import DomainParser
-import CoreCategorizer
+import CoreSync
 import CoreUserTracking
-import SwiftTreats
-import CoreKeychain
+import DashTypes
+import DashlaneAPI
+import DomainParser
+import Foundation
 import IconLibrary
+import Logger
 import LoginKit
-import CorePersonalData
+import SwiftTreats
 import VaultKit
 
 public class AppServices: DependenciesContainer {
-    let applicationState: ApplicationStateService
-    let notificationService: NotificationService
-    let appAPIClient: AppAPIClient
-    let nonAuthenticatedUKIBasedWebService: LegacyWebService
-    let ipcService: PasswordAppCommunicator
-    let spiegelSettingsManager: SettingsManager
-    let keychainService: AuthenticationKeychainService
-    let rootLogger: Logger
-    let remoteLogger: KibanaLogger
-    let regionInformationService = try! RegionInformationService()
-    let domainParser: DomainParserProtocol = try! DomainParser.defaultConfiguration()
-    let linkedDomainService = LinkedDomainService()
-    let categorizer: Categorizer = try! Categorizer()
-    let activityReporter: ActivityReporterProtocol
-    let crashReporterService: CrashReporterService
-    let authenticatorAPIClient: AuthenticatorAPIClient
-    let sessionsContainer: SessionsContainerProtocol
-    let ratingService: RatingService
+  let applicationState: ApplicationStateService
+  let notificationService: NotificationService
+  let appAPIClient: AppAPIClient
+  let ipcService: PasswordAppCommunicator
+  let spiegelSettingsManager: SettingsManager
+  let keychainService: AuthenticationKeychainService
+  let rootLogger: Logger
+  let remoteLogger: KibanaLogger
+  let regionInformationService = try! RegionInformationService()
+  let domainParser: DomainParserProtocol = DomainParserContainer()
+  let categorizer: Categorizer = try! Categorizer()
+  let activityReporter: ActivityReporterProtocol
+  let crashReporterService: CrashReporterService
+  let sessionsContainer: SessionsContainerProtocol
+  let ratingService: RatingService
 
-    init() {
-        self.crashReporterService = CrashReporterService(target: .authenticator)
-        let localLogger = LocalLogger()
+  init() {
+    self.crashReporterService = CrashReporterService(target: .authenticator)
+    let localLogger = LocalLogger()
 
-        self.appAPIClient = try! AppAPIClient(platform: .authenticator)
-        self.nonAuthenticatedUKIBasedWebService = LegacyWebServiceImpl(platform: .authenticator, logger: localLogger[.network])
+    self.appAPIClient = try! AppAPIClient(platform: .authenticator)
 
-        remoteLogger = KibanaLogger(webService: nonAuthenticatedUKIBasedWebService,
-                                    outputLevel: .fatal,
-                                    origin: .authenticator)
-        self.rootLogger = [
-            localLogger,
-            remoteLogger
-        ]
-        activityReporter = UserTrackingAppActivityReporter(logger: rootLogger[.userTrackingLogs],
-                                                           component: .mainApp,
-                                                           installationId: UserTrackingAppActivityReporter.authenticatorAnalyticsInstallationId,
-                                                           localStorageURL: ApplicationGroup.authenticatorLogsLocalStoreURL,
-                                                           appAPIClient: appAPIClient,
-                                                           platform: .authenticatorIos)
+    remoteLogger = try! KibanaLogger(
+      apiClient: .init(platform: .authenticator),
+      outputLevel: .fatal,
+      origin: .authenticator)
+    self.rootLogger = [
+      localLogger,
+      remoteLogger,
+    ]
+    let cryptoProvider = SessionCryptoEngineProvider(logger: rootLogger)
 
-        sessionsContainer =  try! SessionsContainer(baseURL: ApplicationGroup.fiberSessionsURL,
-                                                    cryptoEngineProvider: SessionCryptoEngineProvider(logger: rootLogger),
-                                                    sessionStoreProvider: SessionStoreProvider())
+    activityReporter = try! UserTrackingAppActivityReporter(
+      logger: rootLogger[.userTrackingLogs],
+      component: .mainApp,
+      installationId: UserTrackingAppActivityReporter.authenticatorAnalyticsInstallationId,
+      localStorageURL: ApplicationGroup.authenticatorLogsLocalStoreURL,
+      cryptoEngineProvider: cryptoProvider,
+      appAPIClient: appAPIClient,
+      platform: .authenticatorIos
+    )
 
-        self.authenticatorAPIClient = AuthenticatorAPIClient(apiClient: appAPIClient)
-        self.notificationService = NotificationService(apiClient: authenticatorAPIClient, sessionsContainer: sessionsContainer, activityReporter: activityReporter)
+    sessionsContainer = try! SessionsContainer(
+      baseURL: ApplicationGroup.fiberSessionsURL,
+      cryptoEngineProvider: cryptoProvider,
+      sessionStoreProvider: SessionStoreProvider())
 
-        spiegelSettingsManager = SettingsManager(logger: rootLogger[.localSettings])
-        keychainService = AuthenticationKeychainService(cryptoEngine: CryptoCenter(from: CryptoRawConfig.keyBasedDefault.parametersHeader)!, keychainSettingsDataProvider: spiegelSettingsManager, accessGroup: ApplicationGroup.keychainAccessGroup)
-        self.applicationState = ApplicationStateService(sessionsContainer: sessionsContainer, keychainService: keychainService, logger: rootLogger[.localCommunication], settingsManager: spiegelSettingsManager)
-        ipcService = PasswordAppCommunicator(logger: rootLogger[.localCommunication], appState: applicationState)
-        ratingService = RatingService()
-    }
+    self.notificationService = NotificationService(
+      apiClient: appAPIClient, sessionsContainer: sessionsContainer,
+      activityReporter: activityReporter)
+
+    spiegelSettingsManager = SettingsManager(logger: rootLogger[.localSettings])
+    keychainService = AuthenticationKeychainService(
+      cryptoEngineProvider: cryptoProvider,
+      keychainSettingsDataProvider: spiegelSettingsManager,
+      accessGroup: ApplicationGroup.keychainAccessGroup)
+
+    self.applicationState = ApplicationStateService(
+      sessionsContainer: sessionsContainer, keychainService: keychainService,
+      logger: rootLogger[.localCommunication], settingsManager: spiegelSettingsManager)
+    ipcService = PasswordAppCommunicator(
+      logger: rootLogger[.localCommunication], appState: applicationState)
+    ratingService = RatingService()
+  }
 }
 
 extension AppServices {
-    var personalDataURLDecoder: PersonalDataURLDecoderProtocol {
-        PersonalDataURLDecoder(domainParser: domainParser, linkedDomainService: linkedDomainService)
-    }
+  var personalDataURLDecoder: PersonalDataURLDecoderProtocol {
+    PersonalDataURLDecoder(domainParser: domainParser)
+  }
 }

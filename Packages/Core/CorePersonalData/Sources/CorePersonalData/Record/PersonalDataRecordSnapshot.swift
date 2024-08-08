@@ -1,8 +1,8 @@
-import Foundation
 import DashTypes
+import Foundation
 
 public struct PersonalDataSnapshot: Identifiable, Hashable {
-    public let id: Identifier
+  public let id: Identifier
 
-        public var content: PersonalDataCollection
+  public var content: PersonalDataCollection
 }

@@ -1,25 +1,18 @@
+import CoreCrypto
+import CyrilKit
 import Foundation
 import SecurityDashboard
-import DashlaneCrypto
 
 public struct DataLeakInformationDecryptor: DataLeakInformationDataDecryptor {
-    let privateKey: SecKey
+  let privateKey: PrivateKey
 
-    public func decrypt(data: Data, using encryptedCipherKey: Data) -> Data? {
-                let decryptedKey = RSA.decrypt(data: encryptedCipherKey, withPrivateKey: privateKey, withAlgorithm: .rsaEncryptionOAEPSHA1)!
+  public func decrypt(_ data: Data, using encryptedCipherKey: Data) throws -> Data {
+    let decryptedKey = try RSA.Decrypter(privateKey: privateKey, variant: .oaep(.sha1))
+      .decrypt(encryptedCipherKey)
 
-        guard let center = CryptoCenter(from: data) else {
-            assertionFailure("Could not create center from data. Something might be wrong with data sent.")
-            return nil
-        }
-
-        do {
-            let decrypted = try center.decrypt(data: data, with: .key(decryptedKey))
-            return decrypted
-        } catch {
-            assertionFailure("Could not decrypt the data.")
-        }
-
-        return nil
-    }
+    let engine = try CoreCrypto.CryptoConfiguration(encryptedData: data)
+      .makeCryptoEngine(secret: .key(decryptedKey), fixedSalt: nil)
+    let decrypted = try engine.decrypt(data)
+    return decrypted
+  }
 }

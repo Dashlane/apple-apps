@@ -1,79 +1,108 @@
-import Foundation
-import CoreSession
+import CorePasswords
 import CorePersonalData
-import DashlaneAppKit
-import UIDelight
+import CorePremium
+import CoreSession
 import CoreUserTracking
-import SwiftTreats
 import DashTypes
+import Foundation
+import SwiftTreats
+import UIDelight
 
 final class ExportSecureArchiveViewModel: ObservableObject, SessionServicesInjecting {
 
-    enum State {
-        case main
-        case inProgress
+  let databaseDriver: DatabaseDriver
+  let reporter: ActivityReporterProtocol
+  let userSpacesService: UserSpacesService
+  let onlyExportPersonalSpace: Bool
+
+  @Published
+  var inProgress = false
+
+  @Published
+  var passwordInput: String = "" {
+    didSet {
+      if passwordInput.isEmpty {
+        passwordStrength = nil
+      } else {
+        passwordStrength = evaluator.evaluate(passwordInput)
+      }
     }
+  }
 
-    let session: Session
-    let databaseDriver: DatabaseDriver
-    let reporter: ActivityReporterProtocol
+  @Published
+  var displayInputError = false
 
-    @Published
-    var state = State.main
+  @Published
+  var activityItem: ActivityItem?
 
-    @Published
-    var passwordInput: String = ""
+  @Published
+  var exportedArchiveURL: URL?
 
-    @Published
-    var displayInputError = false
+  @Published
+  var showAlert = true
 
-    @Published
-    var activityItem: ActivityItem?
+  @Published
+  var passwordStrength: PasswordStrength?
 
-    @Published
-    var exportedArchiveURL: URL?
+  let evaluator: PasswordEvaluatorProtocol
 
-        init(session: Session, databaseDriver: DatabaseDriver, reporter: ActivityReporterProtocol) {
-        self.session = session
-        self.databaseDriver = databaseDriver
-        self.reporter = reporter
+  init(
+    databaseDriver: DatabaseDriver,
+    reporter: ActivityReporterProtocol,
+    userSpacesService: UserSpacesService,
+    onlyExportPersonalSpace: Bool = false,
+    evaluator: PasswordEvaluatorProtocol
+  ) {
+    self.databaseDriver = databaseDriver
+    self.reporter = reporter
+    self.userSpacesService = userSpacesService
+    self.onlyExportPersonalSpace = onlyExportPersonalSpace
+    self.evaluator = evaluator
+  }
+
+  private var isPasswordValid: Bool {
+    guard let passwordStrength else {
+      return false
     }
+    return passwordStrength >= PasswordStrength.somewhatGuessable
+  }
 
-        private var isPasswordValid: Bool {
-        guard let currentPassword = session.authenticationMethod.userMasterPassword else {
-            return true 
-        }
-        return currentPassword == passwordInput
+  func export() {
+    guard isPasswordValid else {
+      return
     }
+    inProgress = true
 
-    func export() {
-        if isPasswordValid {
-            state = .inProgress
+    Task.detached(priority: .utility) { [weak self] in
+      guard let self = self else { return }
 
-            Task.detached(priority: .utility) { [weak self] in
-                guard let self = self else { return }
+      let fileURL = FileManager.default.temporaryDirectory.appendingPathComponent(
+        "Dashlane Secure Archive.dash")
+      let exportURL = try self.databaseDriver.exportSecureArchive(
+        usingPassword: self.passwordInput, to: fileURL,
+        filter: { [weak self] record in
+          onlyExportPersonalSpace
+            ? self?.userSpacesService.configuration.virtualUserSpace(
+              forPersonalDataSpaceId: record.content[.spaceId]) == .personal : true
+        })
 
-                let fileURL = FileManager.default.temporaryDirectory.appendingPathComponent("Dashlane Secure Archive.dash")
-                let exportURL = try self.databaseDriver.exportSecureArchive(usingPassword: self.passwordInput, to: fileURL)
-
-                await MainActor.run {
-                    if Device.isMac {
-                        self.exportedArchiveURL = exportURL
-                    } else {
-                        self.activityItem = ActivityItem(items: exportURL)
-                    }
-                }
-
-                self.reporter.report(UserEvent.ExportData(backupFileType: .secureVault))
-            }
+      await MainActor.run {
+        if Device.isMac {
+          self.exportedArchiveURL = exportURL
         } else {
-            displayInputError = true
+          self.activityItem = ActivityItem(items: exportURL)
         }
-    }
+      }
 
-    static var mock: ExportSecureArchiveViewModel {
-        return ExportSecureArchiveViewModel(session: Session.mock,
-                                            databaseDriver: InMemoryDatabaseDriver(),
-                                            reporter: .fake)
+      self.reporter.report(UserEvent.ExportData(backupFileType: .secureVault))
     }
+  }
+
+  static var mock: ExportSecureArchiveViewModel {
+    return ExportSecureArchiveViewModel(
+      databaseDriver: InMemoryDatabaseDriver(),
+      reporter: .mock,
+      userSpacesService: .mock(),
+      evaluator: PasswordEvaluatorMock.mock())
+  }
 }

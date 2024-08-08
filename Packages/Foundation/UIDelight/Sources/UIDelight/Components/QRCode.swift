@@ -1,102 +1,94 @@
 #if canImport(UIKit)
-import Foundation
-import SwiftUI
-import Foundation
-import UIKit
-import CoreImage.CIFilterBuiltins
+  import Foundation
+  import SwiftUI
+  import Foundation
+  import UIKit
+  import CoreImage.CIFilterBuiltins
 
-public struct QRCode: View {
+  public struct QRCode: View {
+    @StateObject
+    private var model: QRCodeModel = .init()
 
     let url: String
-    let backgroundColor: UIColor
-    let color: UIColor
 
-    public init(url: String, backgroundColor: UIColor, color: UIColor) {
-        self.url = url
-        self.backgroundColor = backgroundColor
-        self.color = color
+    public init(url: String) {
+      self.url = url
     }
 
     public var body: some View {
-        QRView(url: url, backgroundColor: backgroundColor, color: color)
-    }
-}
-
-struct QRView: UIViewRepresentable {
-
-    let logo: UIImage?
-    let url: String
-    let backgroundColor: CIColor
-    let color: CIColor
-    let size: CGSize
-
-    init(url: String, logo: UIImage? = nil, backgroundColor: UIColor, color: UIColor, size: CGSize = .init(width: 250, height: 250)) {
-        self.logo = logo
-        self.url = url
-        self.backgroundColor = CIColor(color: backgroundColor)
-        self.color = CIColor(color: color)
-        self.size = size
-    }
-
-    func updateUIView(_ uiView: UIImageView, context: Context) {}
-
-    func makeUIView(context: Context) -> UIImageView {
-        return UIImageView.init(image: qrImage())
-    }
-
-    func qrImage() -> UIImage? {
-
-        guard var image  = createCIImage() else { return nil}
-
-                let scaleW = self.size.width/image.extent.size.width
-        let scaleH = self.size.height/image.extent.size.height
-        let transform = CGAffineTransform(scaleX: scaleW, y: scaleH)
-        image = image.transformed(by: transform)
-
-                if let logo = logo, let newImage =  addLogo(image: image, logo: logo) {
-           image = newImage
+      ZStack {
+        if let mask = model.mask {
+          Rectangle()
+            .fill(.foreground)
+            .mask(
+              mask
+                .resizable()
+                .interpolation(.none)
+                .aspectRatio(contentMode: .fit)
+            )
+            .frame(maxWidth: .infinity, maxHeight: .infinity)
+            .aspectRatio(contentMode: .fit)
         }
+      }
+      .task(id: url) {
+        model.generate(for: url)
+      }
+    }
+  }
 
-                if let colorImgae = updateColor(image: image) {
-            image = colorImgae
-        }
+  private class QRCodeModel: ObservableObject {
 
-        return UIImage(ciImage: image)
+    @Published
+    var mask: Image?
+
+    private func makeCIImage(url: String) -> CIImage? {
+      let filter = CIFilter.qrCodeGenerator()
+      filter.message = Data(url.utf8)
+      return filter.outputImage
     }
 
-    private func createCIImage() -> CIImage? {
-        let filter = CIFilter.qrCodeGenerator()
-        filter.message = Data(url.utf8)
-        return filter.outputImage
+    func generate(for url: String) {
+      let ciImage = CIImage.makeQRCodeImage(url: url, scale: 1)?
+        .colorUpdated(with: .white, background: .clear)
+      let ciContext = CIContext()
+
+      guard let ciImage,
+        let cgImage = ciContext.createCGImage(ciImage, from: ciImage.extent)
+      else {
+        mask = nil
+        return
+      }
+
+      mask = .init(decorative: cgImage, scale: 1)
     }
+  }
 
-    private func addLogo(image: CIImage, logo: UIImage) -> CIImage? {
-
-        let combinedFilter = CIFilter.sourceOverCompositing()
-        guard let logo = logo.cgImage else {
-            return image
-        }
-        let ciLogo = CIImage(cgImage: logo)
-        let centerTransform = CGAffineTransform(translationX: image.extent.midX - (ciLogo.extent.size.width / 2), y: image.extent.midY - (ciLogo.extent.size.height / 2))
-        combinedFilter.inputImage = ciLogo.transformed(by: centerTransform)
-        combinedFilter.backgroundImage = image
-        return combinedFilter.outputImage
+  extension CIImage {
+    public static func makeQRCodeImage(url: String, scale: CGFloat) -> CIImage? {
+      let qrCodeGenerator = CIFilter.qrCodeGenerator()
+      qrCodeGenerator.message = Data(url.utf8)
+      let ciImage = qrCodeGenerator.outputImage
+      let scaledImage = ciImage?.transformed(by: CGAffineTransform(scaleX: scale, y: scale))
+      return scaledImage
     }
+  }
 
-    private func updateColor(image: CIImage) -> CIImage? {
-        let colorFilter = CIFilter.falseColor()
-        colorFilter.inputImage = image
-        colorFilter.setValue(image, forKey: kCIInputImageKey)
-        colorFilter.setValue(color, forKey: "inputColor0")
-        colorFilter.setValue(backgroundColor, forKey: "inputColor1")
-        return colorFilter.outputImage
+  extension CIImage {
+    fileprivate func colorUpdated(with color: CIColor, background: CIColor) -> CIImage? {
+      let colorFilter = CIFilter.falseColor()
+      colorFilter.inputImage = self
+      colorFilter.setValue(color, forKey: "inputColor0")
+      colorFilter.setValue(background, forKey: "inputColor1")
+      return colorFilter.outputImage
     }
-}
+  }
 
-struct QRCode_Previews: PreviewProvider {
+  struct QRCode_Previews: PreviewProvider {
     static var previews: some View {
-        QRCode(url: "_", backgroundColor: .cyan, color: .green)
+      QRCode(url: "_")
+        .foregroundStyle(.cyan.gradient.shadow(.inner(radius: 6)))
+        .background(.yellow)
     }
-}
+  }
 
 #endif

@@ -1,80 +1,106 @@
-import Foundation
-import DashlaneAppKit
-import TOTPGenerator
-import CorePersonalData
-import Combine
-import DashTypes
 import AuthenticatorKit
+import Combine
+import CorePersonalData
+import CorePremium
 import CoreUserTracking
+import DashTypes
+import Foundation
+import TOTPGenerator
 import VaultKit
 
 class OTPDatabaseService: AuthenticatorDatabaseServiceProtocol {
-    let login: String?
+  let login: String?
 
-    private let vaultItemsService: VaultItemsServiceProtocol
-    private let activityReporter: ActivityReporterProtocol
+  private let vaultItemsStore: VaultItemsStore
+  private let vaultItemDatabase: VaultItemDatabaseProtocol
+  private let activityReporter: ActivityReporterProtocol
+  private let userSpacesService: UserSpacesService
 
-    @Published
-    public var codes: Set<OTPInfo> = []
+  @Published
+  public var codes: Set<OTPInfo> = []
 
-    @Published
-    var isLoaded = false
+  @Published
+  var isLoaded = false
 
-    var codesPublisher: AnyPublisher<Set<OTPInfo>, Never> {
-        $codes.eraseToAnyPublisher()
+  var codesPublisher: AnyPublisher<Set<OTPInfo>, Never> {
+    $codes.eraseToAnyPublisher()
+  }
+
+  var isLoadedPublisher: AnyPublisher<Bool, Never> {
+    $isLoaded.eraseToAnyPublisher()
+  }
+
+  init(
+    vaultItemsStore: VaultItemsStore,
+    vaultItemDatabase: VaultItemDatabaseProtocol,
+    activityReporter: ActivityReporterProtocol,
+    userSpacesService: UserSpacesService
+  ) {
+    self.vaultItemsStore = vaultItemsStore
+    self.vaultItemDatabase = vaultItemDatabase
+    self.activityReporter = activityReporter
+    self.userSpacesService = userSpacesService
+    self.login = nil
+    load()
+  }
+
+  func delete(_ item: OTPInfo) throws {
+    guard var credential = vaultItemsStore.credentials.first(where: { $0.id == item.id }) else {
+      return
+    }
+    credential.otpURL = nil
+    try _ = vaultItemDatabase.save(credential)
+    let logCredential = credential
+    activityReporter.report(
+      AnonymousEvent.RemoveTwoFactorAuthenticationFromCredential(
+        authenticatorIssuerId: item.authenticatorIssuerId,
+        domain: logCredential.hashedDomainForLogs(), space: logCredential.userTrackingSpace))
+    activityReporter.report(
+      AnonymousEvent.UpdateCredential(
+        action: .edit, domain: logCredential.hashedDomainForLogs(), fieldList: [.otpSecret],
+        space: logCredential.userTrackingSpace))
+  }
+
+  func add(_ items: [OTPInfo]) throws {
+    let credentials = items.map { info in
+      var credential = Credential(info)
+      credential.spaceId =
+        userSpacesService.configuration.defaultSpace(for: credential).personalDataId
+      return credential
     }
 
-    var isLoadedPublisher: AnyPublisher<Bool, Never> {
-        $isLoaded.eraseToAnyPublisher()
-    }
+    try _ = vaultItemDatabase.save(credentials)
+  }
 
-    init(vaultItemsService: VaultItemsServiceProtocol, activityReporter: ActivityReporterProtocol) {
-        self.vaultItemsService = vaultItemsService
-        self.activityReporter = activityReporter
-        self.login = nil
-        load()
-    }
+  func update(_ item: OTPInfo) throws {
+    let credential = vaultItemsStore.credentials.first { $0.id == item.id }
 
-    func delete(_ item: OTPInfo) throws {
-        guard var credential = vaultItemsService.credentials.first(where: { $0.id == item.id }) else {
-            return
-        }
-        credential.otpURL = nil
-        try _ = vaultItemsService.save(credential)
-        let logCredential = credential
-        activityReporter.report(AnonymousEvent.RemoveTwoFactorAuthenticationFromCredential(authenticatorIssuerId: item.authenticatorIssuerId, domain: logCredential.hashedDomainForLogs(), space: logCredential.userTrackingSpace))
-        activityReporter.report(AnonymousEvent.UpdateCredential(action: .edit, domain: logCredential.hashedDomainForLogs(), fieldList: [.otpSecret], space: logCredential.userTrackingSpace))
+    guard var credential = credential else {
+      return
     }
+    credential.otpURL = item.configuration.otpURL
+    try _ = vaultItemDatabase.save(credential)
+  }
 
-    func add(_ items: [OTPInfo]) throws {
-        let credentials = items.map(Credential.init)
-        try _ = vaultItemsService.save(credentials)
-    }
-
-    func update(_ item: OTPInfo) throws {
-        let credential = vaultItemsService.credentials.first { $0.id == item.id }
-
-        guard var credential = credential else {
-            return
-        }
-        credential.otpURL = item.configuration.otpURL
-        try _ = vaultItemsService.save(credential)
-    }
-
-    func load() {
-        vaultItemsService.$credentials.map {
-            defer { self.isLoaded = true }
-            return Set($0.compactMap {
-                 OTPInfo(credential: $0, supportDashlane2FA: true)
-            })
-        }.assign(to: &$codes)
-    }
+  func load() {
+    vaultItemsStore.$credentials.map {
+      defer { self.isLoaded = true }
+      return Set(
+        $0.compactMap {
+          OTPInfo(credential: $0, supportDashlane2FA: true)
+        })
+    }.assign(to: &$codes)
+  }
 
 }
 
 extension OTPDatabaseService {
-    static var mock: OTPDatabaseService {
-        .init(vaultItemsService: MockServicesContainer().vaultItemsService,
-              activityReporter: .fake)
-    }
+  static var mock: OTPDatabaseService {
+    .init(
+      vaultItemsStore: MockVaultKitServicesContainer().vaultItemsStore,
+      vaultItemDatabase: MockVaultKitServicesContainer().vaultItemDatabase,
+      activityReporter: .mock,
+      userSpacesService: .mock()
+    )
+  }
 }

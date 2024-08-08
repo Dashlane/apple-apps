@@ -5,14 +5,15 @@ internal enum StoryboardScene {
   internal enum LaunchScreen: StoryboardType {
     internal static let storyboardName = "LaunchScreen"
 
-    internal static let initialScene = InitialSceneType<UIKit.UIViewController>(storyboard: LaunchScreen.self)
+    internal static let initialScene = InitialSceneType<UIKit.UIViewController>(
+      storyboard: LaunchScreen.self)
   }
 }
 internal protocol StoryboardType {
   static var storyboardName: String { get }
 }
 
-internal extension StoryboardType {
+extension StoryboardType {
   static var storyboard: UIStoryboard {
     let name = self.storyboardName
     return UIStoryboard(name: name, bundle: BundleToken.bundle)
@@ -25,7 +26,10 @@ internal struct SceneType<T: UIViewController> {
 
   internal func instantiate() -> T {
     let identifier = self.identifier
-    guard let controller = storyboard.storyboard.instantiateViewController(withIdentifier: identifier) as? T else {
+    guard
+      let controller = storyboard.storyboard.instantiateViewController(withIdentifier: identifier)
+        as? T
+    else {
       fatalError("ViewController '\(identifier)' is not of the expected class \(T.self).")
     }
     return controller
@@ -49,7 +53,8 @@ internal struct InitialSceneType<T: UIViewController> {
 
   @available(iOS 13.0, tvOS 13.0, *)
   internal func instantiate(creator block: @escaping (NSCoder) -> T?) -> T {
-    guard let controller = storyboard.storyboard.instantiateInitialViewController(creator: block) else {
+    guard let controller = storyboard.storyboard.instantiateInitialViewController(creator: block)
+    else {
       fatalError("Storyboard \(storyboard.storyboardName) does not have an initial scene.")
     }
     return controller
@@ -59,9 +64,9 @@ internal struct InitialSceneType<T: UIViewController> {
 private final class BundleToken {
   static let bundle: Bundle = {
     #if SWIFT_PACKAGE
-    return Bundle.module
+      return Bundle.module
     #else
-    return Bundle(for: BundleToken.self)
+      return Bundle(for: BundleToken.self)
     #endif
   }()
 }

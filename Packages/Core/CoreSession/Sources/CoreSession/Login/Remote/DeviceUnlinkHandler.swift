@@ -1,99 +1,108 @@
-import Foundation
-import DashTypes
 import Combine
+import DashTypes
+import DashlaneAPI
+import Foundation
 
 public class DeviceUnlinker {
-    public enum UnlinkMode: Equatable {
-                case monobucket
-                case multiple(Int)
-    }
-    public typealias  LimitCompletion = (Result<Int?, Error>) -> Void
-    private(set) public var currentUserDevices: Set<DeviceListEntry> = []
-    private(set) public var accountDeviceLimit: Int?
-    public let login: Login
-    private let deviceService: DeviceServiceProtocol
-    private let currentDeviceId: String
-    private let limitProvider: (@escaping LimitCompletion) -> Void
-    public var mode: UnlinkMode? {
-        guard let limit = accountDeviceLimit, limit <= currentUserDevices.count, limit > 0 else {
-            return nil
-        }
-
-        switch limit {
-            case 1:
-                return .monobucket
-            default:
-                return .multiple(limit)
-        }
+  public enum UnlinkMode: Equatable {
+    case monobucket
+    case multiple(Int)
+  }
+  public typealias LimitCompletion = (Result<Int?, Error>) -> Void
+  private(set) public var currentUserDevices: Set<DeviceListEntry> = []
+  private(set) public var accountDeviceLimit: Int?
+  public let login: Login
+  private let userDeviceAPIClient: UserDeviceAPIClient
+  private let currentDeviceId: String
+  private let limitProvider: () async throws -> Int?
+  public var mode: UnlinkMode? {
+    guard let limit = accountDeviceLimit, limit <= currentUserDevices.count, limit > 0 else {
+      return nil
     }
 
-    init(session: RemoteLoginSession,
-         remoteLoginDelegate: RemoteLoginDelegate) {
-        self.login = session.login
-        self.limitProvider = { (completion: @escaping LimitCompletion) in
-            remoteLoginDelegate.deviceLimit(for: session.login, authentication: session.authentication, completion: completion)
-        }
-        self.currentDeviceId = session.authentication.deviceId
-        self.deviceService = remoteLoginDelegate.deviceService(for: login, authentication: session.authentication)
+    switch limit {
+    case 1:
+      return .monobucket
+    default:
+      return .multiple(limit)
+    }
+  }
+
+  init(session: RemoteLoginSession, userDeviceAPIClient: UserDeviceAPIClient) {
+    self.login = session.login
+    self.limitProvider = {
+      let status = try await userDeviceAPIClient.premium.getPremiumStatus()
+
+      let limitCapability = status.capabilities.first {
+        $0.capability == .devicesLimit
+      }
+
+      let syncCapability = status.capabilities.first {
+        $0.capability == .sync
+      }
+
+      if let limitCapability, limitCapability.enabled == true,
+        let limit = limitCapability.info?.limit
+      {
+        return limit
+      } else if let syncCapability, syncCapability.enabled == false {
+        return 1
+      } else {
+        return nil
+      }
     }
 
-    public init(login: Login,
-                currentDeviceId: String,
-                deviceService: DeviceServiceProtocol,
-                limitProvider: @escaping (LimitCompletion) -> Void) {
-        self.login = login
-        self.limitProvider = limitProvider
-        self.currentDeviceId = currentDeviceId
-        self.deviceService = deviceService
-    }
+    self.currentDeviceId = session.authentication.deviceId
+    self.userDeviceAPIClient = userDeviceAPIClient
+  }
 
-    public func unlink(_ devices: Set<DeviceListEntry>, completion: @escaping (Result<Void, Error>) -> Void) {
-        guard !devices.isEmpty else {
-            completion(.success)
-            return
-        }
-        deviceService.unlink(devices, completion: completion)
-    }
+  public init(
+    login: Login,
+    currentDeviceId: String,
+    userDeviceAPIClient: UserDeviceAPIClient,
+    limitProvider: @escaping () async throws -> Int?
+  ) {
+    self.login = login
+    self.limitProvider = limitProvider
+    self.currentDeviceId = currentDeviceId
+    self.userDeviceAPIClient = userDeviceAPIClient
+  }
 
-    public func refreshLimitAndDevices(_ completion: @escaping (Result<Void, Error>) -> Void) {
-        limitProvider { result in
-            switch result {
-                case let .success(limit):
-                    self.accountDeviceLimit = limit
-                    self.refreshDevices(completion)
-                case let .failure(error):
-                    completion(.failure(error))
-            }
-        }
+  public func unlink(_ devices: Set<DeviceListEntry>) async throws {
+    guard !devices.isEmpty else {
+      return
     }
+    try await userDeviceAPIClient.unlink(devices)
+  }
 
-    private func refreshDevices(_ completion: @escaping (Result<Void, Error>) -> Void) {
-        deviceService.list { [weak self] result in
-            guard let self = self else {
-                return
-            }
-            switch result {
-                case let .success(response):
-                    let devices = response
-                        .groupedByPairingGroup()
-                        .filterByDevice {
-                            $0.id != self.currentDeviceId 
-                        }
-                    self.currentUserDevices = Set(devices)
-                    completion(.success)
-                case let .failure(error):
-                    completion(.failure(error))
-            }
+  public func refreshLimitAndDevices() async throws {
+    self.accountDeviceLimit = try await limitProvider()
+    try await self.refreshDevices()
+  }
 
-        }
-    }
+  private func refreshDevices() async throws {
+    let devicesList = try await userDeviceAPIClient.devices.listDevices()
+    let devices =
+      devicesList
+      .groupedByPairingGroup()
+      .filterByDevice {
+        $0.id != self.currentDeviceId
+      }
+    self.currentUserDevices = Set(devices)
+  }
 }
-
 extension DeviceUnlinker {
-    @available(OSX 10.15, *)
-    public func refreshLimitAndDevices() -> Future<Void, Error> {
-        Future {
-            self.refreshLimitAndDevices($0)
+  @available(OSX 10.15, *)
+  public func refreshLimitAndDevices() -> Future<Void, Error> {
+    Future { completion in
+      Task {
+        do {
+          try await self.refreshLimitAndDevices()
+          completion(.success)
+        } catch {
+          completion(.failure(error))
         }
+      }
     }
+  }
 }

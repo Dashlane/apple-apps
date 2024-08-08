@@ -1,3 +1,3 @@
 import SwiftUI
 
-public protocol DetailField: View { }
+public protocol DetailField: View {}

@@ -1,41 +1,62 @@
-import Foundation
-import NotificationKit
-import DashTypes
-import CoreUserTracking
-import CorePremium
-import CoreSettings
-import CoreFeature
 import AutofillKit
 import Combine
+import CoreFeature
+import CorePremium
+import CoreSettings
+import CoreUserTracking
+import DashTypes
+import Foundation
+import LoginKit
+import NotificationKit
 
 extension SessionServicesContainer: HomeAnnouncementsServicesContainer {
 
-    var capabilityService: CorePremium.CapabilityServiceProtocol {
-        premiumService
-    }
+  var capabilityService: CorePremium.CapabilityServiceProtocol {
+    premiumStatusServicesSuit.capabilityService
+  }
 
-    var login: DashTypes.Login { session.login }
+  var premiumStatusProvider: CorePremium.PremiumStatusProvider {
+    premiumStatusServicesSuit.statusProvider
+  }
 
-        var announcementsActivityReporter: CoreUserTracking.ActivityReporterProtocol {
-        return activityReporter
-    }
+  var login: DashTypes.Login { session.login }
 
-        var announcementsPremiumService: CorePremium.PremiumServiceProtocol {
-        self.premiumService
-    }
+  var announcementsActivityReporter: CoreUserTracking.ActivityReporterProtocol {
+    return activityReporter
+  }
 
-    var deepLinkingService: NotificationKit.NotificationKitDeepLinkingServiceProtocol { self.appServices.deepLinkingService }
-    var brazeServiceProtocol: BrazeServiceProtocol { self.appServices.brazeService }
+  var productInfoUpdater: ProductInfoUpdater {
+    self.appStoreServicesSuit.productInfoUpdater
+  }
 
-    var userSettings: CoreSettings.UserSettings { spiegelUserSettings }
+  var deepLinkingService: NotificationKit.NotificationKitDeepLinkingServiceProtocol {
+    self.appServices.deepLinkingService
+  }
+  var brazeServiceProtocol: BrazeServiceProtocol { self.appServices.brazeService }
 
-    var notificationKitAutofillService: NotificationKit.NotificationKitAutofillServiceProtocol { autofillService }
+  var userSettings: CoreSettings.UserSettings { spiegelUserSettings }
 
-    var notificationKitFeatureService: CoreFeature.FeatureServiceProtocol { featureService }
+  var notificationKitAutofillService: NotificationKit.NotificationKitAutofillServiceProtocol {
+    autofillService
+  }
+
+  var notificationKitFeatureService: CoreFeature.FeatureServiceProtocol { featureService }
+
+  var notificationKitTeamSpaceService: CorePremium.UserSpacesService { userSpacesService }
+
+  var itemsLimitNotificationProvider: NotificationKit.ItemsLimitNotificationProvider {
+    vaultServicesSuit.vaultItemsLimitService
+  }
 }
 
 extension AutofillService: NotificationKit.NotificationKitAutofillServiceProtocol {
-    public var notificationKitActivationStatus: Published<AutofillActivationStatus>.Publisher {
-        $activationStatus
-    }
+  public var notificationKitActivationStatus: Published<AutofillActivationStatus>.Publisher {
+    $activationStatus
+  }
+}
+
+extension SecureLockProvider: NotificationKit.AuthenticatorPairingProviderProtocol {
+  public func isPairedWithAuthenticator() -> Bool {
+    return Authenticator.isOnDevice && secureLockMode() != .masterKey
+  }
 }

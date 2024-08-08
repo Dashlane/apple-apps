@@ -1,34 +1,35 @@
-import Foundation
 import Combine
-import DashTypes
 import CorePremium
+import DashTypes
+import Foundation
 
 final class ToolsViewModel: ObservableObject, SessionServicesInjecting {
 
-    private let toolsService: ToolsServiceProtocol
+  private let toolsService: ToolsServiceProtocol
 
-    @Published
-    private(set) var tools = [ToolInfo]()
+  @Published
+  private(set) var tools = [ToolInfo]()
 
-    private let didSelectItem: PassthroughSubject<ToolsItem, Never>
+  private let didSelectItem: PassthroughSubject<ToolsItem, Never>
 
-    init(toolsService: ToolsServiceProtocol,
-         premiumService: PremiumServiceProtocol,
-         didSelectItem: PassthroughSubject<ToolsItem, Never>) {
-        self.toolsService = toolsService
-        self.didSelectItem = didSelectItem
-        toolsService.displayableTools().assign(to: &$tools)
-    }
+  init(
+    toolsService: ToolsServiceProtocol,
+    didSelectItem: PassthroughSubject<ToolsItem, Never>
+  ) {
+    self.toolsService = toolsService
+    self.didSelectItem = didSelectItem
+    toolsService.displayableTools().assign(to: &$tools)
+  }
 
-    func didSelect(_ item: ToolsItem) {
-        didSelectItem.send(item)
-    }
+  func didSelect(_ item: ToolsItem) {
+    didSelectItem.send(item)
+  }
 }
 
 extension ToolsViewModel {
-    static var mock: ToolsViewModel {
-        ToolsViewModel(toolsService: .mock(),
-                       premiumService: PremiumServiceMock(),
-                       didSelectItem: PassthroughSubject<ToolsItem, Never>())
-    }
+  static var mock: ToolsViewModel {
+    ToolsViewModel(
+      toolsService: .mock(capabilities: []),
+      didSelectItem: PassthroughSubject<ToolsItem, Never>())
+  }
 }

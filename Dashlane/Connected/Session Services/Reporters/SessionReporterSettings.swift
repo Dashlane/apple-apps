@@ -1,13 +1,12 @@
-import Foundation
 import CoreSettings
-import DashlaneAppKit
+import Foundation
 
 enum ReporterSettingsKey: String, CaseIterable, LocalSettingsKey {
-        case lastStateReportDate
+  case lastStateReportDate
 
-    var type: Any.Type {
-        Date.self
-    }
+  var type: Any.Type {
+    Date.self
+  }
 }
 
 typealias ReporterSettings = KeyedSettings<ReporterSettingsKey>

@@ -3,7 +3,7 @@ import LoginKit
 import UIComponents
 
 extension LockLoadingView: NavigationBarStyleProvider {
-    public var navigationBarStyle: UIComponents.NavigationBarStyle {
-        return .transparent()
-    }
+  public var navigationBarStyle: UIComponents.NavigationBarStyle {
+    return .transparent()
+  }
 }

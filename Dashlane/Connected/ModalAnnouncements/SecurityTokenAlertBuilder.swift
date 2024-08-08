@@ -1,82 +1,57 @@
-import Foundation
-import DashTypes
-import CoreNetworking
-import UIKit
 import CoreLocalization
+import CoreNetworking
+import DashTypes
+import Foundation
+import UIKit
 
 struct SecurityTokenAlertBuilder {
 
-    struct FetchTokenError: Error {}
+  struct FetchTokenError: Error {}
 
-    let legacyWebService: LegacyWebService
-    let log: Logger
+  let log: Logger
 
-    func buildAlertController(with token: String?, completion: @escaping (UIViewController) -> Void) {
-        if let token = token, !token.isEmpty {
-            completion(alertController(for: token))
-            return
-        }
-        fetchSecurityToken(using: legacyWebService) { (tokenResult) in
-            do {
-                try completion(self.alertController(for: tokenResult.get()))
-            } catch {
-                self.log.error("Impossible to Fetch the Security Token (Verification Code)")
-            }
-        }
+  func buildAlertController(with token: String?, completion: @escaping (UIViewController?) -> Void)
+  {
+    if let token = token, !token.isEmpty {
+      completion(alertController(for: token))
+      return
     }
+    completion(nil)
+  }
 
-    func parse(data: Data) throws -> String {
+  func parse(data: Data) throws -> String {
 
-        guard let token = String(data: data, encoding: .utf8) else {
-            throw FetchTokenError()
-        }
-        return token
+    guard let token = String(data: data, encoding: .utf8) else {
+      throw FetchTokenError()
     }
+    return token
+  }
 
-    private func alertController(for token: String) -> UIViewController {
-        let title = CoreLocalization.L10n.Core.kwTokenPlaceholderText
+  private func alertController(for token: String) -> UIViewController {
+    let title = CoreLocalization.L10n.Core.kwTokenPlaceholderText
 
-        let fontSize: CGFloat = 42.0
+    let fontSize: CGFloat = 42.0
 
-                let attributedMessage = NSMutableAttributedString(string: "\n\n") 
+    let attributedMessage = NSMutableAttributedString(string: "\n\n")
 
-        let attributedToken = NSMutableAttributedString(string: token, attributes: [
-            .font: UIFont.systemFont(ofSize: fontSize),
-            .kern: 4.0
-        ])
-        attributedToken.addAttributes([.kern: 15.0],
-                                        range: NSRange(location: token.count/2-1, length: 1))
+    let attributedToken = NSMutableAttributedString(
+      string: token,
+      attributes: [
+        .font: UIFont.systemFont(ofSize: fontSize),
+        .kern: 4.0,
+      ])
+    attributedToken.addAttributes(
+      [.kern: 15.0],
+      range: NSRange(location: token.count / 2 - 1, length: 1))
 
-        attributedMessage.insert(attributedToken, at: 1)
+    attributedMessage.insert(attributedToken, at: 1)
 
-                let alert = UIAlertController(title: title, message: "", preferredStyle: .alert)
+    let alert = UIAlertController(title: title, message: "", preferredStyle: .alert)
 
-        alert.setValue(attributedMessage, forKey: "attributedMessage")
-        alert.addAction(UIAlertAction(title: CoreLocalization.L10n.Core.kwButtonOk, style: .default, handler: nil))
+    alert.setValue(attributedMessage, forKey: "attributedMessage")
+    alert.addAction(
+      UIAlertAction(title: CoreLocalization.L10n.Core.kwButtonOk, style: .default, handler: nil))
 
-        return alert
-    }
-
-    let fetchTokenEndpont = "_"
-    private func fetchSecurityToken(using legacyWebService: LegacyWebService, completion: @escaping (Result<String, Error>) -> Void) {
-        legacyWebService.sendRequest(to: fetchTokenEndpont,
-                                     using: .post,
-                                     params: [:],
-                                     contentFormat: .queryString,
-                                     needsAuthentication: true,
-                                     responseParser: SecurityTokenFetcherResponseParser(),
-                                     completion: completion)
-    }
-}
-
-private struct SecurityTokenFetcherResponseParser: ResponseParserProtocol {
-    struct Response: Decodable {
-        let content: Content
-    }
-    struct Content: Decodable {
-        let token: String
-    }
-    func parse(data: Data) throws -> String {
-        return try JSONDecoder().decode(Response.self, from: data).content.token
-    }
+    return alert
+  }
 }

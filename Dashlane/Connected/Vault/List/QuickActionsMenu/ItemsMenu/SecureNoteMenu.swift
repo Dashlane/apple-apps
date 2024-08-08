@@ -1,10 +1,10 @@
-import SwiftUI
 import CorePersonalData
+import SwiftUI
 
 struct SecureNoteMenu: View {
-    var secureNote: SecureNote
+  var secureNote: SecureNote
 
-    var body: some View {
-        EmptyView()
-    }
+  var body: some View {
+    EmptyView()
+  }
 }

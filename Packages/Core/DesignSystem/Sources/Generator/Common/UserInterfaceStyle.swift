@@ -1,6 +1,6 @@
 import Foundation
 
 enum UserInterfaceStyle: String {
-    case dark
-    case light
+  case dark
+  case light
 }

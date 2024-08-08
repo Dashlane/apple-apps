@@ -16,9 +16,9 @@ public enum Definition {
 
 }
 
-public protocol EventProtocol: Encodable {
-    static var isPriority: Bool { get }
+public protocol EventProtocol: Encodable, Sendable {
+  static var isPriority: Bool { get }
 }
-public protocol UserEventProtocol: EventProtocol { }
+public protocol UserEventProtocol: EventProtocol {}
 
-public protocol AnonymousEventProtocol: EventProtocol { }
+public protocol AnonymousEventProtocol: EventProtocol {}

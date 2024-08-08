@@ -1,8 +1,8 @@
-import Foundation
 import Combine
+import Foundation
 
-public extension Publisher where Failure == Never {
-        func mapToVoid() -> AnyPublisher<Void, Never> {
-        map { _ in Void() }.eraseToAnyPublisher()
-    }
+extension Publisher where Failure == Never {
+  public func mapToVoid() -> AnyPublisher<Void, Never> {
+    map { _ in Void() }.eraseToAnyPublisher()
+  }
 }

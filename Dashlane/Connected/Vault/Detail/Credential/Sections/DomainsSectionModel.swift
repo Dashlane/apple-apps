@@ -1,72 +1,68 @@
 import CorePersonalData
 import CoreUserTracking
-import DashlaneAppKit
 import DashTypes
 import Foundation
 import SwiftUI
 import VaultKit
 
-class DomainsSectionModel: DetailViewModelProtocol, SessionServicesInjecting, MockVaultConnectedInjecting {
+class DomainsSectionModel: DetailViewModelProtocol, SessionServicesInjecting,
+  MockVaultConnectedInjecting
+{
 
-    var canAddDomain: Bool {
-        !hasLimitedRights
+  var canAddDomain: Bool {
+    !hasLimitedRights
+  }
+
+  var addedDomains: [LinkedServices.AssociatedDomain] {
+    return item.linkedServices.associatedDomains
+  }
+
+  var linkedDomains: [String] {
+    guard let linkedDomains = item.url?.domain?.linkedDomains else {
+      return []
     }
+    return linkedDomains
+  }
 
-    var addedDomains: [LinkedServices.AssociatedDomain] {
-        return item.linkedServices.associatedDomains
-    }
+  var linkedDomainsCount: Int {
+    return linkedDomains.count + addedDomains.count
+  }
 
-    var linkedDomains: [String] {
-        guard let domain = item.url?.domain, let linkedDomains = linkedDomainsService[domain.name] else {
-            return []
-        }
-        return linkedDomains
-    }
+  let service: DetailService<Credential>
 
-    var linkedDomainsCount: Int {
-        return linkedDomains.count + addedDomains.count
-    }
+  private var activityReporter: ActivityReporterProtocol {
+    service.activityReporter
+  }
+  private var sharingService: SharedVaultHandling {
+    service.sharingService
+  }
 
-    let service: DetailService<Credential>
+  init(service: DetailService<Credential>) {
+    self.service = service
+  }
 
-    private var activityReporter: ActivityReporterProtocol {
-        service.activityReporter
-    }
-    private var sharingService: SharedVaultHandling {
-        service.sharingService
-    }
-
-    private let linkedDomainsService: LinkedDomainService
-
-    init(
-        service: DetailService<Credential>,
-        linkedDomainsService: LinkedDomainService
-    ) {
-        self.service = service
-        self.linkedDomainsService = linkedDomainsService
-    }
-
-    func logOpenUrl() {
-        let item = item
-        activityReporter.report(UserEvent.OpenExternalVaultItemLink(
-            domainType: .web,
-            itemId: item.userTrackingLogID,
-            itemType: .credential)
-        )
-        activityReporter.report(AnonymousEvent.OpenExternalVaultItemLink(
-            domain: item.hashedDomainForLogs(),
-            itemType: .credential)
-        )
-    }
+  func logOpenUrl() {
+    let item = item
+    activityReporter.report(
+      UserEvent.OpenExternalVaultItemLink(
+        domainType: .web,
+        itemId: item.userTrackingLogID,
+        itemType: .credential)
+    )
+    activityReporter.report(
+      AnonymousEvent.OpenExternalVaultItemLink(
+        domain: item.hashedDomainForLogs(),
+        itemType: .credential)
+    )
+  }
 }
 
 extension DomainsSectionModel {
-    static func mock(
-        service: DetailService<Credential>
-    ) -> DomainsSectionModel {
-        DomainsSectionModel(
-            service: service,
-            linkedDomainsService: LinkedDomainService()
-        )
-    }
+  static func mock(
+    service: DetailService<Credential>
+  ) -> DomainsSectionModel {
+    DomainsSectionModel(
+      service: service
+    )
+  }
 }

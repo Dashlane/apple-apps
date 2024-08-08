@@ -1,21 +1,27 @@
 import Foundation
 
 public protocol DerivationFunction {
-                            func derivateKey<V: ContiguousBytes, S: ContiguousBytes>(from password: V, salt: S) throws -> Data
+  var derivedKeyLength: Int { get }
+
+  func derivateKey<V: ContiguousBytes, S: ContiguousBytes>(from password: V, salt: S) throws -> Data
 }
 
 enum KeyDerivaterError: Error {
-    case stringToCStringFailed
-    case derivationFailed(internalError: Error)
+  case stringToCStringFailed
+  case derivationFailed(internalError: Error)
 }
 
-public extension DerivationFunction {
-    func derivateKey(from password: String, salt: Data) throws -> Data {
-        guard var passwordBytes = password.data(using: .utf8) else {
-            throw KeyDerivaterError.stringToCStringFailed
-        }
-
-                passwordBytes.removeLast()
-        return try derivateKey(from: passwordBytes, salt: salt)
+extension DerivationFunction {
+  public func derivateKey(from password: String, salt: Data, encoding: String.Encoding = .utf8)
+    throws -> Data
+  {
+    guard var passwordBytes = password.data(using: encoding) else {
+      throw KeyDerivaterError.stringToCStringFailed
     }
+
+    if passwordBytes.last == 0 {
+      passwordBytes.removeLast()
+    }
+    return try derivateKey(from: passwordBytes, salt: salt)
+  }
 }

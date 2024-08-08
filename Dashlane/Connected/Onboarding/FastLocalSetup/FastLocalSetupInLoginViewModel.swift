@@ -1,64 +1,67 @@
-import Foundation
 import Combine
-import DashlaneAppKit
-import SwiftTreats
-import LoginKit
 import CoreSettings
 import DashTypes
+import Foundation
+import LoginKit
+import SwiftTreats
 
-class FastLocalSetupInLoginViewModel: BiometrySettingsHandler, FastLocalSetupViewModel, SessionServicesInjecting, AccountCreationFlowDependenciesInjecting {
+class FastLocalSetupInLoginViewModel: BiometrySettingsHandler, FastLocalSetupViewModel,
+  SessionServicesInjecting, AccountCreationFlowDependenciesInjecting
+{
 
-    var shouldShowMasterPasswordReset: Bool {
-        return masterPassword != nil
+  var shouldShowMasterPasswordReset: Bool {
+    return masterPassword != nil
+  }
+
+  enum Completion {
+    case next
+  }
+
+  private let masterPassword: String?
+  private let lockService: LockService
+  private let masterPasswordResetService: ResetMasterPasswordService
+  private let userSettings: UserSettings
+  private let completion: (Completion) -> Void
+
+  init(
+    masterPassword: String?,
+    biometry: Biometry?,
+    lockService: LockService,
+    masterPasswordResetService: ResetMasterPasswordService,
+    userSettings: UserSettings,
+    completion: @escaping (FastLocalSetupInLoginViewModel.Completion) -> Void
+  ) {
+
+    self.masterPassword = masterPassword
+    self.lockService = lockService
+    self.masterPasswordResetService = masterPasswordResetService
+    self.userSettings = userSettings
+    self.completion = completion
+
+    super.init(biometry: biometry)
+  }
+
+  func next() {
+    if isBiometricsOn {
+      try? lockService.secureLockConfigurator.enableBiometry()
     }
 
-    enum Completion {
-        case next
+    if let masterPassword = masterPassword, isMasterPasswordResetOn {
+      try? masterPasswordResetService.activate(using: masterPassword)
     }
 
-    private let masterPassword: String?
-    private let lockService: LockService
-    private let masterPasswordResetService: ResetMasterPasswordService
-    private let userSettings: UserSettings
-    private let completion: (Completion) -> Void
-
-    init(masterPassword: String?,
-         biometry: Biometry?,
-         lockService: LockService,
-         masterPasswordResetService: ResetMasterPasswordService,
-         userSettings: UserSettings,
-         completion: @escaping (FastLocalSetupInLoginViewModel.Completion) -> Void) {
-
-        self.masterPassword = masterPassword
-        self.lockService = lockService
-        self.masterPasswordResetService = masterPasswordResetService
-        self.userSettings = userSettings
-        self.completion = completion
-
-        super.init(biometry: biometry)
+    if isRememberMasterPasswordOn {
+      try? lockService.secureLockConfigurator.enableRememberMasterPassword()
     }
 
-    func next() {
-        if isBiometricsOn {
-            try? lockService.secureLockConfigurator.enableBiometry()
-        }
+    completion(.next)
+  }
 
-        if let masterPassword = masterPassword, isMasterPasswordResetOn {
-            try? masterPasswordResetService.activate(using: masterPassword)
-        }
+  func back() {
+    assertionFailure("There is no back button in the login context.")
+  }
 
-        if isRememberMasterPasswordOn {
-            try? lockService.secureLockConfigurator.enableRememberMasterPassword()
-        }
-
-        completion(.next)
-    }
-
-    func back() {
-        assertionFailure("There is no back button in the login context.")
-    }
-
-    func markDisplay() {
-        userSettings[.fastLocalSetupForRemoteLoginDisplayed] = true
-    }
+  func markDisplay() {
+    userSettings[.fastLocalSetupForRemoteLoginDisplayed] = true
+  }
 }

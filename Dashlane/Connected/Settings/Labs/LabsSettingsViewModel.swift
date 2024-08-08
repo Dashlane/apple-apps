@@ -1,46 +1,55 @@
-import UIKit
-import DashTypes
+import Combine
 import CoreFeature
-import DashlaneAppKit
+import DashTypes
+import DashlaneAPI
+import UIKit
 
-final class LabsSettingsViewModel: ObservableObject, SessionServicesInjecting {
+@MainActor
+final class LabsSettingsViewModel: ObservableObject {
 
-    struct FeatureFlip: Identifiable {
-        let name: String
-        let isOn: Bool
+  let featureService: FeatureServiceProtocol
 
-        var id: String {
-            name
-        }
+  @Published
+  var experiences: [LabsExperience] = []
+
+  private var cancellables = Set<AnyCancellable>()
+
+  init(featureService: FeatureServiceProtocol) {
+    self.featureService = featureService
+
+    $experiences
+      .receive(on: DispatchQueue.main)
+      .sink { experiences in
+        featureService.save(experiences)
+      }
+      .store(in: &cancellables)
+  }
+
+  func fetch() async {
+    do {
+      experiences = try await featureService.labs()
+    } catch {
+      experiences = []
     }
+  }
 
-    let featureFlipService: FeatureServiceProtocol
-    let labsService: LabsService
-    let featureFlips: [FeatureFlip]
-
-    init(featureFlipService: FeatureServiceProtocol,
-         labsService: LabsService) {
-        self.featureFlipService = featureFlipService
-        self.labsService = labsService
-        self.featureFlips = labsService.eligibleFeatures
-            .filter { featureFlipService.isEnabled($0) } 
-            .sorted { (right, left) -> Bool in
-                return right.rawValue.lowercased() < left.rawValue.lowercased() 
-            }
-            .map { FeatureFlip(name: $0.rawValue, isOn: featureFlipService.isEnabled($0)) }
+  func goToFeedbackForm() {
+    if let url = URL(string: "_") {
+      UIApplication.shared.open(url, options: [:], completionHandler: nil)
     }
-
-    func goToFeedbackForm() {
-        if let url = URL(string: "_") {
-            UIApplication.shared.open(url, options: [:], completionHandler: nil)
-        }
-    }
+  }
 }
 
 extension LabsSettingsViewModel {
-
-    static var mock: LabsSettingsViewModel {
-        LabsSettingsViewModel(featureFlipService: .mock(),
-                              labsService: LabsService())
-    }
+  static var mock: LabsSettingsViewModel {
+    LabsSettingsViewModel(
+      featureService: .mock(labsExperiences: [
+        LabsExperience(
+          feature: .removeDuplicates,
+          displayName: "Remove duplicates",
+          displayDescription:
+            "Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.",
+          isOn: true)
+      ]))
+  }
 }

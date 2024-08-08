@@ -2,9 +2,9 @@ import Foundation
 
 extension Definition {
 
-public enum `MeasureType`: String, Encodable {
-case `cpu`
-case `duration`
-case `memory`
-}
+  public enum `MeasureType`: String, Encodable, Sendable {
+    case `cpu`
+    case `duration`
+    case `memory`
+  }
 }

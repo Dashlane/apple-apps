@@ -1,64 +1,43 @@
-#if os(iOS)
-import Logger
 import Foundation
+import Logger
+import SwiftTreats
 
-public extension DetailService {
-    func save() {
-        let itemDidChange = item != originalItem
-        let collectionsDidChange = allVaultCollections != originalAllVaultCollections
+extension DetailService {
 
-        guard mode.isAdding || itemDidChange || collectionsDidChange else {
-            mode = .viewing
-            return
-        }
-        do {
-            try prepareForSaving()
-
-            if itemDidChange {
-                try saveItem()
-            }
-
-            if collectionsDidChange {
-                try saveCollections()
-            }
-
-            eventPublisher.send(.save)
-        } catch {
-            logger[.personalData].error("Error on save", error: error)
-        }
+  @MainActor
+  public func save() async {
+    defer {
+      isSaving = false
     }
 
-    private func saveItem() throws {
-        let now = Date()
-        if mode.isAdding {
-            item.creationDatetime = now
-        }
-        item.userModificationDatetime = now
+    isSaving = true
 
-        let savedItem = try vaultItemsService.save(item)
-        logUpdate(of: savedItem)
-        originalItem = savedItem
-        item = savedItem
-    }
+    let itemDidChange = vaultItemEditionService.itemDidChange
+    let collectionsDidChange = vaultCollectionEditionService.collectionsDidChange()
 
-    private func saveCollections() throws {
-        let diff = allVaultCollections.difference(from: originalAllVaultCollections)
-        try diff.removals.forEach { removal in
-            guard case .remove(_, let collection, _) = removal else { return }
-            try vaultItemsService.delete(collection)
-        }
-        let savedCollections = try allVaultCollections.map { try vaultItemsService.save($0) }
-        logUpdate(originalCollections: originalItemCollections, collections: itemCollections)
-        originalAllVaultCollections = savedCollections
-        allVaultCollections = savedCollections
-        let itemCollections = savedCollections.filter(by: item).filter(spaceId: item.spaceId)
-        self.itemCollections = itemCollections
-        self.originalItemCollections = itemCollections
+    guard mode.isAdding || itemDidChange || collectionsDidChange else {
+      mode = .viewing
+      return
     }
+    do {
+      try prepareForSaving()
 
-    func saveIfViewing() {
-        guard mode == .viewing else { return }
-        save()
+      try vaultItemEditionService.save(
+        with: selectedUserSpace,
+        itemCollectionsCount: vaultCollectionEditionService.itemCollections.count
+      )
+      try await vaultCollectionEditionService.save()
+
+      eventPublisher.send(.save)
+    } catch {
+      logger[.personalData].error("Error on save", error: error)
     }
+  }
+
+  public func saveIfViewing() {
+    guard mode == .viewing else { return }
+    Task {
+      await save()
+    }
+  }
 }
-#endif

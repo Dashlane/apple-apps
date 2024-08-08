@@ -2,8 +2,8 @@ import Foundation
 
 extension Definition {
 
-public enum `FlowType`: String, Encodable {
-case `activation`
-case `deactivation`
-}
+  public enum `FlowType`: String, Encodable, Sendable {
+    case `activation`
+    case `deactivation`
+  }
 }

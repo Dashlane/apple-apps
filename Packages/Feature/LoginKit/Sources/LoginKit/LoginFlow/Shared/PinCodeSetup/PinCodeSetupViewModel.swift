@@ -1,30 +1,39 @@
-import Foundation
 import CoreKeychain
 import DashTypes
+import Foundation
 
 class PinCodeSetupViewModel: ObservableObject {
 
-    @Published
-    var choosePinCode: Bool = false
+  enum CompletionType {
+    case completed(String)
+    case cancel
+  }
 
-    private let login: Login
-    let completion: (String) -> Void
+  @Published
+  var choosePinCode: Bool = false
 
-    init(login: Login, completion: @escaping (String) -> Void) {
-        self.login = login
-        self.completion = completion
+  private let login: Login
+  let completion: (CompletionType) -> Void
+
+  init(login: Login, completion: @escaping (PinCodeSetupViewModel.CompletionType) -> Void) {
+    self.login = login
+    self.completion = completion
+  }
+
+  func makePinCodeViewModel() -> PinCodeSelectionViewModel {
+    PinCodeSelectionViewModel { [weak self] pin in
+      guard let self else { return }
+      self.choosePinCode = false
+      guard let pin else { return }
+      self.enablePincode(pin)
     }
+  }
 
-    func makePinCodeViewModel() -> PinCodeSelectionViewModel {
-        PinCodeSelectionViewModel { [weak self] pin in
-            guard let self else { return }
-            self.choosePinCode = false
-            guard let pin else { return }
-            self.enablePincode(pin)
-        }
-    }
+  func enablePincode(_ code: String) {
+    completion(.completed(code))
+  }
 
-    func enablePincode(_ code: String) {
-        completion(code)
-    }
+  func cancel() {
+    completion(.cancel)
+  }
 }

@@ -1,59 +1,62 @@
-import Foundation
-import DashlaneAPI
-import DashlaneCrypto
-import DashTypes
+import CoreCrypto
 import CoreSession
+import DashTypes
+import DashlaneAPI
+import Foundation
 
 @MainActor
-public class AccountRecoveryKeyLoginViewModel: ObservableObject, LoginKitServicesInjecting {
+public final class AccountRecoveryKeyLoginViewModel: ObservableObject, LoginKitServicesInjecting {
 
-    @Published
-    var showNoMatchError = false
+  @Published var showNoMatchError = false
 
-    @Published
-    var recoveryKey: String {
-        didSet {
-            showNoMatchError = false
-        }
+  var recoveryKey: String = "" {
+    didSet {
+      showNoMatchError = false
     }
+  }
 
-    private let login: String
-    private let appAPIClient: AppAPIClient
-    private let authTicket: AuthTicket
-    private let completion: @MainActor (CoreSession.MasterKey, AuthTicket) -> Void
-    let accountType: AccountType
+  let accountType: CoreSession.AccountType
 
-    public init(login: String,
-                appAPIClient: AppAPIClient,
-                authTicket: AuthTicket,
-                accountType: AccountType,
-                recoveryKey: String = "",
-                showNoMatchError: Bool = false,
-                completion: @escaping @MainActor (CoreSession.MasterKey, AuthTicket) -> Void) {
-        self.login = login
-        self.recoveryKey = recoveryKey
-        self.showNoMatchError = showNoMatchError
-        self.appAPIClient = appAPIClient
-        self.completion = completion
-        self.authTicket = authTicket
-        self.accountType = accountType
+  private let generateMasterKey: @MainActor (_ recoveryKey: String) async throws -> Void
+
+  public init(
+    accountType: CoreSession.AccountType,
+    generateMasterKey: @escaping @MainActor (_ recoveryKey: String) async throws -> Void
+  ) {
+    self.accountType = accountType
+    self.generateMasterKey = generateMasterKey
+  }
+
+  fileprivate init(
+    recoveryKey: String,
+    showNoMatchError: Bool,
+    accountType: CoreSession.AccountType,
+    generateMasterKey: @escaping @MainActor (_ recoveryKey: String) async throws -> Void
+  ) {
+    self.recoveryKey = recoveryKey
+    self.showNoMatchError = showNoMatchError
+    self.accountType = accountType
+    self.generateMasterKey = generateMasterKey
+  }
+
+  func validate() async {
+    do {
+      try await generateMasterKey(recoveryKey)
+    } catch {
+      showNoMatchError = true
     }
+  }
+}
 
-    func validate() async {
-        do {
-            let encryptedVaultKey = try await appAPIClient.accountrecovery.getEncryptedVaultKey(login: login, authTicket: authTicket.value).encryptedVaultKey
-            guard let cryptoCenter = CryptoCenter(from: encryptedVaultKey) else {
-                throw CryptoError.decryptionFailure
-            }
-            let cryptoEngine = SpecializedCryptoEngine(cryptoCenter: cryptoCenter, secret: .password(recoveryKey.replacingOccurrences(of: "-", with: "")))
-            guard let encryptedVaultKeyData = Data(base64Encoded: encryptedVaultKey),
-                  let decryptedData = cryptoEngine.decrypt(data: encryptedVaultKeyData) else {
-                throw CryptoError.decryptionFailure
-            }
-            let decryptedMasterKey = String(decoding: decryptedData, as: UTF8.self)
-            completion(.masterPassword(decryptedMasterKey), authTicket)
-        } catch {
-            showNoMatchError = true
-        }
-    }
+extension AccountRecoveryKeyLoginViewModel {
+  static func mock(recoveryKey: String = "", showNoMatchError: Bool = false)
+    -> AccountRecoveryKeyLoginViewModel
+  {
+    AccountRecoveryKeyLoginViewModel(
+      recoveryKey: recoveryKey,
+      showNoMatchError: showNoMatchError,
+      accountType: .invisibleMasterPassword,
+      generateMasterKey: { _ in }
+    )
+  }
 }

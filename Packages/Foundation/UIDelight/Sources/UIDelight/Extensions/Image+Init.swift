@@ -1,19 +1,13 @@
-import Foundation
-import SwiftUI
+#if canImport(UIKit)
+  import Foundation
+  import SwiftUI
+  import UIKit
 
-#if os(iOS)
-public typealias AppImage = UIImage
-#elseif os(macOS)
-import Cocoa
-public typealias AppImage = NSImage
-#endif
+  public typealias AppImage = UIImage
 
-extension Image {
+  extension Image {
     public init(appImage: AppImage) {
-        #if os(macOS)
-        self.init(nsImage: appImage)
-        #else
-        self.init(uiImage: appImage)
-        #endif
+      self.init(uiImage: appImage)
     }
-}
+  }
+#endif

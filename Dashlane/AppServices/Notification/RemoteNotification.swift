@@ -1,10 +1,12 @@
+import Combine
 import Foundation
 import UIKit
-import Combine
 
 struct RemoteNotification {
-    let userInfo: [AnyHashable: Any]
-    let completionHandler: (UIBackgroundFetchResult) -> Void
+  let userInfo: [AnyHashable: Any]
+  let completionHandler: (UIBackgroundFetchResult) -> Void
 }
 
-typealias RemoteNotificationSubscription = NotificationSubscription<RemoteNotification, RemoteNotification>
+typealias RemoteNotificationSubscription = NotificationSubscription<
+  RemoteNotification, RemoteNotification
+>

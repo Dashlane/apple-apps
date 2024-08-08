@@ -1,31 +1,20 @@
-import Foundation
 import DashTypes
+import Foundation
 
-public struct CredentialCategory: PersonalDataCodable, Equatable, Identifiable {
-    public static let contentType: PersonalDataContentType = .credentialCategory
+@PersonalData("AUTH_CATEGORY")
+public struct CredentialCategory: Equatable, Identifiable {
+  @CodingKey("categoryName")
+  public var name: String
 
-    enum CodingKeys: String, CodingKey {
-        case id
-        case anonId
-        case metadata
-        case name = "categoryName"
+  public init(id: Identifier = Identifier(), name: String = "") {
+    self.id = id
+    metadata = RecordMetadata(id: .temporary, contentType: Self.contentType)
+    self.name = name
+  }
+
+  public func validate() throws {
+    if name.isEmptyOrWhitespaces() {
+      throw ItemValidationError(invalidProperty: \CredentialCategory.name)
     }
-
-    public let id: Identifier
-    public var anonId: String
-    public let metadata: RecordMetadata
-    public var name: String
-
-    public init(id: Identifier = Identifier(), name: String = "") {
-        self.id = id
-        anonId = UUID().uuidString
-        metadata = RecordMetadata(id: .temporary, contentType: Self.contentType)
-        self.name = name
-    }
-
-    public func validate() throws {
-        if name.isEmptyOrWhitespaces() {
-            throw ItemValidationError(invalidProperty: \CredentialCategory.name)
-        }
-    }
+  }
 }

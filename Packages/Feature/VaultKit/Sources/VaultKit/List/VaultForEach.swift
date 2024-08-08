@@ -1,70 +1,85 @@
+import CoreLocalization
 import CorePersonalData
 import SwiftUI
 
 public struct VaultForEach<Header: View, Row: View>: View {
-        private struct Element: Identifiable {
-        let item: VaultItem
-        let section: DataSection
+  private struct Element: Identifiable {
+    let item: VaultItem
+    let section: DataSection
 
-        var id: String {
-            return section.id + String(section.isSuggestedItems) + item.id.rawValue
-        }
+    var id: String {
+      return section.id + String(section.isSuggestedItems) + item.id.rawValue
     }
+  }
 
-    public typealias DeleteHandler = (IndexSet, DataSection) -> Void
+  public typealias DeleteHandler = (VaultItem) -> Void
 
-    let sections: [DataSection]
-    let delete: DeleteHandler?
-    let header: (DataSection) -> Header
-    let row: (DataSection, VaultItem) -> Row
+  let sections: [DataSection]
+  let delete: DeleteHandler?
+  let header: (DataSection) -> Header
+  let row: (DataSection, VaultItem) -> Row
 
-    public init(
-        sections: [DataSection],
-        delete: DeleteHandler? = nil,
-        @ViewBuilder header: @escaping (DataSection) -> Header,
-        @ViewBuilder row: @escaping (DataSection, VaultItem) -> Row
-    ) {
-        self.sections = sections
-        self.delete = delete
-        self.header = header
-        self.row = row
-    }
+  public init(
+    sections: [DataSection],
+    delete: DeleteHandler? = nil,
+    @ViewBuilder header: @escaping (DataSection) -> Header,
+    @ViewBuilder row: @escaping (DataSection, VaultItem) -> Row
+  ) {
+    self.sections = sections
+    self.delete = delete
+    self.header = header
+    self.row = row
+  }
 
-    public var body: some View {
-        ForEach(sections) { section in
-            Section(header: header(section)) {
-                ForEach(section.items.lazy.map {
-                    Element(item: $0, section: section)
-                }) { element in
-                    self.row(section, element.item)
-                        .deleteDisabled(delete == nil)
+  public var body: some View {
+    ForEach(sections) { section in
+      Section(header: header(section)) {
+        ForEach(
+          section.items.lazy.map {
+            Element(item: $0, section: section)
+          }
+        ) { element in
+          self.row(section, element.item)
+            .swipeActions(edge: .trailing) {
+              if let delete {
+                Button {
+                  delete(element.item)
+                } label: {
+                  Label(L10n.Core.kwDelete, systemImage: "trash.fill")
+                    .labelStyle(.titleAndIcon)
                 }
-                .onDelete { indexSet in
-                    delete?(indexSet, section)
-                }
+                .tint(.ds.container.expressive.danger.catchy.idle)
+              }
             }
         }
+      }
     }
+  }
 }
 
-struct VaultForEach_Previews: PreviewProvider {
+extension Array where Element == DataSection {
+  fileprivate static var preview: [Element] = [
+    .init(
+      name: "Credentials",
+      items: [
+        Credential(login: "_", title: "Credential 1", password: "12345"),
+        Credential(login: "_", title: "Credential 2", password: "123456"),
+        Credential(login: "_", title: "Credential 3", password: "123457"),
+      ]
+    )
+  ]
+}
 
-    private static let sections: [DataSection] = [
-        .init(
-            items: [Credential(), Credential(), Credential(), Credential()]
-        )
-    ]
-
-    static var previews: some View {
-        List {
-            VaultForEach(
-                sections: sections,
-                header: { section in
-                    Text(section.name)
-                }, row: { _, item in
-                    Text(item.localizedTitle)
-                }
-            )
-        }
-    }
+#Preview {
+  List {
+    VaultForEach(
+      sections: .preview,
+      header: { section in
+        Text(section.name)
+      },
+      row: { _, item in
+        Text(item.localizedTitle)
+      }
+    )
+  }
 }

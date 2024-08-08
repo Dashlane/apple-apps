@@ -2,67 +2,117 @@ import Combine
 import CorePersonalData
 import CoreSettings
 import CoreUserTracking
-import DashlaneAppKit
 import DashTypes
 import Foundation
 import SwiftUI
+import TOTPGenerator
 import VaultKit
 
-class CredentialMainSectionModel: DetailViewModelProtocol, SessionServicesInjecting, MockVaultConnectedInjecting {
+class CredentialMainSectionModel: DetailViewModelProtocol, SessionServicesInjecting,
+  MockVaultConnectedInjecting
+{
 
-    @Binding
-    var code: String
+  @Published
+  var totpCode: String = ""
 
-    @Binding
-    var isAutoFillDemoModalShown: Bool
+  @Published
+  var totpProgress: CGFloat = 0
 
-    @Binding
-    var isAdd2FAFlowPresented: Bool
+  private let totpPeriod: CGFloat
+  private var totpTimer: Timer?
 
-    var emailsSuggestions: [String] {
-        vaultItemsService.emails.map(\.value).sorted()
+  @Binding
+  var isAutoFillDemoModalShown: Bool
+
+  @Binding
+  var isAdd2FAFlowPresented: Bool
+
+  var emailsSuggestions: [String] {
+    vaultItemsStore.emails.map(\.value).sorted()
+  }
+
+  let passwordAccessorySectionModelFactory: PasswordAccessorySectionModel.Factory
+
+  let service: DetailService<Credential>
+
+  private var sharingService: SharedVaultHandling {
+    service.sharingService
+  }
+
+  private var vaultItemsStore: VaultItemsStore {
+    service.vaultItemsStore
+  }
+
+  init(
+    service: DetailService<Credential>,
+    isAutoFillDemoModalShown: Binding<Bool>,
+    isAdd2FAFlowPresented: Binding<Bool>,
+    passwordAccessorySectionModelFactory: PasswordAccessorySectionModel.Factory
+  ) {
+    self.service = service
+    self._isAutoFillDemoModalShown = isAutoFillDemoModalShown
+    self._isAdd2FAFlowPresented = isAdd2FAFlowPresented
+    self.passwordAccessorySectionModelFactory = passwordAccessorySectionModelFactory
+
+    switch service.item.otpConfiguration?.type {
+    case .totp(let period):
+      totpPeriod = period
+    default:
+      totpPeriod = 30
+    }
+  }
+
+  func startTotpUpdates() {
+    guard item.otpConfiguration != nil else {
+      return
     }
 
-    let passwordAccessorySectionModelFactory: PasswordAccessorySectionModel.Factory
+    totpTimer?.invalidate()
 
-    let service: DetailService<Credential>
+    totpUpdate()
 
-    private var sharingService: SharedVaultHandling {
-        service.sharingService
+    totpTimer = Timer.scheduledTimer(withTimeInterval: 1.0, repeats: true) { _ in
+      DispatchQueue.main.async {
+        self.totpUpdate()
+      }
     }
+    totpTimer?.tolerance = 0.2
+  }
 
-    private var vaultItemsService: VaultItemsServiceProtocol {
-        service.vaultItemsService
+  private func totpUpdate() {
+    guard let info = item.otpConfiguration else {
+      totpTimer?.invalidate()
+      return
     }
+    let remainingTime = TOTPGenerator.timeRemaining(in: totpPeriod)
+    self.totpProgress = CGFloat((totpPeriod - remainingTime) / totpPeriod)
+    self.totpCode = TOTPGenerator.generate(
+      with: info.type, for: Date(), digits: info.digits, algorithm: info.algorithm,
+      secret: info.secret)
+  }
 
-    init(
-        service: DetailService<Credential>,
-        code: Binding<String>,
-        isAutoFillDemoModalShown: Binding<Bool>,
-        isAdd2FAFlowPresented: Binding<Bool>,
-        passwordAccessorySectionModelFactory: PasswordAccessorySectionModel.Factory
-    ) {
-        self.service = service
-        self._code = code
-        self._isAutoFillDemoModalShown = isAutoFillDemoModalShown
-        self._isAdd2FAFlowPresented = isAdd2FAFlowPresented
-        self.passwordAccessorySectionModelFactory = passwordAccessorySectionModelFactory
+}
+
+extension Credential {
+  var otpConfiguration: OTPConfiguration? {
+    guard let otpURL = otpURL else {
+      return nil
     }
+    return try? OTPConfiguration(otpURL: otpURL)
+  }
 }
 
 extension CredentialMainSectionModel {
-    static func mock(
-        service: DetailService<Credential>,
-        code: Binding<String>,
-        isAutoFillDemoModalShown: Binding<Bool>,
-        isAdd2FAFlowPresented: Binding<Bool>
-    ) -> CredentialMainSectionModel {
-        CredentialMainSectionModel(
-            service: service,
-            code: code,
-            isAutoFillDemoModalShown: isAutoFillDemoModalShown,
-            isAdd2FAFlowPresented: isAdd2FAFlowPresented,
-            passwordAccessorySectionModelFactory: .init { .mock(service: $0) }
-        )
-    }
+  static func mock(
+    service: DetailService<Credential>,
+    isAutoFillDemoModalShown: Binding<Bool>,
+    isAdd2FAFlowPresented: Binding<Bool>
+  ) -> CredentialMainSectionModel {
+    CredentialMainSectionModel(
+      service: service,
+      isAutoFillDemoModalShown: isAutoFillDemoModalShown,
+      isAdd2FAFlowPresented: isAdd2FAFlowPresented,
+      passwordAccessorySectionModelFactory: .init { .mock(service: $0) }
+    )
+  }
 }

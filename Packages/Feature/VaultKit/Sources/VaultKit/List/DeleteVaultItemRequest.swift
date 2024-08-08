@@ -1,44 +1,78 @@
-import SwiftUI
-import CoreSharing
 import CoreLocalization
+import CoreSharing
+import SwiftUI
 
 private struct DeleteItemAlertModifier: ViewModifier {
-    @Binding
-    var request: DeleteVaultItemRequest
+  @Binding
+  var request: DeleteVaultItemRequest
 
-    let deleteAction: () -> Void
-    func body(content: Content) -> some View {
-        content.alert(isPresented: self.$request.isPresented, content: {
-            switch request.itemDeleteBehavior {
-            case .normal:
-                return  Alert(title: Text(L10n.Core.kwDeleteConfirm),
-                              primaryButton: .default(Text(L10n.Core.kwYes), action: deleteAction),
-                              secondaryButton: .cancel(Text(L10n.Core.kwNo)))
-            case .canDeleteByLeavingItemGroup:
-                return Alert(title: Text(L10n.Core.kwDeleteConfirmAutoGroupTitle),
-                             message: Text(L10n.Core.kwDeleteConfirmAutoGroup),
-                             primaryButton: .default(Text(L10n.Core.kwYes), action: deleteAction),
-                             secondaryButton: .cancel(Text(L10n.Core.kwNo)))
-            case .cannotDeleteWhenNoOtherAdmin:
-                return Alert(title: Text(L10n.Core.kwDeleteConfirmOnlyAdminMsg),
-                             dismissButton: .cancel(Text(L10n.Core.kwButtonOk)))
-            case .cannotDeleteUserInvolvedInUserGroup:
-                return Alert(title: Text(L10n.Core.kwDeleteConfirmGroup),
-                             dismissButton: .cancel(Text(L10n.Core.kwButtonOk)))
-            }
+  let deleteAction: () -> Void
+  func body(content: Content) -> some View {
+    content
+      .alert(
+        request.itemDeleteBehavior.alertTitle,
+        isPresented: $request.isPresented,
+        actions: {
+          if request.itemDeleteBehavior.hasPrimaryButton {
+            Button(L10n.Core.kwYes, role: .destructive, action: deleteAction)
+          } else {
+            Button(L10n.Core.kwButtonOk) {}
+          }
+        },
+        message: {
+          if let message = request.itemDeleteBehavior.alertMessage {
+            Text(message)
+          }
         })
+  }
+}
+
+extension ItemDeleteBehaviour {
+  fileprivate var alertTitle: String {
+    switch self {
+    case .normal:
+      return L10n.Core.kwDeleteConfirm
+    case .canDeleteByLeavingItemGroup:
+      return L10n.Core.kwDeleteConfirmAutoGroupTitle
+    case .cannotDeleteWhenNoOtherAdmin:
+      return L10n.Core.kwDeleteConfirmOnlyAdminMsg
+    case .cannotDeleteUserInvolvedInUserGroup:
+      return L10n.Core.kwDeleteConfirmGroup
+    case .cannotDeleteItemInCollection:
+      return L10n.Core.KWVaultItem.Sharing.Deletion.Error.message
     }
+  }
+
+  fileprivate var alertMessage: String? {
+    switch self {
+    case .canDeleteByLeavingItemGroup:
+      return L10n.Core.kwDeleteConfirmAutoGroup
+    default:
+      return nil
+    }
+  }
+
+  fileprivate var hasPrimaryButton: Bool {
+    switch self {
+    case .canDeleteByLeavingItemGroup, .normal:
+      return true
+    default:
+      return false
+    }
+  }
 }
 
 public struct DeleteVaultItemRequest {
-    public var isPresented: Bool = false
-    public var itemDeleteBehavior: ItemDeleteBehaviour = .normal
+  public var isPresented: Bool = false
+  public var itemDeleteBehavior: ItemDeleteBehaviour = .normal
 
-    public init() { }
+  public init() {}
 }
 
 extension View {
-    public func deleteItemAlert(request: Binding<DeleteVaultItemRequest>, deleteAction: @escaping () -> Void) -> some View {
-        self.modifier(DeleteItemAlertModifier(request: request, deleteAction: deleteAction))
-    }
+  public func deleteItemAlert(
+    request: Binding<DeleteVaultItemRequest>, deleteAction: @escaping () -> Void
+  ) -> some View {
+    self.modifier(DeleteItemAlertModifier(request: request, deleteAction: deleteAction))
+  }
 }

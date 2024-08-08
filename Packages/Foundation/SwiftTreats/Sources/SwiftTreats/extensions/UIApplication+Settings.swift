@@ -1,14 +1,12 @@
-#if !os(macOS) && !EXTENSION
+#if canImport(UIKit)
+  import UIKit
 
-import UIKit
-
-public extension UIApplication {
-    func openSettings(completion: ((Bool) -> Void)? = nil) {
-        guard let url = URL(string: UIApplication.openSettingsURLString) else {
-            return
-        }
-        open(url, completionHandler: completion)
+  extension UIApplication {
+    public func openSettings(completion: ((Bool) -> Void)? = nil) {
+      guard let url = URL(string: UIApplication.openSettingsURLString) else {
+        return
+      }
+      open(url, completionHandler: completion)
     }
-}
-
+  }
 #endif

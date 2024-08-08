@@ -1,22 +1,30 @@
-import Foundation
+import CoreActivityLogs
 import CoreFeature
 import CorePersonalData
 import CorePremium
+import CoreSettings
 import CoreUserTracking
 import DashTypes
 import DocumentServices
-import CoreActivityLogs
+import Foundation
+import IconLibrary
 
 public protocol VaultKitServicesContainer: DependenciesContainer {
-    var database: ApplicationDatabase { get }
-    var documentStorageService: DocumentStorageService { get }
-    var logger: Logger { get }
-    var reporter: ActivityReporterProtocol { get }
-    var teamSpacesServiceProcotol: CorePremium.TeamSpacesServiceProtocol { get }
-    var vaultItemsService: VaultItemsService { get }
-    var vaultKitDeepLinkingService: DeepLinkingServiceProtocol { get }
-    var vaultKitFeatureService: FeatureServiceProtocol { get }
-    var vaultKitPremiumService: PremiumServiceProtocol { get }
-    var vaultKitTeamSpacesServiceProcotol: TeamSpacesServiceProtocol { get }
-    var activityLogsService: ActivityLogsServiceProtocol { get }
+  var database: ApplicationDatabase { get }
+  var documentStorageService: DocumentStorageService { get }
+  var logger: Logger { get }
+  var reporter: ActivityReporterProtocol { get }
+  var userSpacesService: UserSpacesService { get }
+  var vaultServicesSuit: VaultServicesSuit { get }
+  var vaultKitDeepLinkingService: DeepLinkingServiceProtocol { get }
+  var vaultKitFeatureService: FeatureServiceProtocol { get }
+  var capabilityService: CapabilityServiceProtocol { get }
+  var activityLogsService: ActivityLogsServiceProtocol { get }
+  var domainIconLibrary: DomainIconLibraryProtocol { get }
+  var vaultKitSharingServiceHandler: SharedVaultHandling { get }
+  var vaultKitSharingService: SharingServiceProtocol { get }
+  var vaultKitAccessControl: AccessControlProtocol { get }
+  var vaultKitPasteboardService: PasteboardServiceProtocol { get }
+  var vaultKitUserSettings: UserSettings { get }
+  var premiumStatusProvider: PremiumStatusProvider { get }
 }

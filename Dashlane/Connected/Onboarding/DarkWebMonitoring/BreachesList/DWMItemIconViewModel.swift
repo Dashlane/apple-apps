@@ -1,38 +1,33 @@
-import Foundation
-import CorePersonalData
 import Combine
-import DashlaneAppKit
+import CorePersonalData
+import DashTypes
+import Foundation
 import IconLibrary
 import VaultKit
-import DashTypes
 
 protocol DWMItemIconViewModelProtocol {
-    var url: PersonalDataURL { get }
-    func makeDomainIconViewModel(size: IconStyle.SizeType) -> DomainIconViewModel
+  var url: PersonalDataURL { get }
+  func makeDomainIconViewModel(size: IconSizeType) -> DomainIconViewModel
 }
 
 class DWMItemIconViewModel: DWMItemIconViewModelProtocol, SessionServicesInjecting {
-    let url: PersonalDataURL
-    let iconService: IconServiceProtocol
+  let url: PersonalDataURL
+  let iconService: IconServiceProtocol
 
-    init(url: PersonalDataURL, iconService: IconServiceProtocol) {
-        self.url = url
-        self.iconService = iconService
-    }
+  init(url: PersonalDataURL, iconService: IconServiceProtocol) {
+    self.url = url
+    self.iconService = iconService
+  }
 
-    func makeDomainIconViewModel(size: IconStyle.SizeType) -> DomainIconViewModel {
-        return DomainIconViewModel(personalDataURL: url, size: size, iconService: iconService)
-    }
+  func makeDomainIconViewModel(size: IconSizeType) -> DomainIconViewModel {
+    return DomainIconViewModel(personalDataURL: url, size: size, iconService: iconService)
+  }
 }
 
 struct FakeDWMItemIconViewModel: DWMItemIconViewModelProtocol {
-    let url: PersonalDataURL
+  let url: PersonalDataURL
 
-    init(url: PersonalDataURL) {
-        self.url = url
-    }
-
-    func makeDomainIconViewModel(size: IconStyle.SizeType) -> DomainIconViewModel {
-        return DomainIconViewModel(personalDataURL: url, size: size, iconService: IconServiceMock())
-    }
+  func makeDomainIconViewModel(size: IconSizeType) -> DomainIconViewModel {
+    return DomainIconViewModel(personalDataURL: url, size: size, iconService: IconServiceMock())
+  }
 }

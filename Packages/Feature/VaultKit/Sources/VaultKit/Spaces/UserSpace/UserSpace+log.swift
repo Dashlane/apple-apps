@@ -1,16 +1,16 @@
-import Foundation
-import CoreUserTracking
 import CorePremium
+import CoreUserTracking
+import Foundation
 
-public extension UserSpace {
-    var logItemSpace: Definition.Space {
-        switch self {
-        case .both:
-            return .all
-        case .personal:
-            return .personal
-        case .business:
-            return .professional
-        }
+extension UserSpace {
+  public var logItemSpace: Definition.Space {
+    switch self {
+    case .both:
+      return .all
+    case .personal:
+      return .personal
+    case .team:
+      return .professional
     }
+  }
 }

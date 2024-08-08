@@ -1,162 +1,187 @@
-import UIKit
+import AutofillKit
 import Combine
-import Foundation
-import DashTypes
-import DomainParser
-import CoreSession
-import CorePersonalData
+import CoreActivityLogs
 import CoreCategorizer
-import CorePremium
-import CoreSettings
-import CoreNetworking
 import CoreFeature
-import SwiftTreats
-import Logger
-import DashlaneAppKit
-import DashlaneAPI
-import IconLibrary
+import CoreNetworking
+import CorePersonalData
+import CorePremium
+import CoreSession
+import CoreSettings
 import CoreSync
 import CoreUserTracking
+import DashTypes
+import DashlaneAPI
+import DomainParser
+import Foundation
+import IconLibrary
+import Logger
+import LoginKit
+import SwiftTreats
+import UIKit
 import VaultKit
-import AutofillKit
-import CoreActivityLogs
 
 class SessionServicesContainer: DependenciesContainer {
-    
-    let session: Session
-    let database: ApplicationDatabase
-    let syncService: SyncService
-    let teamSpacesService: TeamSpacesService
-    let settings: LocalSettingsStore
-    let userSettings: UserSettings
-    let domainIconLibrary: DomainIconLibrary
-    let appServices: AppServicesContainer
-    let autofillService: AutofillService
-    let featureService: FeatureService
-    let authenticatedABTestingService: AuthenticatedABTestingService
-    let activityReporter: ActivityReporterProtocol
-    let premiumStatus: PremiumStatus?
-    let activityLogsService: ActivityLogsServiceProtocol
-    let userDeviceAPIClient: UserDeviceAPIClient
-    
-    private init(session: Session,
-                 appServices: AppServicesContainer,
-                 activityReporter: UserTrackingSessionActivityReporter,
-                 database: ApplicationDatabase,
-                 syncService: SyncService,
-                 featureService: FeatureService,
-                 authenticatedABTestingService: AuthenticatedABTestingService) throws {
-        AppServicesContainer.crashReporterService.associate(to: session.login)
-        appServices.remoteLogger.configureReportedDeviceId(session.configuration.keys.serverAuthentication.deviceId)
-        self.session = session
-        self.featureService = featureService
-        self.syncService = syncService
-        self.database = database
-        self.appServices = appServices
 
-        self.authenticatedABTestingService = authenticatedABTestingService
-        appServices.settingsManager.cryptoEngine = session.localCryptoEngine
-        self.activityReporter = activityReporter
-        self.settings =  try appServices.settingsManager.fetchOrCreateSettings(for: session.login, cryptoEngine: session.cryptoEngine)
-        self.userSettings = settings.keyed(by: UserSettingsKey.self)
+  let session: Session
+  let database: ApplicationDatabase
+  let syncService: SyncService
+  let settings: LocalSettingsStore
+  let syncedSettings: SyncedSettingsService
 
-        let cacheDirectory = try session.directory.storeURL(for: .icons, in: .current)
-        domainIconLibrary =  DomainIconLibrary(cacheDirectory: cacheDirectory ,
-                                               cryptoEngine: session.localCryptoEngine,
-                                               webservice: appServices.nonAuthenticatedUKIBasedWebService,
-                                               logger: appServices.rootLogger.sublogger(for: AppLoggerIdentifier.iconLibrary))
-        premiumStatus = settings.keyed(by: UserEncryptedSettingsKey.self).premiumStatus()
-        teamSpacesService = TeamSpacesService(status: premiumStatus)
-        autofillService = AutofillService(channel: .fromTachyon,
-                                          credentialsPublisher: database.itemsPublisher(for: Credential.self))
-        self.userDeviceAPIClient = appServices.appAPIClient.makeUserClient(sessionConfiguration: session.configuration)
-        self.activityLogsService = ActivityLogsService(spaces: premiumStatus?.spaces ?? [],
-                                                 featureService: featureService,
-                                                 apiClient: userDeviceAPIClient.teams.storeActivityLogs,
-                                                 cryptoEngine: session.localCryptoEngine,
-                                                 logger: appServices.rootLogger[.activityLogs])
-    }
-    
-    
-        static var shared: SessionServicesContainer?
-    static var sessionServicesSubscription: AnyCancellable?
-    
-    public static func load(for session: Session, appServices: AppServicesContainer) async throws -> SessionServicesContainer {
-        let userDeviceAPIClient = appServices.appAPIClient.makeUserClient(sessionConfiguration: session.configuration)
-        let userAPIClient = appServices.appAPIClient.makeUserClient(sessionConfiguration: session.configuration)
-        
-                
-        let featureService = await FeatureService(session: session,
-                                                  apiClient: userDeviceAPIClient.features,
-                                                  logger: appServices.rootLogger[.features])
-        
-        let activityReporter = UserTrackingSessionActivityReporter(appReporter: appServices.activityReporter, login: session.login, analyticsIdentifiers: session.configuration.keys.analyticsIds)
-        
-        let databaseDriver = try SQLiteDriver(session: session, target: .current)
-        
-        let fakeSharingHandler = TachyonSharingHandler() 
-        let sharingKeysStore = await SharingKeysStore(session: session, logger: appServices.rootLogger[.sync])
-        
-        let syncService = try await SyncService(apiClient: userAPIClient,
-                                                activityReporter: activityReporter,
-                                                sharingKeysStore: sharingKeysStore,
-                                                databaseDriver: databaseDriver,
-                                                sharingHandler: fakeSharingHandler,
-                                                session: session, syncLogger: appServices.rootLogger[.sync],
-                                                target: .current)
-        let applicationDatabase = await ApplicationDBStack(driver: databaseDriver,
-                                                           historyUserInfo: .init(session: session),
-                                                           codeDecoder: appServices.regionInformationService,
-                                                           personalDataURLDecoder: appServices.personalDataURLDecoder,
-                                                           logger: appServices.rootLogger[.personalData])
+  let userSettings: UserSettings
+  let domainIconLibrary: DomainIconLibrary
+  let appServices: AppServicesContainer
+  let autofillService: AutofillService
+  let featureService: FeatureService
+  let authenticatedABTestingService: AuthenticatedABTestingService
+  let activityReporter: ActivityReporterProtocol
+  let premiumStatusServicesSuit: PremiumStatusServicesSuit
+  let activityLogsService: ActivityLogsServiceProtocol
+  let userDeviceAPIClient: UserDeviceAPIClient
+  let vaultItemsLimitService: VaultItemsLimitService
 
-        let anonymousUserId = try applicationDatabase.fetch(with: Settings.id, type: Settings.self)?.anonymousUserId
-        assert(anonymousUserId != nil)
-        
-        let settings =  try appServices.settingsManager.fetchOrCreateSettings(for: session.login, cryptoEngine: session.cryptoEngine)
-        
-                let abTestingService = AuthenticatedABTestingService(logger: appServices.rootLogger[.abTesting],
-                                                             userEmail: session.login.email,
-                                                             authenticatedAPIClient: userAPIClient,
-                                                             isFirstLogin: false,
-                                                             testsToEvaluate: AuthenticatedABTestingService.testsToEvaluate,
-                                                             cache: settings.keyed(by: UserSettingsKey.self))
-        abTestingService.setupAuthenticatedTesting(fetchNewTests: false)
+  private init(
+    session: Session,
+    appServices: AppServicesContainer,
+    activityReporter: UserTrackingSessionActivityReporter,
+    database: ApplicationDatabase,
+    syncService: SyncService,
+    featureService: FeatureService,
+    authenticatedABTestingService: AuthenticatedABTestingService
+  ) throws {
+    AppServicesContainer.crashReporterService.associate(to: session.login)
+    appServices.remoteLogger.configureReportedDeviceId(
+      session.configuration.keys.serverAuthentication.deviceId)
+    self.session = session
+    self.featureService = featureService
+    self.syncService = syncService
+    self.database = database
+    self.appServices = appServices
+    self.syncedSettings = try SyncedSettingsService(
+      logger: appServices.rootLogger[.personalData],
+      database: database)
 
-        let container = try SessionServicesContainer(
-            session: session,
-            appServices: appServices,
-            activityReporter: activityReporter,
-            database: applicationDatabase,
-            syncService: syncService,
-            featureService: featureService,
-            authenticatedABTestingService: abTestingService
-        )
+    self.authenticatedABTestingService = authenticatedABTestingService
+    appServices.settingsManager.cryptoEngine = session.localCryptoEngine
+    self.activityReporter = activityReporter
+    self.settings = try appServices.settingsManager.fetchOrCreateSettings(
+      for: session.login, cryptoEngine: session.cryptoEngine)
+    self.userSettings = settings.keyed(by: UserSettingsKey.self)
 
-        await container.updateGlobalSessionEnvironment()
+    let cacheDirectory = try session.directory.storeURL(for: .icons, in: .current)
+    domainIconLibrary = DomainIconLibrary(
+      cacheDirectory: cacheDirectory,
+      inMemoryCacheSize: 100,
+      cryptoEngine: session.localCryptoEngine,
+      appAPIClient: appServices.appAPIClient,
+      logger: appServices.rootLogger.sublogger(for: AppLoggerIdentifier.iconLibrary))
+    premiumStatusServicesSuit = try PremiumStatusServicesSuit(
+      cache: SessionPremiumStatusCache(session: session))
 
-        shared = container
-        return container
-    }
+    let credentialsPublisher = database.itemsPublisher(for: Credential.self)
+      .filter(by: premiumStatusServicesSuit.userSpacesService.$configuration)
+    let passkeysPublisher = database.itemsPublisher(for: Passkey.self)
+      .filter(by: premiumStatusServicesSuit.userSpacesService.$configuration)
+    autofillService = AutofillService(
+      channel: .fromTachyon,
+      credentialsPublisher: credentialsPublisher,
+      passkeysPublisher: passkeysPublisher,
+      cryptoEngine: session.localCryptoEngine,
+      logger: appServices.rootLogger[.autofill],
+      snapshotFolderURL: try session.directory.storeURL(for: .galactica, in: .current))
 
-    @MainActor
-                            private func updateGlobalSessionEnvironment() {
-        let activeEnvironment = GlobalEnvironmentValues.pushNewEnvironment()
-        activeEnvironment.report = ReportAction(reporter: activityReporter)
-        activeEnvironment.enabledAtLoginFeatures = featureService.enabledFeatures()
-    }
-}
+    vaultItemsLimitService = VaultItemsLimitService(
+      capabilityService: premiumStatusServicesSuit.capabilityService,
+      credentialsPublisher: credentialsPublisher)
+    self.userDeviceAPIClient = appServices.appAPIClient.makeUserClient(
+      sessionConfiguration: session.configuration)
+    self.activityLogsService = ActivityLogsService(
+      team: premiumStatusServicesSuit.statusProvider.status.b2bStatus?.currentTeam,
+      featureService: featureService,
+      apiClient: userDeviceAPIClient.teams.storeActivityLogs,
+      cryptoEngine: session.localCryptoEngine,
+      logger: appServices.rootLogger[.activityLogs])
+    appServices.rootLogger[.session].info("Services ready")
+  }
 
-private extension UserEncryptedSettings {
-    func premiumStatus() -> PremiumStatus? {
-        guard let data: Data = self[.premiumStatusData] else {
-            return nil
-        }
-        
-        return try? PremiumStatusService.decoder.decode(PremiumStatus.self, from: data)
-    }
+  public static func load(for session: Session, appServices: AppServicesContainer) async throws
+    -> SessionServicesContainer
+  {
+    appServices.rootLogger[.session].info("Loading services...")
+
+    let userDeviceAPIClient = appServices.appAPIClient.makeUserClient(
+      sessionConfiguration: session.configuration)
+
+    let featureService = await FeatureService(
+      session: session,
+      apiClient: userDeviceAPIClient.features,
+      apiAppClient: appServices.appAPIClient.features,
+      logger: appServices.rootLogger[.features],
+      useCacheOnly: true)
+
+    let activityReporter = UserTrackingSessionActivityReporter(
+      appReporter: appServices.activityReporter, login: session.login,
+      analyticsIdentifiers: session.configuration.keys.analyticsIds)
+
+    let databaseDriver = try SQLiteDriver(session: session, target: .current)
+
+    let fakeSharingHandler = TachyonSharingHandler()
+    let sharingKeysStore = await SharingKeysStore(
+      session: session, logger: appServices.rootLogger[.sync])
+
+    let syncService = try await SyncService(
+      apiClient: userDeviceAPIClient,
+      activityReporter: activityReporter,
+      sharingKeysStore: sharingKeysStore,
+      databaseDriver: databaseDriver,
+      sharingHandler: fakeSharingHandler,
+      session: session,
+      loadingContext: .localLogin(),
+      syncLogger: appServices.rootLogger[.sync],
+      target: .current)
+    let applicationDatabase = await ApplicationDBStack(
+      driver: databaseDriver,
+      historyUserInfo: .init(session: session),
+      codeDecoder: appServices.regionInformationService,
+      personalDataURLDecoder: appServices.personalDataURLDecoder,
+      logger: appServices.rootLogger[.personalData])
+
+    let anonymousUserId = try applicationDatabase.fetch(with: Settings.id, type: Settings.self)?
+      .anonymousUserId
+    assert(anonymousUserId != nil)
+
+    let settings = try appServices.settingsManager.fetchOrCreateSettings(
+      for: session.login, cryptoEngine: session.cryptoEngine)
+
+    let abTestingService = await AuthenticatedABTestingService(
+      logger: appServices.rootLogger[.abTesting],
+      userEmail: session.login.email,
+      authenticatedAPIClient: userDeviceAPIClient,
+      fetchingStrategy: .onlyCache,
+      testsToEvaluate: AuthenticatedABTestingService.testsToEvaluate,
+      cache: settings.keyed(by: UserSettingsKey.self))
+
+    let container = try await SessionServicesContainer(
+      session: session,
+      appServices: appServices,
+      activityReporter: activityReporter,
+      database: applicationDatabase,
+      syncService: syncService,
+      featureService: featureService,
+      authenticatedABTestingService: abTestingService
+    )
+
+    return container
+  }
 }
 
 private class TachyonSharingHandler: SharingSyncHandler {
-    func sync(using sharingInfo: CoreSync.SharingSummaryInfo?) async { }
+  var manualSyncHandler: () -> Void = {}
+  func sync(using sharingInfo: CoreSync.SharingSummaryInfo?) async {}
 }
+
+extension VaultItemRow: SessionServicesInjecting {}
+extension VaultItemIconViewModel: SessionServicesInjecting {}
+extension AddCredentialViewModel: SessionServicesInjecting {}
+extension PhishingWarningViewModel: SessionServicesInjecting {}

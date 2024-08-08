@@ -1,51 +1,51 @@
-#if os(iOS)
-import SwiftUI
 import CoreLocalization
 import CorePersonalData
 import DesignSystem
+import SwiftUI
 import UIComponents
 
 public struct URLLinkDetailField: DetailField {
-    let personalDataURL: PersonalDataURL
+  @Environment(\.openURL) private var openURL
 
-    var canOpen: Bool {
-        personalDataURL.openableURL != nil
-    }
+  let personalDataURL: PersonalDataURL
 
-    var onOpenUrl: (() -> Void)
+  var canOpen: Bool {
+    personalDataURL.openableURL != nil
+  }
 
-    public init(personalDataURL: PersonalDataURL, onOpenUrl: @escaping () -> Void) {
-        self.personalDataURL = personalDataURL
-        self.onOpenUrl = onOpenUrl
-    }
+  var onOpenURL: (() -> Void)
 
-    @ViewBuilder
-    public var body: some View {
-        if canOpen {
-            personalDataURL.openableURL.map { url in
-                base.action(L10n.Core.kwGoToUrl) {
-                    self.onOpenUrl()
-                    #if !EXTENSION
-                    UIApplication.shared.open(url, options: [:], completionHandler: nil)
-                    #endif
-                }
+  public init(personalDataURL: PersonalDataURL, onOpenURL: @escaping () -> Void) {
+    self.personalDataURL = personalDataURL
+    self.onOpenURL = onOpenURL
+  }
+
+  @ViewBuilder
+  public var body: some View {
+    personalDataURL.openableURL.map { url in
+      DS.TextField(
+        "",
+        text: .constant("\(personalDataURL.displayedScheme)\(personalDataURL.displayDomain)"),
+        actions: {
+          if canOpen {
+            DS.FieldAction.Button(
+              L10n.Core.openWebsite,
+              image: .ds.action.openExternalLink.outlined
+            ) {
+              openURL(url)
+              onOpenURL()
             }
-        } else {
-            base
+          }
         }
+      )
+      .listRowInsets(.init(top: 0, leading: 20, bottom: 0, trailing: 20))
+      .editionDisabled()
+      .fieldLabelPersistencyDisabled()
+      .textColorHighlightingMode(.url)
     }
-
-    @ViewBuilder
-    var base: some View {
-        (Text(personalDataURL.displayedScheme) +
-            Text(personalDataURL.displayDomain)
-                .foregroundColor(.ds.text.brand.standard))
-    }
+  }
 }
 
-struct URLLinkDetailField_Previews: PreviewProvider {
-    static var previews: some View {
-        URLLinkDetailField(personalDataURL: PersonalDataURL(rawValue: "_"), onOpenUrl: {})
-    }
+#Preview {
+  URLLinkDetailField(personalDataURL: PersonalDataURL(rawValue: "_"), onOpenURL: {})
 }
-#endif

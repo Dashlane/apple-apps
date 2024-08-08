@@ -1,20 +1,20 @@
+import CorePersonalData
+import CorePremium
+import CoreUserTracking
 import Foundation
 import ImportKit
-import CoreUserTracking
-import CorePremium
-import CorePersonalData
 
 extension SessionServicesContainer: ImportKitServicesContainer {
-    var reporter: CoreUserTracking.ActivityReporterProtocol {
-        activityReporter.activityReporter
-    }
+  var reporter: CoreUserTracking.ActivityReporterProtocol {
+    activityReporter.activityReporter
+  }
 
-    var teamSpacesServiceProcotol: TeamSpacesServiceProtocol {
-        return self.teamSpacesService
-    }
+  var userSpacesServiceProcotol: CorePremium.UserSpacesService {
+    return self.userSpacesService
+  }
 
-    var personalDataURLDecoder: PersonalDataURLDecoderProtocol {
-        appServices.personalDataURLDecoder
-    }
+  var personalDataURLDecoder: PersonalDataURLDecoderProtocol {
+    appServices.personalDataURLDecoder
+  }
 
 }

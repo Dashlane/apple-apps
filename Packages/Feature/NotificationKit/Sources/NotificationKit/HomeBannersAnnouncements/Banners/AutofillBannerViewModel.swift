@@ -1,27 +1,32 @@
-import Foundation
+import AuthenticationServices
 import Combine
 import DashTypes
+import Foundation
 
 public class AutofillBannerViewModel: ObservableObject {
 
-    public enum Action {
-        case showAutofillDemo
-    }
+  public enum Action {
+    case showAutofillDemo
+  }
 
-    private let action: (Action) -> Void
+  private let action: (Action) -> Void
 
-    public init(action: @escaping (Action) -> Void) {
-        self.action = action
-    }
+  public init(action: @escaping (Action) -> Void) {
+    self.action = action
+  }
 
-    func showAutofillDemo() {
-        action(.showAutofillDemo)
+  func showAutofillDemo() {
+    if #available(iOS 17, *) {
+      ASSettingsHelper.openCredentialProviderAppSettings()
+    } else {
+      action(.showAutofillDemo)
     }
+  }
 
 }
 
-public extension AutofillBannerViewModel {
-    static var mock: AutofillBannerViewModel {
-        AutofillBannerViewModel(action: { _ in })
-    }
+extension AutofillBannerViewModel {
+  public static var mock: AutofillBannerViewModel {
+    AutofillBannerViewModel(action: { _ in })
+  }
 }

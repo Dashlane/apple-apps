@@ -9,36 +9,43 @@
   import SwiftUI
 #endif
 
-@available(*, deprecated, renamed: "ImageAsset.Image", message: "This typealias will be removed in SwiftGen 7.0")
+@available(
+  *, deprecated, renamed: "ImageAsset.Image",
+  message: "This typealias will be removed in SwiftGen 7.0"
+)
 internal typealias AssetImageTypeAlias = ImageAsset.Image
 
 internal enum Asset {
   internal static let sharingPaywall = ImageAsset(name: "SharingPaywall")
   internal static let checkmarkOutlinedStroke = ImageAsset(name: "checkmark-outlined (Stroke)")
   internal static let errorState = ImageAsset(name: "error_state")
+  internal static let frozen = ImageAsset(name: "frozen")
+  internal static let hotspot = ImageAsset(name: "hotspot")
+  internal static let paywallDiamond = ImageAsset(name: "paywall_diamond")
   internal static let paywallDwm = ImageAsset(name: "paywall_dwm")
   internal static let paywallSecurenotes = ImageAsset(name: "paywall_securenotes")
   internal static let paywallVpn = ImageAsset(name: "paywall_vpn")
+  internal static let pushIllustration = ImageAsset(name: "push_illustration")
 }
 internal struct ImageAsset {
   internal fileprivate(set) var name: String
 
   #if os(macOS)
-  internal typealias Image = NSImage
+    internal typealias Image = NSImage
   #elseif os(iOS) || os(tvOS) || os(watchOS)
-  internal typealias Image = UIImage
+    internal typealias Image = UIImage
   #endif
 
   @available(iOS 8.0, tvOS 9.0, watchOS 2.0, macOS 10.7, *)
   internal var image: Image {
     let bundle = BundleToken.bundle
     #if os(iOS) || os(tvOS)
-    let image = Image(named: name, in: bundle, compatibleWith: nil)
+      let image = Image(named: name, in: bundle, compatibleWith: nil)
     #elseif os(macOS)
-    let name = NSImage.Name(self.name)
-    let image = (bundle == .main) ? NSImage(named: name) : bundle.image(forResource: name)
+      let name = NSImage.Name(self.name)
+      let image = (bundle == .main) ? NSImage(named: name) : bundle.image(forResource: name)
     #elseif os(watchOS)
-    let image = Image(named: name)
+      let image = Image(named: name)
     #endif
     guard let result = image else {
       fatalError("Unable to load image asset named \(name).")
@@ -47,66 +54,68 @@ internal struct ImageAsset {
   }
 
   #if os(iOS) || os(tvOS)
-  @available(iOS 8.0, tvOS 9.0, *)
-  internal func image(compatibleWith traitCollection: UITraitCollection) -> Image {
-    let bundle = BundleToken.bundle
-    guard let result = Image(named: name, in: bundle, compatibleWith: traitCollection) else {
-      fatalError("Unable to load image asset named \(name).")
+    @available(iOS 8.0, tvOS 9.0, *)
+    internal func image(compatibleWith traitCollection: UITraitCollection) -> Image {
+      let bundle = BundleToken.bundle
+      guard let result = Image(named: name, in: bundle, compatibleWith: traitCollection) else {
+        fatalError("Unable to load image asset named \(name).")
+      }
+      return result
     }
-    return result
-  }
   #endif
 
   #if canImport(SwiftUI)
-  @available(iOS 13.0, tvOS 13.0, watchOS 6.0, macOS 10.15, *)
-  internal var swiftUIImage: SwiftUI.Image {
-    SwiftUI.Image(asset: self)
-  }
+    @available(iOS 13.0, tvOS 13.0, watchOS 6.0, macOS 10.15, *)
+    internal var swiftUIImage: SwiftUI.Image {
+      SwiftUI.Image(asset: self)
+    }
   #endif
 }
 
-internal extension ImageAsset.Image {
+extension ImageAsset.Image {
   @available(iOS 8.0, tvOS 9.0, watchOS 2.0, *)
-  @available(macOS, deprecated,
-    message: "This initializer is unsafe on macOS, please use the ImageAsset.image property")
+  @available(
+    macOS, deprecated,
+    message: "This initializer is unsafe on macOS, please use the ImageAsset.image property"
+  )
   convenience init?(asset: ImageAsset) {
     #if os(iOS) || os(tvOS)
-    let bundle = BundleToken.bundle
-    self.init(named: asset.name, in: bundle, compatibleWith: nil)
+      let bundle = BundleToken.bundle
+      self.init(named: asset.name, in: bundle, compatibleWith: nil)
     #elseif os(macOS)
-    self.init(named: NSImage.Name(asset.name))
+      self.init(named: NSImage.Name(asset.name))
     #elseif os(watchOS)
-    self.init(named: asset.name)
+      self.init(named: asset.name)
     #endif
   }
 }
 
 #if canImport(SwiftUI)
-@available(iOS 13.0, tvOS 13.0, watchOS 6.0, macOS 10.15, *)
-internal extension SwiftUI.Image {
-  init(asset: ImageAsset) {
-    let bundle = BundleToken.bundle
-    self.init(asset.name, bundle: bundle)
-  }
+  @available(iOS 13.0, tvOS 13.0, watchOS 6.0, macOS 10.15, *)
+  extension SwiftUI.Image {
+    init(asset: ImageAsset) {
+      let bundle = BundleToken.bundle
+      self.init(asset.name, bundle: bundle)
+    }
 
-  init(asset: ImageAsset, label: Text) {
-    let bundle = BundleToken.bundle
-    self.init(asset.name, bundle: bundle, label: label)
-  }
+    init(asset: ImageAsset, label: Text) {
+      let bundle = BundleToken.bundle
+      self.init(asset.name, bundle: bundle, label: label)
+    }
 
-  init(decorative asset: ImageAsset) {
-    let bundle = BundleToken.bundle
-    self.init(decorative: asset.name, bundle: bundle)
+    init(decorative asset: ImageAsset) {
+      let bundle = BundleToken.bundle
+      self.init(decorative: asset.name, bundle: bundle)
+    }
   }
-}
 #endif
 
 private final class BundleToken {
   static let bundle: Bundle = {
     #if SWIFT_PACKAGE
-    return Bundle.module
+      return Bundle.module
     #else
-    return Bundle(for: BundleToken.self)
+      return Bundle(for: BundleToken.self)
     #endif
   }()
 }

@@ -1,68 +1,65 @@
-import Foundation
 import Combine
 import DashTypes
-import CoreNetworking
+import DashlaneAPI
+import Foundation
 
 class SessionAuthenticatorService {
 
-    let apiClient: DeprecatedCustomAPIClient
-    let notificationService: NotificationService
-    let userDefaults: UserDefaults = UserDefaults.standard
-    let authenticationRequestPublisher = PassthroughSubject<AuthenticationRequest, Never>()
+  let apiClient: UserDeviceAPIClient
+  let notificationService: NotificationService
+  let userDefaults: UserDefaults = UserDefaults.standard
+  let authenticationRequestPublisher = PassthroughSubject<AuthenticationRequest, Never>()
 
-    var deviceToken: Data?
-    var cancellables = Set<AnyCancellable>()
+  var deviceToken: Data?
+  var cancellables = Set<AnyCancellable>()
 
-    init(apiClient: DeprecatedCustomAPIClient, notificationService: NotificationService) {
-        self.apiClient = apiClient
-        self.notificationService = notificationService
+  init(apiClient: UserDeviceAPIClient, notificationService: NotificationService) {
+    self.apiClient = apiClient
+    self.notificationService = notificationService
 
-        subscribeToDeviceTokenPublisher()
-    }
+    subscribeToDeviceTokenPublisher()
+  }
 
-    private func subscribeToDeviceTokenPublisher() {
-        self.notificationService.remoteDeviceTokenPublisher()
-            .map { Optional($0) }
-            .sink { [weak self] token in
-                self?.deviceToken = token
-                if token != nil {
-                    self?.registerDeviceToken()
-                }
-            }
-            .store(in: &cancellables)
-    }
-
-    func registerDeviceToken() {
-        guard let token = deviceToken else {
-            return
+  private func subscribeToDeviceTokenPublisher() {
+    self.notificationService.remoteDeviceTokenPublisher()
+      .map { Optional($0) }
+      .sink { [weak self] token in
+        self?.deviceToken = token
+        if token != nil {
+          self?.registerDeviceToken()
         }
-        Task {
-            let input = DeviceRegistrationRequest(id: token.map { String(format: "%02x", $0) }.joined())
-            let _: Empty? = try? await apiClient.sendRequest(to: "v1/authenticator/RegisterAuthenticator", using: .post, input: input)
-        }
-    }
+      }
+      .store(in: &cancellables)
+  }
 
-    func pendingRequests() async throws -> Set<AuthenticationRequest> {
-        struct Response: Decodable {
-            let requests: [AuthenticationRequest]
-        }
-        let pendingRequests: Response = try await apiClient.sendRequest(to: "v1/authenticator/GetPendingRequests", using: .post, input: Empty())
-        return Set(pendingRequests.requests)
+  func registerDeviceToken() {
+    guard let token = deviceToken else {
+      return
     }
+    Task {
+      let id = token.map { String(format: "%02x", $0) }.joined()
+      try await apiClient.authenticator.registerAuthenticator(
+        push: .init(pushId: id, platform: .apn))
+    }
+  }
+
+  func pendingRequests() async throws -> Set<AuthenticationRequest> {
+    return try await Set(apiClient.authenticator.getPendingRequests().requests)
+  }
 }
 
 struct DeviceRegistrationRequest: Encodable {
 
-    let push: PushInfo
+  let push: PushInfo
 
-    init(id: String) {
-        self.push = PushInfo(pushId: id, platform: "apn")
-    }
+  init(id: String) {
+    self.push = PushInfo(pushId: id, platform: "apn")
+  }
 }
 
 struct PushInfo: Encodable {
-    let pushId: String
-    let platform: String
+  let pushId: String
+  let platform: String
 }
 
 private struct Empty: Codable {}

@@ -1,59 +1,151 @@
-import Foundation
-import SwiftUI
+import CoreLocalization
+import CoreSharing
+import DashTypes
 import DesignSystem
+import Foundation
+import IconLibrary
+import SwiftUI
 
 struct SharingToolRecipientRow<Icon: View>: View {
-    let title: String
-    let subtitle: String?
-    let icon: Icon
-
-    init(title: String, subtitle: String?, @ViewBuilder icon: () -> Icon) {
-        self.title = title
-        self.subtitle = subtitle
-        self.icon = icon()
-    }
-
-    init(title: String, itemsCount: Int, @ViewBuilder icon: () -> Icon) {
-        self.title = title
-        self.subtitle = L10n.Localizable.rowItemsSubtitle(forCount: itemsCount)
-        self.icon = icon()
-    }
-
-    init(title: String, usersCount: Int, @ViewBuilder icon: () -> Icon) {
-        self.title = title
-        self.subtitle = L10n.Localizable.rowUsersSubtitle(forCount: usersCount)
-        self.icon = icon()
-    }
+  private enum Subtitle: View {
+    case status(SharingMemberStatus)
+    case other(String?)
 
     var body: some View {
-        HStack(spacing: 16) {
-            icon
-                .contactsIconStyle(isLarge: false)
-            VStack(alignment: .leading, spacing: 8) {
-                Text(title)
-                    .font(.body)
-                    .foregroundColor(.ds.text.neutral.catchy)
-                    .lineLimit(1)
-                if let subtitle = subtitle {
-                    Text(subtitle)
-                        .font(.caption)
-                        .foregroundColor(.ds.text.neutral.quiet)
-                }
-            }.frame(maxWidth: .infinity, alignment: .leading)
+      switch self {
+      case .status(let status) where status == .pending:
+        HStack(spacing: 2) {
+          Image.ds.time.outlined
+            .resizable()
+            .frame(width: 12, height: 12)
+
+          Text(CoreLocalization.L10n.Core.kwSharingInvitePending)
+            .lineLimit(1)
+            .textStyle(.body.helper.regular)
         }
-        .contentShape(Rectangle())
-        .padding(.vertical, 5)
+        .foregroundColor(.ds.text.warning.quiet)
+      case .other(let subtitle):
+        if let subtitle {
+          Text(subtitle)
+            .textStyle(.body.helper.regular)
+            .foregroundColor(.ds.text.neutral.quiet)
+        }
+      default:
+        EmptyView()
+      }
     }
+  }
+
+  private let title: String
+  private let subtitle: Subtitle
+  private let icon: Icon
+
+  init(title: String, status: SharingMemberStatus, @ViewBuilder icon: () -> Icon) {
+    self.title = title
+    self.subtitle = .status(status)
+    self.icon = icon()
+  }
+
+  init(
+    title: String, subtitle: String?, permission: SharingPermission? = nil,
+    @ViewBuilder icon: () -> Icon
+  ) {
+    self.title = title
+    if let permission {
+      self.subtitle = .other(L10n.Localizable.subtitle(for: permission))
+    } else {
+      self.subtitle = .other(subtitle)
+    }
+    self.icon = icon()
+  }
+
+  init(
+    title: String, itemsCount: Int, permission: SharingPermission? = nil,
+    @ViewBuilder icon: () -> Icon
+  ) {
+    self.title = title
+    self.subtitle = .other(
+      L10n.Localizable.rowItemsSubtitle(forCount: itemsCount, permission: permission))
+    self.icon = icon()
+  }
+
+  init(
+    title: String, usersCount: Int, permission: SharingPermission? = nil,
+    @ViewBuilder icon: () -> Icon
+  ) {
+    self.title = title
+    self.subtitle = .other(
+      L10n.Localizable.rowUsersSubtitle(forCount: usersCount, permission: permission))
+    self.icon = icon()
+  }
+
+  var body: some View {
+    HStack(spacing: 16) {
+      icon
+
+      VStack(alignment: .leading, spacing: 4) {
+        Text(title)
+          .textStyle(.body.standard.regular)
+          .lineLimit(1)
+
+        subtitle
+      }
+      .frame(maxWidth: .infinity, alignment: .leading)
+    }
+    .contentShape(Rectangle())
+  }
 }
 
-private extension L10n.Localizable {
-    static func rowItemsSubtitle(forCount count: Int) -> String {
-        let subtitle = count > 1 ? L10n.Localizable.kwItemsShared : L10n.Localizable.kwItemShared
-        let finalSubtitle = "\(count)" + " " + subtitle
-        return finalSubtitle
+extension L10n.Localizable {
+  fileprivate static func rowItemsSubtitle(forCount count: Int, permission: SharingPermission?)
+    -> String
+  {
+    switch permission {
+    case .none:
+      return rowItemsSubtitle(forCount: count)
+    case .some(let permission):
+      return "\(rowItemsSubtitle(forCount: count)) • \(subtitle(for: permission))"
     }
+  }
 
-    static func rowUsersSubtitle(forCount count: Int) -> String {
-        return count > 1 ? L10n.Localizable.kwSharingUsersPlural(count) : L10n.Localizable.kwSharingUsersSingular(count)
+  private static func rowItemsSubtitle(forCount count: Int) -> String {
+    let subtitle = count > 1 ? L10n.Localizable.kwItemsShared : L10n.Localizable.kwItemShared
+    let finalSubtitle = "\(count) \(subtitle)"
+    return finalSubtitle
+  }
+
+  fileprivate static func rowUsersSubtitle(forCount count: Int, permission: SharingPermission?)
+    -> String
+  {
+    switch permission {
+    case .none:
+      return rowUsersSubtitle(forCount: count)
+    case .some(let permission):
+      return "\(rowUsersSubtitle(forCount: count)) • \(subtitle(for: permission))"
     }
+  }
+
+  private static func rowUsersSubtitle(forCount count: Int) -> String {
+    return count > 1
+      ? L10n.Localizable.kwSharingUsersPlural(count)
+      : L10n.Localizable.kwSharingUsersSingular(count)
+  }
+
+  fileprivate static func subtitle(for permission: SharingPermission) -> String {
+    switch permission {
+    case .admin:
+      return CoreLocalization.L10n.Core.KWVaultItem.Collections.Sharing.Roles.Manager.title
+    case .limited:
+      return CoreLocalization.L10n.Core.KWVaultItem.Collections.Sharing.Roles.Editor.title
+    }
+  }
+}
+
+#Preview {
+  List {
+    SharingToolRecipientRow(title: "Preview", status: .accepted) {
+      Thumbnail.User.single(nil)
+        .controlSize(.small)
+    }
+  }
 }

@@ -2,8 +2,8 @@ import Foundation
 
 extension Definition {
 
-public enum `PlanBillingPeriod`: String, Encodable {
-case `monthly`
-case `yearly`
-}
+  public enum `PlanBillingPeriod`: String, Encodable, Sendable {
+    case `monthly`
+    case `yearly`
+  }
 }

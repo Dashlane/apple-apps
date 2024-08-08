@@ -1,18 +1,18 @@
-import Foundation
 import Combine
+import Foundation
 
 private class EphemeralSubscription {
-    var subscription: AnyCancellable?
+  var subscription: AnyCancellable?
 }
 
-public extension Publisher where Failure == Never {
-            func sinkOnce(receiveValue: @escaping (Output) -> Void) {
-        let ephemeralSubscription = EphemeralSubscription()
+extension Publisher where Failure == Never {
+  public func sinkOnce(receiveValue: @escaping (Output) -> Void) {
+    let ephemeralSubscription = EphemeralSubscription()
 
-        ephemeralSubscription.subscription = first().sink { value in
-            ephemeralSubscription.subscription?.cancel()
-            ephemeralSubscription.subscription = nil
-            receiveValue(value)
-        }
+    ephemeralSubscription.subscription = first().sink { value in
+      ephemeralSubscription.subscription?.cancel()
+      ephemeralSubscription.subscription = nil
+      receiveValue(value)
     }
+  }
 }

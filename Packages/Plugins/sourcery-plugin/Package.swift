@@ -7,17 +7,17 @@ let package = Package(
   ],
   targets: [
     .plugin(
-         name: "Sourcery - Generate",
-         capability: .command(
-           intent: .custom(
-             verb: "sourcery-generate",
-             description: "Generate code based on sourcery.yml"
-           ),
-           permissions: [
-             .writeToPackageDirectory(reason: "Source code generation")
-           ]
-         ),
-         path: "Plugins/SourceryPlugin"
-       )
+      name: "Sourcery - Generate",
+      capability: .command(
+        intent: .custom(
+          verb: "sourcery-generate",
+          description: "Generate code based on sourcery.yml"
+        ),
+        permissions: [
+          .writeToPackageDirectory(reason: "Source code generation")
+        ]
+      ),
+      path: "Plugins/SourceryPlugin"
+    )
   ]
 )

@@ -1,13 +1,11 @@
-#if !os(macOS)
+#if canImport(UIKit)
+  import UIKit
 
-import UIKit
-
-public struct FontScaling {
+  public struct FontScaling {
     public static func scaledFont(font: UIFont, textStyle: UIFont.TextStyle = .body) -> UIFont {
-        let fontMetrics = UIFontMetrics(forTextStyle: textStyle)
+      let fontMetrics = UIFontMetrics(forTextStyle: textStyle)
 
-        return fontMetrics.scaledFont(for: font)
+      return fontMetrics.scaledFont(for: font)
     }
-}
-
+  }
 #endif

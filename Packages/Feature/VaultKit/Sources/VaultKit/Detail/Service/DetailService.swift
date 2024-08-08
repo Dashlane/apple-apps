@@ -1,5 +1,5 @@
-#if os(iOS)
 import Combine
+import CoreActivityLogs
 import CorePersonalData
 import CorePremium
 import CoreSettings
@@ -12,300 +12,253 @@ import SwiftUI
 import UIComponents
 
 public enum DetailViewAlert: String, Identifiable {
-    case errorWhileDeletingFiles
-    public var id: String { rawValue }
+  case errorWhileDeletingFiles
+  public var id: String { rawValue }
 }
 
 public enum DetailServiceEvent {
-    case copy(_ success: Bool)
-    case save
-    case cancel
-    case domainsUpdate
+  case copy(_ success: Bool)
+  case save
+  case cancel
+  case domainsUpdate
 }
 
 public final class DetailService<Item: VaultItem & Equatable>: ObservableObject {
 
-        @Published
-    var item: Item {
-        didSet {
-            self.iconViewModel = iconViewModelProvider(item)
+  public var item: Item {
+    vaultItemEditionService.item
+  }
+
+  var itemCollections: [VaultCollection] {
+    vaultCollectionEditionService.itemCollections
+  }
+
+  @Published var iconViewModel: VaultItemIconViewModel
+
+  @Published var mode: DetailMode {
+    didSet {
+      reportDetailViewAppearance()
+    }
+  }
+
+  var canSave: Bool {
+    mode.isEditing && item.isValid
+  }
+
+  var availableUserSpaces: [UserSpace] {
+    return userSpacesService.configuration.availableSpaces.filter { $0 != .both }
+  }
+
+  var selectedUserSpace: UserSpace {
+    get {
+      userSpacesService.configuration.editingUserSpace(for: item)
+    }
+    set {
+      vaultItemEditionService.item.spaceId = newValue.personalDataId
+      vaultCollectionEditionService.updateCollectionsAfterSpaceChange()
+
+      if !mode.isEditing {
+        Task {
+          await save()
         }
+      }
+    }
+  }
+
+  var isUserSpaceForced: Bool {
+    return !userSpacesService.configuration.canSelectSpace(for: item)
+  }
+
+  var advertiseUserActivity: Bool {
+    return mode == .viewing && userSettings[.advancedSystemIntegration] == true
+  }
+
+  @Published var shouldReveal: Bool = false
+  @Published var hasSecureAccess: Bool = false
+  @Published var isLoading: Bool = false
+  @Published var isSaving: Bool = false {
+    didSet {
+      vaultCollectionEditionService.isSaving = isSaving
+    }
+  }
+
+  @Published var alert: DetailViewAlert?
+
+  let eventPublisher = PassthroughSubject<DetailServiceEvent, Never>()
+  var copyActionSubcription: AnyCancellable?
+  private var cancellables: Set<AnyCancellable> = []
+
+  let vaultItemEditionService: VaultItemEditionService<Item>
+  let vaultCollectionEditionService: VaultCollectionAndItemEditionService
+  public let vaultItemDatabase: VaultItemDatabaseProtocol
+  public let vaultItemsStore: VaultItemsStore
+  public let userSpacesService: UserSpacesService
+  public let sharingService: SharedVaultHandling
+  public let activityReporter: ActivityReporterProtocol
+  public let deepLinkService: DeepLinkingServiceProtocol
+  public let logger: Logger
+  public let accessControl: AccessControlProtocol
+  private let documentStorageService: DocumentStorageService
+  let itemPasteboard: ItemPasteboard
+  public let userSettings: UserSettings
+
+  private let iconViewModelProvider: (VaultItem) -> VaultItemIconViewModel
+  let attachmentSectionFactory: AttachmentsSectionViewModel.Factory
+
+  public init(
+    item: Item,
+    mode: DetailMode = .viewing,
+    vaultItemDatabase: VaultItemDatabaseProtocol,
+    vaultItemsStore: VaultItemsStore,
+    vaultCollectionDatabase: VaultCollectionDatabaseProtocol,
+    vaultCollectionsStore: VaultCollectionsStore,
+    sharingService: SharedVaultHandling,
+    userSpacesService: UserSpacesService,
+    documentStorageService: DocumentStorageService,
+    deepLinkService: DeepLinkingServiceProtocol,
+    activityReporter: ActivityReporterProtocol,
+    activityLogsService: ActivityLogsServiceProtocol,
+    iconViewModelProvider: @escaping (VaultItem) -> VaultItemIconViewModel,
+    attachmentSectionFactory: AttachmentsSectionViewModel.Factory,
+    logger: Logger,
+    accessControl: AccessControlProtocol,
+    userSettings: UserSettings,
+    pasteboardService: PasteboardServiceProtocol
+  ) {
+    self.documentStorageService = documentStorageService
+    self.iconViewModel = iconViewModelProvider(item)
+    self.mode = mode
+    self.vaultItemsStore = vaultItemsStore
+    self.vaultItemDatabase = vaultItemDatabase
+    self.iconViewModelProvider = iconViewModelProvider
+    self.attachmentSectionFactory = attachmentSectionFactory
+    self.userSpacesService = userSpacesService
+    self.sharingService = sharingService
+    self.deepLinkService = deepLinkService
+    self.userSettings = userSettings
+    self.logger = logger
+    self.accessControl = accessControl
+    self.activityReporter = activityReporter
+    self.shouldReveal = mode.isAdding
+    self.itemPasteboard = ItemPasteboard(
+      accessControl: accessControl, pasteboardService: pasteboardService)
+    self.vaultItemEditionService = .init(
+      item: item,
+      mode: .constant(mode),
+      vaultItemDatabase: vaultItemDatabase,
+      sharingService: sharingService,
+      userSpacesService: userSpacesService,
+      documentStorageService: documentStorageService,
+      activityReporter: activityReporter
+    )
+    self.vaultCollectionEditionService = .init(
+      item: item,
+      mode: .constant(mode),
+      vaultCollectionDatabase: vaultCollectionDatabase,
+      vaultCollectionsStore: vaultCollectionsStore,
+      activityReporter: activityReporter,
+      activityLogsService: activityLogsService
+    )
+
+    plugModeBindingOnEditionServices()
+    registerPublishers()
+
+    if mode.isAdding {
+      configureDefaultSpace()
+    }
+  }
+
+  private func plugModeBindingOnEditionServices() {
+    vaultItemEditionService.update(using: Binding(get: { self.mode }, set: { self.mode = $0 }))
+    vaultCollectionEditionService.update(
+      using: Binding(get: { self.mode }, set: { self.mode = $0 }),
+      itemPublisher: vaultItemEditionService.$item.eraseToAnyPublisher()
+    )
+  }
+
+  private func registerPublishers() {
+    vaultItemEditionService
+      .$item
+      .receive(on: DispatchQueue.main)
+      .sink { [weak self] item in
+        guard let self else { return }
+        self.iconViewModel = self.iconViewModelProvider(item)
+      }
+      .store(in: &cancellables)
+  }
+
+  public func cancel() {
+    if vaultItemEditionService.itemDidChange || vaultCollectionEditionService.collectionsDidChange()
+    {
+      eventPublisher.send(.cancel)
+    } else {
+      confirmCancel()
+    }
+  }
+
+  public func confirmCancel() {
+    defer {
+      mode = .viewing
+      vaultCollectionEditionService.updateUnusedCollections()
     }
 
-    @Published
-    var iconViewModel: VaultItemIconViewModel
+    vaultItemEditionService.cancel()
+    vaultCollectionEditionService.cancel()
+  }
 
-    var originalItem: Item
+  public func prepareForSaving() throws {
+    try vaultItemEditionService.prepareForSaving()
+    vaultCollectionEditionService.updateCollectionsSpaceIfForced()
+  }
 
-        @Published
-    var allVaultCollections: [VaultCollection]
-    var originalAllVaultCollections: [VaultCollection]
-
-        @Published
-    var itemCollections: [VaultCollection]
-    var originalItemCollections: [VaultCollection]
-
-                @Published
-    var unusedCollections: [VaultCollection]
-
-    @Published
-    var mode: DetailMode {
-        didSet {
-            reportDetailViewAppearance()
-        }
+  public func delete() async {
+    isLoading = true
+    do {
+      try await vaultItemEditionService.delete()
+      await MainActor.run {
+        self.isLoading = false
+        self.alert = nil
+        self.logDelete()
+      }
+    } catch {
+      await MainActor.run {
+        self.isLoading = false
+        self.alert = .errorWhileDeletingFiles
+      }
     }
+  }
 
-    @Published
-    var shouldReveal: Bool
+  func logDelete() {
+    let collections = itemCollections
+    let item = item
+    let space = selectedUserSpace
+    activityReporter.report(
+      UserEvent.UpdateVaultItem(
+        action: .delete,
+        collectionCount: collections.count,
+        itemId: item.userTrackingLogID,
+        itemType: item.vaultItemType,
+        space: space.logItemSpace
+      )
+    )
+  }
 
-    var canSave: Bool {
-        return mode == .updating || mode.isAdding && item.isValid
-    }
+  func itemDeleteBehavior() async throws -> ItemDeleteBehaviour {
+    try await vaultItemEditionService.itemDeleteBehavior()
+  }
 
-    var availableUserSpaces: [UserSpace] {
-        return teamSpacesService.availableSpaces.filter { $0 != .both}
-    }
+  func sharingPermission() -> SharingPermission? {
+    vaultItemEditionService.sharingPermission()
+  }
 
-    var selectedUserSpace: UserSpace {
-        get {
-            teamSpacesService.userSpace(for: item) ?? .personal
-        }
-        set {
-            item.spaceId = newValue.personalDataId
-            updateCollectionsAfterSpaceChange()
-
-            if !mode.isEditing { 
-                save()
-            }
-        }
-    }
-
-    var isUserSpaceForced: Bool {
-        guard let businessTeam = teamSpacesService.businessTeam(for: item) else {
-            return false
-        }
-
-        return businessTeam.shouldBeForced(on: item)
-    }
-
-    var advertiseUserActivity: Bool {
-        return mode == .viewing && userSettings[.advancedSystemIntegration] == true
-    }
-
-    @Published
-    var hasSecureAccess: Bool = false
-
-    @Published
-    var isLoading: Bool = false
-
-    @Published
-    var alert: DetailViewAlert?
-
-        let eventPublisher = PassthroughSubject<DetailServiceEvent, Never>()
-
-    private var itemChangeSubcription: AnyCancellable?
-    private var allCollectionsChangeSubscription: AnyCancellable?
-    private var collectionsChangeSubscription: AnyCancellable?
-    var copyActionSubcription: AnyCancellable?
-
-            public let vaultItemsService: VaultItemsServiceProtocol
-    public let teamSpacesService: TeamSpacesServiceProtocol
-    public let sharingService: SharedVaultHandling
-    public let activityReporter: ActivityReporterProtocol
-    public let deepLinkService: DeepLinkingServiceProtocol
-    public let logger: Logger
-    public let accessControl: AccessControlProtocol
-    private let documentStorageService: DocumentStorageService
-    let itemPasteboard: ItemPasteboard
-    public let userSettings: UserSettings
-
-        private let iconViewModelProvider: (VaultItem) -> VaultItemIconViewModel
-    let attachmentSectionFactory: AttachmentsSectionViewModel.Factory
-
-        public init(
-        item: Item,
-        mode: DetailMode = .viewing,
-        vaultItemsService: VaultItemsServiceProtocol,
-        sharingService: SharedVaultHandling,
-        teamSpacesService: TeamSpacesServiceProtocol,
-        documentStorageService: DocumentStorageService,
-        deepLinkService: DeepLinkingServiceProtocol,
-        activityReporter: ActivityReporterProtocol,
-        iconViewModelProvider: @escaping (VaultItem) -> VaultItemIconViewModel,
-        attachmentSectionFactory: AttachmentsSectionViewModel.Factory,
-        logger: Logger,
-        accessControl: AccessControlProtocol,
-        userSettings: UserSettings,
-        pasteboardService: PasteboardServiceProtocol
-    ) {
-        self.item = item
-        self.documentStorageService = documentStorageService
-        self.iconViewModel = iconViewModelProvider(item)
-        self.mode = mode
-        self.originalItem = item
-        let allVaultCollections = vaultItemsService.collections.sortedByName()
-        self.allVaultCollections = allVaultCollections
-        self.originalAllVaultCollections = allVaultCollections
-        let itemCollections = allVaultCollections.filter(by: item).filter(spaceId: item.spaceId)
-        self.itemCollections = itemCollections
-        self.originalItemCollections = itemCollections
-        self.unusedCollections = []
-        self.vaultItemsService = vaultItemsService
-        self.iconViewModelProvider = iconViewModelProvider
-        self.attachmentSectionFactory = attachmentSectionFactory
-        self.teamSpacesService = teamSpacesService
-        self.sharingService = sharingService
-        self.deepLinkService = deepLinkService
-        self.userSettings = userSettings
-        self.logger = logger
-        self.accessControl = accessControl
-        self.activityReporter = activityReporter
-        self.shouldReveal = mode.isAdding
-        self.itemPasteboard = ItemPasteboard(accessControl: accessControl, pasteboardService: pasteboardService)
-        if mode.isAdding {
-            self.configureDefaultTeamSpace()
-        }
-        self.setupUpdateOnDatabaseChange()
-        self.updateUnusedCollections()
-    }
-
-        private func setupUpdateOnDatabaseChange() {
-        itemChangeSubcription = vaultItemsService
-            .itemPublisher(for: item)
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] item in
-                if self?.mode == .viewing {
-                    self?.item = item
-                    self?.originalItem = item
-                }
-            }
-
-        allCollectionsChangeSubscription = vaultItemsService
-            .collectionsPublisher()
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] collections in
-                if self?.mode == .viewing {
-                    self?.updateAllCollections(with: collections)
-                }
-            }
-
-        collectionsChangeSubscription = vaultItemsService
-            .collectionsPublisher(for: item)
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] collections in
-                if self?.mode == .viewing {
-                    self?.updateCollections(with: collections)
-                }
-            }
-    }
-
-        public func cancel() {
-        if item != originalItem || allVaultCollections != originalAllVaultCollections {
-            eventPublisher.send(.cancel)
-        } else {
-            confirmCancel()
-        }
-    }
-
-    public func confirmCancel() {
-        defer {
-            mode = .viewing
-            updateUnusedCollections()
-        }
-
-        item = originalItem
-        allVaultCollections = originalAllVaultCollections
-        itemCollections = originalItemCollections
-    }
-
-        public func prepareForSaving() throws {
-        updateItemTeamSpaceIfForced()
-        updateCollectionsTeamSpaceIfForced()
-
-                if item.anonId.isEmpty {
-            item.anonId = UUID().uuidString
-        }
-    }
-
-    public func delete() async {
-        self.isLoading = true
-        do {
-            try await self.documentStorageService
-                .documentDeleteService
-                .deleteAllAttachments(of: self.item)
-            await MainActor.run {
-                self.isLoading = false
-                self.alert = nil
-                self.vaultItemsService.delete(self.item)
-                self.logDelete()
-            }
-        } catch {
-            await MainActor.run {
-                self.isLoading = false
-                self.alert = .errorWhileDeletingFiles
-            }
-        }
-    }
-
-    func logDelete() {
-        let collections = itemCollections
-        let item = item
-        let space = selectedUserSpace
-        activityReporter.report(
-            UserEvent.UpdateVaultItem(
-                action: .delete,
-                collectionCount: collections.count,
-                itemId: item.userTrackingLogID,
-                itemType: item.vaultItemType,
-                space: space.logItemSpace
-            )
-        )
-    }
-
-    func itemDeleteBehavior() async throws -> ItemDeleteBehaviour {
-        return try await sharingService.deleteBehaviour(for: item)
-    }
-
-    func sharingPermission() -> SharingPermission? {
-        return sharingService.permission(for: item)
-    }
-
-    func hasLimitedRights() -> Bool {
-        return sharingPermission() == .limited
-    }
+  func hasLimitedRights() -> Bool {
+    vaultItemEditionService.hasLimitedRights()
+  }
 }
 
-private extension DetailService {
-    func configureDefaultTeamSpace() {
-        if !updateItemTeamSpaceIfForced() {
-            item.spaceId = teamSpacesService.selectedSpace.personalDataId
-            updateCollectionsAfterSpaceChange()
-        }
-    }
-
-            @discardableResult
-    func updateItemTeamSpaceIfForced() -> Bool {
-        guard let businessTeam = teamSpacesService.availableBusinessTeam, businessTeam.shouldBeForced(on: item) else {
-            return false
-        }
-        item.spaceId = businessTeam.teamId
-
-        return true
-    }
-
-                func updateCollectionsTeamSpaceIfForced() {
-        guard let businessTeam = teamSpacesService.availableBusinessTeam, businessTeam.shouldBeForced(on: item) else {
-            return
-        }
-
-        for index in 0..<allVaultCollections.count {
-            guard allVaultCollections[index].contains(item) else { continue }
-            if allVaultCollections[index].items.count == 1 {
-                allVaultCollections[index].spaceId = businessTeam.teamId
-            } else {
-                allVaultCollections[index].remove(item)
-            }
-        }
-    }
+extension DetailService {
+  fileprivate func configureDefaultSpace() {
+    vaultItemEditionService.configureDefaultSpace()
+    vaultCollectionEditionService.updateCollectionsAfterSpaceChange()
+  }
 }
-#endif

@@ -1,15 +1,20 @@
+import AsyncAlgorithms
+import Combine
 import UIKit
 
 class FiberUIApplication: UIApplication {
-    static let didReceiveTouchNotification = NSNotification.Name(rawValue: "didReceiveTouchNotification")
 
-        override func sendEvent(_ event: UIEvent) {
-        super.sendEvent(event)
+  static let touchEvents = AsyncChannel<Void>()
 
-        if event.type == .touches,
-            let touches = event.allTouches,
-            touches.contains(where: { $0.phase == .began || $0.phase == .ended }) {
-            NotificationCenter.default.post(name: Self.didReceiveTouchNotification, object: self)
-        }
+  override func sendEvent(_ event: UIEvent) {
+    super.sendEvent(event)
+
+    guard event.type == .touches else {
+      return
     }
+
+    Task.detached(priority: .background) {
+      await Self.touchEvents.send(Void())
+    }
+  }
 }

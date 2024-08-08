@@ -2,11 +2,11 @@ import Foundation
 
 extension Definition {
 
-public enum `SettingLevel`: String, Encodable {
-case `credentials`
-case `global`
-case `ids`
-case `payments`
-case `secureNotes` = "secure_notes"
-}
+  public enum `SettingLevel`: String, Encodable, Sendable {
+    case `credentials`
+    case `global`
+    case `ids`
+    case `payments`
+    case `secureNotes` = "secure_notes"
+  }
 }
