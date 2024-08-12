@@ -1,64 +1,64 @@
-import Foundation
 import DashTypes
+import Foundation
 
 public enum AppLoggerIdentifier: String, LoggerIdentifier, CaseIterable {
-        case accountCreation
+  case accountCreation
 
-            case session
+  case session
 
-        case localSettings
+  case localSettings
 
-            case lifecycle
+  case lifecycle
 
-        case remoteNotifications
+  case remoteNotifications
 
-        case sync
+  case sync
 
-        case personalData
+  case personalData
 
-        case editing
+  case editing
 
-        case iconLibrary
+  case iconLibrary
 
-        case network
+  case network
 
-        case features
+  case features
 
-        case userTrackingLogs
+  case userTrackingLogs
 
-        case identityDashboard
+  case identityDashboard
 
-        case sharing
+  case sharing
 
-        case preferences
+  case preferences
 
-        case teamSpaces
+  case teamSpaces
 
-        case abTesting
+  case abTesting
 
-        case spotlight
+  case spotlight
 
-        case views
+  case views
 
-        case dwmOnboarding
+  case dwmOnboarding
 
-        case appTrackingTransparency
+  case appTrackingTransparency
 
-        case autofill
+  case autofill
 
-        case localCommunication
+  case localCommunication
 
-        case versionValidity
+  case versionValidity
 
-        case inAppPurchase
+  case inAppPurchase
 
-        case activityLogs
+  case activityLogs
 
-    public var stringValue: String { return self.rawValue.lowercased() }
+  public var stringValue: String { return self.rawValue.lowercased() }
 }
 
-public extension Logger {
-        subscript(_ identifier: AppLoggerIdentifier) -> Logger {
-        self.sublogger(for: identifier)
-    }
+extension Logger {
+  public subscript(_ identifier: AppLoggerIdentifier) -> Logger {
+    self.sublogger(for: identifier)
+  }
 }

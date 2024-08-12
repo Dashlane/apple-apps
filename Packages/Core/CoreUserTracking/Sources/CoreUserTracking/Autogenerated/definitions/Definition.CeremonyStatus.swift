@@ -2,9 +2,9 @@ import Foundation
 
 extension Definition {
 
-public enum `CeremonyStatus`: String, Encodable {
-case `cancelled`
-case `failure`
-case `success`
-}
+  public enum `CeremonyStatus`: String, Encodable, Sendable {
+    case `cancelled`
+    case `failure`
+    case `success`
+  }
 }

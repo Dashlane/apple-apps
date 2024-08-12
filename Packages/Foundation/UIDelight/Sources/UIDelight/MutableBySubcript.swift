@@ -1,36 +1,38 @@
-import Foundation
-#if !os(macOS)
-import UIKit
+#if canImport(UIKit)
+  import Foundation
+  import UIKit
 
-public protocol MutatableBySubcript: AnyObject {
+  public protocol MutatableBySubcript: AnyObject {
 
-}
+  }
 
-public extension MutatableBySubcript {
-    subscript<V>(_ key: ReferenceWritableKeyPath<Self, V>) -> V where V: Equatable {
-        get {
-            self[keyPath: key]
-        } set {
-            guard newValue != self[keyPath: key] else {
-                return
-            }
-            self[keyPath: key] = newValue
+  extension MutatableBySubcript {
+    public subscript<V>(_ key: ReferenceWritableKeyPath<Self, V>) -> V where V: Equatable {
+      get {
+        self[keyPath: key]
+      }
+      set {
+        guard newValue != self[keyPath: key] else {
+          return
         }
+        self[keyPath: key] = newValue
+      }
     }
 
-    subscript<V>(_ key: ReferenceWritableKeyPath<Self, V?>) -> V? where V: Equatable {
-        get {
-            self[keyPath: key]
-        } set {
-            guard newValue != self[keyPath: key] else {
-                return
-            }
-            self[keyPath: key] = newValue
+    public subscript<V>(_ key: ReferenceWritableKeyPath<Self, V?>) -> V? where V: Equatable {
+      get {
+        self[keyPath: key]
+      }
+      set {
+        guard newValue != self[keyPath: key] else {
+          return
         }
+        self[keyPath: key] = newValue
+      }
     }
-}
+  }
 
-extension UIView: MutatableBySubcript {
+  extension UIView: MutatableBySubcript {
 
-}
+  }
 #endif

@@ -1,8 +1,8 @@
 import SwiftUI
 
-public extension View {
-    @ViewBuilder
-    func disableHeaderCapitalization() -> some View {
-        self.textCase(nil)
-    }
+extension View {
+  @ViewBuilder
+  public func disableHeaderCapitalization() -> some View {
+    self.textCase(nil)
+  }
 }

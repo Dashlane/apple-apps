@@ -1,19 +1,17 @@
-import Foundation
 import DashlaneAPI
+import Foundation
 
-public enum AccountType: Codable {
-    case masterPassword
-    case invisibleMasterPassword
-    case sso
-}
-
-public extension AuthenticationGetMethodsAccountType {
-    var userAccountType: AccountType {
-        switch self {
-        case .masterPassword:
-            return .masterPassword
-        case .invisibleMasterPassword:
-            return .invisibleMasterPassword
-        }
+extension AuthenticationMethodsAccountType {
+  public var userAccountType: AccountType {
+    get throws {
+      switch self {
+      case .masterPassword:
+        return .masterPassword
+      case .invisibleMasterPassword:
+        return .invisibleMasterPassword
+      case .undecodable:
+        throw UndecodableCaseError(AuthenticationMethodsAccountType.self)
+      }
     }
+  }
 }

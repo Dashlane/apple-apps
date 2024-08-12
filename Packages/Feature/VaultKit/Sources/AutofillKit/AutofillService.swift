@@ -1,178 +1,124 @@
-import Foundation
-import Combine
 import AuthenticationServices
+import Combine
 import CorePersonalData
 import DashTypes
+import Foundation
+import SwiftTreats
 
 public class AutofillService {
-        private let appExtensionCommunicationCenter: AppExtensionCommunicationCenter
-        private let identityStore: IdentityStore
-    private let queue = DispatchQueue(label: "AutofillServiceQueue", qos: .background)
+  private let appExtensionCommunicationCenter: AppExtensionCommunicationCenter
+  let incrementalIdentityStore: IncrementalIdentityStore
+  let queue = DispatchQueue(label: "AutofillServiceQueue", qos: .background)
 
-    @Published
-    public var activationStatus: AutofillActivationStatus = .unknown
-    private var subscriptions: Set<AnyCancellable> = []
+  @Published
+  public var activationStatus: AutofillActivationStatus = .disabled
+  var subscriptions: Set<AnyCancellable> = []
+  let logger: Logger
+  var refreshStatusTask: Task<Void, Never>?
 
-    public init<P: Publisher>(channel: AppExtensionCommunicationCenter.Channel, identityStore: IdentityStore = ASCredentialIdentityStore.shared, credentialsPublisher: P) where P.Output: Collection, P.Failure == Never, P.Output.Element == Credential {
-        self.appExtensionCommunicationCenter = .init(channel: channel, baseURL: ApplicationGroup.documentsURL)
-        self.identityStore = identityStore
+  public init(
+    channel: AppExtensionCommunicationCenter.Channel,
+    identityStore: IdentityStore = ASCredentialIdentityStore.shared,
+    credentialsPublisher: some Publisher<some Collection<Credential>, Never>,
+    passkeysPublisher: some Publisher<some Collection<Passkey>, Never>,
+    refreshStatusTrigger: AnyPublisher<Notification, Never>? = NotificationCenter.default
+      .willEnterForegroundNotificationPublisher()?.eraseToAnyPublisher(),
+    cryptoEngine: CryptoEngine,
+    logger: Logger, snapshotFolderURL: URL
+  ) {
+    self.appExtensionCommunicationCenter = .init(
+      channel: channel, baseURL: ApplicationGroup.documentsURL)
 
-                        NotificationCenter.default
-            .willEnterForegroundNotificationPublisher()?
-            .flatMap(identityStore.getState)
-            .prepend(identityStore.getState(nil))
-            .assign(to: \.activationStatus, on: self)
-            .store(in: &subscriptions)
+    let snapshotPersistor = FileSnapshotPersistor(
+      folderURL: snapshotFolderURL,
+      cryptoEngine: cryptoEngine,
+      logger: logger)
+    self.incrementalIdentityStore = IncrementalIdentityStore(
+      identityStore: identityStore,
+      snapshotPersistor: snapshotPersistor)
+    self.logger = logger
 
-        let debouncedCredentialsPublisher = credentialsPublisher
-            .combineLatest($activationStatus)
-            .debounce(for: .milliseconds(500), scheduler: queue)
+    refreshStatusTask = Task { @MainActor in
+      activationStatus = await identityStore.status()
 
-        debouncedCredentialsPublisher.sink { [weak self] credentials, activationStatus in
-            guard activationStatus == .enabled else {
-                return
-            }
-            self?.updateStore(using: credentials)
-        }
-        .store(in: &subscriptions)
+      guard
+        let statusSequence = refreshStatusTrigger?
+          .values
+          .map({ _ in await identityStore.status() })
+      else {
+        return
+      }
 
+      for await status in statusSequence where status != self.activationStatus {
+        self.activationStatus = status
+      }
     }
 
-    public func unload() {
-        subscriptions.forEach { $0.cancel() }
-        clearIdentityStore()
-                        appExtensionCommunicationCenter.write(message: .userDidLogout)
+    $activationStatus.filter {
+      $0 == .enabled
     }
+    .removeDuplicates()
+    .flatMap { _ in
+      credentialsPublisher.combineLatest(passkeysPublisher) { credentials, passkeys in
+        return (credentials, passkeys)
+      }
+    }
+    .debounce(for: .milliseconds(500), scheduler: queue)
+    .map { (credentials, passkeys) in
+      return IncrementalIdentityStore.UpdateRequest(credentials: credentials, passkeys: passkeys)
+    }
+    .sink { [weak self] request in
+      self?.update(with: request)
+    }
+    .store(in: &subscriptions)
+  }
 
-    func updateStore<C: Collection>(using credentials: C) where C.Element == Credential {
-        let credentialIdentities = credentials
-            .sortedByLastUsage()
-            .compactMap { $0.credentialIdentity.flatMap { $0 } }.flatMap { $0 }
-        identityStore.replaceCredentialIdentities(with: credentialIdentities, completion: nil)
+  private func update(with request: IncrementalIdentityStore.UpdateRequest) {
+    Task {
+      do {
+        try await incrementalIdentityStore.update(with: request)
+      } catch {
+        logger.error("Fail to update identity store", error: error)
+      }
     }
+  }
 
-    public func saveNewCredentials(_ newCredentials: [Credential], completion: @escaping (Result<Void, Error>) -> Void) {
-        identityStore.getState { [weak self] state in
-            guard let self = self else {
-                completion(.failure(IdentityStoreError.couldNotRetrieveStoreStatus))
-                return
-            }
-            guard state.isEnabled else {
-                completion(.failure(IdentityStoreError.identityStoreStateIsDisabled))
-                return
-            }
-            guard state.supportsIncrementalUpdates else {
-                completion(.failure(IdentityStoreError.doesNotSupportIncrementalUpdate))
-                return
-            }
-            let credentialIdentities = newCredentials
-                .sortedByLastUsage()
-                .compactMap { $0.credentialIdentity.flatMap { $0 } }
-                .flatMap { $0 }
-            self.identityStore.saveCredentialIdentities(credentialIdentities) { _, error in
-                if let error = error {
-                    completion(.failure(error))
-                } else {
-                    completion(.success)
-                }
-            }
-        }
+  public func unload() async {
+    subscriptions.forEach { $0.cancel() }
+    do {
+      try await incrementalIdentityStore.clear()
+    } catch {
+      logger.error("Fail to clear store on unload", error: error)
     }
-
-    private func clearIdentityStore() {
-        identityStore.removeAllCredentialIdentities(nil)
-    }
+    appExtensionCommunicationCenter.write(message: .userDidLogout)
+  }
 }
 
-public extension AutofillService {
-    static var fakeService: AutofillService {
-        .init(channel: .fromApp, credentialsPublisher: Just<[Credential]>([]).eraseToAnyPublisher())
+extension AutofillService {
+  public func save(_ credential: Credential, oldCredential: Credential?) async {
+    do {
+      try await incrementalIdentityStore.update(with: .init(new: credential, old: oldCredential))
+    } catch {
+      logger.error("Fail to update credential \(credential.id)", error: error)
     }
+  }
+
+  @available(iOS 17.0, macOS 14.0, *)
+  public func save(_ passkey: Passkey, oldPasskey: Passkey?) async {
+    do {
+      try await incrementalIdentityStore.update(with: .init(new: passkey, old: oldPasskey))
+    } catch {
+      logger.error("Fail to update passkey \(passkey.id)", error: error)
+    }
+  }
 }
 
-enum IdentityStoreError: Error {
-    case doesNotSupportIncrementalUpdate
-    case couldNotRetrieveStoreStatus
-    case identityStoreStateIsDisabled
-}
-
-public protocol IdentityStore {
-    func getState(_ completion: @escaping (ASCredentialIdentityStoreState) -> Void)
-    func getState(_ notification: Notification?) -> AnyPublisher<AutofillActivationStatus, Never>
-    func saveCredentialIdentities(_ credentialIdentities: [ASPasswordCredentialIdentity], completion: ((Bool, Error?) -> Void)?)
-    func replaceCredentialIdentities(with newCredentialIdentities: [ASPasswordCredentialIdentity], completion: ((Bool, Error?) -> Void)?)
-    func removeAllCredentialIdentities(_ completion: ((Bool, Error?) -> Void)?)
-}
-
-extension ASCredentialIdentityStore: IdentityStore {
-    public func getState(_ notification: Notification? = nil) -> AnyPublisher<AutofillActivationStatus, Never> {
-        return Future.init { completion in
-            self.getState { storeState in
-                completion(.success(storeState.isEnabled ? .enabled : .disabled))
-            }
-        }.eraseToAnyPublisher()
-    }
-}
-
-private extension Credential {
-
-                        var credentialIdentity: [ASPasswordCredentialIdentity]? {
-                guard !self.subdomainOnly else {
-            guard let host = self.url?.host else { return nil }
-
-            let serviceIdentifier = ASCredentialServiceIdentifier(identifier: host, type: .domain)
-            return [credentialIdentity(fromServiceIdentifier: serviceIdentifier,
-                                      recordIdentifier: self.id.rawValue)]
-        }
-
-        guard let domain = self.url?.domain,
-              !displayLogin.isEmpty,
-              !password.isEmpty else {
-                return nil
-        }
-
-                let serviceIdentifier = ASCredentialServiceIdentifier(identifier: domain.name, type: .domain)
-        let identity = credentialIdentity(fromServiceIdentifier: serviceIdentifier,
-                                          recordIdentifier: self.id.rawValue)
-
-                guard !self.subdomainOnly else {
-            return [identity]
-        }
-
-                var associatedDomains = Set<String>()
-        if let classicAssociatedDomains = domain.linkedDomains {
-            associatedDomains.formUnion(classicAssociatedDomains)
-        }
-        associatedDomains.formUnion(manualAssociatedDomains)
-
-        var identities = associatedDomains.compactMap(self.credentialIdentity)
-
-                let linkedServicesIdentities = linkedServices.associatedDomains.map { $0.domain }.compactMap(self.credentialIdentity)
-        identities += linkedServicesIdentities
-
-        if identities.count > 0 {
-                        return identities
-        } else {
-            return [identity]
-        }
-    }
-
-    private func credentialIdentity(fromDomain domain: String) -> ASPasswordCredentialIdentity {
-        let serviceIdentifier = ASCredentialServiceIdentifier(identifier: domain, type: .domain)
-        return credentialIdentity(fromServiceIdentifier: serviceIdentifier, recordIdentifier: self.id.rawValue)
-    }
-
-    private func credentialIdentity(fromServiceIdentifier serviceIdentifier: ASCredentialServiceIdentifier,
-                                    recordIdentifier: String) -> ASPasswordCredentialIdentity {
-        return ASPasswordCredentialIdentity(serviceIdentifier: serviceIdentifier,
-                                            user: autofillTitle,
-                                            recordIdentifier: recordIdentifier)
-    }
-
-        var autofillTitle: String {
-        guard !title.isEmpty else {
-            return displayLogin
-        }
-        return "\(title) – \(displayLogin)"
-    }
+extension AutofillService {
+  public static var fakeService: AutofillService {
+    .init(
+      channel: .fromApp,
+      credentialsPublisher: Just<[Credential]>([]).eraseToAnyPublisher(),
+      passkeysPublisher: Just<[Passkey]>([]).eraseToAnyPublisher(), cryptoEngine: .mock(),
+      logger: .mock, snapshotFolderURL: URL.documentsDirectory)
+  }
 }

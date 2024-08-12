@@ -1,4 +1,4 @@
-#if os(iOS)
+import CoreFeature
 import CoreLocalization
 import CorePersonalData
 import DesignSystem
@@ -8,137 +8,134 @@ import UIDelight
 
 public struct CollectionsSection<Item: VaultItem & Equatable>: View {
 
-    @ObservedObject
-    private var model: CollectionsSectionModel<Item>
+  @StateObject
+  private var model: CollectionsSectionModel<Item>
 
-    @Binding
-    private var showCollectionAddition: Bool
+  @Binding
+  private var showCollectionAddition: Bool
 
-    @ScaledMetric
-    private var verticalRowSpacing: CGFloat = 8
+  @ScaledMetric
+  private var verticalRowSpacing: CGFloat = 8
 
-    @ScaledMetric
-    private var horizontalRowSpacing: CGFloat = 16
+  @ScaledMetric
+  private var horizontalRowSpacing: CGFloat = 16
 
-    public init(model: CollectionsSectionModel<Item>, showCollectionAddition: Binding<Bool>) {
-        self.model = model
-        self._showCollectionAddition = showCollectionAddition
+  public init(
+    model: @autoclosure @escaping () -> CollectionsSectionModel<Item>,
+    showCollectionAddition: Binding<Bool>
+  ) {
+    self._model = .init(wrappedValue: model())
+    self._showCollectionAddition = showCollectionAddition
+  }
+
+  public var body: some View {
+    if model.item.hasAttachments {
+      CoreLocalization.L10n.Core.attachmentsLimitation(for: model.item).map {
+        Text($0)
+          .textStyle(.body.reduced.regular)
+          .foregroundStyle(Color.ds.text.neutral.quiet)
+          .padding(.vertical, 2)
+      }
+    } else if model.mode.isEditing {
+      editingCollectionsList
+    } else {
+      viewingCollectionsList
     }
-
-    public var body: some View {
-        if model.mode.isEditing {
-            editingCollectionsList
-        } else {
-            viewingCollectionsList
-        }
-    }
+  }
 }
 
-private extension CollectionsSection {
-    var singleSpaceSectionTitle: String {
-        model.itemCollections.count > 1 ? L10n.Core.KWVaultItem.Collections.Title.plural : L10n.Core.KWVaultItem.Collections.Title.singular
+extension CollectionsSection {
+  @ViewBuilder
+  fileprivate var editingCollectionsList: some View {
+    ForEach(model.itemCollections) { collection in
+      collectionRow(collection)
     }
 
-    var personalSectionTitle: String {
-        if model.itemCollections.count > 1 {
-            return L10n.Core.KWVaultItem.Collections.Title.PersonalSpace.plural
-        } else {
-            return L10n.Core.KWVaultItem.Collections.Title.PersonalSpace.singular
+    addCollection
+  }
+
+  fileprivate func collectionRow(_ collection: VaultCollection) -> some View {
+    HStack(spacing: horizontalRowSpacing) {
+      Button(
+        action: {
+          withAnimation(.easeInOut) {
+            model.removeItem(from: collection)
+          }
+        },
+        label: {
+          Image(systemName: "minus.circle.fill")
+            .foregroundColor(.ds.text.danger.quiet)
         }
+      )
+      .buttonStyle(.plain)
+      .disabled(collection.isShared)
+
+      Tag(
+        collection.name, trailingAccessory: collection.isShared ? .icon(.ds.shared.outlined) : nil)
     }
+  }
 
-    var businessSectionTitle: String {
-        if model.itemCollections.count > 1 {
-            return L10n.Core.KWVaultItem.Collections.Title.BusinessSpace.plural(model.selectedUserSpace.teamName)
-        } else {
-            return L10n.Core.KWVaultItem.Collections.Title.BusinessSpace.singular(model.selectedUserSpace.teamName)
-        }
-    }
+  fileprivate var addCollectionTitle: String {
+    model.itemCollections.isEmpty
+      ? L10n.Core.KWVaultItem.Collections.add : L10n.Core.KWVaultItem.Collections.addAnother
+  }
 
-    var sectionTitle: String {
-        if model.availableUserSpaces.count > 1 {
-            switch model.selectedUserSpace {
-            case .personal, .both:
-                return personalSectionTitle
-            case .business:
-                return businessSectionTitle
-            }
-        } else {
-            return singleSpaceSectionTitle
-        }
-    }
-}
-
-private extension CollectionsSection {
-    var editingCollectionsList: some View {
-        Section(sectionTitle) {
-            ForEach(model.itemCollections) { collection in
-                collectionRow(collection)
-            }
-
-            addCollection
-        }
-    }
-
-    func collectionRow(_ collection: VaultCollection) -> some View {
+  fileprivate var addCollection: some View {
+    Button(
+      action: { showCollectionAddition = true },
+      label: {
         HStack(spacing: horizontalRowSpacing) {
-            Button(action: {
-                withAnimation(.easeInOut) {
-                    model.removeItem(from: collection)
-                }
-            }, label: {
-                Image(systemName: "minus.circle.fill")
-                    .foregroundColor(.ds.text.danger.quiet)
-            })
-            .buttonStyle(.plain)
-
-            Tag(collection.name)
+          Image(systemName: "plus.circle.fill")
+            .foregroundColor(.ds.text.positive.standard)
+          Text(addCollectionTitle)
+            .foregroundColor(.ds.text.brand.standard)
         }
-    }
-
-    var addCollectionTitle: String {
-        model.itemCollections.isEmpty ? L10n.Core.KWVaultItem.Collections.add : L10n.Core.KWVaultItem.Collections.addAnother
-    }
-
-    var addCollection: some View {
-        Button(action: { showCollectionAddition = true }, label: {
-            HStack(spacing: horizontalRowSpacing) {
-                Image(systemName: "plus.circle.fill")
-                    .foregroundColor(.ds.text.positive.standard)
-                Text(addCollectionTitle)
-                    .foregroundColor(.ds.text.brand.standard)
-            }
-        })
-    }
+      })
+  }
 }
 
-private extension CollectionsSection {
-    var viewingCollectionsList: some View {
-        Section(sectionTitle) {
-            if model.itemCollections.isEmpty {
-                Button(L10n.Core.KWVaultItem.Collections.add) {
-                    showCollectionAddition = true
-                    model.mode = .updating
-                }
-                .buttonStyle(DetailRowButtonStyle())
-            } else {
-                TagsList(model.itemCollections.map(\.name))
-                    .listRowInsets(EdgeInsets(top: 12, leading: 16, bottom: 12, trailing: 16))
-            }
+extension CollectionsSection {
+  @ViewBuilder
+  fileprivate var viewingCollectionsList: some View {
+    if model.itemCollections.isEmpty {
+      Button(L10n.Core.KWVaultItem.Collections.add) {
+        showCollectionAddition = true
+        model.mode = .updating
+      }
+      .buttonStyle(DetailRowButtonStyle())
+    } else {
+      TagsList(
+        model.itemCollections.map {
+          .init(title: $0.name, trailingAccessory: $0.isShared ? .icon(.ds.shared.outlined) : nil)
         }
+      )
+      .listRowInsets(EdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16))
     }
+  }
 }
 
 struct CollectionsSection_Previews: PreviewProvider {
-    static var previews: some View {
-        CollectionsSection(
-            model: .mock(service: .mock(item: PersonalDataMock.Credentials.adobe, mode: .viewing)),
-            showCollectionAddition: .constant(false)
-        )
-        CollectionsSection(
-            model: .mock(service: .mock(item: PersonalDataMock.Credentials.adobe, mode: .updating)),
-            showCollectionAddition: .constant(false)
-        )
-    }
+  static var previews: some View {
+    CollectionsSection(
+      model: .mock(service: .mock(item: PersonalDataMock.Credentials.adobe, mode: .viewing)),
+      showCollectionAddition: .constant(false)
+    )
+    CollectionsSection(
+      model: .mock(service: .mock(item: PersonalDataMock.Credentials.adobe, mode: .updating)),
+      showCollectionAddition: .constant(false)
+    )
+  }
 }
-#endif
+
+extension CoreLocalization.L10n.Core {
+  fileprivate static func attachmentsLimitation(for item: VaultItem) -> String? {
+    return switch item.enumerated {
+    case .credential:
+      Self.KWVaultItem.Collections.AttachmentsLimitation.Message.credential
+    case .secureNote:
+      Self.KWVaultItem.Collections.AttachmentsLimitation.Message.secureNote
+    default:
+      nil
+    }
+  }
+}

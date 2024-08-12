@@ -1,14 +1,15 @@
+import DashTypes
 import Foundation
 
-public protocol SharingGroup {
-    var users: [User] { get }
+public protocol SharingGroup: Sendable {
+  associatedtype Info: Identifiable where Info.ID == Identifier
+
+  var info: Info { get }
+  var users: [User<Self>] { get }
 }
 
-extension UserGroup: SharingGroup { }
-extension ItemGroup: SharingGroup { }
-
-public extension SharingGroup {
-    func user(with userId: UserId) -> User? {
-        return users.first {  $0.id == userId }
-    }
+extension SharingGroup {
+  public func user(with userId: UserId) -> User<Self>? {
+    return users.first { $0.id == userId }
+  }
 }

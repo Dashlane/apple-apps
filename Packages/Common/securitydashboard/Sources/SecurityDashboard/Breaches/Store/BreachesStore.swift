@@ -1,16 +1,16 @@
-import Foundation
 import Combine
+import Foundation
 
 public protocol BreachesStore {
-        var lastRevisionForPublicBreaches: Int? { get set }
+  var lastRevisionForPublicBreaches: Int? { get set }
 
-        var lastUpdateDateForDataLeakBreaches: TimeInterval? { get set }
+  var lastUpdateDateForDataLeakBreaches: TimeInterval? { get set }
 
-        func breachesPublisher() -> AnyPublisher<Set<StoredBreach>, Never>
+  func breachesPublisher() -> AnyPublisher<Set<StoredBreach>, Never>
 
-        func fetch() -> Set<StoredBreach>
+  func fetch() -> Set<StoredBreach>
 
-        func create(_ breaches: Set<StoredBreach>)
+  func create(_ breaches: Set<StoredBreach>)
 
-        func update(_ breaches: Set<StoredBreach>)
+  func update(_ breaches: Set<StoredBreach>)
 }

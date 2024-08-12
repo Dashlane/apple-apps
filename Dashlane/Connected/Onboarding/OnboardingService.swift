@@ -1,208 +1,266 @@
-import Foundation
-import CoreFeature
+import AutofillKit
 import Combine
-import DashlaneAppKit
-import SwiftTreats
-import CoreSettings
+import CoreFeature
 import CorePersonalData
-import DashTypes
+import CorePremium
 import CoreSession
+import CoreSettings
+import DashTypes
+import Foundation
+import SwiftTreats
 import VaultKit
 
 class OnboardingService {
-    private let loadingContext: SessionLoadingContext
-    private let userSettings: UserSettings
-    private let dwmOnboardingSettings: DWMOnboardingSettings
-    private let syncedSettings: SyncedSettingsService
-    private let abTestService: ABTestingServiceProtocol
-    private let guidedOnboardingSettingsProvider: GuidedOnboardingSettingsProvider
-    private let dwmOnboardingService: DWMOnboardingService
-    private let lockService: LockServiceProtocol
-    private let teamSpacesService: TeamSpacesService
-    private let vaultItemsService: VaultItemsServiceProtocol
-    private let featureService: FeatureServiceProtocol
-    private var cancellables = Set<AnyCancellable>()
-    private let accountType: AccountType
+  private let session: Session
+  private let loadingContext: SessionLoadingContext
+  private let syncedSettings: SyncedSettingsService
+  private let abTestService: ABTestingServiceProtocol
+  private let guidedOnboardingSettingsProvider: GuidedOnboardingSettingsProvider
+  private let lockService: LockServiceProtocol
+  private let userSpacesService: UserSpacesService
+  private let featureService: FeatureServiceProtocol
+  private let accountType: AccountType
+  let autofillService: AutofillService
+  let vaultItemsStore: VaultItemsStore
+  let userSettings: UserSettings
+  let dwmOnboardingService: DWMOnboardingService
+  let dwmOnboardingSettings: DWMOnboardingSettings
+  var cancellables = Set<AnyCancellable>()
 
-    private var isBiometricAuthenticationActivated: Bool {
-        return lockService.secureLockConfigurator.isBiometricActivated
+  private var isBiometricAuthenticationActivated: Bool {
+    return lockService.secureLockConfigurator.isBiometricActivated
+  }
+
+  @Published
+  var actions: [OnboardingChecklistAction] = []
+
+  @Published
+  var remainingActions: [OnboardingChecklistAction] = []
+
+  @Published
+  var hasPassedPasswordOnboarding: Bool = false
+
+  @Published
+  var isAutofillActivated: Bool = false
+
+  @Published
+  var hasUserDismissedOnboardingChecklist: Bool = false
+
+  @Published
+  var hasUserUnlockedOnboardingChecklist: Bool = false
+
+  @Published
+  var hasFinishedChromeImportAtLeastOnce: Bool = false
+
+  @Published
+  var hasFinishedM2WAtLeastOnce: Bool = false
+
+  @Published
+  var hasSeenDWMExperience: Bool = false
+
+  @Published
+  var hasConfirmedEmailFromOnboardingChecklist: Bool = false
+
+  @Published
+  var dwmOnboardingProgress: DWMOnboardingProgress?
+
+  var allDone: Bool {
+    guard !actions.isEmpty else { return false }
+    return !actions.contains { completionState(for: $0) == .todo }
+  }
+
+  var changePublisher: AnyPublisher<Void, Never>?
+
+  init(
+    session: Session,
+    loadingContext: SessionLoadingContext,
+    accountType: AccountType,
+    userSettings: UserSettings,
+    vaultItemsStore: VaultItemsStore,
+    dwmOnboardingSettings: DWMOnboardingSettings,
+    dwmOnboardingService: DWMOnboardingService,
+    syncedSettings: SyncedSettingsService,
+    abTestService: ABTestingServiceProtocol,
+    lockService: LockServiceProtocol,
+    userSpacesService: UserSpacesService,
+    featureService: FeatureServiceProtocol,
+    autofillService: AutofillService
+  ) {
+    self.session = session
+    self.loadingContext = loadingContext
+    self.syncedSettings = syncedSettings
+    self.userSettings = userSettings
+    self.dwmOnboardingSettings = dwmOnboardingSettings
+    self.dwmOnboardingService = dwmOnboardingService
+    self.abTestService = abTestService
+    self.guidedOnboardingSettingsProvider = GuidedOnboardingSettingsProvider(
+      userSettings: userSettings)
+    self.lockService = lockService
+    self.userSpacesService = userSpacesService
+    self.vaultItemsStore = vaultItemsStore
+    self.featureService = featureService
+    self.accountType = accountType
+    self.autofillService = autofillService
+
+    unlockOnboardingIfRequired()
+    setupSubscribers()
+    setupChecklist()
+  }
+
+  func setupChecklist() {
+    var checklistActions: [OnboardingChecklistAction] = []
+    checklistActions.append(checklistFirstAction())
+
+    checklistActions.append(.activateAutofill)
+
+    if session.configuration.info.accountType != .invisibleMasterPassword {
+      checklistActions.append(.mobileToDesktop)
     }
 
-    init(loadingContext: SessionLoadingContext,
-         accountType: AccountType,
-         userSettings: UserSettings,
-         vaultItemsService: VaultItemsServiceProtocol,
-         dwmOnboardingSettings: DWMOnboardingSettings,
-         dwmOnboardingService: DWMOnboardingService,
-         syncedSettings: SyncedSettingsService,
-         abTestService: ABTestingServiceProtocol,
-         lockService: LockServiceProtocol,
-         teamSpacesService: TeamSpacesService,
-         featureService: FeatureServiceProtocol) {
-        self.loadingContext = loadingContext
-        self.syncedSettings = syncedSettings
-        self.userSettings = userSettings
-        self.dwmOnboardingSettings = dwmOnboardingSettings
-        self.dwmOnboardingService = dwmOnboardingService
-        self.abTestService = abTestService
-        self.guidedOnboardingSettingsProvider = GuidedOnboardingSettingsProvider(userSettings: userSettings)
-        self.lockService = lockService
-        self.teamSpacesService = teamSpacesService
-        self.vaultItemsService = vaultItemsService
-        self.featureService = featureService
-        self.accountType = accountType
+    self.actions = checklistActions
+    self.remainingActions = actions.filter { completionState(for: $0) == .todo }
+  }
 
-        unlockOnboardingIfRequired()
-        setupSubscribers()
+  private func checklistFirstAction() -> OnboardingChecklistAction {
+    if hasConfirmedEmailFromOnboardingChecklist && dwmOnboardingProgress == .breachesNotFound {
+      return .seeScanResult
     }
 
-    func setupSubscribers() {
-        vaultItemsService
-            .allItemsPublisher()
-            .first { $0.count > 1 } 
-            .sink { [weak self] _ in
-                self?.userSettings[.hasCreatedAtLeastOneItem] = true
-            }
-            .store(in: &cancellables)
+    if dwmOnboardingService.canShowDWMOnboarding
+      && (dwmOnboardingProgress == .emailRegistrationRequestSent
+        || dwmOnboardingProgress == .emailConfirmed || dwmOnboardingProgress == .breachesFound)
+    {
+      return .fixBreachedAccounts
     }
 
-    var shouldShowOnboardingChecklist: Bool {
-        let hasUserDismissedOnboardingChecklist = self.userSettings[.hasUserDismissedOnboardingChecklist] ?? false
-        let hasUserUnlockedOnboardingChecklist = self.userSettings[.hasUserUnlockedOnboardingChecklist] ?? false
+    let settingsProvider = GuidedOnboardingSettingsProvider(userSettings: userSettings)
 
-        return !hasUserDismissedOnboardingChecklist && hasUserUnlockedOnboardingChecklist && !Device.isMac
+    if let selectedAnswer = settingsProvider.storedAnswers[.howPasswordsHandled] {
+      switch selectedAnswer {
+      case .memorizePasswords, .somethingElse:
+        return .addFirstPasswordsManually
+      case .browser:
+        return .importFromBrowser
+      default:
+        assertionFailure("Unacceptable answer")
+      }
     }
 
-    var shouldShowAutofillDemo: Bool {
-        let hasUserSeenAutoFillDemo = self.userSettings[.hasSeenAutofillDemo] ?? false
-        return !hasUserSeenAutoFillDemo && isNewUser() && !Device.isMac
+    return .addFirstPasswordsManually
+  }
+
+  var shouldShowOnboardingChecklist: Bool {
+    let hasUserDismissedOnboardingChecklist =
+      self.userSettings[.hasUserDismissedOnboardingChecklist] ?? false
+    let hasUserUnlockedOnboardingChecklist =
+      self.userSettings[.hasUserUnlockedOnboardingChecklist] ?? false
+
+    return !hasUserDismissedOnboardingChecklist && hasUserUnlockedOnboardingChecklist
+      && !Device.isMac
+  }
+
+  var shouldShowAutofillDemo: Bool {
+    let hasUserSeenAutoFillDemo = self.userSettings[.hasSeenAutofillDemo] ?? false
+    return !hasUserSeenAutoFillDemo && isNewUser() && !Device.isMac
+  }
+
+  func hasSeenAutofillDemo(_ value: Bool = true) {
+    self.userSettings[.hasSeenAutofillDemo] = value
+  }
+
+  var hasCreatedAtLeastOneItem: Bool {
+    self.userSettings[.hasCreatedAtLeastOneItem] ?? false
+  }
+
+  var shouldShowAccountCreationOnboarding: Bool {
+    guard shouldShowOnboardingChecklist else {
+      return false
     }
 
-    func shouldShowBrowsersExtensionsOnboarding() -> Bool {
-        guard Device.isMac else { return false }
-        skipSafariDisabledAnnouncementIfNeeded()
-        let hasSeenBrowsersExtensionsOnboarding = userSettings[.hasSeenBrowsersExtensionsOnboarding] ?? false
-        let hasSeenSafariDisabledOnboarding = userSettings[.hasSeenSafariDisabledOnboarding] ?? false
-        return (!hasSeenBrowsersExtensionsOnboarding || shouldShowSafariDisabledOnboarding) && !hasSeenSafariDisabledOnboarding
+    guard case .accountCreation = loadingContext else {
+      return false
     }
 
-    var shouldShowSafariDisabledOnboarding: Bool {
-        return featureService.isEnabled(.autofillSafariIsDisabled)
+    return hasSeenGuidedOnboarding == false && hasSkippedGuidedOnboarding == false
+  }
+
+  var shouldShowFastLocalSetupForFirstLogin: Bool {
+    guard accountType != .invisibleMasterPassword else {
+      return false
     }
 
-    func hasSeenAutofillDemo(_ value: Bool = true) {
-        self.userSettings[.hasSeenAutofillDemo] = value
+    guard case .remoteLogin = loadingContext else {
+      return false
     }
 
-    func didSeeBrowsersExtensionsOnboarding() {
-        userSettings[.hasSeenBrowsersExtensionsOnboarding] = true
-
-        if featureService.isEnabled(.autofillSafariIsDisabled) {
-            userSettings[.hasSeenSafariDisabledOnboarding] = true
-        }
+    guard userSettings[.fastLocalSetupForRemoteLoginDisplayed] != true else {
+      return false
     }
 
-    var hasCreatedAtLeastOneItem: Bool {
-        self.userSettings[.hasCreatedAtLeastOneItem] ?? false
+    guard isBiometricAuthenticationActivated == false else {
+      return false
     }
 
-        var shouldShowAccountCreationOnboarding: Bool {
-                        guard shouldShowOnboardingChecklist else {
-            return false
-        }
+    return true
+  }
 
-                guard case .accountCreation = loadingContext else {
-            return false
-        }
+  var shouldShowBiometricsOrPinOnboardingForSSO: Bool {
+    let isSSOUser = accountType == .sso
+    let hasSeenOnboarding = userSettings[.hasSeenBiometricsOrPinOnboarding] == true
+    let hasConvenientMethodSetup = lockService.secureLockProvider.secureLockMode() != .masterKey
+    return isSSOUser && !hasSeenOnboarding && !hasConvenientMethodSetup
+  }
 
-        return hasSeenGuidedOnboarding == false && hasSkippedGuidedOnboarding == false
+  func isNewUser() -> Bool {
+    guard let accountCreationDate = syncedSettings[\.accountCreationDatetime] else {
+      return false
     }
 
-    var shouldShowFastLocalSetupForFirstLogin: Bool {
-
-        guard accountType != .invisibleMasterPassword else {
-            return false
-        }
-
-        guard case .remoteLogin = loadingContext else {
-            return false
-        }
-
-        guard userSettings[.fastLocalSetupForRemoteLoginDisplayed] != true else {
-            return false
-        }
-
-        guard isBiometricAuthenticationActivated == false else {
-            return false
-        }
-
-        return true
+    guard let numberOfDaysSinceAccountCreation = Date().numberOfDays(since: accountCreationDate)
+    else {
+      assertionFailure()
+      return false
     }
 
-    var shouldShowBiometricsOrPinOnboardingForSSO: Bool {
-        let isSSOUser = teamSpacesService.isSSOUser
-        let hasSeenOnboarding = userSettings[.hasSeenBiometricsOrPinOnboarding] == true
-        let hasConvenientMethodSetup = lockService.secureLockProvider.secureLockMode() != .masterKey
-        return isSSOUser && !hasSeenOnboarding && !hasConvenientMethodSetup
+    return numberOfDaysSinceAccountCreation < 7
+  }
+
+  private var hasSeenGuidedOnboarding: Bool {
+    let data: [GuidedOnboardingSettingsData]? = userSettings[.guidedOnboardingData]
+    return data != nil
+  }
+
+  private var hasSkippedGuidedOnboarding: Bool {
+    return userSettings[.hasSkippedGuidedOnboarding] ?? false
+  }
+
+  private func unlockOnboardingIfRequired() {
+    guard (userSettings[.hasUserUnlockedOnboardingChecklist] ?? false) == false else {
+      return
     }
 
-        func isNewUser() -> Bool {
-        guard let accountCreationDate = syncedSettings[\.accountCreationDatetime] else {
-                                    return false
-        }
-
-        guard let numberOfDaysSinceAccountCreation = Date().numberOfDays(since: accountCreationDate) else {
-            assertionFailure()
-            return false
-        }
-
-        return numberOfDaysSinceAccountCreation < 7
+    if isNewUser() {
+      userSettings[.hasUserUnlockedOnboardingChecklist] = true
     }
-
-    private var hasSeenGuidedOnboarding: Bool {
-        let data: [GuidedOnboardingSettingsData]? = userSettings[.guidedOnboardingData]
-        return data != nil
-    }
-
-    private var hasSkippedGuidedOnboarding: Bool {
-        return userSettings[.hasSkippedGuidedOnboarding] ?? false
-    }
-
-    private func unlockOnboardingIfRequired() {
-        guard (userSettings[.hasUserUnlockedOnboardingChecklist] ?? false) == false else {
-            return
-        }
-
-        if isNewUser() {
-            userSettings[.hasUserUnlockedOnboardingChecklist] = true
-        }
-    }
-
-    func skipSafariDisabledAnnouncementIfNeeded() {
-        guard Device.isMac else { return }
-        guard loadingContext.isFirstLogin else {
-            return
-        }
-                        if featureService.isEnabled(.autofillSafariIsDisabled) {
-            userSettings[.hasSeenSafariDisabledOnboarding] = true
-        }
-    }
+  }
 }
 
- extension OnboardingService {
-    static var mock: OnboardingService {
-        .init(
-            loadingContext: SessionLoadingContext.localLogin(),
-            accountType: .masterPassword,
-            userSettings: UserSettings.mock,
-            vaultItemsService: MockServicesContainer().vaultItemsService,
-            dwmOnboardingSettings: DWMOnboardingSettings(internalStore: .mock()),
-            dwmOnboardingService: DWMOnboardingService.mock,
-            syncedSettings: SyncedSettingsService.mock,
-            abTestService: ABTestingServiceMock.mock,
-            lockService: LockServiceMock(),
-            teamSpacesService: TeamSpacesService.mock(),
-            featureService: .mock()
-        )
-    }
- }
+extension OnboardingService {
+  static var mock: OnboardingService {
+    .init(
+      session: .mock,
+      loadingContext: SessionLoadingContext.localLogin(),
+      accountType: .masterPassword,
+      userSettings: UserSettings.mock,
+      vaultItemsStore: MockVaultKitServicesContainer().vaultItemsStore,
+      dwmOnboardingSettings: DWMOnboardingSettings(internalStore: .mock()),
+      dwmOnboardingService: DWMOnboardingService.mock,
+      syncedSettings: SyncedSettingsService.mock,
+      abTestService: ABTestingServiceMock.mock,
+      lockService: LockServiceMock(),
+      userSpacesService: UserSpacesService.mock(),
+      featureService: .mock(),
+      autofillService: .fakeService
+    )
+  }
+}

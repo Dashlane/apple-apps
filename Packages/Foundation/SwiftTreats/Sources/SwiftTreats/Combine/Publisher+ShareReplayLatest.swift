@@ -1,13 +1,14 @@
-import Foundation
 import Combine
+import Foundation
 
-public extension Publisher {
-        func shareReplayLatest() -> AnyPublisher<Output, Failure> {
-        return self
-            .map { Optional.some($0) }
-            .multicast { CurrentValueSubject<Output?, Failure>(nil) }
-            .autoconnect()
-            .compactMap { $0 }
-            .eraseToAnyPublisher()
-    }
+extension Publisher {
+  public func shareReplayLatest() -> AnyPublisher<Output, Failure> {
+    return
+      self
+      .map { Optional.some($0) }
+      .multicast { CurrentValueSubject<Output?, Failure>(nil) }
+      .autoconnect()
+      .compactMap { $0 }
+      .eraseToAnyPublisher()
+  }
 }

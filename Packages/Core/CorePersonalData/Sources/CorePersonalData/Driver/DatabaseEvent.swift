@@ -1,24 +1,26 @@
-import Foundation
 import DashTypes
+import Foundation
 
 public enum DatabaseEvent: Hashable {
-        case invalidation
-        case incrementalChanges(Set<DatabaseChange>)
+  case invalidation
+  case incrementalChanges(Set<DatabaseChange>)
 }
 
 public struct DatabaseChange: Hashable {
-    public enum Kind: Hashable {
-        case insertedOrUpdated(contentType: PersonalDataContentType)
-        case metadataUpdated
-        case deleted
-    }
+  public enum Kind: Hashable {
+    case insertedOrUpdated(contentType: PersonalDataContentType)
+    case metadataUpdated
+    case deleted
+  }
 
-    public let kind: Kind
-    public let id: Identifier
+  public let kind: Kind
+  public let id: Identifier
 }
 
 extension DatabaseChange {
-    init(insertedOrUpdatedRecord: PersonalDataRecord) {
-        self.init(kind: .insertedOrUpdated(contentType: insertedOrUpdatedRecord.metadata.contentType), id: insertedOrUpdatedRecord.metadata.id)
-    }
+  init(insertedOrUpdatedRecord: PersonalDataRecord) {
+    self.init(
+      kind: .insertedOrUpdated(contentType: insertedOrUpdatedRecord.metadata.contentType),
+      id: insertedOrUpdatedRecord.metadata.id)
+  }
 }

@@ -1,12 +1,12 @@
 #if canImport(UIKit)
-import Foundation
-import SwiftUI
-import UIKit
-import CorePremium
-import DesignSystem
-import CoreLocalization
+  import Foundation
+  import SwiftUI
+  import UIKit
+  import CorePremium
+  import DesignSystem
+  import CoreLocalization
 
-public struct UserSpaceSwitcher<Accessory: View>: View {
+  public struct UserSpaceSwitcher<Accessory: View>: View {
     @StateObject
     var model: UserSpaceSwitcherViewModel
 
@@ -17,93 +17,98 @@ public struct UserSpaceSwitcher<Accessory: View>: View {
 
     private let displayTeamName: Bool
 
-    public init(model: @autoclosure @escaping () -> UserSpaceSwitcherViewModel, @ViewBuilder accessory: () -> Accessory) {
-        self._model = .init(wrappedValue: model())
-        self.accessory = accessory()
-        self.displayTeamName = false
+    public init(
+      model: @autoclosure @escaping () -> UserSpaceSwitcherViewModel,
+      @ViewBuilder accessory: () -> Accessory
+    ) {
+      self._model = .init(wrappedValue: model())
+      self.accessory = accessory()
+      self.displayTeamName = false
     }
 
     @ViewBuilder
     public var body: some View {
-        if model.availableSpaces.count < 2 {
-            accessory
-        } else {
-            Button(action: {
-                self.model.isPopoverPresented = true
-            }, label: {
-                if self.displayTeamName {
-                    self.buttonWithTeamName
-                } else {
-                    self.buttonWithAccessory
-                }
-            })
-            .accessibility(label: Text(L10n.Core.dashlaneBusinessActiveSpacesTitle))
-        }
+      if model.availableSpaces.count < 2 {
+        accessory
+      } else {
+        Button(
+          action: {
+            self.model.isPopoverPresented = true
+          },
+          label: {
+            if self.displayTeamName {
+              self.buttonWithTeamName
+            } else {
+              self.buttonWithAccessory
+            }
+          }
+        )
+        .accessibility(label: Text(L10n.Core.dashlaneBusinessActiveSpacesTitle))
+      }
     }
 
     @ViewBuilder
     var buttonWithTeamName: some View {
-        HStack(spacing: 0) {
-            UserSpaceIcon(space: model.selectedSpace, size: .normal)
-                .equatable()
-                .padding(4)
-                .modifier(UserSpacePopover(model: model))
-            Text(model.selectedSpace.teamName)
-                .foregroundColor(.ds.text.brand.standard)
-                .font(.subheadline.weight(.regular))
-        }
+      HStack(spacing: 0) {
+        UserSpaceIcon(space: model.selectedSpace, size: .normal)
+          .equatable()
+          .padding(4)
+          .modifier(UserSpacePopover(model: model))
+        Text(model.selectedSpace.teamName)
+          .foregroundColor(.ds.text.brand.standard)
+          .font(.subheadline.weight(.regular))
+      }
     }
 
     @ViewBuilder
     var buttonWithAccessory: some View {
-        HStack(spacing: 4) {
-            accessory
-            UserSpaceIcon(space: model.selectedSpace, size: .normal)
-                .equatable()
-                .padding(4)
-                .modifier(UserSpacePopover(model: model))
-        }
+      HStack(spacing: 4) {
+        accessory
+        UserSpaceIcon(space: model.selectedSpace, size: .normal)
+          .equatable()
+          .padding(4)
+          .modifier(UserSpacePopover(model: model))
+      }
     }
-}
+  }
 
-public extension UserSpaceSwitcher where Accessory == EmptyView {
-    init(model: @autoclosure @escaping () -> UserSpaceSwitcherViewModel) {
-        self.init(model: model(), accessory: { EmptyView() })
+  extension UserSpaceSwitcher where Accessory == EmptyView {
+    public init(model: @autoclosure @escaping () -> UserSpaceSwitcherViewModel) {
+      self.init(model: model(), accessory: { EmptyView() })
     }
 
-    init(model: @autoclosure @escaping () -> UserSpaceSwitcherViewModel, displayTeamName: Bool) {
-        self._model = .init(wrappedValue: model())
-        self.displayTeamName = displayTeamName
-        self.accessory = EmptyView()
+    public init(
+      model: @autoclosure @escaping () -> UserSpaceSwitcherViewModel, displayTeamName: Bool
+    ) {
+      self._model = .init(wrappedValue: model())
+      self.displayTeamName = displayTeamName
+      self.accessory = EmptyView()
     }
-}
+  }
 
-struct UserSpaceSwitcher_Previews: PreviewProvider {
-    static let teamSpacesService: CorePremium.TeamSpacesServiceProtocol = .mock(
-        selectedSpace: .personal,
-        availableSpaces: [.both, .personal, TeamSpaceView_Previews.userTeamSpace]
-    )
-    static let model = UserSpaceSwitcherViewModel(teamSpacesService: teamSpacesService, activityReporter: .fake)
+  struct UserSpaceSwitcher_Previews: PreviewProvider {
+    static let model = UserSpaceSwitcherViewModel(
+      userSpacesService: .mock(status: .Mock.team), activityReporter: .mock)
 
     static var previews: some View {
-        Group {
-            NavigationView {
-                Text("Content")
-                    .toolbar {
-                        ToolbarItem(placement: .principal) {
-                            UserSpaceSwitcher(model: model) {
-                                Text("Title")
-                                    .foregroundColor(.primary)
-                                    .font(.headline)
-                                    .lineLimit(1)
-                                    .fixedSize(horizontal: true, vertical: false)
-                            }
-                        }
-                    }
+      Group {
+        NavigationView {
+          Text("Content")
+            .toolbar {
+              ToolbarItem(placement: .principal) {
+                UserSpaceSwitcher(model: model) {
+                  Text("Title")
+                    .foregroundColor(.primary)
+                    .font(.headline)
+                    .lineLimit(1)
+                    .fixedSize(horizontal: true, vertical: false)
+                }
+              }
             }
-            UserSpaceSwitcher(model: model, displayTeamName: true)
-                .previewLayout(.sizeThatFits)
         }
+        UserSpaceSwitcher(model: model, displayTeamName: true)
+          .previewLayout(.sizeThatFits)
+      }
     }
-}
+  }
 #endif

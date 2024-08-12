@@ -1,39 +1,35 @@
-import CorePersonalData
-import SwiftUI
-import CoreSpotlight
 import CoreLocalization
+import CorePersonalData
+import CoreSpotlight
 import DocumentServices
+import SwiftUI
 
-public protocol SecureItem {
-    var secured: Bool {get set}
-}
+extension SecureNote: VaultItem {
+  public var enumerated: VaultItemEnumeration {
+    return .secureNote(self)
+  }
 
-extension SecureNote: VaultItem, SecureItem {
-    public var enumerated: VaultItemEnumeration {
-         return .secureNote(self)
+  public var localizedTitle: String {
+    return displayTitle
+  }
+
+  public var localizedSubtitle: String {
+    guard !secured else {
+      return L10n.Core.KWSecureNoteIOS.protectedMessage
     }
 
-    public var localizedTitle: String {
-        return displayTitle
-    }
+    return displaySubtitle ?? ""
+  }
 
-    public var localizedSubtitle: String {
-        guard !secured else {
-            return L10n.Core.KWSecureNoteIOS.protectedMessage
-        }
+  public static var localizedName: String {
+    L10n.Core.kwSecureNoteIOS
+  }
 
-        return displaySubtitle ?? ""
-    }
+  public static var addTitle: String {
+    L10n.Core.kwadddatakwSecureNoteIOS
+  }
 
-    public static var localizedName: String {
-        L10n.Core.kwSecureNoteIOS
-    }
-
-    public static var addTitle: String {
-        L10n.Core.kwadddatakwSecureNoteIOS
-    }
-
-    public static var nativeMenuAddTitle: String {
-        L10n.Core.addSecureNote
-    }
+  public static var nativeMenuAddTitle: String {
+    L10n.Core.addSecureNote
+  }
 }

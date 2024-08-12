@@ -1,29 +1,29 @@
 import Foundation
 
 public enum KeychainError: Error, Equatable {
-        case userCanceledRequest
+  case userCanceledRequest
 
-        case userFailedAuthCheck
+  case userFailedAuthCheck
 
-        case itemNotFound
+  case itemNotFound
 
-        case emptyItemData(status: OSStatus)
+  case emptyItemData(status: OSStatus)
 
-        case accessFailure(status: OSStatus)
+  case accessFailure(status: OSStatus)
 
-        case decryptionFailure
+  case decryptionFailure
 
-        case encryptionFailure
+  case encryptionFailure
 
-        case removalFailure(status: OSStatus)
+  case removalFailure(status: OSStatus)
 
-        case storingFailure(status: OSStatus)
+  case storingFailure(status: OSStatus)
 
-        case settingsFailure
+  case settingsFailure
 
-        case statusCheckFailure(status: OSStatus)
+  case statusCheckFailure(status: OSStatus)
 
-        case unhandledError(status: OSStatus)
+  case unhandledError(status: OSStatus)
 
-        case unknown
+  case unknown
 }

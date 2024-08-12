@@ -1,8 +1,8 @@
-import Foundation
 import CorePremium
+import Foundation
 
 public enum PlanPurchaseInitialViewRequest {
-    case paywall(key: CapabilityKey)
-    case list
-    case plan(kind: PurchasePlan.Kind)
+  case paywall(trigger: PaywallViewModel.Trigger)
+  case list
+  case plan(kind: PurchasePlan.Kind)
 }

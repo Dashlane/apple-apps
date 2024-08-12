@@ -1,16 +1,15 @@
-import Foundation
 import CorePersonalData
+import Foundation
 import SwiftUI
 
 extension Passkey {
 
-    public static var addIcon: Image {
-        assertionFailure("Users cannot add passkeys manually")
-        return .ds.passkey.outlined
-    }
+  public static var addIcon: Image {
+    assertionFailure("Users cannot add passkeys manually")
+    return .ds.passkey.outlined
+  }
 
-    public var icon: VaultItemIcon {
-        .static(.ds.passkey.outlined,
-                backgroundColor: .ds.container.expressive.neutral.catchy.active)
-    }
+  public var icon: VaultItemIcon {
+    .passkey(self)
+  }
 }

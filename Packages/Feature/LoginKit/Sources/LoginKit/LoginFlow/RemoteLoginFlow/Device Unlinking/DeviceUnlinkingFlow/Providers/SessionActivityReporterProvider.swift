@@ -1,21 +1,24 @@
-import Foundation
-import CoreUserTracking
 import CoreSession
+import CoreUserTracking
 import DashTypes
+import Foundation
 
 public protocol SessionActivityReporterProvider {
-    func makeSessionActivityReporter(for login: Login, analyticsId: AnalyticsIdentifiers) -> ActivityReporterProtocol
+  func makeSessionActivityReporter(for login: Login, analyticsId: AnalyticsIdentifiers)
+    -> ActivityReporterProtocol
 }
 
-struct FakeSessionActivityReporter: SessionActivityReporterProvider {
-    public init() {}
-    public func makeSessionActivityReporter(for login: Login, analyticsId: AnalyticsIdentifiers) -> ActivityReporterProtocol {
-        FakeActivityReporter()
-    }
+public struct SessionActivityReporterMock: SessionActivityReporterProvider {
+  public init() {}
+  public func makeSessionActivityReporter(for login: Login, analyticsId: AnalyticsIdentifiers)
+    -> ActivityReporterProtocol
+  {
+    ActivityReporterMock()
+  }
 }
 
-public extension SessionActivityReporterProvider {
-	static var mock: SessionActivityReporterProvider {
-		FakeSessionActivityReporter()
-	}
+extension SessionActivityReporterProvider where Self == SessionActivityReporterMock {
+  public static var mock: SessionActivityReporterProvider {
+    SessionActivityReporterMock()
+  }
 }

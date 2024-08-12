@@ -1,221 +1,208 @@
 #if canImport(UIKit)
-import Foundation
-import SwiftUI
-import Combine
-import DesignSystem
+  import Foundation
+  import SwiftUI
+  import Combine
+  import DesignSystem
 
-public struct OTPField: View {
-
-    @StateObject
-    var model: OTPFieldModel
+  public struct OTPField: View {
+    let numberOfDigits: Int
 
     @Binding
-    var otpValue: String
+    var otp: String
 
-    @Binding
-    var isError: Bool
+    @FocusState
+    private var focusedField: Int?
 
-    var otp: [Binding<String>] {
-        [$model.otp1, $model.otp2, $model.otp3, $model.otp4, $model.otp5, $model.otp6]
-    }
+    @Environment(\.isEnabled)
+    var isGloballyEnabled
 
-    @State private var numberOfCells: Int = 6
-    @State private var currentlySelectedCell = 0
-
-    let backgroundColor: Color
-
-    public init( model: @autoclosure @escaping () -> OTPFieldModel, otpValue: Binding<String>, isError: Binding<Bool>, backgroundColor: Color = .ds.container.agnostic.neutral.quiet) {
-        self._model = .init(wrappedValue: model())
-        _otpValue = otpValue
-        _isError = isError
-        self.backgroundColor = backgroundColor
+    public init(otp: Binding<String>, numberOfDigits: Int = 6) {
+      _otp = otp
+      self.numberOfDigits = numberOfDigits
     }
 
     public var body: some View {
-        HStack(spacing: 8) {
-            ForEach(0..<6) { index in
-                OTPCell(textValue: otp[index], currentlySelectedCell: self.$currentlySelectedCell, backgroundColor: backgroundColor, otp: otp, index: index)
-                    .overlay(RoundedRectangle(cornerRadius: 5, style: .continuous).stroke(isError ? .ds.border.danger.standard.idle : Color.clear, lineWidth: 1))
+      HStack(spacing: 8) {
+
+        ForEach(0..<numberOfDigits, id: \.self) { index in
+          let binding = binding(forIndex: index)
+
+          OTPDigitField(value: binding)
+            .focused($focusedField, equals: index)
+
+            .disabled(!isGloballyEnabled || otp.count < index)
+            .onChange(of: binding.wrappedValue) { newValue in
+              changeFocusIfNeeded(forNewValue: newValue, atIndex: index)
             }
-        }.onReceive(model.updatePublisher) {
-            update()
+            .onChange(of: focusedField) { focusedField in
+              guard focusedField == index else {
+                return
+              }
+              binding.wrappedValue = ""
+            }
+            .onTapGesture {
+              guard focusedField == nil, isGloballyEnabled else {
+                return
+              }
+
+              focusedField = min(otp.count, index)
+            }
         }
-    }
-
-    func update() {
-        otpValue = model.otp1 + model.otp2 + model.otp3 + model.otp4 + model.otp5 + model.otp6
-    }
-}
-
-struct OTPField_Previews: PreviewProvider {
-    static var previews: some View {
-        VStack {
-            OTPField(model: OTPFieldModel(), otpValue: .constant(""), isError: .constant(false))
-            Spacer()
-            Text("hbjknknklkj")
-        }.frame(maxHeight: .infinity)
-            .background(.red)
-        OTPField(model: OTPFieldModel(), otpValue: .constant(""), isError: .constant(true))
-    }
-}
-
-public class OTPFieldModel: ObservableObject {
-
-    var updatePublisher = PassthroughSubject<Void, Never>()
-
-    @Published
-    var otp1: String = "" {
-        didSet {
-            update()
+      }.onAppear {
+        if otp.isEmpty {
+          focusedField = 0
         }
+      }
     }
 
-    @Published
-    var otp2: String = "" {
-        didSet {
-            update()
-        }
+    private func binding(forIndex index: Int) -> Binding<String> {
+      Binding<String>(
+        get: {
+          guard index < otp.count else {
+            return ""
+          }
+
+          return String(otp[otp.index(otp.startIndex, offsetBy: index)])
+        },
+        set: { newValue in
+          let newValue = newValue.prefix(1)
+
+          if Int(newValue) != nil {
+            if otp.count <= index {
+              otp.append(contentsOf: newValue)
+            } else {
+              let index = otp.index(otp.startIndex, offsetBy: index)
+              otp.replaceSubrange(index...index, with: newValue)
+            }
+          } else if self.otp.count > index {
+            otp = String(self.otp.prefix(index))
+          }
+        })
     }
+    private func changeFocusIfNeeded(forNewValue newValue: String, atIndex index: Int) {
+      guard let focusedField, focusedField == index, !newValue.isEmpty else {
+        return
+      }
 
-    @Published
-    var otp3: String = "" {
-        didSet {
-            update()
-        }
+      if index == self.numberOfDigits - 1 {
+        self.focusedField = nil
+
+      } else {
+        self.focusedField = focusedField + 1
+      }
     }
+  }
 
-    @Published
-    var otp4: String = "" {
-        didSet {
-            update()
-        }
+  extension View {
+    public func otpFieldStyle(
+      backgroundColor: Color = .ds.container.agnostic.neutral.quiet,
+      focusColor: Color = .ds.border.brand.standard.active,
+      strokeColor: Color? = nil
+    ) -> some View {
+
+      self.environment(
+        \.otpFieldStyle,
+        .init(
+          backgroundColor: backgroundColor,
+          focusColor: focusColor,
+          strokeColor: strokeColor))
     }
+  }
 
-    @Published
-    var otp5: String = "" {
-        didSet {
-            update()
-        }
-    }
-
-    @Published
-    var otp6: String = "" {
-        didSet {
-            update()
-        }
-    }
-
-    public init() {}
-
-    func update() {
-        updatePublisher.send()
-    }
-}
-
-struct OTPCell: View {
-    @Binding var textValue: String
-    @Binding var currentlySelectedCell: Int
+  private struct OTPDigitFieldStyle {
     let backgroundColor: Color
-    let otp: [Binding<String>]
-    var index: Int
+    let focusColor: Color
 
-    init(textValue: Binding<String>, currentlySelectedCell: Binding<Int>, backgroundColor: Color, otp: [Binding<String>], index: Int) {
-        self._textValue = textValue
-        self._currentlySelectedCell = currentlySelectedCell
-        self.backgroundColor = backgroundColor
-        self.otp = otp
-        self.index = index
-    }
+    let strokeColor: Color?
+  }
 
-    var responder: Bool {
-        return index == currentlySelectedCell
+  extension EnvironmentValues {
+    fileprivate var otpFieldStyle: OTPDigitFieldStyle {
+      get {
+        return self[OTPDigitStyleEnvironmentKey.self]
+      }
+      set {
+        self[OTPDigitStyleEnvironmentKey.self] = newValue
+      }
     }
+  }
+
+  private struct OTPDigitStyleEnvironmentKey: EnvironmentKey {
+    typealias Value = OTPDigitFieldStyle
+    static var defaultValue: OTPDigitFieldStyle = .init(
+      backgroundColor: .ds.container.agnostic.neutral.quiet,
+      focusColor: .ds.border.brand.standard.active,
+      strokeColor: nil)
+  }
+
+  private struct OTPDigitField: View {
+    @Binding
+    var value: String
+
+    @Environment(\.otpFieldStyle)
+    var style
+
+    @FocusState
+    var isFocused: Bool
 
     var body: some View {
-        OTPTextField(text: $textValue, currentlySelectedCell: $currentlySelectedCell, otp: otp, isFirstResponder: responder)
-            .keyboardType(.decimalPad)
-            .multilineTextAlignment(.center)
-            .frame(width: 48, height: 65, alignment: .center)
-            .background(backgroundColor)
-            .clipShape(Rectangle())
-            .cornerRadius(5)
-            .font(.title)
-            .monospacedDigit()
-            .lineLimit(1)
-    }
-}
-
-struct OTPTextField: UIViewRepresentable {
-
-    @MainActor
-    class Coordinator: NSObject, UITextFieldDelegate {
-
-        @Binding var text: String
-        @Binding var currentlySelectedCell: Int
-        let otp: [Binding<String>]
-
-        var didBecomeFirstResponder = false
-
-        init(text: Binding<String>, currentlySelectedCell: Binding<Int>, otp: [Binding<String>]) {
-            _text = text
-            _currentlySelectedCell = currentlySelectedCell
-            self.otp = otp
+      TextField("", text: $value)
+        .textFieldStyle(.plain)
+        .focused($isFocused)
+        .keyboardType(.decimalPad)
+        .multilineTextAlignment(.center)
+        .frame(width: 48, height: 65, alignment: .center)
+        .background(
+          ContainerRelativeShape().fill(style.backgroundColor)
+        )
+        .overlay {
+          if isFocused {
+            ContainerRelativeShape().inset(by: 1).stroke(style.focusColor, lineWidth: 2)
+          } else if let strokeColor = style.strokeColor {
+            ContainerRelativeShape().inset(by: 0.5).stroke(strokeColor, lineWidth: 1)
+          }
         }
+        .containerShape(RoundedRectangle(cornerRadius: 5, style: .continuous))
+        .font(.title)
+        .monospacedDigit()
+        .lineLimit(1)
+        .tint(style.focusColor)
+        .animation(.default, value: isFocused)
+        .animation(.default, value: style.strokeColor)
+    }
+  }
 
-        func textFieldDidChangeSelection(_ textField: UITextField) {
-            self.text = textField.text ?? ""
+  struct OTPField_Previews: PreviewProvider {
+    struct TestView: View {
+      @State
+      var otp: String = ""
+
+      @State
+      var hasStroke: Bool = false
+
+      var body: some View {
+        VStack {
+          OTPField(otp: $otp)
+            .otpFieldStyle(strokeColor: hasStroke ? .ds.border.danger.standard.active : nil)
+          Button("Clear") {
+            otp = ""
+          }
+
+          Toggle("Toggle stroke", isOn: $hasStroke)
+            .padding()
+
         }
-
-        func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
-            let currentText = textField.text ?? ""
-
-            guard let stringRange = Range(range, in: currentText) else { return false }
-
-            let updatedText = currentText.replacingCharacters(in: stringRange, with: string)
-
-            if updatedText.count <= 1 {
-                self.currentlySelectedCell += 1
-            } else {
-                var current = updatedText
-                otp.forEach { value in
-                    if let string = current.first {
-                        value.wrappedValue = String(string)
-                        current = String(current.dropFirst())
-                        self.currentlySelectedCell += 1
-                    }
-                }
-            }
-
-            return updatedText.count <= 1
-        }
+        .tint(.ds.text.brand.standard)
+      }
     }
 
-    @Binding var text: String
-    @Binding var currentlySelectedCell: Int
-    let otp: [Binding<String>]
+    static var previews: some View {
+      TestView()
+      TestView()
+        .otpFieldStyle(backgroundColor: .red, strokeColor: .blue)
+        .previewDisplayName("custom style")
 
-    var isFirstResponder: Bool = false
-
-    func makeUIView(context: UIViewRepresentableContext<OTPTextField>) -> UITextField {
-        let textField = UITextField(frame: .zero)
-        textField.delegate = context.coordinator
-        textField.textAlignment = .center
-        textField.keyboardType = .decimalPad
-        textField.font = .monospacedDigitSystemFont(ofSize: 32, weight: .medium)
-        return textField
     }
-
-    func makeCoordinator() -> OTPTextField.Coordinator {
-        return Coordinator(text: $text, currentlySelectedCell: $currentlySelectedCell, otp: otp)
-    }
-
-    func updateUIView(_ uiView: UITextField, context: UIViewRepresentableContext<OTPTextField>) {
-        uiView.text = text
-        if isFirstResponder && !context.coordinator.didBecomeFirstResponder {
-            uiView.becomeFirstResponder()
-            context.coordinator.didBecomeFirstResponder = true
-        }
-    }
-}
+  }
 
 #endif

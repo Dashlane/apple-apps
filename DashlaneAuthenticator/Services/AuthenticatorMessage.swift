@@ -1,13 +1,13 @@
 import Foundation
 
 enum AutheticatorMessage: Codable {
-    case sync
+  case sync
 }
 
 public enum PasswordAppMessage: Codable {
-    case login
-    case logout
-    case lockSettingsChanged
-    case sync
-    case refresh
+  case login
+  case logout
+  case lockSettingsChanged
+  case sync
+  case refresh
 }

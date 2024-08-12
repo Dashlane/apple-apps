@@ -4,68 +4,70 @@ import CorePersonalData
 import Foundation
 import VaultKit
 
-class PasswordHealthSectionModel: DetailViewModelProtocol, SessionServicesInjecting, MockVaultConnectedInjecting {
+class PasswordHealthSectionModel: DetailViewModelProtocol, SessionServicesInjecting,
+  MockVaultConnectedInjecting
+{
 
-    @Published
-    var reusedCount: Int?
+  @Published
+  var reusedCount: Int?
 
-    @Published
-    var isCompromised: Bool = false
+  @Published
+  var isCompromised: Bool = false
 
-        var passwordStrength: PasswordStrength {
-        passwordEvaluator.evaluate(item.password)
+  var passwordStrength: PasswordStrength {
+    passwordEvaluator.evaluate(item.password)
+  }
+
+  let service: DetailService<Credential>
+
+  private let passwordEvaluator: PasswordEvaluatorProtocol
+  private let identityDashboardService: IdentityDashboardServiceProtocol
+
+  private var subscriptions: Set<AnyCancellable> = []
+
+  init(
+    service: DetailService<Credential>,
+    passwordEvaluator: PasswordEvaluatorProtocol,
+    identityDashboardService: IdentityDashboardServiceProtocol
+  ) {
+    self.service = service
+    self.passwordEvaluator = passwordEvaluator
+    self.identityDashboardService = identityDashboardService
+
+    updatePasswordHealth()
+    identityDashboardService
+      .notificationManager
+      .publisher(for: .securityDashboardDidRefresh)
+      .receive(on: DispatchQueue.main)
+      .sink { [weak self] _ in
+        self?.updatePasswordHealth()
+      }
+      .store(in: &subscriptions)
+  }
+
+  func updatePasswordHealth() {
+    guard !item.password.isEmpty else {
+      reusedCount = nil
+      isCompromised = false
+      return
     }
 
-    let service: DetailService<Credential>
-
-    private let passwordEvaluator: PasswordEvaluatorProtocol
-    private let identityDashboardService: IdentityDashboardServiceProtocol
-
-    private var subscriptions: Set<AnyCancellable> = []
-
-    init(
-        service: DetailService<Credential>,
-        passwordEvaluator: PasswordEvaluatorProtocol,
-        identityDashboardService: IdentityDashboardServiceProtocol
-    ) {
-        self.service = service
-        self.passwordEvaluator = passwordEvaluator
-        self.identityDashboardService = identityDashboardService
-
-        updatePasswordHealth()
-        identityDashboardService
-            .notificationManager
-            .publisher(for: .securityDashboardDidRefresh)
-            .receive(on: DispatchQueue.main)
-            .sink { [weak self] _ in
-                self?.updatePasswordHealth()
-            }
-            .store(in: &subscriptions)
+    identityDashboardService.isCompromised(item) { isCompromised in
+      self.isCompromised = isCompromised
     }
 
-    func updatePasswordHealth() {
-        guard !item.password.isEmpty else {
-            reusedCount = nil
-            isCompromised = false
-            return
-        }
-
-        identityDashboardService.isCompromised(item) { isCompromised in
-            self.isCompromised = isCompromised
-        }
-
-        identityDashboardService.numberOfTimesPasswordIsReused(of: item) { reusedCount in
-            self.reusedCount =  reusedCount > 1 ? reusedCount : nil
-        }
+    identityDashboardService.numberOfTimesPasswordIsReused(of: item) { reusedCount in
+      self.reusedCount = reusedCount > 1 ? reusedCount : nil
     }
+  }
 }
 
 extension PasswordHealthSectionModel {
-    static func mock(service: DetailService<Credential>) -> PasswordHealthSectionModel {
-        PasswordHealthSectionModel(
-            service: service,
-            passwordEvaluator: .mock(),
-            identityDashboardService: IdentityDashboardService.mock
-        )
-    }
+  static func mock(service: DetailService<Credential>) -> PasswordHealthSectionModel {
+    PasswordHealthSectionModel(
+      service: service,
+      passwordEvaluator: .mock(),
+      identityDashboardService: IdentityDashboardService.mock
+    )
+  }
 }

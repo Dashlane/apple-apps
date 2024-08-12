@@ -1,12 +1,8 @@
 import SwiftUI
 
-#if os(iOS)
-
-public extension List {
-        @ViewBuilder
-    func detailListStyle() -> some View {
-        self.listStyle(InsetGroupedListStyle())
-    }
+extension List {
+  @ViewBuilder
+  public func detailListStyle() -> some View {
+    self.listStyle(InsetGroupedListStyle())
+  }
 }
-
-#endif

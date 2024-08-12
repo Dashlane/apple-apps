@@ -1,79 +1,82 @@
 import Foundation
 
 @MainActor
-final class OnboardingChecklistFlowViewModel: ObservableObject, SessionServicesInjecting, OnboardingChecklistActionHandler {
+final class OnboardingChecklistFlowViewModel: ObservableObject, SessionServicesInjecting,
+  OnboardingChecklistActionHandler
+{
 
-    enum Completion {
-        case dismiss
-    }
+  enum Completion {
+    case dismiss
+  }
 
-    enum Action {
-        case addNewItem(displayMode: AddItemFlowViewModel.DisplayMode)
-        case ctaTapped(action: OnboardingChecklistAction)
-        case onDismiss
-        case onAppear
-    }
+  enum Action {
+    case addNewItem(displayMode: AddItemFlowViewModel.DisplayMode)
+    case ctaTapped(action: OnboardingChecklistAction)
+    case onDismiss
+    case onAppear
+  }
 
-    enum DisplayMode {
-        case root
-        case modal
-    }
+  enum DisplayMode {
+    case root
+    case modal
+  }
 
-    enum Step {
-        case onboardingChecklist(OnboardingChecklistViewModel)
-    }
+  enum Step {
+    case onboardingChecklist
+  }
 
-        @Published
-    var steps: [Step] = []
+  @Published
+  var steps: [Step] = []
 
-    @Published
-    var genericSheet: GenericSheet?
+  @Published
+  var genericSheet: GenericSheet?
 
-    @Published
-    var genericFullCover: GenericSheet?
+  @Published
+  var genericFullCover: GenericSheet?
 
-    let displayMode: DisplayMode
-    let origin: OnboardingChecklistOrigin = .standalone
+  let displayMode: DisplayMode
+  let origin: OnboardingChecklistOrigin = .standalone
 
-    private let onboardingChecklistViewAction: ((OnboardingChecklistFlowViewModel.Action) -> Void)?
-    private let completion: (Completion) -> Void
+  private let onboardingChecklistViewAction: ((OnboardingChecklistFlowViewModel.Action) -> Void)?
+  private let completion: (Completion) -> Void
 
-        private let onboardingChecklistViewModelFactory: OnboardingChecklistViewModel.Factory
+  private let onboardingChecklistViewModelFactory: OnboardingChecklistViewModel.Factory
 
-        let sessionServices: SessionServicesContainer
+  let sessionServices: SessionServicesContainer
 
-    init(
-        displayMode: OnboardingChecklistFlowViewModel.DisplayMode,
-        onboardingChecklistViewAction: ((OnboardingChecklistFlowViewModel.Action) -> Void)? = nil,
-        completion: @escaping (OnboardingChecklistFlowViewModel.Completion) -> Void,
-        onboardingChecklistViewModelFactory: OnboardingChecklistViewModel.Factory,
-        sessionServices: SessionServicesContainer
-    ) {
-        self.displayMode = displayMode
-        self.onboardingChecklistViewAction = onboardingChecklistViewAction
-        self.completion = completion
+  init(
+    displayMode: OnboardingChecklistFlowViewModel.DisplayMode,
+    onboardingChecklistViewAction: ((OnboardingChecklistFlowViewModel.Action) -> Void)? = nil,
+    completion: @escaping (OnboardingChecklistFlowViewModel.Completion) -> Void,
+    onboardingChecklistViewModelFactory: OnboardingChecklistViewModel.Factory,
+    sessionServices: SessionServicesContainer
+  ) {
+    self.displayMode = displayMode
+    self.onboardingChecklistViewAction = onboardingChecklistViewAction
+    self.completion = completion
 
-        self.onboardingChecklistViewModelFactory = onboardingChecklistViewModelFactory
+    self.onboardingChecklistViewModelFactory = onboardingChecklistViewModelFactory
 
-        self.sessionServices = sessionServices
+    self.sessionServices = sessionServices
 
-        start()
-    }
+    start()
+  }
 
-    private func start() {
-        steps = [.onboardingChecklist(makeOnboardingChecklistViewModel())]
-    }
+  private func start() {
+    steps = [.onboardingChecklist]
+  }
 
-    func dismiss() {
-        completion(.dismiss)
-    }
+  func dismiss() {
+    completion(.dismiss)
+  }
 
-    func dismissOnboardingChecklistFlow() {
-        dismiss()
-    }
+  func dismissOnboardingChecklistFlow() {
+    dismiss()
+  }
 
-    func makeOnboardingChecklistViewModel() -> OnboardingChecklistViewModel {
-        return onboardingChecklistViewModelFactory.make(action: onboardingChecklistViewAction ?? { self.handleOnboardingChecklistViewAction($0) }
-        )
-    }
+  func makeOnboardingChecklistViewModel() -> OnboardingChecklistViewModel {
+    return onboardingChecklistViewModelFactory.make(
+      action: onboardingChecklistViewAction ?? { self.handleOnboardingChecklistViewAction($0) }
+    )
+  }
 }

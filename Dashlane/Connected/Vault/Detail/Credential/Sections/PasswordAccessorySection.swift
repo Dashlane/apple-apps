@@ -1,22 +1,28 @@
+import CoreFeature
 import CorePersonalData
 import DesignSystem
-import CoreFeature
 import SwiftUI
 import UIDelight
 
 struct PasswordAccessorySection: View {
+  @StateObject var model: PasswordAccessorySectionModel
 
-    @ObservedObject
-    var model: PasswordAccessorySectionModel
+  @FeatureState(.prideColors) private var isPrideColorsEnabled: Bool
 
-    @FeatureState(.prideColors)
-    private var isPrideColorsEnabled: Bool
+  @Binding var showPasswordGenerator: Bool
 
-    @Binding
-    var showPasswordGenerator: Bool
+  init(
+    model: @escaping @autoclosure () -> PasswordAccessorySectionModel,
+    showPasswordGenerator: Binding<Bool>
+  ) {
+    self._model = .init(wrappedValue: model())
+    self._showPasswordGenerator = showPasswordGenerator
+  }
 
-    var body: some View {
-        TextFieldPasswordStrengthFeedback(strength: model.passwordStrength, colorful: isPrideColorsEnabled)
-            .animation(.default, value: model.passwordStrength)
-    }
+  var body: some View {
+    TextInputPasswordStrengthFeedback(
+      strength: model.passwordStrength, colorful: isPrideColorsEnabled
+    )
+    .animation(.default, value: model.passwordStrength)
+  }
 }

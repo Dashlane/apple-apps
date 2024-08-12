@@ -1,100 +1,110 @@
-import Foundation
-import SwiftUI
-import UIDelight
-import LoginKit
-import UIComponents
 import CoreLocalization
+import DashTypes
+import DesignSystem
+import Foundation
+import LoginKit
+import SwiftUI
+import UIComponents
+import UIDelight
 
 struct SSOUserConsentView: View {
 
-    @ObservedObject
-    var model: SSOUserConsentViewModel
+  @Environment(\.openURL)
+  var openURL
 
-    var body: some View {
-        VStack(alignment: .leading, spacing: 32) {
-            Text(L10n.Localizable.createaccountPrivacysettingsHeadline)
-                .font(.headline)
-                .padding(.horizontal, 16)
+  @ObservedObject
+  var model: SSOUserConsentViewModel
 
-            consentCheckboxes
-                .padding(.horizontal, 24)
-            Spacer()
+  var body: some View {
+    List {
+      Section {
+        consentCheckboxes
+      }
+    }
+    .listAppearance(.insetGrouped)
+    .navigationBarBackButtonHidden(true)
+    .navigationTitle(L10n.Localizable.kwTitle)
+    .navigationBarStyle(.alternate)
+    .toolbar {
+      ToolbarItem(placement: .navigationBarLeading) {
+        NavigationBarButton(action: model.cancel, title: CoreLocalization.L10n.Core.cancel)
+      }
+      ToolbarItem(placement: .navigationBarTrailing) {
+        NavigationBarButton(action: model.signup, title: L10n.Localizable.kwSignupButton)
+          .disabled(model.isAccountCreationRequestInProgress)
+      }
+    }
+    .loginAppearance()
+  }
+
+  private var consentCheckboxes: some View {
+    VStack(alignment: .leading, spacing: 12) {
+      DS.Toggle(
+        isOn: $model.hasUserAcceptedTermsAndConditions,
+        label: {
+          Text(model.legalNoticeEUString)
         }
-        .padding(.top, 34)
-        .navigationBarBackButtonHidden(true)
-        .navigationTitle(L10n.Localizable.kwTitle)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                NavigationBarButton(action: model.cancel, title: CoreLocalization.L10n.Core.cancel)
-            }
-            ToolbarItem(placement: .navigationBarTrailing) {
-                NavigationBarButton(action: model.signup, title: L10n.Localizable.kwSignupButton)
-                    .disabled(model.isAccountCreationRequestInProgress)
-            }
+      )
+      .padding(.top, 8)
+      .fiberAccessibilityLabel(
+        Text(L10n.Localizable.minimalisticOnboardingRecapCheckboxAccessibilityTitle)
+      )
+      .accessibility(identifier: "Terms Of Service checkbox")
+
+      DS.Toggle(
+        isOn: $model.hasUserAcceptedEmailMarketing,
+        label: {
+          Text(L10n.Localizable.createaccountPrivacysettingsMailsForTips)
         }
-        .loginAppearance()
-    }
+      )
+      .padding(.bottom, 8)
+      .fiberAccessibilityLabel(
+        Text(L10n.Localizable.createaccountPrivacysettingsMailsForTipsAccessibility)
+      )
+      .accessibility(identifier: "Send emails for tips checkbox")
 
-    private var consentCheckboxes: some View {
-        VStack(alignment: .leading, spacing: 24) {
-            HStack(alignment: .center, spacing: 10) {
-                Image(asset: model.hasUserAcceptedTermsAndConditions ? FiberAsset.checkboxSelected : FiberAsset.checkboxUnselected)
-                    .onTapGesture {
-                        self.model.hasUserAcceptedTermsAndConditions.toggle()
-                    }
-                    .alert(isPresented: $model.shouldDisplayMissingRequiredConsentAlert, content: userConsentAlert)
-                    .fiberAccessibilityLabel(Text(L10n.Localizable.minimalisticOnboardingRecapCheckboxAccessibilityTitle))
-                    .accessibility(identifier: "Terms Of Service checkbox")
-                    .fiberAccessibilityAddTraits(.isButton)
-                    .fiberAccessibilityRemoveTraits(.isImage)
-                Text(model.legalNoticeEUAttributedString)
+      Button(CoreLocalization.L10n.Core.createaccountPrivacysettingsTermsConditions) {
+        openURL(DashlaneURLFactory.Endpoint.tos.url)
+      }
+      .buttonStyle(.externalLink)
+      .controlSize(.small)
 
-            }
-            HStack(alignment: .center, spacing: 15) {
-                Image(asset: model.hasUserAcceptedEmailMarketing ? FiberAsset.checkboxSelected : FiberAsset.checkboxUnselected)
-                    .onTapGesture {
-                        self.model.hasUserAcceptedEmailMarketing.toggle()
-                    }
-                    .fiberAccessibilityLabel(Text(L10n.Localizable.createaccountPrivacysettingsMailsForTipsAccessibility))
-                    .fiberAccessibilityAddTraits(.isButton)
-                    .fiberAccessibilityRemoveTraits(.isImage)
-                    .accessibility(identifier: "Send emails for tips checkbox")
-                Text(L10n.Localizable.createaccountPrivacysettingsMailsForTips).font(.body)
-            }
-        }
+      Button(CoreLocalization.L10n.Core.kwCreateAccountPrivacy) {
+        openURL(DashlaneURLFactory.Endpoint.privacy.url)
+      }
+      .buttonStyle(.externalLink)
+      .controlSize(.small)
     }
-
-    private func userConsentAlert() -> Alert {
-        Alert(title: Text(L10n.Localizable.createaccountprivacysettingsError))
-    }
-}
-
-extension SSOUserConsentView: NavigationBarStyleProvider {
-    var navigationBarStyle: UIComponents.NavigationBarStyle {
-        return .transparent(tintColor: FiberAsset.dashGreenCopy.color, statusBarStyle: .default)
-    }
+    .alert(
+      L10n.Localizable.createaccountprivacysettingsError,
+      isPresented: $model.shouldDisplayMissingRequiredConsentAlert,
+      actions: {
+        Button(CoreLocalization.L10n.Core.kwButtonOk) {}
+      }
+    )
+  }
 }
 
 struct SSOUserConsentView_Previews: PreviewProvider {
-    static var previews: some View {
-        MultiContextPreview {
-            Group {
-                NavigationView {
-                    SSOUserConsentView(
-                        model: SSOUserConsentViewModel(
-                            isEmailMarketingOptInRequired: true,
-                            completion: { _ in }
-                        )
-                    )
-                }
-                SSOUserConsentView(
-                    model: SSOUserConsentViewModel(
-                        isEmailMarketingOptInRequired: false,
-                        completion: { _ in }
-                    )
-                )
-            }
-
+  static var previews: some View {
+    MultiContextPreview {
+      Group {
+        NavigationView {
+          SSOUserConsentView(
+            model: SSOUserConsentViewModel(
+              userCountryProvider: .mock(userCountryInfos: .usa),
+              completion: { _ in }
+            )
+          )
         }
+        SSOUserConsentView(
+          model: SSOUserConsentViewModel(
+            userCountryProvider: .mock(userCountryInfos: .france),
+            completion: { _ in }
+          )
+        )
+      }
+
     }
+  }
 }

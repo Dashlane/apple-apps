@@ -2,40 +2,57 @@ import SwiftUI
 
 @main
 struct DesignSystemDemoApp: App {
-    private enum Mode: String, CaseIterable {
-        case infobox
-        case buttons
-        case textFields
-        case badges
-        case toggles
-        case tags
-    }
+  private enum Mode: String, CaseIterable {
+    case badges
+    case bottomSheets
+    case buttons
+    case infobox
+    case linkButtons
+    case listItems
+    case tags
+    case textAreas
+    case textFields
+    case thumbnails
+    case toggles
+  }
 
-    private var mode: Mode? {
-        return Mode.allCases.first { ProcessInfo.processInfo.environment["\($0.rawValue)Configuration"] != nil }
+  private var mode: Mode? {
+    return Mode.allCases.first {
+      ProcessInfo.processInfo.environment["\($0.rawValue)Configuration"] != nil
     }
-    
-    var body: some Scene {
-        WindowGroup {
-            VStack(spacing: 0) {
-                switch mode {
-                    case .infobox:
-                        InfoboxView()
-                    case .buttons:
-                        ButtonsView()
-                    case .badges:
-                        BadgesView()
-                    case .textFields:
-                        TextFieldsView()
-                    case .toggles:
-                        TogglesView()
-                    case .tags:
-                        TagsView()
-                    case .none:
-                        EmptyView()
-                }
-            }
-            .statusBar(hidden: true)
+  }
+
+  var body: some Scene {
+    WindowGroup {
+      VStack(spacing: 0) {
+        switch mode {
+        case .badges:
+          BadgesView()
+        case .bottomSheets:
+          BottomSheetsView()
+        case .buttons:
+          ButtonsView()
+        case .infobox:
+          InfoboxView()
+        case .linkButtons:
+          LinkButtonsView()
+        case .listItems:
+          ListItemsView()
+        case .tags:
+          TagsView()
+        case .textAreas:
+          TextAreasView()
+        case .textFields:
+          TextFieldsView()
+        case .thumbnails:
+          ThumbnailsView()
+        case .toggles:
+          TogglesView()
+        case .none:
+          EmptyView()
         }
+      }
+      .statusBar(hidden: true)
     }
+  }
 }

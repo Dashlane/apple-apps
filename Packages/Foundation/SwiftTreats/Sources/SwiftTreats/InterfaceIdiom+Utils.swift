@@ -1,15 +1,14 @@
-#if os(iOS)
-import UIKit
+#if canImport(UIKit)
+  import UIKit
 
-public extension UIUserInterfaceIdiom {
-    var isIpadOrMac: Bool {
-        switch self {
-            case .mac, .pad:
-                return true
-            default:
-                return false
-        }
+  extension UIUserInterfaceIdiom {
+    public var isIpadOrMac: Bool {
+      switch self {
+      case .mac, .pad:
+        return true
+      default:
+        return false
+      }
     }
-}
-
+  }
 #endif

@@ -3,7 +3,7 @@ import LoginKit
 import UIComponents
 
 extension LockPinCodeAndBiometryView: NavigationBarStyleProvider {
-    public var navigationBarStyle: NavigationBarStyle {
-        return .transparent()
-    }
+  public var navigationBarStyle: NavigationBarStyle {
+    return .transparent()
+  }
 }

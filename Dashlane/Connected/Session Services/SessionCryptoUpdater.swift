@@ -1,202 +1,219 @@
-import Foundation
+import Combine
+import CoreCrypto
+import CoreFeature
+import CorePersonalData
+import CorePremium
 import CoreSession
 import CoreSync
-import DashTypes
-import Combine
-import DashlaneCrypto
-import SwiftTreats
 import CoreUserTracking
-import DashlaneAppKit
-import CorePremium
-import CorePersonalData
-import CoreNetworking
-import CoreFeature
+import DashTypes
+import DashlaneAPI
+import Foundation
+import SwiftTreats
+import VaultKit
 
 class SessionCryptoUpdater {
-    let session: Session
-    let sessionsContainer: SessionsContainerProtocol
-    let syncService: SyncServiceProtocol
-    let databaseDriver: DatabaseDriver
-    let networkEngine: DeprecatedCustomAPIClient
-    let teamSpacesService: TeamSpacesService
-    let featureService: FeatureServiceProtocol
-    let activityReporter: ActivityReporterProtocol
-    let userDeviceApiClient: UserDeviceAPIClient
-    let settings: SyncedSettingsService
-    let logger: Logger
-    private var subscription: AnyCancellable?
-    @Atomic
-    private var activeAccountCryptoChanger: AccountCryptoChangerService?
+  let session: Session
+  let sessionsContainer: SessionsContainerProtocol
+  let syncService: SyncServiceProtocol
+  let databaseDriver: DatabaseDriver
+  let apiClient: UserDeviceAPIClient
+  let userSpacesService: UserSpacesService
+  let featureService: FeatureServiceProtocol
+  let activityReporter: ActivityReporterProtocol
+  let userDeviceApiClient: UserDeviceAPIClient
+  let settings: SyncedSettingsService
+  let logger: Logger
+  private var subscription: AnyCancellable?
+  @Atomic
+  private var activeAccountCryptoChanger: AccountCryptoChangerService?
 
-    @Atomic
-    private var isDisabled = false
+  @Atomic
+  private var isDisabled = false
 
-    var subscriptions = Set<AnyCancellable>()
+  var subscriptions = Set<AnyCancellable>()
 
-    init(session: Session,
-         sessionsContainer: SessionsContainerProtocol,
-         syncService: SyncServiceProtocol,
-         databaseDriver: DatabaseDriver,
-         activityReporter: ActivityReporterProtocol,
-         networkEngine: DeprecatedCustomAPIClient,
-         teamSpacesService: TeamSpacesService,
-         featureService: FeatureServiceProtocol,
-         settings: SyncedSettingsService,
-         logger: Logger,
-         userDeviceApiClient: UserDeviceAPIClient) {
-        self.session = session
-        self.sessionsContainer = sessionsContainer
-        self.syncService = syncService
-        self.databaseDriver = databaseDriver
-        self.activityReporter = activityReporter
-        self.networkEngine = networkEngine
-        self.teamSpacesService = teamSpacesService
-        self.featureService = featureService
-        self.settings = settings
-        self.logger = logger
-        self.userDeviceApiClient = userDeviceApiClient
-        let teamspaceCryptoPublisher = teamSpacesService
-            .$businessTeamsInfo
-            .map {
-                $0.availableBusinessTeam
-        }.removeDuplicates()
-            .debounce(for: .seconds(1), scheduler: RunLoop.main)
+  init(
+    session: Session,
+    sessionsContainer: SessionsContainerProtocol,
+    syncService: SyncServiceProtocol,
+    databaseDriver: DatabaseDriver,
+    activityReporter: ActivityReporterProtocol,
+    apiClient: UserDeviceAPIClient,
+    userSpacesService: UserSpacesService,
+    featureService: FeatureServiceProtocol,
+    settings: SyncedSettingsService,
+    logger: Logger,
+    userDeviceApiClient: UserDeviceAPIClient
+  ) {
+    self.session = session
+    self.sessionsContainer = sessionsContainer
+    self.syncService = syncService
+    self.databaseDriver = databaseDriver
+    self.activityReporter = activityReporter
+    self.apiClient = apiClient
+    self.userSpacesService = userSpacesService
+    self.featureService = featureService
+    self.settings = settings
+    self.logger = logger
+    self.userDeviceApiClient = userDeviceApiClient
+    let teamspaceCryptoPublisher = userSpacesService
+      .$configuration
+      .map {
+        $0.currentTeam?.teamInfo.cryptoForcedPayload
+      }
+      .debounce(for: .seconds(1), scheduler: RunLoop.main)
 
-        subscription = settings
-            .didChange
-            .prepend(Void())
-            .combineLatest(teamspaceCryptoPublisher)
-            .sink {  [weak self]  _, businessTeam in
-                self?.update(with: businessTeam)
-        }
+    subscription = settings
+      .didChange
+      .prepend(Void())
+      .combineLatest(teamspaceCryptoPublisher)
+      .sink { [weak self] _, businessTeam in
+        self?.update(withTeamCryptoPayload: businessTeam)
+      }
 
+  }
+
+  func disable() {
+    isDisabled = true
+  }
+
+  func enable() {
+    isDisabled = false
+  }
+
+  private func update(withTeamCryptoPayload teamCryptoPayload: String?) {
+    guard activeAccountCryptoChanger == nil, !isDisabled else {
+      return
     }
 
-    func disable() {
-        isDisabled = true
+    var cryptoRawConfigForUser = settings[\.cryptoConfig] ?? session.cryptoEngine.config
+    let currentCryptoConfig = try? CryptoConfiguration(
+      rawConfigMarker: cryptoRawConfigForUser.marker)
+
+    let isLegacy = currentCryptoConfig == .legacy(.kwc3)
+
+    if cryptoRawConfigForUser.fixedSalt == nil,
+      currentCryptoConfig?.saltLength != nil
+    {
+      cryptoRawConfigForUser.fixedSalt = try? currentCryptoConfig?.makeDerivationSalt()
     }
 
-    func enable() {
-        isDisabled = false
+    let isSSO = session.configuration.info.accountType == .sso
+    let config: CryptoRawConfig
+    if isSSO {
+      config = CryptoRawConfig.noDerivationDefault
+    } else {
+      config = CryptoRawConfig(
+        fixedSalt: cryptoRawConfigForUser.fixedSalt,
+        userMarker: cryptoRawConfigForUser.marker,
+        teamSpaceMarker: teamCryptoPayload)
     }
 
-    private func update(with team: BusinessTeam?) {
-        guard activeAccountCryptoChanger == nil, !isDisabled else {
-            return
-        }
+    if !isSSO
+      && teamCryptoPayload == nil
+      && isLegacy
+    {
 
-        var cryptoRawConfigForUser = settings[\.cryptoConfig] ?? session.cryptoEngine.config 
-        let cryptoCenterForUser = CryptoCenter(from: cryptoRawConfigForUser.parametersHeader)
-        let isLegacy = cryptoCenterForUser?.config == .kwc3
-
-                if cryptoRawConfigForUser.fixedSalt == nil,
-            let cryptoCenter = cryptoCenterForUser,
-            cryptoCenter.config.saltLength > 0 {
-            cryptoRawConfigForUser.fixedSalt = Random.randomData(ofSize: cryptoCenter.config.saltLength)
-        }
-
-                let teamspaceCrypto = !teamSpacesService.isSSOUser ? team?.space.info.cryptoForcedPayload : nil
-        let config = !teamSpacesService.isSSOUser ? CryptoRawConfig(fixedSalt: cryptoRawConfigForUser.fixedSalt,
-                                                                    userParametersHeader: cryptoRawConfigForUser.parametersHeader,
-                                                                    teamSpaceParametersHeader: teamspaceCrypto) : CryptoRawConfig.keyBasedDefault
-
-                if !teamSpacesService.isSSOUser
-            && teamspaceCrypto == nil
-            && isLegacy {
-
-            migrateSession(to: .masterPasswordBasedDefault, cryptoRawConfigForUser: config)
-        }
-                        else if session.cryptoEngine.config != config {
-            updateOnlyLocalSessionData(to: config, cryptoRawConfigForUser: cryptoRawConfigForUser)
-        }
+      migrateSession(to: .masterPasswordBasedDefault, cryptoRawConfigForUser: config)
+    } else if session.cryptoEngine.config != config {
+      updateOnlyLocalSessionData(to: config, cryptoRawConfigForUser: cryptoRawConfigForUser)
     }
+  }
 
-    private func migrateSession(to config: CryptoRawConfig, cryptoRawConfigForUser: CryptoRawConfig) {
-        do {
+  private func migrateSession(to config: CryptoRawConfig, cryptoRawConfigForUser: CryptoRawConfig) {
+    do {
 
-            let migratingSession = try sessionsContainer.prepareMigration(of: session, to: session.configuration, cryptoConfig: config)
+      let migratingSession = try sessionsContainer.prepareMigration(
+        of: session, to: session.configuration, cryptoConfig: config)
 
-            let postCryptoChangeHandler = PostCryptoSettingsChangeHandler(syncService: syncService)
-            let activeAccountCryptoChanger = try AccountCryptoChangerService(mode: .cryptoConfigChange,
-                                                                             reportedType: .migrateLegacy,
-                                                                             migratingSession: migratingSession,
-                                                                             syncService: syncService,
-                                                                             activityReporter: activityReporter,
-                                                                             sessionsContainer: sessionsContainer,
-                                                                             databaseDriver: databaseDriver,
-                                                                             postCryptoChangeHandler: postCryptoChangeHandler,
-                                                                             apiNetworkingEngine: networkEngine,
-                                                                             logger: self.logger,
-                                                                             cryptoSettings: config)
-            activeAccountCryptoChanger.progressPublisher.sink { [weak self] state in
-                guard let self = self else {
-                    return
-                }
-                switch state {
-                case  let .inProgress(progression):
-                    self.didProgress(progression)
-                case let .finished(result):
-                    self.didFinish(with: result)
-                }
-            }.store(in: &subscriptions)
-            activeAccountCryptoChanger.start()
-            self.activeAccountCryptoChanger = activeAccountCryptoChanger
-
-        } catch {
-            self.logger.fatal("Session Crypto Migration has failed", error: error)
+      let postCryptoChangeHandler = PostCryptoSettingsChangeHandler(syncService: syncService)
+      let activeAccountCryptoChanger = try AccountCryptoChangerService(
+        mode: .cryptoConfigChange,
+        reportedType: .migrateLegacy,
+        migratingSession: migratingSession,
+        syncService: syncService,
+        activityReporter: activityReporter,
+        sessionsContainer: sessionsContainer,
+        databaseDriver: databaseDriver,
+        postCryptoChangeHandler: postCryptoChangeHandler,
+        apiClient: apiClient,
+        logger: self.logger,
+        cryptoSettings: config)
+      activeAccountCryptoChanger.progressPublisher.sink { [weak self] state in
+        guard let self = self else {
+          return
         }
-    }
-
-    private func updateOnlyLocalSessionData(to config: CryptoRawConfig, cryptoRawConfigForUser: CryptoRawConfig) {
-        let reportedType: Definition.CryptoMigrationType = config.parametersHeader != cryptoRawConfigForUser.parametersHeader ? .teamEnforced : .settingsApplyLocally
-
-        let reporter = AccountCryptoChangeActivityReporter(type: reportedType,
-                                                           previousConfig: session.cryptoEngine.config,
-                                                           newConfig: config,
-                                                           activityReporter: activityReporter)
-        do {
-            try sessionsContainer.update(config, for: session)
-            self.logger.info("Session Crypto updated with \(config.parametersHeader)")
-
-                                    self.settings[\.cryptoConfig] = cryptoRawConfigForUser
-
-            reporter.report(.success)
-        } catch {
-            self.logger.error("Update Session crypto failed", error: error)
-            reporter.report(.errorUpdateLocalData)
+        switch state {
+        case let .inProgress(progression):
+          self.didProgress(progression)
+        case let .finished(result):
+          self.didFinish(with: result)
         }
+      }.store(in: &subscriptions)
+      activeAccountCryptoChanger.start()
+      self.activeAccountCryptoChanger = activeAccountCryptoChanger
+
+    } catch {
+      self.logger.fatal("Session Crypto Migration has failed", error: error)
     }
+  }
+
+  private func updateOnlyLocalSessionData(
+    to config: CryptoRawConfig, cryptoRawConfigForUser: CryptoRawConfig
+  ) {
+    let reportedType: Definition.CryptoMigrationType =
+      config.marker != cryptoRawConfigForUser.marker ? .teamEnforced : .settingsApplyLocally
+
+    let reporter = AccountCryptoChangeActivityReporter(
+      type: reportedType,
+      previousConfig: session.cryptoEngine.config,
+      newConfig: config,
+      activityReporter: activityReporter)
+    do {
+      try sessionsContainer.update(config, for: session)
+      self.logger.info("Session Crypto updated with \(config.marker)")
+
+      self.settings[\.cryptoConfig] = cryptoRawConfigForUser
+
+      reporter.report(.success)
+    } catch {
+      self.logger.error("Update Session crypto failed", error: error)
+      reporter.report(.errorUpdateLocalData)
+    }
+  }
 }
 
- extension SessionCryptoUpdater {
-    func didProgress(_ progression: AccountCryptoChangerService.Progression) {
-        logger.debug("Migration progress: \(progression)")
-    }
+extension SessionCryptoUpdater {
+  func didProgress(_ progression: AccountCryptoChangerService.Progression) {
+    logger.debug("Migration progress: \(progression)")
+  }
 
-    func didFinish(with result: Result<Session, AccountCryptoChangerError>) {
-        self.activeAccountCryptoChanger = nil
-        switch result {
-        case .success:
-            logger.info("Session Crypto Migration is successful")
-        case let .failure(error):
-            logger.fatal("Session Crypto Migration has failed", error: error)
-        }
+  func didFinish(with result: Result<Session, AccountCryptoChangerError>) {
+    self.activeAccountCryptoChanger = nil
+    switch result {
+    case .success:
+      logger.info("Session Crypto Migration is successful")
+    case let .failure(error):
+      logger.fatal("Session Crypto Migration has failed", error: error)
     }
- }
+  }
+}
 
 extension SessionCryptoUpdater {
 
-    static var mock: SessionCryptoUpdater {
-        SessionCryptoUpdater(session: .mock,
-                             sessionsContainer: SessionsContainer<InMemorySessionStoreProvider>.mock,
-                             syncService: SyncServiceMock(),
-                             databaseDriver: InMemoryDatabaseDriver(),
-                             activityReporter: .fake,
-                             networkEngine: .fake,
-                             teamSpacesService: .mock(),
-                             featureService: .mock(),
-                             settings: .mock,
-                             logger: LoggerMock(),
-                             userDeviceApiClient: .fake)
-    }
+  static var mock: SessionCryptoUpdater {
+    SessionCryptoUpdater(
+      session: .mock,
+      sessionsContainer: SessionsContainer<InMemorySessionStoreProvider>.mock,
+      syncService: .mock(),
+      databaseDriver: InMemoryDatabaseDriver(),
+      activityReporter: .mock,
+      apiClient: .fake,
+      userSpacesService: .mock(),
+      featureService: .mock(),
+      settings: .mock,
+      logger: LoggerMock(),
+      userDeviceApiClient: .fake)
+  }
 }

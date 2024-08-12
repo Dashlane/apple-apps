@@ -1,36 +1,35 @@
-import SwiftUI
-import DashlaneAppKit
 import CorePremium
+import SwiftUI
 
 @MainActor
 class SettingsStatusSectionViewModel: ObservableObject, SessionServicesInjecting {
-    @Published
-    var status: PremiumStatus?
+  @Published
+  var status: CorePremium.Status
 
-    @Published
-    var businessTeam: BusinessTeam?
+  private let deepLinkingService: DeepLinkingServiceProtocol
 
-    let premiumService: PremiumServiceProtocol
-    let deepLinkingService: DeepLinkingServiceProtocol
-    init(premiumService: PremiumServiceProtocol,
-         teamSpacesService: TeamSpacesServiceProtocol,
-         deepLinkingService: DeepLinkingServiceProtocol) {
-        self.premiumService = premiumService
-        self.deepLinkingService = deepLinkingService
-        premiumService.statusPublisher.assign(to: &$status)
-        teamSpacesService.businessTeamsInfoPublisher.map(\.availableBusinessTeam).assign(to: &$businessTeam)
-    }
+  init(
+    premiumStatusProvider: PremiumStatusProvider,
+    deepLinkingService: DeepLinkingServiceProtocol
+  ) {
+    self.deepLinkingService = deepLinkingService
+    _status = .init(initialValue: premiumStatusProvider.status)
+    premiumStatusProvider
+      .statusPublisher
+      .receive(on: DispatchQueue.main)
+      .assign(to: &$status)
+  }
 
-    func showPurchase() {
-        deepLinkingService.handleLink(.planPurchase(initialView: .list))
-    }
+  func showPurchase() {
+    deepLinkingService.handleLink(.premium(.planPurchase(initialView: .list)))
+  }
 
 }
 
 extension SettingsStatusSectionViewModel {
-    static var mock: SettingsStatusSectionViewModel {
-        .init(premiumService: PremiumServiceMock(),
-              teamSpacesService: .mock(),
-              deepLinkingService: DeepLinkingService.fakeService)
-    }
+  static func mock(status: CorePremium.Status) -> SettingsStatusSectionViewModel {
+    .init(
+      premiumStatusProvider: .mock(status: status),
+      deepLinkingService: DeepLinkingService.fakeService)
+  }
 }

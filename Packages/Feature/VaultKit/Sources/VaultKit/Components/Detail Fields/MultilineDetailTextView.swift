@@ -1,9 +1,9 @@
 #if canImport(UIKit)
-import UIKit
-import SwiftUI
-import UIDelight
+  import UIKit
+  import SwiftUI
+  import UIDelight
 
-public struct MultilineDetailTextView: View {
+  public struct MultilineDetailTextView: View {
 
     @Binding
     var text: String
@@ -15,24 +15,26 @@ public struct MultilineDetailTextView: View {
     var height: CGFloat?
 
     public init(
-        text: Binding<String>,
-        placeholder: String = "",
-        isEditable: Bool,
-        isSelectable: Bool = true
+      text: Binding<String>,
+      placeholder: String = "",
+      isEditable: Bool,
+      isSelectable: Bool = true
     ) {
-        self._text = text
-        self.placeholder = placeholder
-        self.isEditable = isEditable
-        self.isSelectable = isSelectable
+      self._text = text
+      self.placeholder = placeholder
+      self.isEditable = isEditable
+      self.isSelectable = isSelectable
     }
 
     public var body: some View {
-        DynamicHeightTextView(text: $text,
-                              isEditable: isEditable,
-                              isSelectable: isSelectable,
-                              placeholder: placeholder,
-                              $height)
-            .frame(minHeight: height, alignment: .top)
+      DynamicHeightTextView(
+        text: $text,
+        isEditable: isEditable,
+        isSelectable: isSelectable,
+        placeholder: placeholder,
+        $height
+      )
+      .frame(minHeight: height, alignment: .top)
     }
-}
+  }
 #endif

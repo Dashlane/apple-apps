@@ -1,13 +1,14 @@
-import Foundation
 import DashTypes
 import DashlaneAPI
+import Foundation
 
-public typealias CompleteDeviceRegistrationResponse = AppAPIClient.Authentication.CompleteDeviceRegistrationWithAuthTicket.Response
+public typealias CompleteDeviceRegistrationResponse = AppAPIClient.Authentication
+  .CompleteDeviceRegistrationWithAuthTicket.Response
 
-public extension CompleteDeviceRegistrationResponse {
+extension CompleteDeviceRegistrationResponse {
 
-    var analyticsIds: AnalyticsIdentifiers {
-        return AnalyticsIdentifiers(device: deviceAnalyticsId, user: userAnalyticsId)
-    }
+  public var analyticsIds: AnalyticsIdentifiers {
+    return AnalyticsIdentifiers(device: deviceAnalyticsId, user: userAnalyticsId)
+  }
 
 }

@@ -1,19 +1,19 @@
 import SwiftUI
 
 enum SecureInputKey: EnvironmentKey {
-    static let defaultValue = false
+  static let defaultValue = false
 }
 
 extension EnvironmentValues {
-    var isInputSecure: Bool {
-        get { self[SecureInputKey.self] }
-        set { self[SecureInputKey.self] = newValue }
-    }
+  var isInputSecure: Bool {
+    get { self[SecureInputKey.self] }
+    set { self[SecureInputKey.self] = newValue }
+  }
 }
 
-public extension View {
+extension View {
 
-                    func secureInput(_ secure: Bool = true) -> some View {
-        environment(\.isInputSecure, secure)
-    }
+  public func secureInput(_ secure: Bool = true) -> some View {
+    environment(\.isInputSecure, secure)
+  }
 }

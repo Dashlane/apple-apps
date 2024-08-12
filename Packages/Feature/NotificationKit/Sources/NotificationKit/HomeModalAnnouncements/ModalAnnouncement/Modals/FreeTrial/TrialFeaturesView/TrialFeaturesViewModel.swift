@@ -1,30 +1,31 @@
-import UIDelight
-import SwiftTreats
-import CoreUserTracking
-import UIComponents
-import DesignSystem
 import CoreLocalization
 import CorePremium
+import CoreUserTracking
+import DesignSystem
+import SwiftTreats
+import UIComponents
+import UIDelight
 
 public struct TrialFeaturesViewModel: HomeAnnouncementsServicesInjecting {
 
-    let capabilityService: CapabilityServiceProtocol
-    let deepLinkingService: NotificationKitDeepLinkingServiceProtocol
-    let activityReporter: ActivityReporterProtocol
+  let deepLinkingService: NotificationKitDeepLinkingServiceProtocol
+  let activityReporter: ActivityReporterProtocol
 
-    public init(capabilityService: CapabilityServiceProtocol,
-                deepLinkingService: NotificationKitDeepLinkingServiceProtocol,
-                activityReporter: ActivityReporterProtocol) {
-        self.capabilityService = capabilityService
-        self.deepLinkingService = deepLinkingService
-        self.activityReporter = activityReporter
-    }
+  public init(
+    capabilityService: CapabilityServiceProtocol,
+    deepLinkingService: NotificationKitDeepLinkingServiceProtocol,
+    activityReporter: ActivityReporterProtocol
+  ) {
+    self.deepLinkingService = deepLinkingService
+    self.activityReporter = activityReporter
+  }
 }
 
 extension TrialFeaturesViewModel {
-    static var mock: TrialFeaturesViewModel {
-        .init(capabilityService: .mock(),
-              deepLinkingService: NotificationKitDeepLinkingServiceMock(),
-              activityReporter: .fake)
-    }
+  static var mock: TrialFeaturesViewModel {
+    .init(
+      capabilityService: .mock(),
+      deepLinkingService: NotificationKitDeepLinkingServiceMock(),
+      activityReporter: .mock)
+  }
 }

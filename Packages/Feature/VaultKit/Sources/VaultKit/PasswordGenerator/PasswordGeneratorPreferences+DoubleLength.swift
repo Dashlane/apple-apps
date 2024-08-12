@@ -1,13 +1,13 @@
-import Foundation
 import CoreSettings
+import Foundation
 
-public extension PasswordGeneratorPreferences {
-    var doubleLength: Double {
-        get {
-            Double(length)
-        }
-        set {
-            length = Int(newValue)
-        }
+extension PasswordGeneratorPreferences {
+  public var doubleLength: Double {
+    get {
+      Double(length)
     }
+    set {
+      length = Int(newValue)
+    }
+  }
 }

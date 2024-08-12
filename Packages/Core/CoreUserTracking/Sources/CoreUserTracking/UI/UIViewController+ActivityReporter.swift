@@ -1,13 +1,13 @@
-import Foundation
 import DashTypes
+import Foundation
 
 #if canImport(UIKit)
-import UIKit
+  import UIKit
 
-extension UIViewController {
+  extension UIViewController {
     public func reportPageAppearance(_ page: Page) {
-        ReportActionKey.defaultValue?(page)
+      ReportActionKey.defaultValue?(page)
     }
-}
+  }
 
 #endif

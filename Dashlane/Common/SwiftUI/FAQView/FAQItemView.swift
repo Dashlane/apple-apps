@@ -1,89 +1,110 @@
 import DesignSystem
+import SwiftTreats
 import SwiftUI
 import UIDelight
-import SwiftTreats
 
 struct FAQItemView: View {
-    var item: FAQItem
+  var item: FAQItem
 
-    @Binding
-    var selectedItem: FAQItem?
+  @Binding
+  var selectedItem: FAQItem?
 
-    @Environment(\.openURL)
-    var openURL
+  @Environment(\.openURL)
+  var openURL
 
-    private var isCollapsed: Bool { selectedItem == item }
+  private var isCollapsed: Bool { selectedItem == item }
 
-    enum Completion {
-        case opened(_ item: FAQItem)
-        case closed
-    }
+  var body: some View {
 
-    var completion: ((Completion) -> Void)?
+    VStack(alignment: .leading, spacing: 16) {
 
-    var body: some View {
+      HStack(alignment: .center) {
+        Text(item.title)
+          .foregroundStyle(Color.ds.text.neutral.standard)
+          .font(.headline.weight(.regular))
+          .fixedSize(horizontal: false, vertical: true)
 
+        Spacer()
+
+        Image.ds.caretUp.outlined
+          .foregroundStyle(Color.ds.border.neutral.standard.idle)
+          .rotationEffect(.degrees(isCollapsed ? 0 : 180), anchor: .center)
+          .fiberAccessibilityHidden(true)
+      }
+      .fiberAccessibilityElement()
+      .fiberAccessibilityLabel(
+        Text(item.title)
+          + Text(
+            isCollapsed
+              ? L10n.Localizable.accessibilityCollapse : L10n.Localizable.accessibilityExpand)
+      )
+      .fiberAccessibilityAddTraits(.isButton)
+      .fiberAccessibilityAction {
+        toggleCollapse()
+      }
+
+      if isCollapsed {
         VStack(alignment: .leading, spacing: 16) {
-
-            HStack(alignment: .center) {
-                Text(item.title)
-                    .font(.headline.weight(.regular))
-                    .fixedSize(horizontal: false, vertical: true)
-
-                Spacer()
-
-                Image.ds.caretUp.outlined
-                    .foregroundColor(Color(asset: FiberAsset.grey01))
-                    .rotationEffect(.degrees(isCollapsed ? 0 : 180), anchor: .center)
-                    .fiberAccessibilityHidden(true)
-            }
-            .fiberAccessibilityElement()
-            .fiberAccessibilityLabel(Text(item.title) + Text(isCollapsed ? L10n.Localizable.accessibilityCollapse  : L10n.Localizable.accessibilityExpand))
-            .fiberAccessibilityAddTraits(.isButton)
-            .fiberAccessibilityAction {
-                toggleCollapse()
-            }
-
-            VStack(alignment: .leading, spacing: 16) {
-                ForEach(item.descriptions, id: \.self) { description in
-                    VStack(alignment: .leading, spacing: 4) {
-                        Text(description.title)
-                            .foregroundColor(Color(asset: FiberAsset.neutralText))
-                            .fixedSize(horizontal: false, vertical: true)
-                        if let link = description.link {
-                            Button(action: { openURL(link.url) }, title: link.label)
-                                .accessibilityAddTraits(.isLink)
-                        }
-                    }
+          ForEach(item.descriptions, id: \.self) { description in
+            VStack(alignment: .leading, spacing: 12) {
+              Text(description.title)
+                .foregroundStyle(Color.ds.text.neutral.quiet)
+                .fixedSize(horizontal: false, vertical: true)
+              if let link = description.link {
+                Button(link.label) {
+                  openURL(link.url)
                 }
+                .buttonStyle(.externalLink)
+                .controlSize(.mini)
+                .accessibilityAddTraits(.isLink)
+              }
             }
-            .font(Device.isMac ? .subheadline : .footnote)
-            .hidden(!isCollapsed)
+          }
         }
-        .frame(maxWidth: .infinity, alignment: .leading)
-        .padding(16)
-        .background(Color(asset: FiberAsset.listBackground)
-                                .onTapGesture {
-                toggleCollapse()
-            })
-        .cornerRadius(4)
+        .font(Device.isMac ? .subheadline : .footnote)
+      }
     }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .padding(16)
+    .background(
+      Color.ds.container.agnostic.neutral.quiet
+        .onTapGesture {
+          toggleCollapse()
+        }
+    )
+    .cornerRadius(4)
+  }
 
-    private func toggleCollapse() {
-        withAnimation(.spring()) {
-            self.completion?(isCollapsed ? .closed : .opened(self.item))
-        }
+  private func toggleCollapse() {
+    withAnimation(.spring()) {
+      selectedItem = selectedItem == item ? nil : item
     }
+  }
 }
 
 struct FAQItemView_Previews: PreviewProvider {
 
-    static var faqItem = FAQItem(title: "What is the meaning of life?",
-                                 description: .init(title: "description", link: .init(label: "Link", url: URL(string: "_")!)))
+  struct Preview: View {
+    @State private var selectedItem: FAQItem?
 
-    static var previews: some View {
-        MultiContextPreview(dynamicTypePreview: true) {
-            FAQItemView(item: faqItem, selectedItem: .constant(nil))
-        }.previewLayout(.sizeThatFits)
+    var body: some View {
+      FAQItemView(
+        item: FAQItem(
+          title: "What is the meaning of life?",
+          description: .init(
+            title: "description",
+            link: .init(
+              label: "Link",
+              url: URL(string: "_")!
+            )
+          )
+        ),
+        selectedItem: $selectedItem
+      )
     }
+  }
+
+  static var previews: some View {
+    Preview()
+  }
 }

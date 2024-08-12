@@ -1,120 +1,131 @@
-import SwiftUI
 import Combine
-import DashlaneAppKit
 import CoreUserTracking
 import DashTypes
+import SwiftUI
 
 enum ImportMethodCompletion {
-    case back
-    case methodSelected(ImportMethod)
-    case dwmScanPromptDismissed
-    case dwmScanRequested
+  case back
+  case skip
+  case methodSelected(ImportMethod)
+  case dwmScanPromptDismissed
+  case dwmScanRequested
 }
 
 struct ImportMethodSection: Identifiable {
-    let id: String
-    let items: [ImportMethod]
-    let header: String?
+  let id: String
+  let items: [ImportMethod]
+  let header: String?
 
-    init(section: (header: String?, methods: [ImportMethod])) {
-        self.id = UUID().uuidString
-        self.items = section.methods
-        self.header = section.header?.localizedUppercase
-    }
+  init(section: (header: String?, methods: [ImportMethod])) {
+    self.id = UUID().uuidString
+    self.items = section.methods
+    self.header = section.header?.localizedUppercase
+  }
 }
 
 protocol ImportMethodViewModelProtocol: ObservableObject {
-    var shouldShowDWMScanPrompt: Bool { get }
-    var shouldShowDWMScanResult: Bool { get }
-    var sections: [ImportMethodSection] { get }
-    var completion: (ImportMethodCompletion) -> Void { get }
+  var shouldShowDWMScanPrompt: Bool { get }
+  var shouldShowDWMScanResult: Bool { get }
+  var sections: [ImportMethodSection] { get }
+  var completion: (ImportMethodCompletion) -> Void { get }
 
-    func logDisplay()
-    func dismissLastChanceScanPrompt()
-    func startDWMScan()
-    func methodSelected(_ method: ImportMethod)
-    func back()
+  func logDisplay()
+  func dismissLastChanceScanPrompt()
+  func startDWMScan()
+  func methodSelected(_ method: ImportMethod)
+  func back()
+  func skip()
 }
 
 class ImportMethodViewModel: ImportMethodViewModelProtocol, SessionServicesInjecting {
 
-    enum Action {
-        case back
-        case methodSelected(ImportMethod)
+  enum Action {
+    case back
+    case methodSelected(ImportMethod)
+  }
+
+  @Published
+  var shouldShowDWMScanPrompt: Bool
+
+  @Published
+  var shouldShowDWMScanResult: Bool
+
+  let sections: [ImportMethodSection]
+  let completion: (ImportMethodCompletion) -> Void
+
+  private let dwmOnboardingService: DWMOnboardingService
+  private let dwmSettings: DWMOnboardingSettings
+  private let activityReporter: ActivityReporterProtocol
+  private let importService: ImportMethodServiceProtocol
+  private var cancellables = Set<AnyCancellable>()
+
+  init(
+    dwmSettings: DWMOnboardingSettings,
+    dwmOnboardingService: DWMOnboardingService,
+    importService: ImportMethodServiceProtocol,
+    activityReporter: ActivityReporterProtocol,
+    completion: @escaping (ImportMethodCompletion) -> Void
+  ) {
+    self.dwmSettings = dwmSettings
+    self.dwmOnboardingService = dwmOnboardingService
+    self.importService = importService
+    self.activityReporter = activityReporter
+    self.completion = completion
+
+    sections = importService.methods
+
+    shouldShowDWMScanPrompt = dwmOnboardingService.shouldShowLastChanceScanPrompt
+    shouldShowDWMScanResult = dwmOnboardingService.shouldShowBreachesNotFoundInImportMethodsView
+    setupSubscriptions()
+  }
+
+  func logDisplay() {
+    if case .firstPassword = importService.mode {
+      activityReporter.reportPageShown(.homeAddItem)
     }
+  }
 
-    @Published
-    var shouldShowDWMScanPrompt: Bool 
+  func back() {
+    cancellables.forEach { $0.cancel() }
+    completion(.back)
+  }
 
-    @Published
-    var shouldShowDWMScanResult: Bool 
+  func skip() {
+    cancellables.forEach { $0.cancel() }
+    completion(.skip)
+  }
 
-    let sections: [ImportMethodSection]
-    let completion: (ImportMethodCompletion) -> Void
+  func methodSelected(_ method: ImportMethod) {
+    completion(.methodSelected(method))
+  }
 
-    private let dwmOnboardingService: DWMOnboardingService
-    private let dwmSettings: DWMOnboardingSettings
-    private let activityReporter: ActivityReporterProtocol
-    private let importService: ImportMethodServiceProtocol
-    private var cancellables = Set<AnyCancellable>()
+  func dismissLastChanceScanPrompt() {
+    completion(.dwmScanPromptDismissed)
+  }
 
-    init(dwmSettings: DWMOnboardingSettings,
-         dwmOnboardingService: DWMOnboardingService,
-         importService: ImportMethodServiceProtocol,
-         activityReporter: ActivityReporterProtocol,
-         completion: @escaping (ImportMethodCompletion) -> Void) {
-        self.dwmSettings = dwmSettings
-        self.dwmOnboardingService = dwmOnboardingService
-        self.importService = importService
-        self.activityReporter = activityReporter
-        self.completion = completion
+  func startDWMScan() {
+    completion(.dwmScanRequested)
+  }
 
-        sections = importService.methods
+  private func setupSubscriptions() {
+    let dismissedPublisher: AnyPublisher<Bool?, Never> = dwmSettings.changeMonitoringPublisher(
+      key: .hasDismissedLastChanceScanPrompt)
+    dismissedPublisher.removeDuplicates().receive(on: DispatchQueue.main).sink {
+      [weak self] dismissed in
+      if dismissed == true {
+        self?.shouldShowDWMScanPrompt = false
+      }
+    }.store(in: &cancellables)
 
-                shouldShowDWMScanPrompt = dwmOnboardingService.shouldShowLastChanceScanPrompt
-        shouldShowDWMScanResult = dwmOnboardingService.shouldShowBreachesNotFoundInImportMethodsView
-        setupSubscriptions()
-    }
+    dwmOnboardingService.progressPublisher().removeDuplicates().receive(on: DispatchQueue.main).sink
+    { [weak self] progress in
+      guard let progress = progress else {
+        return
+      }
 
-    func logDisplay() {
-        if case .firstPassword = importService.mode {
-            activityReporter.reportPageShown(.homeAddItem)
-        }
-    }
-
-    func back() {
-        cancellables.forEach { $0.cancel() }
-        completion(.back)
-    }
-
-    func methodSelected(_ method: ImportMethod) {
-        completion(.methodSelected(method))
-    }
-
-        func dismissLastChanceScanPrompt() {
-        completion(.dwmScanPromptDismissed)
-    }
-
-    func startDWMScan() {
-        completion(.dwmScanRequested)
-    }
-
-    private func setupSubscriptions() {
-                let dismissedPublisher: AnyPublisher<Bool?, Never> = dwmSettings.changeMonitoringPublisher(key: .hasDismissedLastChanceScanPrompt)
-        dismissedPublisher.removeDuplicates().receive(on: DispatchQueue.main).sink { [weak self] dismissed in
-            if dismissed == true {
-                self?.shouldShowDWMScanPrompt = false
-            }
-        }.store(in: &cancellables)
-
-                dwmOnboardingService.progressPublisher().removeDuplicates().receive(on: DispatchQueue.main).sink { [weak self] progress in
-            guard let progress = progress else {
-                return
-            }
-
-            if progress >= .emailRegistrationRequestSent {
-                self?.shouldShowDWMScanPrompt = false
-            }
-        }.store(in: &cancellables)
-    }
+      if progress >= .emailRegistrationRequestSent {
+        self?.shouldShowDWMScanPrompt = false
+      }
+    }.store(in: &cancellables)
+  }
 }

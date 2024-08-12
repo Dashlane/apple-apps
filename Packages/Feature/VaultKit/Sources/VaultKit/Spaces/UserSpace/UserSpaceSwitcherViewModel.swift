@@ -1,41 +1,50 @@
-import Foundation
 import Combine
+import CorePremium
 import CoreUserTracking
 import DashTypes
-import CorePremium
+import Foundation
 
+@MainActor
 public class UserSpaceSwitcherViewModel: UserSpacePopoverModelProtocol, VaultKitServicesInjecting {
 
-    @Published
-    public var selectedSpace: UserSpace = .both
+  @Published
+  public var configuration: UserSpacesService.SpacesConfiguration
 
-    @Published
-    public var availableSpaces: [UserSpace] = []
+  public var availableSpaces: [UserSpace] {
+    configuration.availableSpaces
+  }
 
-    @Published
-    public var isPopoverPresented: Bool = false
+  public var selectedSpace: UserSpace {
+    configuration.selectedSpace
+  }
 
-    var teamSpacesService: CorePremium.TeamSpacesServiceProtocol
-    let activityReporter: ActivityReporterProtocol
+  @Published
+  public var isPopoverPresented: Bool = false
 
-    public init(
-        teamSpacesService: CorePremium.TeamSpacesServiceProtocol,
-        activityReporter: ActivityReporterProtocol
-    ) {
-        self.teamSpacesService = teamSpacesService
-        self.activityReporter = activityReporter
-        teamSpacesService.availableSpacesPublisher.assign(to: &$availableSpaces)
-        teamSpacesService.selectedSpacePublisher.assign(to: &$selectedSpace)
-    }
+  var userSpacesService: UserSpacesService
+  let activityReporter: ActivityReporterProtocol
 
-    public func select(_ space: UserSpace) {
-        teamSpacesService.selectedSpace = space
-        activityReporter.report(UserEvent.SelectSpace(space: space.logItemSpace))
-    }
+  public init(
+    userSpacesService: UserSpacesService,
+    activityReporter: ActivityReporterProtocol
+  ) {
+    self.userSpacesService = userSpacesService
+    _configuration = .init(initialValue: userSpacesService.configuration)
+    self.activityReporter = activityReporter
+    userSpacesService.$configuration
+      .receive(on: DispatchQueue.main)
+      .assign(to: &$configuration)
+  }
+
+  public func select(_ space: UserSpace) {
+    userSpacesService.select(space)
+    activityReporter.report(UserEvent.SelectSpace(space: space.logItemSpace))
+  }
 }
 
-public extension UserSpaceSwitcherViewModel {
-    static var mock: UserSpaceSwitcherViewModel {
-        UserSpaceSwitcherViewModel(teamSpacesService: .mock(), activityReporter: .fake)
-    }
+extension UserSpaceSwitcherViewModel {
+  public static var mock: UserSpaceSwitcherViewModel {
+    UserSpaceSwitcherViewModel(
+      userSpacesService: .mock(status: .Mock.team), activityReporter: .mock)
+  }
 }

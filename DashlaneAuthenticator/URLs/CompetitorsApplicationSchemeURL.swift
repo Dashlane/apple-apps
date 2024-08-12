@@ -1,14 +1,14 @@
-import Foundation
 import CoreUserTracking
+import Foundation
 
 enum CompetitorsApplicationSchemeURL: String, CaseIterable {
-    case authy = "authy:///"
-    case duo = "duo:///"
-    case googleAuthenticator = "googleauthenticator:///"
-    case lastPassAuthenticator = "lastpassmfa:///"
-    case microsoftAuthenticator = "microsoft-authenticator:///"
+  case authy = "authy:///"
+  case duo = "duo:///"
+  case googleAuthenticator = "googleauthenticator:///"
+  case lastPassAuthenticator = "lastpassmfa:///"
+  case microsoftAuthenticator = "microsoft-authenticator:///"
 
-    var url: URL {
-                URL(string: self.rawValue)!
-    }
+  var url: URL {
+    URL(string: self.rawValue)!
+  }
 }

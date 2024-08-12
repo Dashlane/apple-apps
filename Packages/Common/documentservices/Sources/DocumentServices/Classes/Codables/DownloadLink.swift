@@ -1,5 +1,5 @@
 import Foundation
 
 public struct DownloadLink: Codable {
-    public let url: URL
+  public let url: URL
 }

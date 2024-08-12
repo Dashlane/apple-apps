@@ -1,96 +1,101 @@
+import CoreLocalization
+import DesignSystem
+import LoginKit
 import SwiftUI
 import UIComponents
-import DesignSystem
 import UIDelight
-import LoginKit
-import CoreLocalization
 
 struct DataLeakMonitoringAddEmailView: View {
 
-    @Environment(\.dismiss)
-    var dismiss
+  @Environment(\.dismiss)
+  var dismiss
 
-    @StateObject
-    var viewModel: DataLeakMonitoringAddEmailViewModel
+  @StateObject
+  var viewModel: DataLeakMonitoringAddEmailViewModel
 
-    @FocusState var isTextFieldFocused
+  @FocusState var isTextFieldFocused
 
-    init(viewModel: @escaping @autoclosure () -> DataLeakMonitoringAddEmailViewModel) {
-        self._viewModel = .init(wrappedValue: viewModel())
-    }
+  init(viewModel: @escaping @autoclosure () -> DataLeakMonitoringAddEmailViewModel) {
+    self._viewModel = .init(wrappedValue: viewModel())
+  }
 
-    var body: some View {
-        StepBasedNavigationView(steps: $viewModel.steps, content: { step in
-            switch step {
-            case .enterEmail:
-                GravityAreaVStack(top: title,
-                                  center: emailField,
-                                  bottom: validationButton,
-                                  alignment: .leading, spacing: 20)
-                .toolbar {
-                    ToolbarItem(placement: .navigationBarLeading) {
-                        Button(CoreLocalization.L10n.Core.cancel) {
-                            dismiss()
-                        }
-                    }
-                }
-                .onAppear {
-                    isTextFieldFocused = true
-                }
-            case .success:
-                successView
+  var body: some View {
+    StepBasedNavigationView(
+      steps: $viewModel.steps,
+      content: { step in
+        switch step {
+        case .enterEmail:
+          GravityAreaVStack(
+            top: title,
+            center: emailField,
+            bottom: validationButton,
+            alignment: .leading, spacing: 20
+          )
+          .toolbar {
+            ToolbarItem(placement: .navigationBarLeading) {
+              Button(CoreLocalization.L10n.Core.cancel) {
+                dismiss()
+              }
             }
-        })
-    }
-
-    var title: some View {
-        Text(L10n.Localizable.dataleakmonitoringEnterEmailTitle)
-            .font(.title2)
-            .bold()
-            .padding()
-    }
-
-    var emailField: some View {
-        LoginFieldBox {
-            DS.TextField(
-                CoreLocalization.L10n.Core.kwEmailTitle,
-                text: $viewModel.emailToMonitor
-            )
-            .focused($isTextFieldFocused)
-            .onSubmit {
-                startMonitoring()
-            }
-            .style(intensity: .supershy)
-            .keyboardType(.emailAddress)
-            .submitLabel(.next)
-            .textInputAutocapitalization(.never)
-            .textContentType(.emailAddress)
-            .padding(.horizontal)
-            .autocorrectionDisabled()
+          }
+          .onAppear {
+            isTextFieldFocused = true
+          }
+        case .success:
+          successView
         }
-        .bubbleErrorMessage(text: $viewModel.errorMessage)
-    }
+      })
+  }
 
-    var validationButton: some View {
-        RoundedButton(L10n.Localizable.dataleakmonitoringNoEmailStartCta, action: startMonitoring)
-            .roundedButtonDisplayProgressIndicator(viewModel.isRegisteringEmail)
-            .roundedButtonLayout(.fill)
-            .padding()
-    }
+  var title: some View {
+    Text(L10n.Localizable.dataleakmonitoringEnterEmailTitle)
+      .font(.title2)
+      .bold()
+      .padding()
+  }
 
-    func startMonitoring() {
-        Task {
-            await viewModel.monitorEmail()
-        }
+  var emailField: some View {
+    LoginFieldBox {
+      DS.TextField(
+        CoreLocalization.L10n.Core.kwEmailTitle,
+        text: $viewModel.emailToMonitor
+      )
+      .focused($isTextFieldFocused)
+      .onSubmit {
+        startMonitoring()
+      }
+      .style(intensity: .supershy)
+      .keyboardType(.emailAddress)
+      .submitLabel(.next)
+      .textInputAutocapitalization(.never)
+      .textContentType(.emailAddress)
+      .padding(.horizontal)
+      .autocorrectionDisabled()
     }
+    .bubbleErrorMessage(text: $viewModel.errorMessage)
+  }
 
-    var successView: some View {
-        DataLeakMonitoringAddEmailSuccessView(dismiss: dismiss, monitoredEmail: viewModel.emailToMonitor)
+  var validationButton: some View {
+    Button(L10n.Localizable.dataleakmonitoringNoEmailStartCta, action: startMonitoring)
+      .buttonDisplayProgressIndicator(viewModel.isRegisteringEmail)
+      .buttonStyle(.designSystem(.titleOnly))
+      .padding()
+  }
+
+  func startMonitoring() {
+    Task {
+      await viewModel.monitorEmail()
     }
+  }
+
+  var successView: some View {
+    DataLeakMonitoringAddEmailSuccessView(
+      dismiss: dismiss, monitoredEmail: viewModel.emailToMonitor)
+  }
 }
 
- struct DataLeakMonitoringAddEmailView_Previews: PreviewProvider {
-    static var previews: some View {
-        DataLeakMonitoringAddEmailView(viewModel: DataLeakMonitoringAddEmailViewModel.mock)
-    }
- }
+struct DataLeakMonitoringAddEmailView_Previews: PreviewProvider {
+  static var previews: some View {
+    DataLeakMonitoringAddEmailView(viewModel: DataLeakMonitoringAddEmailViewModel.mock)
+  }
+}

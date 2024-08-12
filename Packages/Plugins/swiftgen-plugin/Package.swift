@@ -7,17 +7,17 @@ let package = Package(
   ],
   targets: [
     .plugin(
-         name: "SwiftGen - Generate",
-         capability: .command(
-           intent: .custom(
-             verb: "swiftgen-generate",
-             description: "Generate code based on swiftgen.yml"
-           ),
-           permissions: [
-             .writeToPackageDirectory(reason: "Assets source code generation")
-           ]
-         ),
-         path: "Plugins/SwiftGenPlugin"
-       )
+      name: "SwiftGen - Generate",
+      capability: .command(
+        intent: .custom(
+          verb: "swiftgen-generate",
+          description: "Generate code based on swiftgen.yml"
+        ),
+        permissions: [
+          .writeToPackageDirectory(reason: "Assets source code generation")
+        ]
+      ),
+      path: "Plugins/SwiftGenPlugin"
+    )
   ]
 )

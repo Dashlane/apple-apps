@@ -1,201 +1,221 @@
-import AVFoundation
-import SwiftUI
+#if canImport(UIKit)
+  import AVFoundation
+  import SwiftUI
+  import UIKit
 
-#if !os(macOS)
-
-public struct CodeScannerView: UIViewControllerRepresentable {
+  public struct CodeScannerView: UIViewControllerRepresentable {
     public enum ScanError: Error {
-        case badInput, badOutput, unknown
+      case badInput, badOutput, unknown
     }
 
     public class ScannerCoordinator: NSObject, AVCaptureMetadataOutputObjectsDelegate {
-        var parent: CodeScannerView
-        var canCompleteWithCodes: Bool = false
+      var parent: CodeScannerView
+      var canCompleteWithCodes: Bool = false
 
-        init(parent: CodeScannerView) {
-            self.parent = parent
-        }
+      init(parent: CodeScannerView) {
+        self.parent = parent
+      }
 
-        public func metadataOutput(_ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject], from connection: AVCaptureConnection) {
-            if let metadataObject = metadataObjects.last {
-                guard let readableObject = metadataObject as? AVMetadataMachineReadableCodeObject else { return }
-                guard let code = readableObject.stringValue else {
-                    didFail(reason: .unknown)
-                    return
-                }
-                connection.isEnabled = false
-                didFindCode(code)
-                                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                    connection.isEnabled = true
-                }
-            }
+      public func metadataOutput(
+        _ output: AVCaptureMetadataOutput, didOutput metadataObjects: [AVMetadataObject],
+        from connection: AVCaptureConnection
+      ) {
+        if let metadataObject = metadataObjects.last {
+          guard let readableObject = metadataObject as? AVMetadataMachineReadableCodeObject else {
+            return
+          }
+          guard let code = readableObject.stringValue else {
+            didFail(reason: .unknown)
+            return
+          }
+          connection.isEnabled = false
+          didFindCode(code)
+          DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+            connection.isEnabled = true
+          }
         }
+      }
 
-        func didFindCode(_ code: String) {
-            guard canCompleteWithCodes else { return }
-            parent.completion(.success(code))
-        }
+      func didFindCode(_ code: String) {
+        guard canCompleteWithCodes else { return }
+        parent.completion(.success(code))
+      }
 
-        func didFail(reason: ScanError) {
-            parent.completion(.failure(reason))
-        }
+      func didFail(reason: ScanError) {
+        parent.completion(.failure(reason))
+      }
     }
 
     #if targetEnvironment(simulator)
-    public class ScannerViewController: UIViewController {
+      public class ScannerViewController: UIViewController {
         static let simulateData = "_"
         weak var delegate: ScannerCoordinator?
 
         override public func loadView() {
-            view = UIView()
-            let label = UILabel()
-            label.translatesAutoresizingMaskIntoConstraints = false
-            label.numberOfLines = 0
+          view = UIView()
+          let label = UILabel()
+          label.translatesAutoresizingMaskIntoConstraints = false
+          label.numberOfLines = 0
 
-            label.text = "You're running in the simulator, which means the camera isn't available. Tap anywhere to send back some simulated data."
-            label.textColor = .white
-            view.addSubview(label)
-            view.backgroundColor = .black
-            NSLayoutConstraint.activate([
-                label.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor),
-                label.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
-                label.topAnchor.constraint(equalTo: view.layoutMarginsGuide.topAnchor),
-                label.bottomAnchor.constraint(equalTo: view.layoutMarginsGuide.bottomAnchor)
-            ])
-                        delegate?.canCompleteWithCodes = true
+          label.text =
+            "You're running in the simulator, which means the camera isn't available. Tap anywhere to send back some simulated data."
+          label.textColor = .white
+          view.addSubview(label)
+          view.backgroundColor = .black
+          NSLayoutConstraint.activate([
+            label.leadingAnchor.constraint(equalTo: view.layoutMarginsGuide.leadingAnchor),
+            label.trailingAnchor.constraint(equalTo: view.layoutMarginsGuide.trailingAnchor),
+            label.topAnchor.constraint(equalTo: view.layoutMarginsGuide.topAnchor),
+            label.bottomAnchor.constraint(equalTo: view.layoutMarginsGuide.bottomAnchor),
+          ])
+          delegate?.canCompleteWithCodes = true
         }
 
         override public func touchesBegan(_ touches: Set<UITouch>, with event: UIEvent?) {
-            delegate?.didFindCode(Self.simulateData)
+          delegate?.didFindCode(Self.simulateData)
         }
-    }
+      }
     #else
-    public class ScannerViewController: UIViewController {
+      public class ScannerViewController: UIViewController {
         var captureSession: AVCaptureSession?
         var previewLayer: AVCaptureVideoPreviewLayer?
         weak var delegate: ScannerCoordinator?
 
         public override func viewDidLoad() {
-            super.viewDidLoad()
+          super.viewDidLoad()
 
-            NotificationCenter.default.addObserver(self,
-                                                   selector: #selector(updateOrientation),
-                                                   name: UIDevice.orientationDidChangeNotification,
-                                                   object: nil)
+          NotificationCenter.default.addObserver(
+            self,
+            selector: #selector(updateOrientation),
+            name: UIDevice.orientationDidChangeNotification,
+            object: nil)
 
-            view.backgroundColor = UIColor.black
-            let captureSession = AVCaptureSession()
-            self.captureSession = captureSession
+          view.backgroundColor = UIColor.black
+          let captureSession = AVCaptureSession()
+          self.captureSession = captureSession
 
-            guard let videoCaptureDevice = AVCaptureDevice.default(for: .video) else { return }
-            let videoInput: AVCaptureDeviceInput
+          guard let videoCaptureDevice = AVCaptureDevice.default(for: .video) else { return }
+          let videoInput: AVCaptureDeviceInput
 
-            do {
-                videoInput = try AVCaptureDeviceInput(device: videoCaptureDevice)
-            } catch {
-                delegate?.didFail(reason: .badInput)
-                return
-            }
+          do {
+            videoInput = try AVCaptureDeviceInput(device: videoCaptureDevice)
+          } catch {
+            delegate?.didFail(reason: .badInput)
+            return
+          }
 
-            if captureSession.canAddInput(videoInput) {
-                captureSession.addInput(videoInput)
-            } else {
-                delegate?.didFail(reason: .badInput)
-                return
-            }
+          if captureSession.canAddInput(videoInput) {
+            captureSession.addInput(videoInput)
+          } else {
+            delegate?.didFail(reason: .badInput)
+            return
+          }
 
-            let metadataOutput = AVCaptureMetadataOutput()
+          let metadataOutput = AVCaptureMetadataOutput()
 
-            if captureSession.canAddOutput(metadataOutput) {
-                captureSession.addOutput(metadataOutput)
+          if captureSession.canAddOutput(metadataOutput) {
+            captureSession.addOutput(metadataOutput)
 
-                metadataOutput.setMetadataObjectsDelegate(delegate, queue: DispatchQueue.main)
-                metadataOutput.metadataObjectTypes = delegate?.parent.codeTypes
-            } else {
-                delegate?.didFail(reason: .badOutput)
-                return
-            }
+            metadataOutput.setMetadataObjectsDelegate(delegate, queue: DispatchQueue.main)
+            metadataOutput.metadataObjectTypes = delegate?.parent.codeTypes
+          } else {
+            delegate?.didFail(reason: .badOutput)
+            return
+          }
 
-            let previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
-            previewLayer.frame = view.layer.bounds
-            previewLayer.videoGravity = .resizeAspectFill
-            view.layer.addSublayer(previewLayer)
-            self.previewLayer = previewLayer
+          let previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
+          previewLayer.frame = view.layer.bounds
+          previewLayer.videoGravity = .resizeAspectFill
+          view.layer.addSublayer(previewLayer)
+          self.previewLayer = previewLayer
         }
 
         public override func viewWillLayoutSubviews() {
-            super.viewWillLayoutSubviews()
-            previewLayer?.frame = view.layer.bounds
+          super.viewWillLayoutSubviews()
+          previewLayer?.frame = view.layer.bounds
         }
 
         @objc func updateOrientation() {
-            #if !EXTENSION
+          #if !EXTENSION
 
-            guard let scene = UIApplication.shared.connectedScenes.first(where: { $0.activationState == .foregroundActive }) as? UIWindowScene else {
-                return
+            guard
+              let scene = UIApplication.shared.connectedScenes.first(where: {
+                $0.activationState == .foregroundActive
+              }) as? UIWindowScene
+            else {
+              return
             }
             let orientation = scene.interfaceOrientation
             guard let session = captureSession,
-                  session.connections.count > 1  else {
-                return
+              session.connections.count > 1
+            else {
+              return
             }
             let previewConnection = captureSession?.connections[1]
-            previewConnection?.videoOrientation = AVCaptureVideoOrientation(rawValue: orientation.rawValue) ?? .portrait
-            #endif
+            previewConnection?.videoOrientation =
+              AVCaptureVideoOrientation(rawValue: orientation.rawValue) ?? .portrait
+          #endif
         }
 
         public override func viewDidAppear(_ animated: Bool) {
-            super.viewDidAppear(animated)
+          super.viewDidAppear(animated)
 
-            updateOrientation()
-                                                delegate?.canCompleteWithCodes = true
+          updateOrientation()
+          delegate?.canCompleteWithCodes = true
         }
 
         public override func viewWillAppear(_ animated: Bool) {
-            super.viewWillAppear(animated)
-            if captureSession?.isRunning == false {
-                captureSession?.startRunning()
+          super.viewWillAppear(animated)
+          if captureSession?.isRunning == false {
+            DispatchQueue.global(qos: .background).async { [weak captureSession] in
+              captureSession?.startRunning()
             }
-                        delegate?.canCompleteWithCodes = false
+
+          }
+          delegate?.canCompleteWithCodes = false
         }
 
         public override func viewWillDisappear(_ animated: Bool) {
-            super.viewWillDisappear(animated)
+          super.viewWillDisappear(animated)
 
-            if captureSession?.isRunning == true {
-                captureSession?.stopRunning()
-            }
+          if captureSession?.isRunning == true {
+            captureSession?.stopRunning()
+          }
         }
-    }
+      }
     #endif
 
     let codeTypes: [AVMetadataObject.ObjectType]
     var completion: (Result<String, ScanError>) -> Void
 
-    public init(codeTypes: [AVMetadataObject.ObjectType], completion: @escaping (Result<String, ScanError>) -> Void) {
-        self.codeTypes = codeTypes
-        self.completion = completion
+    public init(
+      codeTypes: [AVMetadataObject.ObjectType],
+      completion: @escaping (Result<String, ScanError>) -> Void
+    ) {
+      self.codeTypes = codeTypes
+      self.completion = completion
     }
 
     public func makeCoordinator() -> ScannerCoordinator {
-        return ScannerCoordinator(parent: self)
+      return ScannerCoordinator(parent: self)
     }
 
     public func makeUIViewController(context: Context) -> ScannerViewController {
-        let viewController = ScannerViewController()
-        viewController.delegate = context.coordinator
-        return viewController
+      let viewController = ScannerViewController()
+      viewController.delegate = context.coordinator
+      return viewController
     }
 
-    public func updateUIViewController(_ uiViewController: ScannerViewController, context: Context) {
+    public func updateUIViewController(_ uiViewController: ScannerViewController, context: Context)
+    {
 
     }
-}
+  }
 
-struct CodeScannerView_Previews: PreviewProvider {
+  struct CodeScannerView_Previews: PreviewProvider {
     static var previews: some View {
-        CodeScannerView(codeTypes: [.qr]) { _ in
-                    }
+      CodeScannerView(codeTypes: [.qr]) { _ in
+      }
     }
-}
+  }
 #endif

@@ -1,36 +1,37 @@
-import SwiftUI
 import Foundation
+import SwiftUI
 
-public extension View {
-        func onSizeChange(_ changeHandler: @escaping (CGSize) -> Void) -> some View {
-        return self
-            .background(GeometryGetter(handler: changeHandler)) 
-    }
+extension View {
+  public func onSizeChange(_ changeHandler: @escaping (CGSize) -> Void) -> some View {
+    return
+      self
+      .background(GeometryGetter(handler: changeHandler))
+  }
 }
 
 private struct GeometryGetter: View {
-    let handler: (CGSize) -> Void
+  let handler: (CGSize) -> Void
 
-    var body: some View {
-        Rectangle()
-            .foregroundColor(.clear)
-            .background(reader)
-            .onPreferenceChange(SizePreferenceKey.self, perform: handler)
-    }
+  var body: some View {
+    Rectangle()
+      .foregroundColor(.clear)
+      .background(reader)
+      .onPreferenceChange(SizePreferenceKey.self, perform: handler)
+  }
 
-    var reader: some View {
-        GeometryReader { geometry in
-            return Rectangle()
-                .foregroundColor(.clear)
-                .preference(key: SizePreferenceKey.self, value: geometry.size)
-        }.frame(maxWidth: .infinity, maxHeight: .infinity)
-    }
+  var reader: some View {
+    GeometryReader { geometry in
+      return Rectangle()
+        .foregroundColor(.clear)
+        .preference(key: SizePreferenceKey.self, value: geometry.size)
+    }.frame(maxWidth: .infinity, maxHeight: .infinity)
+  }
 }
 
 private struct SizePreferenceKey: PreferenceKey {
-    static var defaultValue = CGSize.zero
+  static var defaultValue = CGSize.zero
 
-    static func reduce(value: inout CGSize, nextValue: () -> CGSize) {
-        value = nextValue()
-    }
+  static func reduce(value: inout CGSize, nextValue: () -> CGSize) {
+    value = nextValue()
+  }
 }

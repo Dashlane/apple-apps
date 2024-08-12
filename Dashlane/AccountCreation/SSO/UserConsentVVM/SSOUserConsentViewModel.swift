@@ -1,45 +1,57 @@
 import Foundation
+import SwiftUI
+import UIKit
 
 class SSOUserConsentViewModel: UserConsentViewModelProtocol, ObservableObject {
-    let isEmailMarketingOptInRequired: Bool
+  @Published
+  var hasUserAcceptedEmailMarketing: Bool = false
 
-    @Published
-    var hasUserAcceptedEmailMarketing: Bool
+  @Published
+  var hasUserAcceptedTermsAndConditions: Bool = false
 
-    @Published
-    var hasUserAcceptedTermsAndConditions: Bool = false
+  @Published
+  var shouldDisplayMissingRequiredConsentAlert: Bool = false
 
-    @Published
-    var shouldDisplayMissingRequiredConsentAlert: Bool = false
+  @Published
+  var isAccountCreationRequestInProgress = false
 
-    @Published
-    var isAccountCreationRequestInProgress = false
+  let userCountryProvider: UserCountryProvider
+  let completion: (Completion) -> Void
 
-    let completion: (Completion) -> Void
+  enum Completion {
+    case finished(_ hasUserAcceptedTermsAndConditions: Bool, _ hasUserAcceptedEmailMarketing: Bool)
+    case cancel
+  }
 
-    enum Completion {
-        case finished(_ hasUserAcceptedTermsAndConditions: Bool, _ hasUserAcceptedEmailMarketing: Bool)
-        case cancel
+  init(
+    userCountryProvider: UserCountryProvider,
+    completion: @escaping (Completion) -> Void
+  ) {
+    self.userCountryProvider = userCountryProvider
+    self.completion = completion
+
+    Task {
+      await optIntMarketing()
     }
+  }
 
-    init(isEmailMarketingOptInRequired: Bool,
-         completion: @escaping (Completion) -> Void) {
-        self.isEmailMarketingOptInRequired = isEmailMarketingOptInRequired
-        self.completion = completion
-
-                self.hasUserAcceptedEmailMarketing = isEmailMarketingOptInRequired ? false : true
+  func optIntMarketing() async {
+    let isEU = await userCountryProvider.userCountry.isEu
+    if !isEU {
+      self.hasUserAcceptedEmailMarketing = true
     }
+  }
 
-    func signup() {
-        guard hasUserAcceptedTermsAndConditions else {
-            shouldDisplayMissingRequiredConsentAlert = true
-            return
-        }
-        isAccountCreationRequestInProgress = true
-        completion(.finished(hasUserAcceptedTermsAndConditions, hasUserAcceptedEmailMarketing))
+  func signup() {
+    guard hasUserAcceptedTermsAndConditions else {
+      shouldDisplayMissingRequiredConsentAlert = true
+      return
     }
+    isAccountCreationRequestInProgress = true
+    completion(.finished(hasUserAcceptedTermsAndConditions, hasUserAcceptedEmailMarketing))
+  }
 
-    func cancel() {
-        completion(.cancel)
-    }
+  func cancel() {
+    completion(.cancel)
+  }
 }

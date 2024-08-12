@@ -1,42 +1,111 @@
-import Foundation
+import CoreCrypto
+import CorePersonalData
 import CoreSession
 import DashTypes
-import DashlaneCrypto
+import DashlaneAPI
+import Foundation
 
 public struct SessionCryptoEngineProvider: CoreSession.CryptoEngineProvider {
-    let cache: MemoryDerivationKeyCache
-    let logger: Logger
 
-    public init(logger: Logger) {
-        cache = MemoryDerivationKeyCache()
-        self.logger = logger
+  let logger: Logger
+
+  public init(logger: Logger) {
+    self.logger = logger
+  }
+
+  public func makeLocalKey() -> Data {
+    Data.random(ofSize: 64)
+  }
+
+  public func retrieveCryptoConfig(fromRawSettings content: Data) throws -> CryptoRawConfig? {
+    return try Settings.makeSettings(compressedContent: content).cryptoConfig
+  }
+
+  public func sessionCryptoEngine(for config: CryptoRawConfig, masterKey: MasterKey) throws
+    -> SessionCryptoEngine
+  {
+    return try ConfigurableCryptoEngineImpl(secret: masterKey.secret, config: config)
+  }
+
+  public func sessionCryptoEngine(forEncryptedPayload payload: Data, masterKey: MasterKey) throws
+    -> SessionCryptoEngine
+  {
+    return try ConfigurableCryptoEngineImpl(secret: masterKey.secret, encryptedData: payload)
+  }
+
+  public func defaultCryptoRawConfig(for masterKey: MasterKey) throws -> CryptoRawConfig {
+    switch masterKey {
+    case .masterPassword:
+      return CryptoRawConfig.masterPasswordBasedDefault
+    case .ssoKey:
+      return CryptoRawConfig.noDerivationDefault
+    }
+  }
+
+  public func cryptoEngine(forKey key: Data) throws -> CryptoEngine {
+    let config: CryptoConfiguration = key.count == 64 ? .defaultNoDerivation : .legacyNoDerivation
+    return
+      try config
+      .makeCryptoEngine(secret: .key(key), fixedSalt: nil)
+  }
+
+  public func cryptoEngine(for config: CryptoRawConfig, secret: EncryptionSecret) throws
+    -> CryptoEngine
+  {
+    try CryptoConfiguration(rawConfigMarker: config.marker)
+      .makeCryptoEngine(secret: secret, fixedSalt: config.fixedSalt)
+  }
+
+  public func cryptoEngine(forEncryptedVaultKey payload: Data, recoveryKey: AccountRecoveryKey)
+    throws -> CryptoEngine
+  {
+    return try CryptoConfiguration(encryptedData: payload)
+      .makeCryptoEngine(secret: .password(recoveryKey))
+  }
+
+  public func retriveCryptoConfig(
+    with masterKey: MasterKey,
+    remoteKey: Data?,
+    encryptedSettings: String,
+    userDeviceAPIClient: UserDeviceAPIClient
+  ) async throws -> CryptoRawConfig {
+    guard let encryptedSettings = Data(base64Encoded: encryptedSettings) else {
+      throw RemoteLoginHandler.Error.invalidSettings
     }
 
-    public func makeLocalKey() -> Data {
-        Random.randomData(ofSize: 64)
+    let sessionCryptoEngine = try sessionCryptoEngine(
+      forEncryptedPayload: encryptedSettings,
+      masterKey: masterKey)
+    let decryptSettingEngine =
+      if let remoteKey {
+        try cryptoEngine(forKey: remoteKey)
+      } else {
+        sessionCryptoEngine
+      }
+
+    guard let rawSettings = try? decryptSettingEngine.decrypt(encryptedSettings) else {
+      throw RemoteLoginHandler.Error.wrongMasterKey
     }
 
-    public func sessionCryptoEngine(for setting: CryptoRawConfig, masterKey: MasterKey) throws -> SessionCryptoEngine {
-        return try SessionCryptoEngineImpl(config: setting, secret: masterKey.secret, cache: cache, logger: logger)
+    var cryptoConfig =
+      if let configFromSettings = try? retrieveCryptoConfig(fromRawSettings: rawSettings) {
+        configFromSettings
+      } else {
+        sessionCryptoEngine.config
+      }
+
+    if masterKey.secret.isPassword,
+      let status = try await userDeviceAPIClient.premium.getPremiumStatus().b2bStatus,
+      status.statusCode == .inTeam,
+      let teamSpaceHeader = status.currentTeam?.teamInfo.cryptoForcedPayload
+    {
+      cryptoConfig = CryptoRawConfig(
+        fixedSalt: cryptoConfig.fixedSalt,
+        userMarker: cryptoConfig.marker,
+        teamSpaceMarker: teamSpaceHeader)
     }
 
-    public func sessionCryptoEngine(forEncryptedPayload payload: Data, masterKey: MasterKey) throws -> SessionCryptoEngine {
-        return try SessionCryptoEngineImpl(encryptedPayload: payload, secret: masterKey.secret, cache: cache, logger: logger)
-    }
-
-    public func defaultCryptoRawConfig(for masterKey: MasterKey) -> CryptoRawConfig {
-        switch masterKey {
-        case .masterPassword:
-            return CryptoRawConfig.masterPasswordBasedDefault
-        case .ssoKey:
-            return CryptoRawConfig.keyBasedDefault
-        }
-    }
-
-    public func cryptoEngine(for key: Data) throws -> CryptoEngine {
-        let config: CryptoRawConfig = key.count == 64 ? CryptoRawConfig.keyBasedDefault : CryptoRawConfig.legacyKeyBasedDefault
-        let cryptoCenter = CryptoCenter(from: config.parametersHeader)!
-        return SpecializedCryptoEngine(cryptoCenter: cryptoCenter, secret: .key(key))
-    }
+    return cryptoConfig
+  }
 
 }

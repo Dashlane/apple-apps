@@ -1,7 +1,7 @@
 import Foundation
 
 enum LocalNotificationIdentifier: String {
-    case autofillReminder
-    case tachyonOTPDisplay
-    case securityAlert
+  case autofillReminder
+  case tachyonOTPDisplay
+  case securityAlert
 }

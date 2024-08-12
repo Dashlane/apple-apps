@@ -1,15 +1,15 @@
 import DesignSystem
 import SwiftUI
 
-public extension View {
-    #if !targetEnvironment(macCatalyst)
+extension View {
+  #if !targetEnvironment(macCatalyst)
     func dashlaneDefaultStyle() -> some View {
-        self
+      self
     }
-    #else
+  #else
     func dashlaneDefaultStyle() -> some View {
-        self
-            .buttonStyle(ColoredButtonStyle(color: .ds.text.brand.standard))
+      self
+        .buttonStyle(ColoredButtonStyle(color: .ds.text.brand.standard))
     }
-    #endif
+  #endif
 }

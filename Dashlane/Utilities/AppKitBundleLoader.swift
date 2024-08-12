@@ -1,26 +1,28 @@
 #if targetEnvironment(macCatalyst)
-import Foundation
+  import Foundation
 
-struct AppKitBundleLoader {
+  struct AppKitBundleLoader {
 
     static func load() -> AppKitBridgeProtocol {
-        let bundleFileName = "AppKitBridgeBundle.bundle"
-        guard let bundleURL = Bundle.main.builtInPlugInsURL?.appendingPathComponent(bundleFileName) else {
-            preconditionFailure()
-        }
+      let bundleFileName = "AppKitBridgeBundle.bundle"
+      guard let bundleURL = Bundle.main.builtInPlugInsURL?.appendingPathComponent(bundleFileName)
+      else {
+        preconditionFailure()
+      }
 
-        guard let bundle = Bundle(url: bundleURL) else {
-            preconditionFailure("Bundle should exist")
-        }
+      guard let bundle = Bundle(url: bundleURL) else {
+        preconditionFailure("Bundle should exist")
+      }
 
-                let className = "AppKitBridgeBundle.AppKitBridge"
-        guard let appKitBridgeClass = bundle.classNamed(className) as? AppKitBridgeProtocol.Type else {
-            preconditionFailure("Cannot initialise \(className) from bundle")
-        }
+      let className = "AppKitBridgeBundle.AppKitBridge"
+      guard let appKitBridgeClass = bundle.classNamed(className) as? AppKitBridgeProtocol.Type
+      else {
+        preconditionFailure("Cannot initialise \(className) from bundle")
+      }
 
-        let appKitBridge = appKitBridgeClass.init()
+      let appKitBridge = appKitBridgeClass.init()
 
-        return appKitBridge
+      return appKitBridge
     }
-}
+  }
 #endif

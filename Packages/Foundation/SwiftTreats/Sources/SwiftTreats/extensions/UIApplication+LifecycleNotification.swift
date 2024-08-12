@@ -1,35 +1,35 @@
 #if canImport(UIKit)
 
-import Foundation
-import UIKit
+  import Foundation
+  import UIKit
 
-public extension UIApplication {
-                    static var applicationWillResignActiveNotification: Notification.Name {
-#if targetEnvironment(macCatalyst)
+  extension UIApplication {
+    public static var applicationWillResignActiveNotification: Notification.Name {
+      #if targetEnvironment(macCatalyst)
         return .macOSDidResignActive
-#else
+      #else
         return UIApplication.willResignActiveNotification
-#endif
+      #endif
 
     }
 
-                    static var applicationWillEnterForegroundNotification: Notification.Name {
-#if targetEnvironment(macCatalyst)
+    public static var applicationWillEnterForegroundNotification: Notification.Name {
+      #if targetEnvironment(macCatalyst)
         return .macOSDidBecomeActive
-#else
+      #else
         return UIApplication.willEnterForegroundNotification
-#endif
+      #endif
     }
-}
+  }
 
-public extension Notification.Name {
+  extension Notification.Name {
 
-    static var macOSDidResignActive: Self {
-        return .init("NSApplicationDidResignActiveNotification")
+    public static var macOSDidResignActive: Self {
+      return .init("NSApplicationDidResignActiveNotification")
     }
 
-    static var macOSDidBecomeActive: Self {
-        return .init("NSApplicationDidBecomeActiveNotification")
+    public static var macOSDidBecomeActive: Self {
+      return .init("NSApplicationDidBecomeActiveNotification")
     }
-}
+  }
 #endif

@@ -1,21 +1,27 @@
 import Foundation
-import SwiftUI
 import SwiftTreats
+import SwiftUI
 
 #if canImport(UIKit)
-public extension View {
+  extension View {
 
-        func onApplicationResignation(completion: @escaping () -> Void) -> some View {
-        self.onReceive(NotificationCenter.default.publisher(for: UIApplication.applicationWillResignActiveNotification)) { _ in
-            completion()
-        }
+    public func onApplicationResignation(completion: @escaping () -> Void) -> some View {
+      self.onReceive(
+        NotificationCenter.default.publisher(
+          for: UIApplication.applicationWillResignActiveNotification)
+      ) { _ in
+        completion()
+      }
     }
 
-        func onApplicationActivation(completion: @escaping () -> Void) -> some View {
-        self.onReceive(NotificationCenter.default.publisher(for: UIApplication.applicationWillEnterForegroundNotification)) { _ in
-            completion()
-        }
+    public func onApplicationActivation(completion: @escaping () -> Void) -> some View {
+      self.onReceive(
+        NotificationCenter.default.publisher(
+          for: UIApplication.applicationWillEnterForegroundNotification)
+      ) { _ in
+        completion()
+      }
     }
 
-}
+  }
 #endif

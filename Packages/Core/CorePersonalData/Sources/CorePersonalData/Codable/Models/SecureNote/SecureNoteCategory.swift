@@ -1,31 +1,21 @@
-import Foundation
 import DashTypes
+import Foundation
 
-public struct SecureNoteCategory: PersonalDataCodable, Equatable, Identifiable {
-    public static let contentType: PersonalDataContentType = .secureNoteCategory
+@PersonalData("SECURENOTE_CATEGORY")
+public struct SecureNoteCategory: Equatable, Identifiable {
 
-    enum CodingKeys: String, CodingKey {
-        case id
-        case anonId
-        case metadata
-        case name = "categoryName"
+  @CodingKey("categoryName")
+  public var name: String
+
+  public init() {
+    id = Identifier()
+    metadata = RecordMetadata(id: .temporary, contentType: Self.contentType)
+    name = ""
+  }
+
+  public func validate() throws {
+    if name.isEmptyOrWhitespaces() {
+      throw ItemValidationError(invalidProperty: \SecureNoteCategory.name)
     }
-
-    public var id: Identifier
-    public var anonId: String
-    public let metadata: RecordMetadata
-    public var name: String
-
-    public init() {
-        id = Identifier()
-        anonId = UUID().uuidString
-        metadata = RecordMetadata(id: .temporary, contentType: Self.contentType)
-        name = ""
-    }
-
-    public func validate() throws {
-        if name.isEmptyOrWhitespaces() {
-            throw ItemValidationError(invalidProperty: \SecureNoteCategory.name)
-        }
-    }
+  }
 }

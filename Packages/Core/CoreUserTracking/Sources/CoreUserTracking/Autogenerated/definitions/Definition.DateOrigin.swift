@@ -2,8 +2,8 @@ import Foundation
 
 extension Definition {
 
-public enum `DateOrigin`: String, Encodable {
-case `local`
-case `remote`
-}
+  public enum `DateOrigin`: String, Encodable, Sendable {
+    case `local`
+    case `remote`
+  }
 }

@@ -1,79 +1,90 @@
-#if os(iOS)
-import Foundation
-import CorePersonalData
 import Combine
+import CorePersonalData
 import DocumentServices
+import Foundation
 
 public class AttachmentsSectionViewModel: ObservableObject, VaultKitServicesInjecting {
 
-    @Published
-    var item: VaultItem
+  @Published
+  var item: VaultItem
 
-    @Published
-    var progress: Double?
+  @Published
+  var itemCollections: [VaultCollection] = []
 
-    private let itemPublisher: AnyPublisher<VaultItem, Never>
-    let addAttachmentButtonViewModel: AddAttachmentButtonViewModel
-    private let attachmentsListViewModelProvider: (VaultItem, AnyPublisher<VaultItem, Never>) -> AttachmentsListViewModel
-    private let vaultItemsService: VaultItemsServiceProtocol
-    private let documentStorageService: DocumentStorageService
-    private var subscriptions = Set<AnyCancellable>()
+  @Published
+  var progress: Double?
 
-    public init(
-        vaultItemsService: VaultItemsServiceProtocol,
-        item: VaultItem,
-        documentStorageService: DocumentStorageService,
-        attachmentsListViewModelProvider: @escaping (VaultItem, AnyPublisher<VaultItem, Never>) -> AttachmentsListViewModel,
-        makeAddAttachmentButtonViewModel: AddAttachmentButtonViewModel.Factory,
-        itemPublisher: AnyPublisher<VaultItem, Never>
-    ) {
-        self.vaultItemsService = vaultItemsService
-        self.documentStorageService = documentStorageService
-        self.attachmentsListViewModelProvider = attachmentsListViewModelProvider
-        self.itemPublisher = itemPublisher
-        self.item = item
-        self.addAttachmentButtonViewModel = makeAddAttachmentButtonViewModel.make(editingItem: item,
-                                                                                  shouldDisplayRenameAlert: false,
-                                                                                  itemPublisher: itemPublisher)
-        itemPublisher
-            .receive(on: DispatchQueue.main)
-            .assign(to: &$item)
+  var uploadInProgress: Bool {
+    progress != nil && progress != 1
+  }
 
-        documentStorageService.$uploads
-            .map { uploads -> Progress? in
-                uploads
-                    .first { $0.item().id == self.item.id }
-                    .flatMap(\.progress)
-            }
-            .map { progress -> AnyPublisher<Double?, Never> in
-                guard let progress = progress else { return Just(nil).eraseToAnyPublisher() }
-                return progress
-                    .publisher(for: \.fractionCompleted)
-                    .map { $0 as Double? }
-                    .eraseToAnyPublisher()
-            }
-            .switchToLatest()
-            .receive(on: DispatchQueue.main)
-            .assign(to: &$progress)
-    }
+  let addAttachmentButtonViewModel: AddAttachmentButtonViewModel
+  private let attachmentsListViewModelProvider:
+    (VaultItem, AnyPublisher<VaultItem, Never>) -> AttachmentsListViewModel
 
-    func makeAttachmentsListViewModel() -> AttachmentsListViewModel? {
-        return attachmentsListViewModelProvider(item, itemPublisher)
-    }
+  private let itemPublisher: AnyPublisher<VaultItem, Never>
+  private var subscriptions = Set<AnyCancellable>()
+
+  public init(
+    item: VaultItem,
+    documentStorageService: DocumentStorageService,
+    vaultCollectionsStore: VaultCollectionsStore,
+    attachmentsListViewModelProvider: @escaping (VaultItem, AnyPublisher<VaultItem, Never>) ->
+      AttachmentsListViewModel,
+    makeAddAttachmentButtonViewModel: AddAttachmentButtonViewModel.Factory,
+    itemPublisher: AnyPublisher<VaultItem, Never>
+  ) {
+    self.attachmentsListViewModelProvider = attachmentsListViewModelProvider
+    self.itemPublisher = itemPublisher
+    self.item = item
+    self.addAttachmentButtonViewModel = makeAddAttachmentButtonViewModel.make(
+      editingItem: item,
+      shouldDisplayRenameAlert: false,
+      itemPublisher: itemPublisher)
+    itemPublisher
+      .receive(on: DispatchQueue.main)
+      .assign(to: &$item)
+
+    vaultCollectionsStore.collectionsPublisher(for: item)
+      .receive(on: DispatchQueue.main)
+      .assign(to: &$itemCollections)
+
+    documentStorageService.$uploads
+      .compactMap { uploads -> Progress? in
+        uploads
+          .first { $0.item().id == self.item.id }
+          .flatMap({ $0.progress })
+      }
+      .map { progress -> AnyPublisher<Double?, Never> in
+        return
+          progress
+          .publisher(for: \.fractionCompleted)
+          .map { $0 as Double? }
+          .eraseToAnyPublisher()
+      }
+      .switchToLatest()
+      .receive(on: DispatchQueue.main)
+      .assign(to: &$progress)
+  }
+
+  func makeAttachmentsListViewModel() -> AttachmentsListViewModel? {
+    return attachmentsListViewModelProvider(item, itemPublisher)
+  }
 }
 
 extension AttachmentsSectionViewModel {
-    private static var item: SecureNote {
-        SecureNote()
-    }
+  private static var item: SecureNote {
+    SecureNote()
+  }
 
-    static var mock: AttachmentsSectionViewModel {
-        .init(vaultItemsService: MockVaultKitServicesContainer().vaultItemsService,
-              item: item,
-              documentStorageService: DocumentStorageService.mock,
-              attachmentsListViewModelProvider: {_, _ in AttachmentsListViewModel.mock },
-              makeAddAttachmentButtonViewModel: .init { _, _, _ in AddAttachmentButtonViewModel.mock },
-              itemPublisher: Just(item).eraseToAnyPublisher())
-    }
+  static var mock: AttachmentsSectionViewModel {
+    .init(
+      item: item,
+      documentStorageService: DocumentStorageService.mock,
+      vaultCollectionsStore: VaultCollectionsStoreImpl.mock(),
+      attachmentsListViewModelProvider: { _, _ in AttachmentsListViewModel.mock },
+      makeAddAttachmentButtonViewModel: .init { _, _, _ in AddAttachmentButtonViewModel.mock },
+      itemPublisher: Just(item).eraseToAnyPublisher()
+    )
+  }
 }
-#endif

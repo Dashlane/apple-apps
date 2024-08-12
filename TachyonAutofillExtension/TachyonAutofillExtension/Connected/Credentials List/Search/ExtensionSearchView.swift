@@ -1,138 +1,157 @@
+import CoreLocalization
+import DesignSystem
 import SwiftUI
-import DashlaneAppKit
 import UIComponents
 import VaultKit
-import CoreLocalization
 
-struct ExtensionSearchView<InactiveView: View, Model: ExtensionSearchViewModelProtocol>: View {
+struct ExtensionSearchView<InactiveView: View>: View {
+  @StateObject
+  var model: ExtensionSearchViewModel
 
-    @ObservedObject
-    var model: Model
+  @State
+  var isSearching: Bool = false
 
-    let select: (VaultItem, VaultSelectionOrigin) -> Void
-    let inactiveSearchView: InactiveView
+  let select: (VaultItem, VaultSelectionOrigin) -> Void
+  let inactiveSearchView: InactiveView
 
-    let addAction: () -> Void
-    let closeAction: () -> Void
+  init(
+    model: @escaping @autoclosure () -> ExtensionSearchViewModel,
+    select: @escaping (VaultItem, VaultSelectionOrigin) -> Void,
+    @ViewBuilder inactiveSearchView: () -> InactiveView
+  ) {
+    self._model = .init(wrappedValue: model())
+    self.select = select
+    self.inactiveSearchView = inactiveSearchView()
+  }
 
-    init(model: Model,
-         addAction: @escaping () -> Void,
-         closeAction: @escaping () -> Void,
-         select: @escaping (VaultItem, VaultSelectionOrigin) -> Void,
-         @ViewBuilder inactiveSearchView: () -> InactiveView) {
-        self.model = model
-        self.closeAction = closeAction
-        self.addAction = addAction
-        self.select = select
-        self.inactiveSearchView = inactiveSearchView()
+  var body: some View {
+    ZStack {
+      if isSearching {
+        list
+      } else {
+        InactiveSearchContainer(
+          isSearching: $isSearching,
+          inactiveSearchView: { inactiveSearchView })
+      }
     }
-    
-    var body: some View {
-        SearchView(model: model,
-                   select: select,
-                   inactiveSearchView: inactiveSearchView,
-                   addAction: addAction,
-                   closeAction: closeAction)
-        .navigationBarBackButtonHidden(true)
-        .toolbar {
-            ToolbarItem(placement: .navigationBarLeading) {
-                NavigationBarButton(action: closeAction, title: CoreLocalization.L10n.Core.cancel)
-            }
-            ToolbarItem(placement: .navigationBarTrailing) {
-                AddBarButton(style: .circle, action: addAction)
-            }
+    .navigationBarBackButtonHidden(true)
+    .searchable(
+      text: $model.searchCriteria, prompt: L10n.Localizable.tachyonCredentialsListSearchPlaceholder
+    )
+    .autocorrectionDisabled()
+    .background(.ds.background.default)
+    .edgesIgnoringSafeArea(.bottom)
+    .frame(maxHeight: .infinity)
+    .onChange(of: isSearching) { newValue in
+      model.isActive = newValue
+    }
+  }
+
+  private var list: some View {
+    ZStack {
+      if !model.result.searchCriteria.isEmpty {
+        if !model.result.hasResult() {
+          ListPlaceholder(
+            icon: Image(asset: FiberAsset.emptySearch),
+            text: L10n.Localizable.emptySearchResultsText,
+            accessory: placeholderAddButton)
+        } else {
+          searchResults
+            .dismissKeyboardOnDrag()
+            .id(model.result.searchCriteria)
         }
-        .searchable(text: $model.searchCriteria, prompt: L10n.Localizable.tachyonCredentialsListSearchPlaceholder)
-        .autocorrectionDisabled()
-        .background(Color(asset: FiberAsset.systemBackground))
-        .edgesIgnoringSafeArea(.bottom)
-    }
+      } else {
+        recentSearches
+          .dismissKeyboardOnDrag()
 
-    private var addButton: some View {
-        AddBarButton(style: .circle, action: addAction)
+      }
     }
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .animation(.linear(duration: 0.2), value: model.result.searchCriteria)
+  }
+
+  private var placeholderAddButton: AnyView {
+    NavigationLink(value: CredentialProviderHomeFlow.SubFlows.addCredential) {
+      Text(L10n.Localizable.kwEmptyPwdAddAction)
+        .foregroundColor(.ds.container.expressive.brand.catchy.idle)
+    }
+    .eraseToAnyView()
+  }
+
+  private var recentSearches: some View {
+    ListResultContainer(
+      isSearching: $isSearching,
+      sections: model.recentSearchItems,
+      vaultItemIconViewModelFactory: model.vaultItemIconViewModelFactory,
+      select: { select($0, .recentSearch) })
+  }
+
+  private var searchResults: some View {
+    ListResultContainer(
+      isSearching: $isSearching,
+      sections: model.result.sections,
+      vaultItemIconViewModelFactory: model.vaultItemIconViewModelFactory,
+      select: { select($0, .recentSearch) }
+    )
+    .highlightedValue(model.searchCriteria)
+  }
 }
 
-private struct SearchView<InactiveView: View, Model: ExtensionSearchViewModelProtocol>: View {
+private struct InactiveSearchContainer<InactiveView: View>: View {
 
-    @Environment(\.isSearching)
-    private var isSearching
+  @Environment(\.isSearching)
+  private var searching
 
-    @Environment(\.dismissSearch)
-    private var dismissSearch
+  @Binding
+  var isSearching: Bool
+  let inactiveSearchView: InactiveView
 
-    @ObservedObject
-    var model: Model
+  init(
+    isSearching: Binding<Bool>,
+    @ViewBuilder inactiveSearchView: () -> InactiveView
+  ) {
+    self._isSearching = isSearching
+    self.inactiveSearchView = inactiveSearchView()
+  }
 
-    let select: (VaultItem, VaultSelectionOrigin) -> Void
-    let inactiveSearchView: InactiveView
-
-    let addAction: () -> Void
-    let closeAction: () -> Void
-
-    var body: some View {
-        Group {
-            if isSearching {
-                list
-                    .navigationBarBackButtonHidden(true)
-            } else {
-                inactiveSearchView
-            }
-        }
-        .frame(maxHeight: .infinity)
-        .onChange(of: isSearching) { newValue in
-            model.isActive = newValue
-        }
-    }
-
-    private var list: some View {
-        ZStack {
-            if !model.result.searchCriteria.isEmpty {
-                if !model.result.hasResult() {
-                    ListPlaceholder(icon: Image(asset: FiberAsset.emptySearch),
-                                    text: L10n.Localizable.emptySearchResultsText,
-                                    accessory: placeholderAddButton)
-                } else {
-                    searchResults
-                        .dismissKeyboardOnDrag()
-                        .id(model.result.searchCriteria)
-                }
-            } else {
-                recentSearches
-                    .dismissKeyboardOnDrag()
-
-            }
-        }
-        .frame(maxWidth: .infinity, maxHeight: .infinity)
-        .animation(.linear(duration: 0.2), value: model.result.searchCriteria)
-    }
-
-    private var placeholderAddButton: AnyView {
-        return Button(action: addAction, title: L10n.Localizable.kwEmptyPwdAddAction)
-            .foregroundColor(.ds.container.expressive.brand.catchy.idle)
-                .eraseToAnyView()
-    }
-
-    private var recentSearches: some View {
-        ItemsList(sections: model.recentSearchItems) { input in
-            CredentialRowView(model: CredentialRowViewModel(item: input.vaultItem,
-                                                            domainLibrary: model.domainIconLibrary,
-                                                            highlightedString: model.searchCriteria)) {
-                dismissSearch()
-                select(input.vaultItem, .recentSearch)
-            }
-        }
-    }
-
-    private var searchResults: some View {
-        ItemsList(sections: model.result.sections) { input in
-            CredentialRowView(model: CredentialRowViewModel(item: input.vaultItem,
-                                                            domainLibrary: model.domainIconLibrary,
-                                                            highlightedString: model.searchCriteria)) {
-                dismissSearch()
-                self.select(input.vaultItem, .searchResult)
-            }
-        }
-    }
+  var body: some View {
+    inactiveSearchView
+      .onChange(
+        of: self.searching,
+        perform: { newValue in
+          self.isSearching = newValue
+        })
+  }
 }
 
+private struct ListResultContainer: View {
+
+  @Environment(\.isSearching)
+  private var searching
+
+  @Environment(\.dismissSearch)
+  private var dismissSearch
+
+  @Binding
+  var isSearching: Bool
+  let sections: [DataSection]
+  let vaultItemIconViewModelFactory: VaultItemIconViewModel.Factory
+  let select: (VaultItem) -> Void
+
+  var body: some View {
+    ItemsList(sections: sections) { input in
+      VaultItemRow(
+        item: input.vaultItem,
+        userSpace: nil,
+        vaultIconViewModelFactory: vaultItemIconViewModelFactory
+      )
+      .onTapWithFeedback {
+        dismissSearch()
+        select(input.vaultItem)
+      }
+    }
+    .onChange(of: searching) { newValue in
+      isSearching = newValue
+    }
+  }
+}

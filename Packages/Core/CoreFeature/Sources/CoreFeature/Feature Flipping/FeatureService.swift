@@ -1,125 +1,149 @@
-import Foundation
-import DashTypes
-import CoreNetworking
-import CoreSession
 import Combine
-import SwiftTreats
+import DashTypes
 import DashlaneAPI
+import Foundation
+import SwiftTreats
 
 public class FeatureService: FeatureServiceProtocol {
-    private let refreshInterval: TimeInterval
-    internal let apiClient: UserDeviceAPIClient.Features
-    internal let login: String
-    internal let logger: Logger
-    private let storage: FeatureFlipServiceStorage
 
-    @Atomic
-    public internal(set) var features = Set<ControlledFeature>()
+  typealias LabsElement = AppAPIClient.Features.ListAvailableLabs.Response.LabsElement
 
-    private var refreshTask: Task<Void, Error>?
+  internal let apiClient: UserDeviceAPIClient.Features
+  internal let apiAppClient: AppAPIClient.Features
+  internal let login: Login
+  internal let logger: Logger
+  private let storage: FeatureFlipServiceStorage
+  internal let labsStorage: LabsServiceStorage
 
-    public init(session: Session,
-                apiClient: UserDeviceAPIClient.Features,
-                featureStorage: FeatureFlipServiceStorage? = nil,
-                refreshInterval: TimeInterval = 15 * 60, 
-                logger: Logger) async {
-        self.apiClient = apiClient
-        self.login = session.login.email
-        if let featureStorage = featureStorage {
-            self.storage = featureStorage
-        } else {
-            self.storage = FeatureStorage(session: session)
-        }
-        self.refreshInterval = refreshInterval
-        self.logger = logger
+  @Atomic
+  public internal(set) var features = Set<ControlledFeature>()
 
-        let timerTrigger = Timer.publish(every: refreshInterval, on: .main, in: .default)
-            .autoconnect()
-            .map { _ in Void() }
-        if !storage.hasStoredData() {
-            do {
-                try await refreshFlips(isInitialFetch: true)
-            } catch {
-                logger.error("cannot retrieve feature flips", error: error)
-            }
-            startRefreshingFlips(using: timerTrigger.values)
+  public init(
+    login: Login,
+    apiClient: UserDeviceAPIClient.Features,
+    apiAppClient: AppAPIClient.Features,
+    storage: FeatureFlipServiceStorage,
+    labsStorage: LabsServiceStorage,
+    logger: Logger,
+    useCacheOnly: Bool = false
+  ) async {
+    self.apiClient = apiClient
+    self.apiAppClient = apiAppClient
+    self.login = login
+    self.storage = storage
+    self.labsStorage = labsStorage
+    self.logger = logger
 
-        } else {
-            retrieveStoredFlips()
-            startRefreshingFlips(using: timerTrigger.prepend(Void()).values)
-        }
+    guard !useCacheOnly else {
+      await retrieveStoredFlips()
+      return
     }
 
-        public func isEnabled(_ feature: ControlledFeature) -> Bool {
-        return enabledFeatures().contains(feature)
+    if !storage.hasStoredData() {
+      do {
+        try await refreshFlips(isInitialFetch: true)
+      } catch {
+        logger.error("cannot retrieve feature flips", error: error)
+      }
+    } else {
+      await retrieveStoredFlips()
+      Task.detached {
+        try? await self.refreshFlips(isInitialFetch: false)
+      }
     }
+  }
 
-    public func enabledFeatures() -> Set<ControlledFeature> {
-#if DEBUG
-        features.union(ControlledFeature.forcedFeatureFlips)
-#else
-        features
-#endif
-    }
+  public func isEnabled(_ feature: ControlledFeature) -> Bool {
+    guard !storedActiveLabs().contains(feature.rawValue) else { return true }
+    return enabledFeatures().contains(feature)
+  }
 
-        internal func retrieveStoredFlips() {
-        guard storage.hasStoredData() else {
-            logger.info("no feature flips stored")
-            return
-        }
-        do {
-            let flipsData = try storage.retrieve()
-            let rawFlips = try JSONDecoder().decode(Set<String>.self, from: flipsData)
-            self.features = Set(rawFlips.compactMap { ControlledFeature(rawValue: $0) })
-        } catch {
-            logger.fatal("cannot retrieve feature flips", error: error)
-        }
-    }
+  public func enabledFeatures() -> Set<ControlledFeature> {
+    var enabledFeatures = features.union(labsActivatedFeatures)
+    #if DEBUG
+      enabledFeatures = enabledFeatures.union(ControlledFeature.forcedFeatureFlips)
+    #endif
+    return enabledFeatures
+  }
 
-    internal func store(_ serverEnabledFlips: Set<String>) {
-        do {
-            let encoded = try JSONEncoder().encode(serverEnabledFlips)
-            try storage.store(encoded)
-        } catch {
-            logger.fatal("cannot persist feature flips", error: error)
-        }
+  @MainActor
+  internal func retrieveStoredFlips() {
+    guard storage.hasStoredData() else {
+      logger.info("no feature flips stored")
+      return
     }
+    do {
+      let flipsData = try storage.retrieve()
+      let rawFlips = try JSONDecoder().decode(Set<String>.self, from: flipsData)
+      self.features = Set(rawFlips.compactMap { ControlledFeature(rawValue: $0) })
+    } catch {
+      logger.error("cannot retrieve feature flips", error: error)
+    }
+  }
 
-    internal func startRefreshingFlips<T: AsyncSequence>(using sequence: T) {
-        refreshTask = Task {
-            for try await _ in sequence {
-                do {
-                    try await refreshFlips()
-                } catch {
-                    logger.error("Fail to refresh flip", error: error)
-                }
-            }
-        }
+  @MainActor
+  internal func store(_ serverEnabledFlips: Set<String>) {
+    do {
+      let encoded = try JSONEncoder().encode(serverEnabledFlips)
+      try storage.store(encoded)
+    } catch {
+      logger.error("cannot persist feature flips", error: error)
     }
-
-    deinit {
-        refreshTask?.cancel()
-    }
+  }
 }
 
-public extension FeatureServiceProtocol where Self == MockFeatureService {
-    static func mock(features: [ControlledFeature] = []) -> MockFeatureService {
-        return MockFeatureService(features: features)
+extension FeatureService {
+  public var isLabsAvailable: Bool {
+    return BuildEnvironment.current == .debug || BuildEnvironment.current.isQA
+      || BuildEnvironment.current.isNightly
+  }
+
+  public func labs() async throws -> [LabsExperience] {
+    let enableFeatures = enabledFeatures().map { $0.rawValue }
+    let activeLabs = storedActiveLabs()
+    let serverLabs = try await fetchLabs()
+    return serverLabs.compactMap { lab in
+      let isOn = enableFeatures.contains(lab.featureName) || activeLabs.contains(lab.featureName)
+      guard let feature = ControlledFeature(rawValue: lab.featureName) else {
+        return nil
+      }
+      return LabsExperience(
+        feature: feature, displayName: lab.displayName, displayDescription: lab.displayDescription,
+        isOn: isOn)
     }
+  }
+}
+
+extension FeatureServiceProtocol where Self == MockFeatureService {
+  public static func mock(
+    features: [ControlledFeature] = [], labsExperiences: [LabsExperience] = []
+  ) -> MockFeatureService {
+    return MockFeatureService(features: features, labsExperiences: labsExperiences)
+  }
 }
 
 public class MockFeatureService: FeatureServiceProtocol {
-    var features: [ControlledFeature]
+  var features: [ControlledFeature]
+  var labsExperiences: [LabsExperience]
 
-    public init(features: [ControlledFeature] = []) {
-        self.features = features
-    }
+  public var isLabsAvailable: Bool = false
 
-    public func isEnabled(_ feature: ControlledFeature) -> Bool {
-        features.contains(feature)
-    }
+  public init(features: [ControlledFeature] = [], labsExperiences: [LabsExperience] = []) {
+    self.features = features
+    self.labsExperiences = labsExperiences
+  }
 
-    public func enabledFeatures() -> Set<ControlledFeature> {
-        return Set(features)
-    }
+  public func isEnabled(_ feature: ControlledFeature) -> Bool {
+    features.contains(feature)
+  }
+
+  public func enabledFeatures() -> Set<ControlledFeature> {
+    return Set(features)
+  }
+
+  public func labs() -> [LabsExperience] {
+    return labsExperiences
+  }
+
+  public func save(_ experiences: [LabsExperience]) {}
 }

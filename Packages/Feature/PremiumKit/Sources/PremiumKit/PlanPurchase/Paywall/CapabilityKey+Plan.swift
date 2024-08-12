@@ -1,12 +1,17 @@
 import CorePremium
 
-extension CapabilityKey {
-        var orderedByPriorityPurchaseKinds: [PurchasePlan.Kind] {
-        switch self {
-                case .secureWiFi, .sync, .dataLeak, .securityBreach:
-                return [.premium]
-        default:
-            return []
-        }
+extension PaywallViewModel.Trigger {
+  var orderedByPriorityPurchaseKinds: [PurchasePlan.Kind] {
+    switch self {
+    case .capability(let key):
+      switch key {
+      case .secureWiFi, .sync, .dataLeak, .securityBreach:
+        return [.premium]
+      default:
+        return []
+      }
+    default:
+      return []
     }
+  }
 }

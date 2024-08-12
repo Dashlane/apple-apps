@@ -1,30 +1,40 @@
+import CoreSession
+import DashTypes
+import DashlaneAPI
 import Foundation
 import IconLibrary
-import DashTypes
-import CoreSession
 
-public struct IconService: Mockable {
-    public let domain: DomainIconLibraryProtocol
-    public let gravatar: GravatarIconLibraryProtocol
+public protocol IconServiceProtocol {
+  var domain: DomainIconLibraryProtocol { get }
+  var gravatar: GravatarIconLibraryProtocol { get }
+}
 
-    public init(session: Session, webservice: LegacyWebService, logger: Logger, target: BuildTarget) {
-        let cacheDirectory: URL
-        do {
-            cacheDirectory = try session.directory.storeURL(for: .icons, in: target)
-        } catch {
-            logger.error("Failed to get a store url for the session, use temporary folder instead", error: error)
-            cacheDirectory = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent("\(session.login.email)-icons")
-        }
+public struct IconService: IconServiceProtocol {
+  public let domain: DomainIconLibraryProtocol
+  public let gravatar: GravatarIconLibraryProtocol
 
-        let cryptoEngine = session.localCryptoEngine
-
-        domain =  DomainIconLibrary(cacheDirectory: cacheDirectory,
-                                    cryptoEngine: cryptoEngine,
-                                    webservice: webservice,
-                                    logger: logger)
-
-        gravatar =  GravatarIconLibrary(cacheDirectory: cacheDirectory,
-                                        cryptoEngine: cryptoEngine,
-                                        logger: logger)
+  public init(session: Session, appAPIClient: AppAPIClient, logger: Logger, target: BuildTarget) {
+    let cacheDirectory: URL
+    do {
+      cacheDirectory = try session.directory.storeURL(for: .icons, in: target)
+    } catch {
+      logger.error(
+        "Failed to get a store url for the session, use temporary folder instead", error: error)
+      cacheDirectory = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(
+        "\(session.login.email)-icons")
     }
+
+    let cryptoEngine = session.localCryptoEngine
+
+    domain = DomainIconLibrary(
+      cacheDirectory: cacheDirectory,
+      cryptoEngine: cryptoEngine,
+      appAPIClient: appAPIClient,
+      logger: logger)
+
+    gravatar = GravatarIconLibrary(
+      cacheDirectory: cacheDirectory,
+      cryptoEngine: cryptoEngine,
+      logger: logger)
+  }
 }

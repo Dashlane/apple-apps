@@ -1,22 +1,23 @@
+import DashTypes
 import Foundation
 import ImportKit
-import DashTypes
 
 private struct Detector: LastpassDetector {
 
-    let appServices: AppServicesContainer
+  let appServices: AppServicesContainer
 
-    var isLastpassInstalled: Bool {
-#if targetEnvironment(macCatalyst)
-        return appServices.appKitBridge.installedApplication.hasApplication(withBundleIdentifier: "com.lastpass.lastpassmacdesktop")
-#else
-        return false
-#endif
-    }
+  var isLastpassInstalled: Bool {
+    #if targetEnvironment(macCatalyst)
+      return appServices.appKitBridge.installedApplication.hasApplication(
+        withBundleIdentifier: "com.lastpass.lastpassmacdesktop")
+    #else
+      return false
+    #endif
+  }
 }
 
 extension SessionServicesContainer: LastpassDetectorContainer {
-    var lastpassDetector: LastpassDetector {
-        Detector(appServices: appServices)
-    }
+  var lastpassDetector: LastpassDetector {
+    Detector(appServices: appServices)
+  }
 }

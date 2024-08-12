@@ -1,14 +1,14 @@
-import Foundation
 import Combine
+import Foundation
 
 public protocol ResetMasterPasswordServiceProtocol {
-    var isActive: Bool { get }
-    var needsReactivation: Bool { get }
+  var isActive: Bool { get }
+  var needsReactivation: Bool { get }
 
-    func activate(using masterPassword: String) throws
-    func deactivate() throws
-    func activationStatusPublisher() -> AnyPublisher<Bool, Never>
+  func activate(using masterPassword: String) throws
+  func deactivate() throws
+  func activationStatusPublisher() -> AnyPublisher<Bool, Never>
 
-    func storedMasterPassword() throws -> String
-    func update(masterPassword: String) throws
+  func storedMasterPassword() throws -> String
+  func update(masterPassword: String) throws
 }

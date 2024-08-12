@@ -1,25 +1,24 @@
 import Foundation
 
 public enum XMLRuleException: Equatable {
-        case skip
+  case skip
 
-        case lowerCasedKey(current: Bool, child: Bool)
+  case lowerCasedKey(current: Bool, child: Bool)
 
-                case undefinedInSchema
+  case keepSpecUndefinedKey
 }
 
-
 extension XMLRuleException {
-    public var isSchemaRule: Bool {
-        switch self {
-        case .skip:
-            return false
+  public var isSchemaRule: Bool {
+    switch self {
+    case .skip:
+      return false
 
-        case .lowerCasedKey:
-            return true
+    case .lowerCasedKey:
+      return true
 
-        case .undefinedInSchema:
-            return false
-        }
+    case .keepSpecUndefinedKey:
+      return false
     }
+  }
 }

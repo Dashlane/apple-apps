@@ -1,129 +1,142 @@
-import UIKit
 import Combine
-import Foundation
-import SwiftTreats
-import DashlaneAppKit
 import CoreKeychain
 import CoreSession
 import DashTypes
+import Foundation
 import LocalAuthentication
 import LoginKit
+import SwiftTreats
+import UIKit
 
 @MainActor
 class BiometryAndPinUnlockViewModel: ObservableObject {
-    enum State {
-        case biometry
-        case pin
-    }
+  enum State {
+    case biometry
+    case pin
+  }
 
-    @Published
-    var state: State = .biometry
+  @Published
+  var state: State = .biometry
 
-    @Published
-    var showError = false
+  @Published
+  var showError = false
 
-    @Published
-    var errorMessage = ""
+  @Published
+  var errorMessage = ""
 
-    @Published
-    var showRetry = false
+  @Published
+  var showRetry = false
 
-    @Published
-    var enteredPincode: String = "" {
-        didSet {
-            errorMessage = ""
-            if enteredPincode.count == 4 {
-                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
-                    self.validatePinCode()
-                }
-            }
+  @Published
+  var enteredPincode: String = "" {
+    didSet {
+      errorMessage = ""
+      if enteredPincode.count == pinCodeLength {
+        DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) {
+          self.validatePinCode()
         }
+      }
     }
+  }
 
-    @Published
-    var attempts: Int = 1
+  @Published
+  var attempts: Int = 1
 
-    @Published
-    var inProgress = false
+  @Published
+  var inProgress = false
 
-    let login: Login
-    let biometryType: Biometry
-    let pin: String
-    let pinCodeAttempts: PinCodeAttempts
-    let masterKey: CoreKeychain.MasterKey
-    let validateMasterKey: (CoreKeychain.MasterKey) async throws -> PairedServicesContainer
-    let completion: (PairedServicesContainer) -> Void
+  var pinCodeLength: Int {
+    pin.count
+  }
 
-    private var cancellables: Set<AnyCancellable> = []
+  let login: Login
+  let biometryType: Biometry
+  let pin: String
+  let pinCodeAttempts: PinCodeAttempts
+  let masterKey: CoreKeychain.MasterKey
+  let validateMasterKey: (CoreKeychain.MasterKey) async throws -> PairedServicesContainer
+  let completion: (PairedServicesContainer) -> Void
 
-    init(login: Login,
-         pin: String,
-         pinCodeAttempts: PinCodeAttempts,
-         masterKey: CoreKeychain.MasterKey,
-         biometryType: Biometry,
-         validateMasterKey: @escaping (CoreKeychain.MasterKey) async throws -> PairedServicesContainer,
-         completion: @escaping (PairedServicesContainer) -> Void) {
-        self.login = login
-        self.biometryType = biometryType
-        self.pin = pin
-        self.pinCodeAttempts = pinCodeAttempts
-        self.masterKey = masterKey
-        self.validateMasterKey = validateMasterKey
-        self.completion = completion
+  private var cancellables: Set<AnyCancellable> = []
 
-        self.pinCodeAttempts.countPublisher.assign(to: &$attempts)
-        self.pinCodeAttempts.tooManyAttemptsPublisher.assign(to: &$showError)
+  init(
+    login: Login,
+    pin: String,
+    pinCodeAttempts: PinCodeAttempts,
+    masterKey: CoreKeychain.MasterKey,
+    biometryType: Biometry,
+    validateMasterKey: @escaping (CoreKeychain.MasterKey) async throws -> PairedServicesContainer,
+    completion: @escaping (PairedServicesContainer) -> Void
+  ) {
+    self.login = login
+    self.biometryType = biometryType
+    self.pin = pin
+    self.pinCodeAttempts = pinCodeAttempts
+    self.masterKey = masterKey
+    self.validateMasterKey = validateMasterKey
+    self.completion = completion
 
-                        NotificationCenter.default.publisher(for: UIApplication.applicationWillEnterForegroundNotification)
-            .sink { [weak self] _ in self?.refresh() }
-            .store(in: &cancellables)
+    self.pinCodeAttempts.countPublisher.assign(to: &$attempts)
+    self.pinCodeAttempts.tooManyAttemptsPublisher.assign(to: &$showError)
+
+    NotificationCenter.default.publisher(
+      for: UIApplication.applicationWillEnterForegroundNotification
+    )
+    .sink { [weak self] _ in self?.refresh() }
+    .store(in: &cancellables)
+  }
+
+  private func refresh() {
+    showError = pinCodeAttempts.tooManyAttempts
+    errorMessage =
+      pinCodeAttempts.count == 1
+      ? L10n.Localizable.pincodeError : L10n.Localizable.pincodeAttemptsLeftError(3 - attempts)
+  }
+
+  func validateBiometry() async {
+    showRetry = false
+    inProgress = true
+    do {
+      try await Biometry.authenticate(
+        reasonTitle: L10n.Localizable.lockedStateButtonTitle,
+        fallbackTitle: L10n.Localizable.enterPasscode)
+      let result = try await self.validateMasterKey(self.masterKey)
+      self.completion(result)
+    } catch {
+      inProgress = false
+      if let error = error as? LAError, error.code == LAError.systemCancel {
+        showRetry = true
+        return
+      }
+      self.state = .pin
     }
+  }
 
-    private func refresh() {
-        showError = pinCodeAttempts.tooManyAttempts
-        errorMessage = pinCodeAttempts.count == 1 ? L10n.Localizable.pincodeError : L10n.Localizable.pincodeAttemptsLeftError(3 - attempts)
-    }
-
-    func validateBiometry() async {
-        showRetry = false
-        inProgress = true
+  func validatePinCode() {
+    inProgress = true
+    if enteredPincode == pin {
+      Task {
         do {
-            try await Biometry.authenticate(reasonTitle: L10n.Localizable.lockedStateButtonTitle, fallbackTitle: L10n.Localizable.enterPasscode)
-            let result = try await self.validateMasterKey(self.masterKey)
-            self.completion(result)
+          let result = try await validateMasterKey(masterKey)
+          pinCodeAttempts.removeAll()
+          completion(result)
         } catch {
-            inProgress = false
-            if let error = error as? LAError, error.code == LAError.systemCancel {
-                showRetry = true
-                return
-            }
-            self.state = .pin
+          showError = true
+          enteredPincode = ""
         }
+      }
+    } else {
+      pinCodeAttempts.addNewAttempt()
+      enteredPincode = ""
+      errorMessage =
+        pinCodeAttempts.count == 1
+        ? L10n.Localizable.pincodeError : L10n.Localizable.pincodeAttemptsLeftError(3 - attempts)
     }
+    inProgress = false
+  }
 
-    func validatePinCode() {
-        inProgress = true
-        if enteredPincode == pin {
-            Task {
-                do {
-                    let result = try await validateMasterKey(masterKey)
-                    pinCodeAttempts.removeAll()
-                    completion(result)
-                } catch {
-                    showError = true
-                    enteredPincode = ""
-                }
-            }
-        } else {
-            pinCodeAttempts.addNewAttempt()
-            enteredPincode = ""
-            errorMessage = pinCodeAttempts.count == 1 ? L10n.Localizable.pincodeError : L10n.Localizable.pincodeAttemptsLeftError(3 - attempts)
-        }
-        inProgress = false
-    }
-
-    func showPin() {
-        showRetry = false
-        state = .pin
-    }
+  func showPin() {
+    showRetry = false
+    state = .pin
+  }
 }

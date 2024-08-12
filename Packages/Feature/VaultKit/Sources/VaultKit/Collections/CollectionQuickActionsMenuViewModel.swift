@@ -1,93 +1,154 @@
 import Combine
+import CoreFeature
 import CoreLocalization
 import CorePersonalData
+import CorePremium
 import CoreUserTracking
 import DashTypes
 import DesignSystem
 import Foundation
 
-public final class CollectionQuickActionsMenuViewModel: ObservableObject, VaultKitServicesInjecting {
+@MainActor
+public final class CollectionQuickActionsMenuViewModel: ObservableObject, VaultKitServicesInjecting
+{
 
-    @Published
-    var collection: VaultCollection
+  @Published
+  var collection: VaultCollection
 
-        private let logger: Logger
-    private let activityReporter: ActivityReporterProtocol
-    private let vaultItemsService: VaultItemsServiceProtocol
+  @Published
+  var showSharedCollectionErrorMessage: Bool = false
 
-        private let collectionNamingViewModelFactory: CollectionNamingViewModel.Factory
+  @Published
+  var isAdminDisabledByStarterPack: Bool = false
 
-        private var cancellables: Set<AnyCancellable> = []
+  @Published
+  var isMemberDisabledByStarterPack: Bool = false
 
-    public init(
-        collection: VaultCollection,
-        logger: Logger,
-        activityReporter: ActivityReporterProtocol,
-        vaultItemsService: VaultItemsServiceProtocol,
-        collectionNamingViewModelFactory: CollectionNamingViewModel.Factory
-    ) {
-        self.collection = collection
-        self.logger = logger
-        self.activityReporter = activityReporter
-        self.vaultItemsService = vaultItemsService
-        self.collectionNamingViewModelFactory = collectionNamingViewModelFactory
+  var isSharingDisabled: Bool {
+    userSpacesService.configuration.currentTeam?.teamInfo.sharingDisabled == true
+  }
 
-        self.registerPublishers()
-    }
+  private let logger: Logger
+  private let activityReporter: ActivityReporterProtocol
+  private let vaultCollectionsStore: VaultCollectionsStore
+  private let vaultCollectionEditionService: VaultCollectionEditionService
+  private let userSpacesService: UserSpacesService
+  private let premiumStatusProvider: PremiumStatusProvider
 
-    private func registerPublishers() {
-        vaultItemsService
-            .collectionsPublisher()
-            .compactMap { [weak self] collections in
-                return collections.first(where: { $0.id == self?.collection.id })
-            }
-            .assign(to: &$collection)
-    }
+  private let collectionNamingViewModelFactory: CollectionNamingViewModel.Factory
 
-    func deleteCollection(with toast: ToastAction) {
-        do {
-            try vaultItemsService.delete(collection)
-            reportDeletion()
-            toast(L10n.Core.KWVaultItem.Collections.deleted(collection.name), image: .ds.feedback.success.outlined)
-        } catch {
-            logger[.personalData].error("Error on save", error: error)
+  private var cancellables: Set<AnyCancellable> = []
+  private let queue: DispatchQueue = .init(
+    label: "com.dashlane.collectionQuickActions", qos: .userInitiated)
+
+  public init(
+    collection: VaultCollection,
+    logger: Logger,
+    activityReporter: ActivityReporterProtocol,
+    vaultCollectionsStore: VaultCollectionsStore,
+    userSpacesService: UserSpacesService,
+    premiumStatusProvider: PremiumStatusProvider,
+    collectionNamingViewModelFactory: CollectionNamingViewModel.Factory,
+    vaultCollectionEditionServiceFactory: VaultCollectionEditionService.Factory
+  ) {
+    self.collection = collection
+    self.logger = logger
+    self.activityReporter = activityReporter
+    self.vaultCollectionsStore = vaultCollectionsStore
+    self.userSpacesService = userSpacesService
+    self.premiumStatusProvider = premiumStatusProvider
+    self.collectionNamingViewModelFactory = collectionNamingViewModelFactory
+    self.vaultCollectionEditionService = vaultCollectionEditionServiceFactory.make(
+      collection: collection)
+
+    self.registerPublishers()
+  }
+
+  private func registerPublishers() {
+    vaultCollectionsStore
+      .$collections
+      .receive(on: queue)
+      .compactMap { [weak self] collections in
+        return collections.first(where: { $0.id == self?.collection.id })
+      }
+      .receive(on: DispatchQueue.main)
+      .assign(to: &$collection)
+
+    vaultCollectionsStore
+      .$collections
+      .receive(on: queue)
+      .combineLatest(premiumStatusProvider.statusPublisher) { [weak self] (collections, status) in
+        guard let self = self, status.isConcernedByStarterPlanSharingLimit else { return false }
+        guard status.b2bStatus?.currentTeam?.isAdminOfAStarterTeam == true else { return false }
+
+        let sharedCollectionsCount = collections.filter { $0.isShared }.count
+        return status.hasSharingDisabledBecauseOfStarterPlanLimitation(
+          alreadySharedCollectionsCount: sharedCollectionsCount) && !self.collection.isShared
+      }
+      .receive(on: DispatchQueue.main)
+      .assign(to: &$isAdminDisabledByStarterPack)
+
+    premiumStatusProvider
+      .statusPublisher
+      .map { status in
+        guard status.isConcernedByStarterPlanSharingLimit else { return false }
+        return status.b2bStatus?.currentTeam?.isAdminOfAStarterTeam == false
+      }
+      .receive(on: DispatchQueue.main)
+      .assign(to: &$isMemberDisabledByStarterPack)
+  }
+
+  func deleteCollection(with toast: ToastAction) {
+    Task {
+      do {
+        try await vaultCollectionEditionService.delete()
+        toast(
+          L10n.Core.KWVaultItem.Collections.deleted(collection.name),
+          image: .ds.feedback.success.outlined)
+      } catch {
+        if collection.isShared {
+          showSharedCollectionErrorMessage = true
         }
+      }
     }
+  }
 
-    func makeEditableCollectionNamingViewModel() -> CollectionNamingViewModel {
-        collectionNamingViewModelFactory.make(mode: .edition(collection))
-    }
+  func makeEditableCollectionNamingViewModel() -> CollectionNamingViewModel {
+    collectionNamingViewModelFactory.make(mode: .edition(collection))
+  }
 }
 
 extension CollectionQuickActionsMenuViewModel {
-    func reportAppearance() {
-        activityReporter.reportPageShown(.collectionQuickActionsDropdown)
+  var isDeleteableOrEditable: Bool {
+    guard collection.isShared else {
+      return true
     }
 
-    func reportDeletionAppearance() {
-        activityReporter.reportPageShown(.collectionDelete)
-    }
-
-    func reportDeletion() {
-        activityReporter.report(
-            UserEvent.UpdateCollection(
-                action: .delete,
-                collectionId: self.collection.id.rawValue,
-                isShared: self.collection.isShared,
-                itemCount: self.collection.items.count
-            )
-        )
-    }
+    return collection.sharingPermission == .admin
+  }
 }
 
-public extension CollectionQuickActionsMenuViewModel {
-    static func mock(collection: VaultCollection) -> CollectionQuickActionsMenuViewModel {
-        .init(
-            collection: collection,
-            logger: LoggerMock(),
-            activityReporter: FakeActivityReporter(),
-            vaultItemsService: MockVaultKitServicesContainer().vaultItemsService,
-            collectionNamingViewModelFactory: .init { .mock(mode: $0) }
-        )
-    }
+extension CollectionQuickActionsMenuViewModel {
+  func reportAppearance() {
+    activityReporter.reportPageShown(.collectionQuickActionsDropdown)
+  }
+
+  func reportDeletionAppearance() {
+    activityReporter.reportPageShown(.collectionDelete)
+  }
+}
+
+extension CollectionQuickActionsMenuViewModel {
+  public static func mock(collection: VaultCollection) -> CollectionQuickActionsMenuViewModel {
+    .init(
+      collection: collection,
+      logger: LoggerMock(),
+      activityReporter: .mock,
+      vaultCollectionsStore: MockVaultKitServicesContainer().vaultCollectionsStore,
+      userSpacesService: MockVaultKitServicesContainer().userSpacesService,
+      premiumStatusProvider: .mock(),
+      collectionNamingViewModelFactory: .init { .mock(mode: $0) },
+      vaultCollectionEditionServiceFactory: .init { .mock($0) }
+    )
+  }
 }

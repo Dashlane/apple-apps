@@ -1,68 +1,67 @@
 #if canImport(UIKit)
-import Foundation
-import SwiftUI
-import CorePremium
-import StoreKit
-import Combine
-import CoreUserTracking
+  import Foundation
+  import SwiftUI
+  import CorePremium
+  import StoreKit
+  import Combine
+  import CoreUserTracking
+  import DashlaneAPI
 
-struct PlanPurchaseCTA {
-    let duration: PlanDuration
+  struct PlanPurchaseCTA {
+    let duration: PaymentsAccessibleStoreOffersDuration
     let title: String
-    let subtitle: String
-    let renewalPrice: String?
     let isLightColored: Bool
-    let enabled: Bool
-}
+    let enabled: Bool?
+  }
 
-class PlanPurchaseViewModel: ObservableObject {
+  struct PlanPurchaseViewModel {
 
     let planTier: PlanTier
 
     init(planTier: PlanTier) {
-        self.planTier = planTier
+      self.planTier = planTier
     }
 
     var page: Page {
-        switch planTier.kind {
-        case .essentials, .advanced:
-                        return .availablePlansEssentialsDetails
-        case .premium:
-            return .availablePlansPremiumDetails
-        case .family:
-            return .availablePlansFamilyDetails
-        default:
-            return .availablePlans
-        }
+      switch planTier.kind {
+      case .essentials, .advanced:
+        return .availablePlansEssentialsDetails
+      case .premium:
+        return .availablePlansPremiumDetails
+      case .family:
+        return .availablePlansFamilyDetails
+      default:
+        return .availablePlans
+      }
     }
 
     var ctas: [PlanPurchaseCTA] {
-        planTier.plans.map { plan in
-            let isMonthly = plan.offer.duration == .monthly
-            return PlanPurchaseCTA(
-                duration: plan.offer.duration,
-                title: ctaTitle(of: plan),
-                subtitle: ctaSubtitle(of: plan),
-                renewalPrice: ctaRenewalPrice(of: plan),
-                isLightColored: isMonthly,
-                enabled: plan.offer.enabled
-            )
-        }
+      planTier.plans.sorted { planA, _ in
+        return planA.offer.duration == .monthly
+      }.map { plan in
+        let isYearly = plan.offer.duration == .yearly
+        return PlanPurchaseCTA(
+          duration: plan.offer.duration,
+          title: ctaTitle(of: plan),
+          isLightColored: isYearly,
+          enabled: plan.offer.enabled
+        )
+      }
     }
 
     func ctaTitle(of plan: PurchasePlan) -> String {
-        return plan.localizedPrice
-    }
-
-    func ctaSubtitle(of plan: PurchasePlan) -> String {
-        return plan.periodDescription
+      var price = "\(plan.localizedPrice) \(plan.periodDescription)"
+      if let renewalPrice = ctaRenewalPrice(of: plan) {
+        price += ", \(renewalPrice)"
+      }
+      return price
     }
 
     func ctaRenewalPrice(of plan: PurchasePlan) -> String? {
-        guard plan.isDiscountedOffer || plan.isIntroductoryOffer else { return nil }
-        guard !plan.isPeriodIdenticalToIntroductoryOfferPeriod else { return nil }
+      guard plan.isDiscountedOffer || plan.isIntroductoryOffer else { return nil }
+      guard !plan.isPeriodIdenticalToIntroductoryOfferPeriod else { return nil }
 
-        return plan.renewalPriceDescription
+      return plan.renewalPriceDescription
     }
-}
+  }
 #endif

@@ -1,25 +1,24 @@
+import CoreLocalization
 import CorePersonalData
-import DashlaneAppKit
 import SwiftUI
 import VaultKit
-import CoreLocalization
 
 struct NotesSection: View {
+  @StateObject var model: NotesSectionModel
 
-    @ObservedObject
-    var model: NotesSectionModel
+  init(model: @escaping @autoclosure () -> NotesSectionModel) {
+    self._model = .init(wrappedValue: model())
+  }
 
-    var body: some View {
-        Section {
-            NotesDetailField(
-                title: CoreLocalization.L10n.Core.KWAuthentifiantIOS.note,
-                text: $model.item.note,
-                isEditable: model.mode == .updating
-            )
-            .actions([.copy(model.copy)], hasAccessory: false)
-            .limitedRights(item: model.item)
-            .labeled(CoreLocalization.L10n.Core.KWAuthentifiantIOS.note)
-            .fiberFieldType(.note)
-        }
+  var body: some View {
+    Section {
+      NotesDetailField(
+        title: CoreLocalization.L10n.Core.KWAuthentifiantIOS.note,
+        text: $model.item.note
+      )
+      .actions([.copy(model.copy)], hasAccessory: false)
+      .limitedRights(item: model.item)
+      .fiberFieldType(.note)
     }
+  }
 }

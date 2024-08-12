@@ -1,20 +1,20 @@
 #if canImport(UIKit)
-import UIKit
+  import UIKit
 
-public class UppercaseFormatter: FieldFormatter {
+  public class UppercaseFormatter: FieldFormatter {
 
     public override func string(for obj: Any?) -> String? {
-        guard let value = obj as? String else {
-            return nil
-        }
+      guard let value = obj as? String else {
+        return nil
+      }
 
-        return value.uppercased()
+      return value.uppercased()
     }
-}
+  }
 
-extension Formatter {
+  extension Formatter {
     public static var uppercase: UppercaseFormatter {
-        return UppercaseFormatter()
+      return UppercaseFormatter()
     }
-}
+  }
 #endif

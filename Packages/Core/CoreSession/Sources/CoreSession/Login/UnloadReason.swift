@@ -1,8 +1,8 @@
 import Foundation
 
-public enum SessionServicesUnloadReason {
-    case masterPasswordChanged
-    case restoreSpiegelDataBase
-    case userLogsOut
-    case masterPasswordChangedForARK
+public enum SessionServicesUnloadReason: Sendable {
+  case masterPasswordChanged
+  case restoreSpiegelDataBase
+  case userLogsOut
+  case masterPasswordChangedForARK
 }

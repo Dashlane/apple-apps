@@ -1,50 +1,55 @@
-import Foundation
 import CoreSession
+import DashTypes
+import DashlaneAPI
+import Foundation
 
 public enum AlertStep: String, Identifiable {
-    case sendRecoveryKeyBySMS
-    case confirmationSentRecoveryKeyBySMS
+  case sendRecoveryKeyBySMS
+  case confirmationSentRecoveryKeyBySMS
 
-    public var id: String { rawValue }
+  public var id: String { rawValue }
 }
 
 public class LostOTPSheetViewModel: ObservableObject {
 
-    private let recover2faService: Recover2FAWebService
+  @Published
+  public var alertStep: AlertStep?
 
-    @Published
-    public var alertStep: AlertStep?
-
-    #if canImport(UIKit)
+  #if canImport(UIKit)
     @Published
     var textfieldAlertItem: RecoveryTextfieldAlertModifier.Item?
-    #endif
+  #endif
 
-    @Published
-    public var recoverConfirmationError: Recover2FAError? {
-        didSet {
-            if recoverConfirmationError != nil {
-                alertStep = .confirmationSentRecoveryKeyBySMS
-            } else {
-                alertStep = nil
-            }
-        }
+  @Published
+  public var recoverConfirmationError: Error? {
+    didSet {
+      if recoverConfirmationError != nil {
+        alertStep = .confirmationSentRecoveryKeyBySMS
+      } else {
+        alertStep = nil
+      }
     }
+  }
 
-    public init(recover2faService: Recover2FAWebService) {
-        self.recover2faService = recover2faService
-    }
+  private let appAPIClient: AppAPIClient
+  private let login: Login
 
-    #if canImport(UIKit)
+  public init(appAPIClient: AppAPIClient, login: Login) {
+    self.appAPIClient = appAPIClient
+    self.login = login
+  }
+
+  #if canImport(UIKit)
     public func recoverCodes() {
-        recover2faService.recoverCodes { result in
-            switch result {
-            case .success:
-                self.textfieldAlertItem = .smsCode
-            case let .failure(error):
-                self.recoverConfirmationError = error
-            }
+      Task {
+        do {
+          try await appAPIClient.authentication.requestOtpRecoveryCodesByPhone(login: login.email)
+          self.textfieldAlertItem = .smsCode
+        } catch {
+          self.recoverConfirmationError = error
         }
+
+      }
     }
-    #endif
+  #endif
 }

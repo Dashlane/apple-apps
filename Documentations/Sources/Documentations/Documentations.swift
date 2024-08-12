@@ -1,4 +1,4 @@
 private struct Documentation {
-    private init() {
-    }
+  private init() {
+  }
 }

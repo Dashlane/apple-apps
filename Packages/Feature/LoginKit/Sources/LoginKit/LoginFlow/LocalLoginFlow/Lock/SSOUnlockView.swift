@@ -1,33 +1,61 @@
-import Foundation
-import SwiftUI
-import DashTypes
-import CoreLocalization
-import DesignSystem
+#if canImport(UIKit)
+  import Foundation
+  import SwiftUI
+  import DashTypes
+  import CoreLocalization
+  import DesignSystem
+  import UIComponents
 
-public struct SSOUnlockView: View {
+  public struct SSOUnlockView: View {
 
-    let login: Login
-    let completion: @MainActor () -> Void
+    @StateObject
+    var model: SSOUnlockViewModel
 
-    public init(login: Login, completion: @escaping @MainActor () -> Void) {
-        self.login = login
-        self.completion = completion
+    public init(model: @autoclosure @escaping () -> SSOUnlockViewModel) {
+      self._model = .init(wrappedValue: model())
     }
 
     public var body: some View {
-        VStack {
-            LoginLogo(login: login)
-            Spacer()
-                .frame(maxHeight: .infinity)
-            RoundedButton(L10n.Core.unlockWithSSOTitle, action: completion)
-                .roundedButtonLayout(.fill)
-                .padding()
-        }.frame(maxWidth: .infinity, maxHeight: .infinity)
+      ZStack {
+        introView
+        if model.inProgress {
+          ProgressView()
+        } else if let ssoAuthenticationInfo = model.ssoAuthenticationInfo {
+          SSOLocalLoginView(
+            model: model.makeSSOLoginViewModel(ssoAuthenticationInfo: ssoAuthenticationInfo))
+        }
+      }
+      .animation(.default, value: model.inProgress)
+      .onAppear {
+        model.logOnAppear()
+      }
     }
-}
 
-struct SSOUnlockView_Previews: PreviewProvider {
-    static var previews: some View {
-        SSOUnlockView(login: Login("_")) {}
+    var introView: some View {
+      VStack {
+        LoginLogo(login: model.login)
+        Spacer()
+          .frame(maxHeight: .infinity)
+        Button(L10n.Core.unlockWithSSOTitle) {
+          model.unlock()
+        }
+        .buttonStyle(.designSystem(.titleOnly))
+        .padding()
+      }
+      .frame(maxWidth: .infinity, maxHeight: .infinity)
+      .navigationBarBackButtonHidden(true)
+      .toolbar {
+        ToolbarItem(placement: .navigationBarLeading) {
+          NavigationBarButton(
+            action: model.logout,
+            title: L10n.Core.kwLogOut
+          )
+        }
+      }
     }
-}
+  }
+
+  #Preview {
+    SSOUnlockView(model: .mock)
+  }
+#endif

@@ -1,14 +1,16 @@
-import Foundation
 import Combine
 import DashTypes
+import Foundation
 
 public protocol NotificationKitAutofillServiceProtocol {
-    var notificationKitActivationStatus: Published<AutofillActivationStatus>.Publisher { get }
+  var notificationKitActivationStatus: Published<AutofillActivationStatus>.Publisher { get }
 }
 
 public class FakeNotificationKitAutofillService: NotificationKitAutofillServiceProtocol {
-    @Published
-    public var status: AutofillActivationStatus = .unknown
+  @Published
+  public var status: AutofillActivationStatus = .unknown
 
-    public var notificationKitActivationStatus: Published<AutofillActivationStatus>.Publisher { $status }
+  public var notificationKitActivationStatus: Published<AutofillActivationStatus>.Publisher {
+    $status
+  }
 }

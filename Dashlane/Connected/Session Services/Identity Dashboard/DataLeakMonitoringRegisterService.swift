@@ -1,78 +1,95 @@
-import Foundation
-import SecurityDashboard
+import Combine
+import CoreNetworking
 import CorePremium
 import DashTypes
-import CoreNetworking
-import Combine
+import DashlaneAPI
+import Foundation
+import SecurityDashboard
 
-public final class DataLeakMonitoringRegisterService: Mockable {
+public protocol DataLeakMonitoringRegisterServiceProtocol {
+  var monitoredEmailsPublisher: AnyPublisher<Set<DataLeakEmail>, Never> { get }
+  var monitoredEmails: Set<DataLeakEmail> { get set }
+  var webService: SecurityDashboard.DataLeakMonitoringService { get }
+  func updateMonitoredEmails(onCompletion: ((Result<DataLeakStatusResponse, Error>) -> Void)?)
+  func removeFromMonitoredEmails(email: String)
+  func monitorNew(email: String) async throws
+}
 
-    private(set) var hasAlreadyDownloadedDataOnce = false
-    private(set) var canShowDataLeakFeature = false
+public final class DataLeakMonitoringRegisterService: DataLeakMonitoringRegisterServiceProtocol {
 
-    public var monitoredEmailsPublisher: AnyPublisher<Set<DataLeakEmail>, Never> { $monitoredEmails.eraseToAnyPublisher()
-    }
+  private(set) var hasAlreadyDownloadedDataOnce = false
 
-    @Published
-    public var monitoredEmails: Set<DataLeakEmail> = []  
+  public var monitoredEmailsPublisher: AnyPublisher<Set<DataLeakEmail>, Never> {
+    $monitoredEmails.eraseToAnyPublisher()
+  }
 
-    public let webService: SecurityDashboard.DataLeakMonitoringService
-    private let logger: Logger
-    private var cancellables = Set<AnyCancellable>()
+  @Published
+  public var monitoredEmails: Set<DataLeakEmail> = []
 
-    init(webservice: LegacyWebService, notificationService: SessionNotificationService, logger: Logger) {
-        webService = SecurityDashboard.DataLeakMonitoringService(webservice: webservice)
-        self.logger = logger
-        Task {
-            await notificationService.userNotificationPublisher(for: .code(.supportNotification)).onlyResponse().sink { [weak self] _, completion in
-                guard let self = self else {
-                    completion()
-                    return
-                }
-                self.updateMonitoredEmails { _ in
-                    completion()
-                }
-            }.store(in: &cancellables)
-            await notificationService.remoteNotificationPublisher(for: .code(.supportNotification)).sink { [weak self] notification in
-                guard let self = self else {
-                    notification.completionHandler(.failed)
-                    return
-                }
-                self.updateMonitoredEmails { _ in
-                    notification.completionHandler(.newData)
-                }
-            }.store(in: &cancellables)
+  public let webService: SecurityDashboard.DataLeakMonitoringService
+  private let logger: Logger
+  private var cancellables = Set<AnyCancellable>()
+
+  init(
+    userDeviceAPIClient: UserDeviceAPIClient, notificationService: SessionNotificationService,
+    logger: Logger
+  ) {
+    webService = userDeviceAPIClient.darkwebmonitoring
+    self.logger = logger
+    Task {
+      notificationService.userNotificationPublisher(for: .code(.supportNotification)).onlyResponse()
+        .sink { [weak self] _, completion in
+          guard let self = self else {
+            completion()
+            return
+          }
+          self.updateMonitoredEmails { _ in
+            completion()
+          }
+        }.store(in: &cancellables)
+      notificationService.remoteNotificationPublisher(for: .code(.supportNotification)).sink {
+        [weak self] notification in
+        guard let self = self else {
+          notification.completionHandler(.failed)
+          return
         }
-    }
-
-    public func updateMonitoredEmails(onCompletion: ((Result<DataLeakMonitoringStatusResponse, Error>) -> Void)?) {
-        Task {
-            do {
-                let response = try await self.webService.status()
-                await MainActor.run {
-                    self.canShowDataLeakFeature = true
-                    self.monitoredEmails = response.emails
-                    onCompletion?(.success(response))
-                }
-            } catch {
-                self.logger.error("update MonitoredEmails did fail", error: error)
-                await MainActor.run {
-                    self.monitoredEmails = []
-                    onCompletion?(.failure(error))
-                }
-            }
+        self.updateMonitoredEmails { _ in
+          notification.completionHandler(.newData)
         }
+      }.store(in: &cancellables)
     }
+  }
 
-    public func removeFromMonitoredEmails(emails: [String]) {
-        self.monitoredEmails = self.monitoredEmails.filter({ !emails.contains($0.email) })
-        Task {
-            _ = try? await self.webService.unregister(emails: emails)
+  public func updateMonitoredEmails(
+    onCompletion: ((Result<DataLeakStatusResponse, Error>) -> Void)?
+  ) {
+    Task {
+      do {
+        let response = try await self.webService.listRegistrations()
+        await MainActor.run {
+          self.monitoredEmails = Set(response.emails)
+          onCompletion?(.success(response))
         }
+      } catch {
+        self.logger.error("update MonitoredEmails did fail", error: error)
+        await MainActor.run {
+          self.monitoredEmails = []
+          onCompletion?(.failure(error))
+        }
+      }
     }
+  }
 
-    public func monitorNew(email: String) {
-        let dataLeak = DataLeakEmail(email)
-        self.monitoredEmails.insert(dataLeak)
+  public func removeFromMonitoredEmails(email: String) {
+    self.monitoredEmails = self.monitoredEmails.filter { $0.email != email }
+    Task {
+      _ = try? await self.webService.deregisterEmail(email: email)
     }
+  }
+
+  public func monitorNew(email: String) async throws {
+    let dataLeak = DarkwebmonitoringListEmails(pendingEmail: email)
+    self.monitoredEmails.insert(dataLeak)
+    _ = try? await webService.registerEmail(email: email)
+  }
 }

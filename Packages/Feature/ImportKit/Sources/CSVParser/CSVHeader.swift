@@ -1,4 +1,4 @@
 public protocol CSVHeader {
-    var rawValue: String { get }
-    var isOptional: Bool { get }
+  var rawValue: String { get }
+  var isOptional: Bool { get }
 }

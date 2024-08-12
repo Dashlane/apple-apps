@@ -2,8 +2,8 @@ import Foundation
 
 extension Definition {
 
-public enum `DomainType`: String, Encodable {
-case `app`
-case `web`
-}
+  public enum `DomainType`: String, Encodable, Sendable {
+    case `app`
+    case `web`
+  }
 }

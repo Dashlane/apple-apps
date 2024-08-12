@@ -1,37 +1,32 @@
 import Foundation
-import CoreSession
 
 public protocol FeatureFlipServiceStorage {
-    func hasStoredData() -> Bool
-    func store(_ data: Data) throws
-    func retrieve() throws -> Data
+  func hasStoredData() -> Bool
+  func store(_ data: Data) throws
+  func retrieve() throws -> Data
 }
 
-final public class FeatureStorage: FeatureFlipServiceStorage {
+public class FeatureFlipServiceStorageMock: FeatureFlipServiceStorage {
+  var data: Data?
 
-    enum FeatureStoreKey: String, StoreKey {
-        case flips
+  public func hasStoredData() -> Bool {
+    data != nil
+  }
+
+  public func store(_ data: Data) throws {
+    self.data = data
+  }
+
+  public func retrieve() throws -> Data {
+    guard let data else {
+      throw URLError(.cannotOpenFile)
     }
+    return data
+  }
+}
 
-    private let session: Session
-
-    private lazy var secureStore: KeyedSecureStore<FeatureStoreKey> = {
-        return session.secureStore(for: FeatureStoreKey.self)
-    }()
-
-    init(session: Session) {
-        self.session = session
-    }
-
-    public func hasStoredData() -> Bool {
-       secureStore.exists(for: .flips)
-    }
-
-    public func store(_ data: Data) throws {
-        try secureStore.store(data, for: .flips)
-    }
-
-    public func retrieve() throws -> Data {
-        return try secureStore.retrieveData(for: .flips)
-    }
+extension FeatureFlipServiceStorage where Self == FeatureFlipServiceStorageMock {
+  public static func mock() -> FeatureFlipServiceStorageMock {
+    FeatureFlipServiceStorageMock()
+  }
 }

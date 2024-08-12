@@ -1,18 +1,18 @@
 import SwiftUI
 
-public extension View {
-        func backgroundColorIgnoringSafeArea(_ color: Color) -> some View {
-        self.modifier(FullBackgroundColorModifier(color: color))
-    }
+extension View {
+  public func backgroundColorIgnoringSafeArea(_ color: Color) -> some View {
+    self.modifier(FullBackgroundColorModifier(color: color))
+  }
 }
 
 private struct FullBackgroundColorModifier: ViewModifier {
-    var color: Color
+  var color: Color
 
-    func body(content: Content) -> some View {
-        ZStack {
-            color.edgesIgnoringSafeArea(.all)
-            content
-        }
+  func body(content: Content) -> some View {
+    ZStack {
+      color.edgesIgnoringSafeArea(.all)
+      content
     }
+  }
 }
