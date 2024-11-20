@@ -9,7 +9,7 @@ import SwiftTreats
 import UIKit
 import VaultKit
 
-protocol DeepLinkingServiceProtocol {
+protocol DeepLinkingServiceProtocol: VaultKit.DeepLinkingServiceProtocol {
   var deepLinkPublisher: AnyPublisher<DeepLink, Never> { get }
 
   func handleLink(_ link: DeepLink)

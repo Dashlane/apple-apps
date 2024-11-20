@@ -36,7 +36,7 @@
 
     func makeUIView(context: Context) -> UIView {
       let picker = makePicker(from: context.coordinator)
-      picker.backgroundColor = UIColor.systemBackground
+      picker.backgroundColor = .ds.background.alternate
       if let date = date {
         picker.setDate(date)
       }

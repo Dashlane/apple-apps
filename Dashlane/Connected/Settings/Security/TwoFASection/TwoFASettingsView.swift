@@ -29,13 +29,19 @@ struct TwoFASettingsView: View {
   @StateObject
   var model: TwoFASettingsViewModel
 
-  @State
-  var appStoreViewer: AppStoreProductViewer?
-
   @Environment(\.dismiss)
   private var dismiss
 
   var body: some View {
+    if model.currentOTP != nil {
+      Section(footer: Text(model.twoFASettingsMessage).textStyle(.body.helper.regular)) {
+        mainView
+      }
+      .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
+    }
+  }
+
+  var mainView: some View {
     VStack {
       switch model.status {
       case .loaded:
@@ -69,7 +75,6 @@ struct TwoFASettingsView: View {
         Task {
           await model.updateState()
         }
-        openAppStoreViewIfPossible()
       },
       content: { item in
         switch item {
@@ -131,13 +136,6 @@ struct TwoFASettingsView: View {
             })
         }
       })
-    }
-  }
-
-  func openAppStoreViewIfPossible() {
-    DispatchQueue.main.async {
-      appStoreViewer?.openAppStorePage(dismissed: {})
-      appStoreViewer = nil
     }
   }
 }

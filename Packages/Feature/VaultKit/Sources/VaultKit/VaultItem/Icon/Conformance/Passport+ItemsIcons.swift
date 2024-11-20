@@ -5,11 +5,11 @@ import SwiftUI
 
 extension Passport {
   public var listIcon: VaultItemIcon {
-    .static(.ds.item.passport.outlined, backgroundColor: color)
+    .passport
   }
 
   public var icon: VaultItemIcon {
-    .static(.ds.item.passport.outlined, backgroundColor: color)
+    .passport
   }
 
   public static var addIcon: SwiftUI.Image {

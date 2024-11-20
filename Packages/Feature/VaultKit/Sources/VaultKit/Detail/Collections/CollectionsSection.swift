@@ -51,7 +51,9 @@ extension CollectionsSection {
       collectionRow(collection)
     }
 
-    addCollection
+    if !model.service.isFrozen {
+      addCollection
+    }
   }
 
   fileprivate func collectionRow(_ collection: VaultCollection) -> some View {

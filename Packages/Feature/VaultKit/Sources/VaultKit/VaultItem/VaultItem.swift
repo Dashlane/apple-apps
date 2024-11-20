@@ -17,7 +17,6 @@ public protocol VaultItem: CorePersonalData.Displayable,
   static var addIcon: SwiftUI.Image { get }
   static var addTitle: String { get }
   static var nativeMenuAddTitle: String { get }
-  static var requireSecureAccess: Bool { get }
 
   var enumerated: VaultItemEnumeration { get }
 
@@ -70,10 +69,6 @@ extension VaultItem {
     return Self.addTitle
   }
 
-  public static var requireSecureAccess: Bool {
-    return false
-  }
-
   public var limitedRightsAlertTitle: String {
     switch vaultItemType {
     case .credential:
@@ -117,10 +112,23 @@ public enum VaultItemEnumeration {
 }
 
 public enum VaultItemIcon: Equatable {
-  case credential(Credential)
-  case passkey(Passkey)
-  case `static`(_ asset: SwiftUI.Image, backgroundColor: SwiftUI.Color? = nil)
+  case address
+  case bankAccount
+  case company
   case creditCard(CreditCard)
+  case credential(Credential)
+  case drivingLicense
+  case email
+  case idCard
+  case identity
+  case passkey(Passkey)
+  case passport
+  case personalWebsite
+  case phoneNumber
+  case secret
+  case secureNote(Color)
+  case socialSecurityCard
+  case `static`(_ asset: SwiftUI.Image, backgroundColor: SwiftUI.Color? = nil)
 }
 
 extension VaultItem where Self: Searchable {

@@ -10,7 +10,7 @@ class DomainsSectionModel: DetailViewModelProtocol, SessionServicesInjecting,
 {
 
   var canAddDomain: Bool {
-    !hasLimitedRights
+    !hasLimitedRights && !service.isFrozen
   }
 
   var addedDomains: [LinkedServices.AssociatedDomain] {

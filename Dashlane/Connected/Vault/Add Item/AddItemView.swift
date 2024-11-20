@@ -10,12 +10,6 @@ struct AddItemView: View {
   @Environment(\.dismiss)
   private var dismiss
 
-  @Environment(\.isPresented)
-  private var isPresented
-
-  @Environment(\.navigator)
-  var navigator
-
   let items: [ItemCategory.Item]
 
   let title: String
@@ -34,13 +28,7 @@ struct AddItemView: View {
 
   @ViewBuilder
   var backButton: some View {
-    if isPresented {
-      BackButton(action: dismiss.callAsFunction)
-    } else {
-      NavigationBarButton(CoreLocalization.L10n.Core.cancel) {
-        self.navigator()?.dismiss()
-      }
-    }
+    BackButton(action: dismiss.callAsFunction)
   }
 
   var body: some View {

@@ -15,7 +15,7 @@ class GuidedOnboardingTransitionHandler {
   }
 
   init(
-    navigationController: DashlaneNavigationController,
+    navigationController: DashlaneNavigationController?,
     interactionController: UIPercentDrivenInteractiveTransition?,
     completion: (() -> Void)? = nil
   ) {

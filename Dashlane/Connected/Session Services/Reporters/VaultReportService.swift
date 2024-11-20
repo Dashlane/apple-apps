@@ -46,13 +46,14 @@ struct VaultReportService {
   func report() {
     identityDashboardService.notificationManager
       .publisher(for: .securityDashboardDidRefresh)
+      .debounce(for: .seconds(1), scheduler: DispatchQueue.main)
       .sinkOnce { _ in
         self.uploadReport()
       }
   }
 
   private func uploadReport() {
-    Task(priority: .utility) {
+    Task.detached(priority: .background) {
       await reportVaultState(within: .personal)
 
       await reportVaultState(within: .global)

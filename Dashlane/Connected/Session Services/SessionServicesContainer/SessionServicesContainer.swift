@@ -26,7 +26,6 @@ import VaultKit
 import ZXCVBN
 
 struct SessionServicesContainer: DependenciesContainer {
-
   let loadingContext: SessionLoadingContext
   let session: Session
   let appServices: AppServicesContainer
@@ -49,7 +48,7 @@ struct SessionServicesContainer: DependenciesContainer {
   let vaultServicesSuit: VaultServicesSuit
   let autofillService: AutofillService
   let lockService: LockService
-  let accessControl: AccessControl
+  let accessControlService: AccessControlService
   let documentStorageService: DocumentStorageService
   let identityDashboardService: IdentityDashboardService
   let todayExtensionCommunicator: AppTodayExtensionCommunicator
@@ -58,13 +57,13 @@ struct SessionServicesContainer: DependenciesContainer {
   let vpnService: VPNService
   let authenticatedABTestingService: AuthenticatedABTestingService
   let featureService: FeatureService
+  let vaultStateService: VaultStateService
   let sharingService: SharingService
   let onboardingService: OnboardingService
   let dwmOnboardingService: DWMOnboardingService
   let darkWebMonitoringService: DarkWebMonitoringService
-  let authenticatorAppCommunicator: AuthenticatorAppCommunicationService
   let toolsService: ToolsService
-  let activityReporter: SessionReporterService
+  let sessionReporterService: SessionReporterService
   let otpDatabaseService: OTPDatabaseService
   let activityLogsService: ActivityLogsServiceProtocol
   let pasteboardService: PasteboardServiceProtocol
@@ -79,7 +78,7 @@ struct SessionServicesContainer: DependenciesContainer {
     session: Session,
     loadingContext: SessionLoadingContext
   ) async throws {
-    appServices.crashReporter.associate(to: session.login)
+    await appServices.crashReporter.associate(to: session.login)
     appServices.remoteLogger.configureReportedDeviceId(
       session.configuration.keys.serverAuthentication.deviceId)
     self.loadingContext = loadingContext
@@ -91,11 +90,13 @@ struct SessionServicesContainer: DependenciesContainer {
     self.userDeviceAPIClient = appServices.appAPIClient.makeUserClient(
       sessionConfiguration: session.configuration)
 
-    self.iconService = IconService(
+    self.iconService = await IconService(
       session: session,
-      appAPIClient: appServices.appAPIClient,
+      userDeviceAPIClient: appServices.appAPIClient.makeUserClient(
+        sessionConfiguration: session.configuration),
       logger: logger[.iconLibrary],
-      target: .current)
+      target: .current
+    )
 
     let activityReporter = UserTrackingSessionActivityReporter(
       appReporter: appServices.activityReporter,
@@ -230,6 +231,11 @@ struct SessionServicesContainer: DependenciesContainer {
       activityReporter: activityReporter
     )
 
+    self.vaultStateService = VaultStateService(
+      vaultItemsLimitService: vaultServicesSuit.vaultItemsLimitService,
+      premiumStatusProvider: premiumStatusServicesSuit.statusProvider,
+      featureService: featureService)
+
     self.lockService = LockService(
       session: session,
       appSettings: appServices.globalSettings,
@@ -241,10 +247,10 @@ struct SessionServicesContainer: DependenciesContainer {
       sessionLifeCycleHandler: appServices.sessionLifeCycleHandler,
       logger: logger[.session])
 
-    self.accessControl = AccessControl(
+    self.accessControlService = AccessControlService(
       session: session,
-      secureLockProvider: lockService.secureLockProvider,
-      activityReporter: activityReporter)
+      secureLockModeProvider: lockService.secureLockProvider)
+
     self.pasteboardService = PasteboardService(userSettings: spiegelUserSettings)
 
     self.documentStorageService = DocumentStorageService(
@@ -280,6 +286,7 @@ struct SessionServicesContainer: DependenciesContainer {
     self.autofillService = AutofillService(
       vaultItemsStore: vaultServicesSuit.vaultItemsStore,
       cryptoEngine: session.localCryptoEngine,
+      vaultStateService: vaultStateService,
       logger: logger[.autofill],
       snapshotFolderURL: try session.directory.storeURL(for: .galactica, in: .current)
     )
@@ -340,18 +347,6 @@ struct SessionServicesContainer: DependenciesContainer {
       autofillService: autofillService,
       session: session)
 
-    self.authenticatorAppCommunicator = AuthenticatorAppCommunicationService(
-      session: session,
-      keychainService: appServices.keychainService,
-      vaultItemsStore: vaultServicesSuit.vaultItemsStore,
-      vaultItemDatabase: vaultServicesSuit.vaultItemDatabase,
-      userAPIClient: userDeviceAPIClient,
-      lockSettings: spiegelLocalSettingsStore,
-      userSpacesService: premiumStatusServicesSuit.userSpacesService,
-      logger: logger[.localCommunication],
-      loadingContext: loadingContext
-    )
-
     self.vpnService = VPNService(
       capabilityService: premiumStatusServicesSuit.capabilityService,
       userDeviceAPIClient: userDeviceAPIClient,
@@ -359,10 +354,28 @@ struct SessionServicesContainer: DependenciesContainer {
       userSpacesService: premiumStatusServicesSuit.userSpacesService
     )
 
-    self.activityReporter = SessionReporterService(
+    let vaultReportService = VaultReportService(
+      identityDashboardService: identityDashboardService,
+      userSettings: spiegelUserSettings,
+      vaultItemsStore: vaultServicesSuit.vaultItemsStore,
+      vaultCollectionsStore: vaultServicesSuit.vaultCollectionsStore,
+      apiClient: userDeviceAPIClient.useractivity,
+      userSpacesService: premiumStatusServicesSuit.userSpacesService,
+      activityReporter: activityReporter)
+    let reportService = ReportUserSettingsService(
+      userSettings: spiegelUserSettings,
+      resetMPService: resetMasterPasswordService,
+      lock: lockService,
+      autofillService: autofillService,
+      activityReporter: activityReporter)
+    self.sessionReporterService = SessionReporterService(
       activityReporter: activityReporter,
+      deviceInformation: deviceInformationReporting,
       loginMetricsReporter: appServices.loginMetricsReporter,
-      deviceInformation: deviceInformationReporting)
+      syncService: syncService,
+      settings: spiegelLocalSettingsStore,
+      vaultReportService: vaultReportService,
+      reportUserSettingsService: reportService)
 
     self.otpDatabaseService = OTPDatabaseService(
       vaultItemsStore: vaultServicesSuit.vaultItemsStore,
@@ -389,7 +402,8 @@ struct SessionServicesContainer: DependenciesContainer {
     appServices.rootLogger[.session].info("Session Services loaded")
   }
   func postLoad() async {
-    activityReporter.postLoadConfigure(using: self, loadingContext: loadingContext)
+    sessionReporterService.postLoadReport(for: loadingContext)
+    sessionReporterService.configureReportOnSync()
     configureBraze()
     authenticatedABTestingService.reportClientControlledTests()
     appServices.crashReporter.enableSentry(featureService.isEnabled(.sentryIsEnabled))
@@ -397,7 +411,8 @@ struct SessionServicesContainer: DependenciesContainer {
       if loadingContext.isAccountRecoveryLogin
         && session.configuration.info.accountType != .masterPassword
       {
-        activityReporter.report(UserEvent.UseAccountRecoveryKey(flowStep: .complete))
+        sessionReporterService.activityReporter.report(
+          UserEvent.UseAccountRecoveryKey(flowStep: .complete))
         do {
           try await accountRecoveryKeyService.deactivateAccountRecoveryKey(for: .keyUsed)
         } catch {
@@ -427,6 +442,10 @@ typealias ViewModelFactory = SessionServicesContainer
 extension SessionServicesContainer {
   var viewModelFactory: ViewModelFactory {
     return self
+  }
+
+  var activityReporter: ActivityReporterProtocol {
+    return sessionReporterService.activityReporter
   }
 }
 

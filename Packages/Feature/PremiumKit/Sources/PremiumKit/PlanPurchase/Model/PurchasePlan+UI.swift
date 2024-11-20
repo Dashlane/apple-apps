@@ -47,10 +47,10 @@ extension PurchasePlan {
 
 extension PlanTier {
   var localizedTitle: String {
-    kind.localizedTitle
+    kind?.localizedTitle ?? ""
   }
 
   var localizedDescription: String {
-    kind.localizedDescription
+    kind?.localizedDescription ?? ""
   }
 }

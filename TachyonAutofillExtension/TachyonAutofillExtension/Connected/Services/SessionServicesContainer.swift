@@ -21,7 +21,7 @@ import SwiftTreats
 import UIKit
 import VaultKit
 
-class SessionServicesContainer: DependenciesContainer {
+final class SessionServicesContainer: DependenciesContainer {
 
   let session: Session
   let database: ApplicationDatabase
@@ -34,6 +34,7 @@ class SessionServicesContainer: DependenciesContainer {
   let appServices: AppServicesContainer
   let autofillService: AutofillService
   let featureService: FeatureService
+  let vaultStateService: VaultStateService
   let authenticatedABTestingService: AuthenticatedABTestingService
   let activityReporter: ActivityReporterProtocol
   let premiumStatusServicesSuit: PremiumStatusServicesSuit
@@ -49,8 +50,8 @@ class SessionServicesContainer: DependenciesContainer {
     syncService: SyncService,
     featureService: FeatureService,
     authenticatedABTestingService: AuthenticatedABTestingService
-  ) throws {
-    AppServicesContainer.crashReporterService.associate(to: session.login)
+  ) async throws {
+    await AppServicesContainer.crashReporterService.associate(to: session.login)
     appServices.remoteLogger.configureReportedDeviceId(
       session.configuration.keys.serverAuthentication.deviceId)
     self.session = session
@@ -60,7 +61,8 @@ class SessionServicesContainer: DependenciesContainer {
     self.appServices = appServices
     self.syncedSettings = try SyncedSettingsService(
       logger: appServices.rootLogger[.personalData],
-      database: database)
+      database: database
+    )
 
     self.authenticatedABTestingService = authenticatedABTestingService
     appServices.settingsManager.cryptoEngine = session.localCryptoEngine
@@ -70,12 +72,14 @@ class SessionServicesContainer: DependenciesContainer {
     self.userSettings = settings.keyed(by: UserSettingsKey.self)
 
     let cacheDirectory = try session.directory.storeURL(for: .icons, in: .current)
-    domainIconLibrary = DomainIconLibrary(
+    domainIconLibrary = await DomainIconLibrary(
       cacheDirectory: cacheDirectory,
       inMemoryCacheSize: 100,
       cryptoEngine: session.localCryptoEngine,
-      appAPIClient: appServices.appAPIClient,
-      logger: appServices.rootLogger.sublogger(for: AppLoggerIdentifier.iconLibrary))
+      userDeviceAPIClient: appServices.appAPIClient.makeUserClient(
+        sessionConfiguration: session.configuration),
+      logger: appServices.rootLogger.sublogger(for: AppLoggerIdentifier.iconLibrary)
+    )
     premiumStatusServicesSuit = try PremiumStatusServicesSuit(
       cache: SessionPremiumStatusCache(session: session))
 
@@ -83,17 +87,25 @@ class SessionServicesContainer: DependenciesContainer {
       .filter(by: premiumStatusServicesSuit.userSpacesService.$configuration)
     let passkeysPublisher = database.itemsPublisher(for: Passkey.self)
       .filter(by: premiumStatusServicesSuit.userSpacesService.$configuration)
+
+    vaultItemsLimitService = VaultItemsLimitService(
+      capabilityService: premiumStatusServicesSuit.capabilityService,
+      credentialsPublisher: credentialsPublisher)
+
+    vaultStateService = VaultStateService(
+      vaultItemsLimitService: vaultItemsLimitService,
+      premiumStatusProvider: premiumStatusServicesSuit.statusProvider,
+      featureService: featureService)
+
     autofillService = AutofillService(
       channel: .fromTachyon,
       credentialsPublisher: credentialsPublisher,
       passkeysPublisher: passkeysPublisher,
       cryptoEngine: session.localCryptoEngine,
+      vaultStateService: vaultStateService,
       logger: appServices.rootLogger[.autofill],
       snapshotFolderURL: try session.directory.storeURL(for: .galactica, in: .current))
 
-    vaultItemsLimitService = VaultItemsLimitService(
-      capabilityService: premiumStatusServicesSuit.capabilityService,
-      credentialsPublisher: credentialsPublisher)
     self.userDeviceAPIClient = appServices.appAPIClient.makeUserClient(
       sessionConfiguration: session.configuration)
     self.activityLogsService = ActivityLogsService(
@@ -121,8 +133,10 @@ class SessionServicesContainer: DependenciesContainer {
       useCacheOnly: true)
 
     let activityReporter = UserTrackingSessionActivityReporter(
-      appReporter: appServices.activityReporter, login: session.login,
-      analyticsIdentifiers: session.configuration.keys.analyticsIds)
+      appReporter: appServices.activityReporter,
+      login: session.login,
+      analyticsIdentifiers: session.configuration.keys.analyticsIds
+    )
 
     let databaseDriver = try SQLiteDriver(session: session, target: .current)
 
@@ -176,7 +190,7 @@ class SessionServicesContainer: DependenciesContainer {
   }
 }
 
-private class TachyonSharingHandler: SharingSyncHandler {
+private final class TachyonSharingHandler: SharingSyncHandler {
   var manualSyncHandler: () -> Void = {}
   func sync(using sharingInfo: CoreSync.SharingSummaryInfo?) async {}
 }

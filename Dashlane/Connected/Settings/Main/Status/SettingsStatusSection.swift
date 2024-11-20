@@ -1,9 +1,12 @@
 import CorePremium
+import DashTypes
 import SwiftUI
 
 struct SettingsStatusSection: View {
   @StateObject
   var model: SettingsStatusSectionViewModel
+
+  @Environment(\.openURL) private var openURL
 
   init(model: @autoclosure @escaping () -> SettingsStatusSectionViewModel) {
     _model = .init(wrappedValue: model())
@@ -15,9 +18,10 @@ struct SettingsStatusSection: View {
     {
       B2BTeamSettingsSection(team: team)
     } else {
-      ActivePlanSettingsSection(status: model.status.b2cStatus) {
-        model.showPurchase()
-      }
+      ActivePlanSettingsSection(
+        status: model.status.b2cStatus, vaultState: model.vaultState,
+        showPurchase: model.showPurchase,
+        learnMore: { openURL(DashlaneURLFactory.learonMoreAboutFrozenAccounts) })
     }
   }
 

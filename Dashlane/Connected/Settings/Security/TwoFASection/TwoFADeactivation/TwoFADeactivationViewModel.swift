@@ -50,8 +50,6 @@ class TwoFADeactivationViewModel: ObservableObject, SessionServicesInjecting {
   @Published
   var isTokenError = false
 
-  let authenticatorCommunicator: AuthenticatorServiceProtocol
-
   var login: Login {
     return session.login
   }
@@ -77,7 +75,6 @@ class TwoFADeactivationViewModel: ObservableObject, SessionServicesInjecting {
     appAPIClient: AppAPIClient,
     userAPIClient: UserDeviceAPIClient,
     logger: Logger,
-    authenticatorCommunicator: AuthenticatorServiceProtocol,
     syncService: SyncServiceProtocol,
     keychainService: AuthenticationKeychainServiceProtocol,
     sessionCryptoUpdater: SessionCryptoUpdater,
@@ -92,7 +89,6 @@ class TwoFADeactivationViewModel: ObservableObject, SessionServicesInjecting {
     self.appAPIClient = appAPIClient
     self.userAPIClient = userAPIClient
     self.option = session.configuration.info.loginOTPOption != nil ? .otp2 : .otp1
-    self.authenticatorCommunicator = authenticatorCommunicator
     self.syncService = syncService
     self.keychainService = keychainService
     self.sessionCryptoUpdater = sessionCryptoUpdater
@@ -107,7 +103,7 @@ class TwoFADeactivationViewModel: ObservableObject, SessionServicesInjecting {
       login: session.login)
   }
 
-  func disable(_ code: String) async {
+  func disable(_ code: String, isBackupCode: Bool = false) async {
     state = .inProgress
     do {
       switch option {
@@ -116,7 +112,8 @@ class TwoFADeactivationViewModel: ObservableObject, SessionServicesInjecting {
       case .otp2:
         try await disableOtp2(code)
       }
-    } catch let error as DashlaneAPI.APIError where error.hasAuthenticationCode(.verificationFailed)
+    } catch let error as DashlaneAPI.APIError
+      where error.hasAuthenticationCode(.verificationFailed) && !isBackupCode
     {
       await MainActor.run {
         state = .otpInput
@@ -132,7 +129,6 @@ class TwoFADeactivationViewModel: ObservableObject, SessionServicesInjecting {
   func disableOtp1(_ code: String) async throws {
     let authTicket = try await validateOTP(code)
     try await self.userAPIClient.authentication.deactivateTOTP(authTicket: authTicket)
-    deleteCodeFromAuthenticatorApp()
     await MainActor.run {
       progressState = .completed(
         L10n.Localizable.twofaDeactivationFinalMessage,
@@ -148,7 +144,7 @@ class TwoFADeactivationViewModel: ObservableObject, SessionServicesInjecting {
   }
 
   func useBackupCode(_ code: String) async {
-    await disable(code)
+    await disable(code, isBackupCode: true)
   }
 }
 
@@ -158,20 +154,6 @@ extension TwoFADeactivationViewModel {
     let verificationResponse = try await appAPIClient.authentication.performTotpVerification
       .callAsFunction(login: session.login.email, otp: code)
     return verificationResponse.authTicket
-  }
-
-  @MainActor
-  func deleteCodeFromAuthenticatorApp() {
-    guard
-      let otpInfo =
-        (authenticatorCommunicator.codes.filter {
-          $0.configuration.login == session.login.email && $0.isDashlaneOTP
-        }.last)
-    else {
-      return
-    }
-    self.authenticatorCommunicator.deleteOTP(otpInfo)
-    self.authenticatorCommunicator.sendMessage(.refresh)
   }
 
   func startOTP2Deactivation(withAuthTicket authTicket: String) {
@@ -230,17 +212,7 @@ extension TwoFADeactivationViewModel {
   func didFinish(with result: Result<Session, AccountCryptoChangerError>) {
     switch result {
     case .success(let session):
-      guard
-        let item =
-          (self.authenticatorCommunicator.codes.filter {
-            $0.configuration.login == session.login.email && $0.isDashlaneOTP
-          }.last)
-      else {
-        return
-      }
       try? self.keychainService.removeServerKey(for: session.login)
-      self.authenticatorCommunicator.deleteOTP(item)
-      self.authenticatorCommunicator.sendMessage(.refresh)
       self.logger.info("Otp2 deactivation is sucessful")
       progressState = .completed(
         L10n.Localizable.twofaDeactivationFinalMessage,
@@ -264,7 +236,6 @@ extension TwoFADeactivationViewModel {
       appAPIClient: .fake,
       userAPIClient: .fake,
       logger: LoggerMock(),
-      authenticatorCommunicator: AuthenticatorAppCommunicatorMock(),
       syncService: services.syncService,
       keychainService: .fake,
       sessionCryptoUpdater: .mock,

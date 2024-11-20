@@ -14,11 +14,6 @@ extension ToolsFlowViewModel {
       item = toolsItem
     case .root:
       return true
-    case .unresolvedAlert:
-      assertionFailure(
-        "Unresolved alerts should never be the first step for any tool flow, whether it's on iPhone or iPad."
-      )
-      return false
     }
 
     guard let expectedItem = deeplink.expectedItem else {
@@ -46,9 +41,8 @@ extension ToolsFlowViewModel {
       self.didSelect(item: .identityDashboard)
     case .darkWebMonitoring:
       self.didSelect(item: .darkWebMonitoring)
-    case let .unresolvedAlert(alert):
-      self.steps.append(.unresolvedAlert(.init(alert)))
-    case .authenticator:
+
+    case let .authenticator(url):
       self.didSelect(item: .authenticator)
     }
   }
@@ -72,9 +66,7 @@ extension ToolDeepLinkComponent {
       return .identityDashboard
     case .darkWebMonitoring:
       return .darkWebMonitoring
-    case .unresolvedAlert:
-      return nil
-    case .authenticator:
+    case let .authenticator(url):
       return .authenticator
     }
   }

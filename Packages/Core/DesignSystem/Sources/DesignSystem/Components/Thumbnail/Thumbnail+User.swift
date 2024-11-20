@@ -11,8 +11,16 @@ extension Thumbnail {
         switch self {
         case .single(let image):
           UserThumbnailContentView(image: image)
+            .background {
+              Rectangle()
+                .foregroundStyle(Color.ds.container.agnostic.neutral.standard)
+            }
         case .group:
           IconThumbnailContentView(Image.ds.group.outlined)
+            .background {
+              Rectangle()
+                .foregroundStyle(Color.ds.container.agnostic.neutral.standard)
+            }
         }
       }
     }

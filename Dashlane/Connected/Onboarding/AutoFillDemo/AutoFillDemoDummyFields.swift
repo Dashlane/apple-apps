@@ -36,7 +36,7 @@ struct AutoFillDemoDummyFields: View {
 
   var body: some View {
     ZStack {
-      Color(UIColor.systemBackground).edgesIgnoringSafeArea(.all)
+      Color(.ds.background.alternate).edgesIgnoringSafeArea(.all)
 
       VStack {
         if shouldShowCelebrationAnimation {

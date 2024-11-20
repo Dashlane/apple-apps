@@ -47,10 +47,13 @@ struct CredentialDomainsView: View {
   var body: some View {
     List {
       mainWebsite
+        .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
       services
+        .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
       associatedWebsites
+        .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
     }
-    .detailListStyle()
+    .listAppearance(.insetGrouped)
     .alert(using: $duplicatedCredential, content: { alertView(duplicatedCredential: $0) })
     .navigationBarTitle(
       CoreLocalization.L10n.Core.KWAuthentifiantIOS.Domains.title, displayMode: .inline
@@ -299,6 +302,7 @@ struct CredentialDomainsView_Previews: PreviewProvider {
       item: CredentialDomainsView_Previews.credential,
       isAdditionMode: false,
       initialMode: mode,
+      isFrozen: false,
       vaultItemsStore: MockVaultKitServicesContainer().vaultItemsStore,
       activityReporter: .mock,
       updatePublisher: PassthroughSubject<

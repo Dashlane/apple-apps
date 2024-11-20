@@ -44,7 +44,8 @@ public final class NotificationCenterService: NotificationCenterServicePublisher
     userSpacesService: UserSpacesService,
     abtestService: AuthenticatedABTestingService,
     keychainService: AuthenticationKeychainServiceProtocol,
-    featureService: FeatureServiceProtocol
+    featureService: FeatureServiceProtocol,
+    vaultStateService: VaultStateServiceProtocol
   ) {
 
     self.notificationProviders = [
@@ -79,6 +80,9 @@ public final class NotificationCenterService: NotificationCenterServicePublisher
         settingsStore: settings),
       SecurityAlertNotificationProvider(
         identityDashboardService: identityDashboardService,
+        settingsStore: settings),
+      FrozenAccoutNotificationProvider(
+        vaultStateService: vaultStateService,
         settingsStore: settings),
     ]
 

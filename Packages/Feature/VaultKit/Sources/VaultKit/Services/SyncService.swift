@@ -28,11 +28,10 @@ public class SyncService: SyncServiceProtocol {
   public enum Origin {
     case autofillExtension
     case app
-    case authenticator
 
     var acceptedTypes: Set<PersonalDataContentType> {
       switch self {
-      case .autofillExtension, .authenticator:
+      case .autofillExtension:
         return [.credential, .settings]
       case .app:
         return Set(PersonalDataContentType.allCases)
@@ -43,7 +42,7 @@ public class SyncService: SyncServiceProtocol {
       switch self {
       case .autofillExtension:
         return 1
-      case .app, .authenticator:
+      case .app:
         return ProcessInfo().processorCount
       }
     }
@@ -348,7 +347,7 @@ extension BuildTarget {
     switch self {
     case .tachyon:
       return true
-    case .app, .authenticator:
+    case .app:
       return false
     }
   }

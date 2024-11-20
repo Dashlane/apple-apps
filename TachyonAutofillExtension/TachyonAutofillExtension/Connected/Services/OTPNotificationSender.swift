@@ -8,11 +8,6 @@ public struct OTPNotificationSender {
   let userSettings: UserSettings
   let localNotificationService: LocalNotificationService
 
-  init(userSettings: UserSettings, localNotificationService: LocalNotificationService) {
-    self.userSettings = userSettings
-    self.localNotificationService = localNotificationService
-  }
-
   func send(for credential: Credential) {
     if let otpURL = credential.otpURL, let otpInfo = try? OTPConfiguration(otpURL: otpURL) {
 
@@ -25,7 +20,7 @@ public struct OTPNotificationSender {
       let hasClipboardOverride: Bool? = userSettings[.clipboardOverrideEnabled]
 
       if hasClipboardOverride == true {
-        PasteboardService(userSettings: userSettings).set(code)
+        PasteboardService(userSettings: userSettings).copy(code)
       }
 
       let otpNotification = OTPLocalNotification(

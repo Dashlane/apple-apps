@@ -1,3 +1,4 @@
+import CoreLocalization
 import CorePersonalData
 import DesignSystem
 import SwiftUI
@@ -30,11 +31,24 @@ struct PasswordHealthView: View {
       VStack(alignment: .leading, spacing: 0) {
         PasswordHealthSummaryView(viewModel: viewModel, action: action)
 
-        ForEach(viewModel.summaryListViewModels, id: \.kind) { viewModel in
-          PasswordHealthListView(
-            viewModel: viewModel,
-            action: action
-          )
+        if !viewModel.isFrozen {
+          ForEach(viewModel.summaryListViewModels, id: \.kind) { viewModel in
+            PasswordHealthListView(
+              viewModel: viewModel,
+              action: action
+            )
+          }
+        } else {
+          Infobox(
+            CoreLocalization.L10n.Core.frozenAccountTitle,
+            description: CoreLocalization.L10n.Core.frozenAccountMessage
+          ) {
+            Button(CoreLocalization.L10n.Core.frozenAccountAction) {
+              viewModel.displayPaywall()
+            }
+          }
+          .style(mood: .danger)
+          .padding(.top, 16)
         }
       }
       .padding(.horizontal, 16)

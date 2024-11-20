@@ -6,15 +6,15 @@ import SwiftUI
 
 extension IDCard {
   public var placeholderIcon: Icon {
-    return Icon(image: .ds.item.id.outlined, colors: nil)
+    return Icon(image: .ds.item.id.outlined, color: nil)
   }
 
   public var listIcon: VaultItemIcon {
-    .static(.ds.item.id.outlined, backgroundColor: color)
+    .idCard
   }
 
   public var icon: VaultItemIcon {
-    .static(.ds.item.id.outlined)
+    .idCard
   }
 
   public static var addIcon: SwiftUI.Image {

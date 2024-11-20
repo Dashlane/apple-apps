@@ -102,11 +102,26 @@
     var overlayButton: some View {
       VStack(spacing: 8) {
         Spacer()
-        Button(primaryButton.title, action: primaryButton.action)
+        Button(
+          action: {
+            primaryButton.action()
+          },
+          label: {
+            Text(primaryButton.title)
+              .fixedSize(horizontal: false, vertical: true)
+          })
 
         if let secondaryButton = secondaryButton {
-          Button(secondaryButton.title, action: secondaryButton.action)
-            .style(mood: .brand, intensity: .quiet)
+          Button(
+            action: {
+              secondaryButton.action()
+            },
+            label: {
+              Text(secondaryButton.title)
+                .fixedSize(horizontal: false, vertical: true)
+            }
+          )
+          .style(mood: .brand, intensity: .quiet)
         }
       }
       .buttonStyle(.designSystem(.titleOnly))

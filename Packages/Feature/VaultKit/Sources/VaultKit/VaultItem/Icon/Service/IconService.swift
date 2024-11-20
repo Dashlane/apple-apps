@@ -13,7 +13,9 @@ public struct IconService: IconServiceProtocol {
   public let domain: DomainIconLibraryProtocol
   public let gravatar: GravatarIconLibraryProtocol
 
-  public init(session: Session, appAPIClient: AppAPIClient, logger: Logger, target: BuildTarget) {
+  public init(
+    session: Session, userDeviceAPIClient: UserDeviceAPIClient, logger: Logger, target: BuildTarget
+  ) async {
     let cacheDirectory: URL
     do {
       cacheDirectory = try session.directory.storeURL(for: .icons, in: target)
@@ -26,15 +28,17 @@ public struct IconService: IconServiceProtocol {
 
     let cryptoEngine = session.localCryptoEngine
 
-    domain = DomainIconLibrary(
+    domain = await DomainIconLibrary(
       cacheDirectory: cacheDirectory,
       cryptoEngine: cryptoEngine,
-      appAPIClient: appAPIClient,
-      logger: logger)
+      userDeviceAPIClient: userDeviceAPIClient,
+      logger: logger
+    )
 
-    gravatar = GravatarIconLibrary(
+    gravatar = await GravatarIconLibrary(
       cacheDirectory: cacheDirectory,
       cryptoEngine: cryptoEngine,
-      logger: logger)
+      logger: logger
+    )
   }
 }

@@ -28,10 +28,6 @@
       ZStack {
         if model.showDuoPush {
           duoPushView.navigationBarHidden(true)
-        } else if model.showAuthenticatorPush {
-          AuthenticatorPushVerificationView(
-            model: model.makeAuthenticatorPushViewModel(),
-            fallbackOptionTitle: L10n.Core.authenticatorTotpPushOption)
         } else {
           totpView
             .loginAppearance()
@@ -103,9 +99,6 @@
         bottom: VStack {
           if self.model.hasDuoPush {
             self.sendDuoPushButton
-          }
-          if self.model.hasAuthenticatorPush {
-            self.sendAuthenticatorPushButton
           }
         },
         spacing: 0
@@ -197,16 +190,6 @@
         action: {
           self.model.showDuoPush = true
         }, title: L10n.Core.duoChallengeButton
-      )
-      .foregroundColor(.ds.text.brand.standard)
-      .padding(5)
-    }
-
-    private var sendAuthenticatorPushButton: some View {
-      Button(
-        action: {
-          self.model.showAuthenticatorPush = true
-        }, title: L10n.Core.authenticatorPushChallengeButton
       )
       .foregroundColor(.ds.text.brand.standard)
       .padding(5)

@@ -2,28 +2,26 @@ import Foundation
 import SwiftTreats
 
 enum UnsupportedDevice: String, CaseIterable {
-  case iPhone6s = "iPhone8,1"
-  case iPhone6sPlus = "iPhone8,2"
-  case iPhoneSE = "iPhone8,4"
-  case iPhone7 = "iPhone9,1"
-  case iPhone7Plus = "iPhone9,2"
-  case iPhone7Bis = "iPhone9,3"
-  case iPhone7PlusBis = "iPhone9,4"
-  case iPadMini4 = "iPad5,1"
-  case iPod7th = "iPod9,1"
-  case macBookPro13InchEarly2015 = "MacBookPro12,1"
-  case macBookPro15Inch2015 = "MacBookPro11,4"
-  case macBookPro15Inch2015Bis = "MacBookPro11,5"
-  case macBookPro13Inch2016 = "MacBookPro13,1"
-  case macBookPro13Inch2016Bis = "MacBookPro13,2"
-  case macBookPro15Inch2016 = "MacBookPro13,3"
-  case macBookAir13Inch2015And2017 = "MacBookAir7,2"
-  case macBookAir11Inch2015 = "MacBookAir7,1"
-  case macBook12Inch2016 = "MacBook9,1"
-  case macMini2014 = "Macmini7,1"
-  case iMac5K2015 = "iMac17,1"
-  case iMac4K2015 = "iMac16,2"
-  case iMac2015 = "iMac16,1"
+  case iPhoneX = "iPhone10,3"
+  case iPhoneXBis = "iPhone10,6"
+  case iPhone8Plus = "iPhone10,2"
+  case iPhone8PlusBis = "iPhone10,5"
+  case iPhone8 = "iPhone10,1"
+  case iPhone8Bis = "iPhone10,4"
+  case iPadGen5 = "iPad6,11"
+  case iPadGen5Bis = "iPad6,12"
+  case iPadPro97Inch = "iPad6,3"
+  case iPadPro97InchBis = "iPad6,4"
+  case iPadPro129InchGen1 = "iPad6,7"
+  case iPadPro129InchGen1Bis = "iPad6,8"
+  case macBookPro15Inch2017 = "MacBookPro14,3"
+  case macBookPro13Inch20174Thunderbolt = "MacBookPro14,1"
+  case macBookPro13Inch20172Thunderbolt = "MacBookPro14,2"
+  case macBook12Inch2017 = "MacBook10,1"
+  case iMacPro2017 = "iMacPro1,1"
+  case iMac5K21Inch2017 = "iMac18,3"
+  case iMac4K215Inch2017 = "iMac18,2"
+  case iMac215Inch2017 = "iMac18,1"
 }
 
 public class UpdateOperatingSystemAnnouncement: HomeModalAnnouncement,
@@ -77,7 +75,7 @@ public struct DeviceInformation: DeviceInformationProvider {
 
   public init() {
     modelName = Device.hardwareName
-    if #unavailable(iOS 16) {
+    if #unavailable(iOS 17) {
       self.systemWillBeDropped = true
     } else {
       self.systemWillBeDropped = false
@@ -158,7 +156,7 @@ internal class UpdateOperatingSystemCacheMock: UpdateOperatingSystemCacheProtoco
 extension UpdateOperatingSystemAnnouncement {
 
   static func mock(
-    modelName: String = UnsupportedDevice.iPhone7.rawValue,
+    modelName: String = UnsupportedDevice.iPhone8.rawValue,
     systemWillBeDropped: Bool = true,
     canDisplayAnnouncement: Bool = false
   ) -> UpdateOperatingSystemAnnouncement {
@@ -169,7 +167,7 @@ extension UpdateOperatingSystemAnnouncement {
   }
 
   static func mock(
-    modelName: String = UnsupportedDevice.iPhone7.rawValue,
+    modelName: String = UnsupportedDevice.iPhone8.rawValue,
     systemWillBeDropped: Bool = true,
     cache: UpdateOperatingSystemCacheProtocol
   ) -> UpdateOperatingSystemAnnouncement {

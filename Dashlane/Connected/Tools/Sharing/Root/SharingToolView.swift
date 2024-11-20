@@ -46,8 +46,7 @@ struct SharingToolView: View {
       ProgressView()
         .controlSize(.large)
     }
-    .frame(maxHeight: .infinity)
-    .padding(.horizontal, 40)
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
   }
 
   private var emptyPlaceholder: some View {
@@ -62,9 +61,13 @@ struct SharingToolView: View {
   private var list: some View {
     List {
       SharingPendingUserGroupsSection(model: model.pendingUserGroupsSectionViewModel)
+        .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
       SharingPendingEntitiesSection(model: model.pendingEntitiesSectionViewModel)
+        .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
       SharingUserGroupsSection(model: model.userGroupsSectionViewModel)
+        .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
       SharingUsersSection(model: model.usersSectionViewModel)
+        .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
     }
     .listStyle(.insetGrouped)
   }
@@ -101,6 +104,7 @@ extension SharingToolView {
       .font(.headline)
       .lineLimit(1)
       .fixedSize(horizontal: true, vertical: false)
+      .accessibilityAddTraits(.isHeader)
   }
 
   private var leadingButton: UserSpaceSwitcher<EmptyView>? {

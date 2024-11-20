@@ -11,7 +11,7 @@ struct DarkWebMonitoringBreachView<Model: BreachViewModel>: View {
 
   var body: some View {
     HStack(spacing: 16) {
-      BreachIconView(model: model.iconViewModel, iconSize: IconSizeType.small)
+      BreachIconView(model: model.iconViewModel)
       VStack(alignment: .leading, spacing: 2) {
         website
         info

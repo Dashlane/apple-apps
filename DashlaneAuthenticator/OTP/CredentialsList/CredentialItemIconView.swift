@@ -6,7 +6,6 @@ import SwiftUI
 import VaultKit
 
 struct CredentialItemIconView: View {
-
   let model: VaultItemIconViewModel
 
   init(model: @autoclosure () -> (VaultItemIconViewModel)) {
@@ -17,9 +16,7 @@ struct CredentialItemIconView: View {
   var body: some View {
     switch model.item.icon(forListStyle: true) {
     case .credential(let credential):
-      DomainIconView(
-        model: model.makeDomainIconViewModel(credential: credential, size: .small),
-        placeholderTitle: credential.displayTitle)
+      DomainIconView(model: model.makeDomainIconViewModel(credential: credential))
 
     default:
       fatalError("Should not try to show credit cards")

@@ -15,19 +15,9 @@ import UIDelight
 @MainActor
 public class LoginFlowViewModel: ObservableObject, LoginKitServicesInjecting {
 
-  public enum LoginType {
-    case localLogin(LocalLoginHandler)
-    case remoteLogin(RemoteLoginType)
-  }
-
-  public enum RemoteLoginType {
-    case classicRemoteLogin(RegularRemoteLoginHandler)
-    case deviceToDeviceRemoteLogin(Login?, DeviceTransferLoginFlowStateMachine)
-  }
-
   enum Step {
     case loginInput(_ email: String? = nil)
-    case login(LoginType)
+    case login(CoreSession.LoginType)
   }
 
   public enum Completion {
@@ -136,13 +126,16 @@ public class LoginFlowViewModel: ObservableObject, LoginKitServicesInjecting {
     switch result {
     case let .localLoginRequired(localLoginHandler):
       self.steps.append(.login(.localLogin(localLoginHandler)))
-    case let .remoteLoginRequired(remoteLoginHandler):
-      self.steps.append(.login(.remoteLogin(.classicRemoteLogin(remoteLoginHandler))))
+    case let .remoteLoginRequired(login, method, deviceInfo):
+      self.steps.append(
+        .login(
+          .remoteLogin(
+            .regularRemoteLogin(login, deviceRegistrationMethod: method, deviceInfo: deviceInfo))))
     case let .ssoAccountCreation(login, info):
       completion(.ssoAccountCreation(login, info))
-    case let .deviceToDeviceRemoteLogin(login, deviceToDeviceLoginHandler):
+    case let .deviceToDeviceRemoteLogin(login, deviceInfo):
       self.steps.append(
-        .login(.remoteLogin(.deviceToDeviceRemoteLogin(login, deviceToDeviceLoginHandler))))
+        .login(.remoteLogin(.deviceToDeviceRemoteLogin(login, deviceInfo: deviceInfo))))
     }
   }
 
@@ -215,7 +208,7 @@ extension LoginFlowViewModel {
 
   func makeRemoteLoginFlowViewModel(using type: RemoteLoginType) -> RemoteLoginFlowViewModel {
     remoteLoginViewModelFactory.make(
-      type: type, remoteLoginHandler: loginHandler.makeRemoteLoginHandler(),
+      type: type, deviceInfo: loginHandler.deviceInfo,
       purchasePlanFlowProvider: purchasePlanFlowProvider,
       sessionActivityReporterProvider: sessionActivityReporterProvider,
       tokenPublisher: tokenPublisher

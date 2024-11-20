@@ -21,7 +21,6 @@ public struct DetailContainerView<Content: View, SharingSection: View, Item: Vau
   @Environment(\.detailContainerViewSpecificSave) var specificSave
   @Environment(\.dismiss) public var dismissAction
   @Environment(\.isPresented) private var isPresented
-  @Environment(\.navigator) public var navigator
   @Environment(\.toast) var toast
 
   @State var deleteRequest: DeleteVaultItemRequest = .init()
@@ -30,7 +29,6 @@ public struct DetailContainerView<Content: View, SharingSection: View, Item: Vau
   @State var showSpaceSelector: Bool = false
   @State var titleHeight: CGFloat? = DetailDimension.defaultNavigationBarHeight
 
-  @FeatureState(.secureNoteCollections) var areSecureNoteCollectionsEnabled: Bool
   @FeatureState(.documentStorageAllItems) var isDocumentStorageAllItemsEnabled: Bool
   @FeatureState(.documentStorageIds) var isDocumentStorageIdsEnabled: Bool
   @FeatureState(.documentStorageSecrets) var isDocumentStorageSecretsEnabled: Bool
@@ -93,6 +91,16 @@ public struct DetailContainerView<Content: View, SharingSection: View, Item: Vau
         Text(L10n.Core.KWVaultItem.UnsavedChanges.message)
       }
     )
+    .simultaneousGesture(
+      DragGesture(minimumDistance: 20, coordinateSpace: .global)
+        .onEnded { value in
+          let horizontalAmount = value.translation.width
+          if horizontalAmount > 0 && (value.location.x - horizontalAmount) < 10
+            && !model.mode.isEditing && !Device.isMac
+          {
+            dismiss()
+          }
+        })
   }
 
   private var list: some View {
@@ -174,7 +182,7 @@ extension DetailContainerView {
       }
     } else if model.mode.isAdding {
       Button(L10n.Core.cancel, action: dismiss)
-    } else if navigator()?.canDismiss == true || specificBackButton == .close {
+    } else if specificBackButton == .close {
       Button(L10n.Core.kwButtonClose, action: dismiss)
     } else if canDismiss || specificBackButton == .back {
       BackButton(color: .ds.text.brand.standard, action: dismiss)
@@ -199,7 +207,7 @@ extension DetailContainerView {
   }
 
   fileprivate var titleAccessory: some View {
-    VaultItemIconView(isListStyle: false, model: model.iconViewModel)
+    VaultItemIconView(isListStyle: false, isLarge: true, model: model.iconViewModel)
       .equatable()
       .accessibilityHidden(true)
   }

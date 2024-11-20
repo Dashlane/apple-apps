@@ -19,6 +19,7 @@ struct SSOUserConsentView: View {
     List {
       Section {
         consentCheckboxes
+          .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
       }
     }
     .listAppearance(.insetGrouped)

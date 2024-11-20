@@ -42,6 +42,8 @@ extension SessionServicesContainer: HomeAnnouncementsServicesContainer {
 
   var notificationKitFeatureService: CoreFeature.FeatureServiceProtocol { featureService }
 
+  var notificationKitVaultStateService: CoreFeature.VaultStateServiceProtocol { vaultStateService }
+
   var notificationKitTeamSpaceService: CorePremium.UserSpacesService { userSpacesService }
 
   var itemsLimitNotificationProvider: NotificationKit.ItemsLimitNotificationProvider {
@@ -52,11 +54,5 @@ extension SessionServicesContainer: HomeAnnouncementsServicesContainer {
 extension AutofillService: NotificationKit.NotificationKitAutofillServiceProtocol {
   public var notificationKitActivationStatus: Published<AutofillActivationStatus>.Publisher {
     $activationStatus
-  }
-}
-
-extension SecureLockProvider: NotificationKit.AuthenticatorPairingProviderProtocol {
-  public func isPairedWithAuthenticator() -> Bool {
-    return Authenticator.isOnDevice && secureLockMode() != .masterKey
   }
 }

@@ -34,9 +34,9 @@ struct OTPExplorerView: View {
       }.padding(16)
     }
     .animation(.easeOut, value: isCredentialListExpanded)
-    .backgroundColorIgnoringSafeArea(.ds.background.default)
     .navigationTitle(L10n.Localizable.otpToolName)
     .navigationBarTitleDisplayMode(.inline)
+    .scrollContentBackgroundStyle(.alternate)
   }
 
   @ViewBuilder

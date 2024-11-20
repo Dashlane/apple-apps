@@ -11,11 +11,18 @@
     @StateObject
     var model: AccountRecoveryKeyLoginViewModel
 
+    @Binding
+    var showNoMatchError: Bool
+
     @Environment(\.dismiss)
     var dismiss
 
-    init(model: @autoclosure @escaping () -> AccountRecoveryKeyLoginViewModel) {
+    init(
+      model: @autoclosure @escaping () -> AccountRecoveryKeyLoginViewModel,
+      showNoMatchError: Binding<Bool>
+    ) {
       self._model = .init(wrappedValue: model())
+      self._showNoMatchError = showNoMatchError
     }
 
     var body: some View {
@@ -77,7 +84,7 @@
           .font(.body)
           .padding(.bottom, 16)
         AccountRecoveryKeyTextField(
-          recoveryKey: $model.recoveryKey, showNoMatchError: $model.showNoMatchError
+          recoveryKey: $model.recoveryKey, showNoMatchError: $showNoMatchError
         )
         .onSubmit {
           Task {
@@ -94,11 +101,14 @@
   struct AccountRecoveryKeyLoginView_Previews: PreviewProvider {
     static var previews: some View {
       NavigationView {
-        AccountRecoveryKeyLoginView(model: .mock())
+        AccountRecoveryKeyLoginView(model: .mock(), showNoMatchError: .constant(false))
       }
-      AccountRecoveryKeyLoginView(model: .mock(recoveryKey: "NU6H-7YTZ-DQNA-2VQC-6K56-UIW1-T7YN"))
       AccountRecoveryKeyLoginView(
-        model: .mock(recoveryKey: "NU6H-7YTZ-DQNA-2VQC-6K56-UIW1-T7YN", showNoMatchError: true))
+        model: .mock(recoveryKey: "NU6H-7YTZ-DQNA-2VQC-6K56-UIW1-T7YN"),
+        showNoMatchError: .constant(false))
+      AccountRecoveryKeyLoginView(
+        model: .mock(recoveryKey: "NU6H-7YTZ-DQNA-2VQC-6K56-UIW1-T7YN"),
+        showNoMatchError: .constant(true))
     }
   }
 

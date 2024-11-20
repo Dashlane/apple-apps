@@ -86,6 +86,10 @@ public class PremiumAnnouncementsViewModel: ObservableObject, HomeAnnouncementsS
     }
   }
 
+  var isPremiumTrial: Bool {
+    return premiumStatusProvider.status.b2cStatus.isTrial
+  }
+
   var premiumWillExpireSoon: Bool {
     guard let days = premiumStatusProvider.status.b2cStatus.daysToExpiration() else {
       return false

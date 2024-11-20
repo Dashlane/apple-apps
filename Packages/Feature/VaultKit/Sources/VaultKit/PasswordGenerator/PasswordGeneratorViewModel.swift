@@ -1,4 +1,5 @@
 import Combine
+import CoreFeature
 import CoreLocalization
 import CorePasswords
 import CorePersonalData
@@ -39,14 +40,19 @@ public class PasswordGeneratorViewModel: ObservableObject {
   @Published
   public var isDifferentFromDefaultConfiguration: Bool = false
 
+  @Published
+  private var vaultState: VaultState = .default
+
   private var subscriptions = Set<AnyCancellable>()
   private let passwordEvaluator: PasswordEvaluatorProtocol
   private let sessionActivityReporter: ActivityReporterProtocol
   private let userSettings: UserSettings
+  private let vaultStateService: VaultStateServiceProtocol
+  private let deeplinkingService: DeepLinkingServiceProtocol
   private let saveGeneratedPassword: (GeneratedPassword) -> GeneratedPassword
   private var lastPersistedPassword: GeneratedPassword?
   private let savePreferencesOnChange: Bool
-  private let copyAction: ((String) -> Void)
+  private let pasteboardService: PasteboardServiceProtocol
 
   public init(
     mode: PasswordGeneratorMode,
@@ -54,18 +60,22 @@ public class PasswordGeneratorViewModel: ObservableObject {
     passwordEvaluator: PasswordEvaluatorProtocol,
     sessionActivityReporter: ActivityReporterProtocol,
     userSettings: UserSettings,
+    vaultStateService: VaultStateServiceProtocol,
+    deeplinkingService: DeepLinkingServiceProtocol,
     savePreferencesOnChange: Bool = true,
-    copyAction: @escaping ((String) -> Void)
+    pasteboardService: PasteboardServiceProtocol
   ) {
     self.mode = mode
     self.saveGeneratedPassword = saveGeneratedPassword
     self.passwordEvaluator = passwordEvaluator
     self.sessionActivityReporter = sessionActivityReporter
     self.userSettings = userSettings
+    self.vaultStateService = vaultStateService
+    self.deeplinkingService = deeplinkingService
     let preferences = userSettings[.passwordGeneratorPreferences] ?? PasswordGeneratorPreferences()
     self.preferences = preferences
     self.savePreferencesOnChange = savePreferencesOnChange
-    self.copyAction = copyAction
+    self.pasteboardService = pasteboardService
     self.generator = PasswordGenerator(preferences: preferences)
     configureRefresh()
   }
@@ -76,8 +86,10 @@ public class PasswordGeneratorViewModel: ObservableObject {
     passwordEvaluator: PasswordEvaluatorProtocol,
     sessionActivityReporter: ActivityReporterProtocol,
     userSettings: UserSettings,
+    vaultStateService: VaultStateServiceProtocol,
+    deeplinkingService: DeepLinkingServiceProtocol,
     savePreferencesOnChange: Bool = true,
-    copyAction: @escaping ((String) -> Void)
+    pasteboardService: PasteboardServiceProtocol
   ) {
     self.init(
       mode: mode,
@@ -85,8 +97,10 @@ public class PasswordGeneratorViewModel: ObservableObject {
       passwordEvaluator: passwordEvaluator,
       sessionActivityReporter: sessionActivityReporter,
       userSettings: userSettings,
+      vaultStateService: vaultStateService,
+      deeplinkingService: deeplinkingService,
       savePreferencesOnChange: savePreferencesOnChange,
-      copyAction: copyAction)
+      pasteboardService: pasteboardService)
   }
 
   public convenience init(
@@ -95,7 +109,9 @@ public class PasswordGeneratorViewModel: ObservableObject {
     passwordEvaluator: PasswordEvaluatorProtocol,
     sessionActivityReporter: ActivityReporterProtocol,
     userSettings: UserSettings,
-    copyAction: @escaping ((String) -> Void)
+    vaultStateService: VaultStateServiceProtocol,
+    deeplinkingService: DeepLinkingServiceProtocol,
+    pasteboardService: PasteboardServiceProtocol
   ) {
     self.init(
       mode: mode,
@@ -103,8 +119,10 @@ public class PasswordGeneratorViewModel: ObservableObject {
       passwordEvaluator: passwordEvaluator,
       sessionActivityReporter: sessionActivityReporter,
       userSettings: userSettings,
+      vaultStateService: vaultStateService,
+      deeplinkingService: deeplinkingService,
       savePreferencesOnChange: true,
-      copyAction: copyAction)
+      pasteboardService: pasteboardService)
   }
 
   private func configureRefresh() {
@@ -124,6 +142,10 @@ public class PasswordGeneratorViewModel: ObservableObject {
         self.generator = PasswordGenerator(preferences: preferences)
         self.generatePassword()
       }.store(in: &subscriptions)
+
+    vaultStateService
+      .vaultStatePublisher()
+      .assign(to: &$vaultState)
   }
 
   public func savePreferences() {
@@ -136,7 +158,14 @@ public class PasswordGeneratorViewModel: ObservableObject {
     self.isDifferentFromDefaultConfiguration = false
   }
 
+  public func forcedRefresh() {
+    self.generatePassword()
+  }
+
   public func refresh() {
+    guard vaultState != .frozen else {
+      return
+    }
     self.generatePassword()
   }
 
@@ -162,10 +191,15 @@ public class PasswordGeneratorViewModel: ObservableObject {
   }
 
   private func copy() {
-    copyAction(password)
+    pasteboardService.copy(password)
   }
 
   public func performMainAction() {
+    guard vaultState != .frozen else {
+      deeplinkingService.handle(.frozenAccount)
+      return
+    }
+
     var persistedPassword: GeneratedPassword
     if let last = lastPersistedPassword, password == last.password {
       persistedPassword = last
@@ -270,6 +304,8 @@ extension PasswordGeneratorViewModel {
       passwordEvaluator: .mock(),
       sessionActivityReporter: .mock,
       userSettings: UserSettings(internalStore: .mock()),
-      copyAction: { _ in })
+      vaultStateService: .mock,
+      deeplinkingService: MockVaultKitServicesContainer().deeplinkService,
+      pasteboardService: .mock())
   }
 }

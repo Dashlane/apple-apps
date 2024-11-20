@@ -66,9 +66,7 @@ class CredentialDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
   let sharingDetailSectionModelFactory: SharingDetailSectionModel.Factory
   let domainsSectionModelFactory: DomainsSectionModel.Factory
   let addOTPFlowViewModelFactory: AddOTPFlowViewModel.Factory
-
-  let passwordGeneratorViewModelFactory:
-    (PasswordGeneratorMode, @escaping (String) -> Void) -> PasswordGeneratorViewModel
+  let passwordGeneratorViewModelFactory: PasswordGeneratorViewModel.SecondFactory
   let origin: ItemDetailOrigin
 
   var wasAdding: Bool = false
@@ -117,6 +115,7 @@ class CredentialDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
     generatedPasswordToLink: GeneratedPassword? = nil,
     vaultItemDatabase: VaultItemDatabaseProtocol,
     vaultItemsStore: VaultItemsStore,
+    vaultStateService: VaultStateServiceProtocol,
     vaultCollectionDatabase: VaultCollectionDatabaseProtocol,
     vaultCollectionsStore: VaultCollectionsStore,
     actionPublisher: PassthroughSubject<CredentialDetailViewModel.Action, Never>? = nil,
@@ -130,7 +129,6 @@ class CredentialDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
     featureService: FeatureServiceProtocol,
     iconService: IconServiceProtocol,
     logger: Logger,
-    accessControl: AccessControlProtocol,
     userSettings: UserSettings,
     passwordEvaluator: PasswordEvaluatorProtocol,
     onboardingService: OnboardingService,
@@ -146,8 +144,7 @@ class CredentialDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
     domainsSectionModelFactory: DomainsSectionModel.Factory,
     makePasswordGeneratorViewModel: PasswordGeneratorViewModel.Factory,
     addOTPFlowViewModelFactory: AddOTPFlowViewModel.Factory,
-    passwordGeneratorViewModelFactory: @escaping (PasswordGeneratorMode, @escaping (String) -> Void)
-      -> PasswordGeneratorViewModel,
+    passwordGeneratorViewModelFactory: PasswordGeneratorViewModel.SecondFactory,
     attachmentSectionFactory: AttachmentsSectionViewModel.Factory
   ) {
     self.init(
@@ -169,9 +166,11 @@ class CredentialDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
       passwordGeneratorViewModelFactory: passwordGeneratorViewModelFactory,
       service: .init(
         item: item,
+        canLock: session.authenticationMethod.supportsLock,
         mode: mode,
         vaultItemDatabase: vaultItemDatabase,
         vaultItemsStore: vaultItemsStore,
+        vaultStateService: vaultStateService,
         vaultCollectionDatabase: vaultCollectionDatabase,
         vaultCollectionsStore: vaultCollectionsStore,
         sharingService: sharingService,
@@ -183,7 +182,6 @@ class CredentialDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
         iconViewModelProvider: iconViewModelProvider,
         attachmentSectionFactory: attachmentSectionFactory,
         logger: logger,
-        accessControl: accessControl,
         userSettings: userSettings,
         pasteboardService: pasteboardService
       )
@@ -207,8 +205,7 @@ class CredentialDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
     sharingDetailSectionModelFactory: SharingDetailSectionModel.Factory,
     domainsSectionModelFactory: DomainsSectionModel.Factory,
     addOTPFlowViewModelFactory: AddOTPFlowViewModel.Factory,
-    passwordGeneratorViewModelFactory: @escaping (PasswordGeneratorMode, @escaping (String) -> Void)
-      -> PasswordGeneratorViewModel,
+    passwordGeneratorViewModelFactory: PasswordGeneratorViewModel.SecondFactory,
     service: DetailService<Credential>
   ) {
     self.generatedPasswordToLink = generatedPasswordToLink
@@ -335,8 +332,8 @@ extension CredentialDetailViewModel {
   }
 
   fileprivate func fetchNavigationBackgroundColor() async throws -> SwiftUI.Color? {
-    let icon = try await domainIconLibrary.icon(for: item, usingLargeImage: false)
-    guard let color = icon?.colors?.fallbackColor else {
+    let icon = try await domainIconLibrary.icon(for: item)
+    guard let color = icon?.color else {
       return nil
     }
     return SwiftUI.Color(color)
@@ -353,8 +350,8 @@ extension CredentialDetailViewModel {
   }
 
   func makePasswordGeneratorViewModel() -> PasswordGeneratorViewModel {
-    return passwordGeneratorViewModelFactory(
-      .selection(
+    return passwordGeneratorViewModelFactory.make(
+      mode: .selection(
         item,
         { [weak self] generated in
           guard let self = self else {
@@ -362,10 +359,7 @@ extension CredentialDetailViewModel {
           }
           self.item.password = generated.password ?? ""
           self.generatedPasswordToLink = generated
-        }),
-      { password in
-        PasteboardService(userSettings: self.service.userSettings).set(password)
-      })
+        }))
   }
 
   func makeDomainsViewModel(from additionMode: Bool = false) -> CredentialDomainsViewModel {
@@ -373,6 +367,7 @@ extension CredentialDetailViewModel {
       item: item,
       isAdditionMode: additionMode,
       initialMode: mode,
+      isFrozen: service.isFrozen,
       vaultItemsStore: vaultItemsStore,
       activityReporter: activityReporter,
       updatePublisher: updatePublisher)

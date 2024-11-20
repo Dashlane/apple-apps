@@ -28,13 +28,6 @@ struct ToolsFlow: View {
               viewModel.didSelect(item: item)
             }
           }
-      case let .unresolvedAlert(alert):
-        UnresolvedAlertView(
-          viewModel: viewModel.unresolvedAlertViewModelFactory.make(),
-          trayAlert: alert.alert
-        )
-        .toolbar(.hidden, for: .tabBar)
-        .navigationBarTitleDisplayMode(.inline)
       }
     }
     .tint(.ds.text.brand.standard)

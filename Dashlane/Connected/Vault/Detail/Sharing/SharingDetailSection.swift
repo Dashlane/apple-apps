@@ -8,12 +8,15 @@ import VaultKit
 struct SharingDetailSection: View {
   let model: SharingDetailSectionModel
   let ctaLabel: String
+  let canShare: Bool
 
   @Environment(\.detailMode)
   var detailMode
 
-  @Environment(\.navigator)
-  var navigator
+  var shouldShowShareButton: Bool {
+    !detailMode.isEditing && !model.item.hasAttachments && model.item.metadata.isShareable
+      && canShare
+  }
 
   var body: some View {
     if !detailMode.isAdding {
@@ -29,7 +32,7 @@ struct SharingDetailSection: View {
       } else {
         activeSharingSection
 
-        if !detailMode.isEditing && !model.item.hasAttachments && model.item.metadata.isShareable {
+        if shouldShowShareButton {
           Section {
             shareButton
           }

@@ -61,6 +61,10 @@ public struct DashlaneURLFactory {
     return URL(string: "_")!
   }
 
+  public static var learonMoreAboutFrozenAccounts: URL {
+    return URL(string: "_")!
+  }
+
   private static var language: String {
     if websiteSupportedLanguages.contains(NSLocale.current.identifier) {
       return NSLocale.current.identifier

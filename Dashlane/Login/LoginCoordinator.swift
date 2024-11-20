@@ -1,4 +1,5 @@
 import Combine
+import CoreCrypto
 import CoreLocalization
 import CoreSession
 import CoreUserTracking
@@ -101,12 +102,6 @@ class LoginCoordinator: Coordinator {
 
   private func handleRemoteLoginCompletion(_ completion: RemoteLoginFlowViewModel.Completion) {
     switch completion {
-    case let .deviceUnlinking(remoteLoginSession, logInfo, remoteLoginHandler, loadActionPublisher):
-      loadSession(
-        using: remoteLoginSession,
-        loadActionPublisher: loadActionPublisher,
-        logInfo: logInfo,
-        remoteLoginHandler: remoteLoginHandler)
     case let .completed(config, logInfo):
       loadSessionServices(using: config, logInfo: logInfo)
     case let .migrateAccount(migrationInfos):
@@ -249,10 +244,32 @@ extension LoginCoordinator {
           } else {
             self.completion(.servicesLoaded(sessionServices))
           }
+
+        case let .failure(CryptoEngineError.invalidHMAC)
+        where session.configuration.info.loginOTPOption == .totp:
+          recoverAuthenticatorIssues(for: session, logInfo: logInfo)
+
         case let .failure(error):
           self.handle(error: error)
         }
       }
+  }
+
+  func recoverAuthenticatorIssues(for session: Session, logInfo: LoginFlowLogInfo) {
+    do {
+      try appServices.sessionContainer.removeSessionDirectory(for: session.login)
+      let session = try appServices.sessionContainer.createSession(
+        with: session.configuration,
+        cryptoConfig: session.cryptoEngine.config)
+
+      self.loadSessionServices(
+        using: session,
+        logInfo: logInfo,
+        isFirstLogin: false,
+        isRecoveryLogin: false)
+    } catch {
+      self.handle(error: error)
+    }
   }
 
   func loadSessionServices(using config: RemoteLoginConfiguration, logInfo: LoginFlowLogInfo) {

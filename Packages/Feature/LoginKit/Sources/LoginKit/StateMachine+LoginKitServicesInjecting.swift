@@ -10,3 +10,7 @@ extension DeviceTransferLoginFlowStateMachine: LoginKitServicesInjecting {}
 extension ThirdPartyOTPLoginStateMachine: LoginKitServicesInjecting {}
 extension SSORemoteStateMachine: LoginKitServicesInjecting {}
 extension SSOLocalStateMachine: LoginKitServicesInjecting {}
+extension MasterPasswordRemoteStateMachine: LoginKitServicesInjecting {}
+extension MasterPasswordFlowRemoteStateMachine: LoginKitServicesInjecting {}
+extension RegularRemoteLoginStateMachine: LoginKitServicesInjecting {}
+extension RemoteLoginStateMachine: LoginKitServicesInjecting {}

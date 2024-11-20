@@ -43,13 +43,12 @@ struct BankAccountDetailView: View {
           title: CoreLocalization.L10n.Core.KWBankStatementIOS.bicFieldTitle(
             for: model.item.bicVariant),
           text: $model.item.bic,
-          shouldReveal: $model.shouldReveal,
-          onRevealAction: model.reveal,
+          onRevealAction: model.sendUsageLog,
           formatter: .uppercase,
           obfuscatingFormatter: .obfuscatedCode,
           actions: [.copy(model.copy)]
         )
-        .actions([.copy(model.copy), .largeDisplay], accessHandler: model.requestAccess)
+        .actions([.copy(model.copy), .largeDisplay])
         .textInputAutocapitalization(.characters)
         .fiberFieldType(.bankAccountBIC)
 
@@ -57,13 +56,12 @@ struct BankAccountDetailView: View {
           title: CoreLocalization.L10n.Core.KWBankStatementIOS.ibanFieldTitle(
             for: model.item.ibanVariant),
           text: $model.item.iban,
-          shouldReveal: $model.shouldReveal,
-          onRevealAction: model.reveal,
+          onRevealAction: model.sendUsageLog,
           formatter: .uppercase,
           obfuscatingFormatter: .obfuscatedCode,
           actions: [.copy(model.copy)]
         )
-        .actions([.copy(model.copy), .largeDisplay], accessHandler: model.requestAccess)
+        .actions([.copy(model.copy), .largeDisplay])
         .textInputAutocapitalization(.characters)
         .fiberFieldType(.bankAccountIBAN)
 

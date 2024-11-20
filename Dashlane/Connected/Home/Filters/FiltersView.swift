@@ -18,13 +18,22 @@ struct FiltersView: View {
 
   var body: some View {
     ScrollView(.horizontal, showsIndicators: false) {
-      HStack(spacing: 10) {
-        filterButton(for: nil)
+      ZStack(alignment: .selectionAlignment) {
+        selectionBackground()
+          .alignmentGuide(
+            .selectionHorizontalAlignment, computeValue: { d in d[HorizontalAlignment.center] })
 
-        ForEach(enabledFilters) { filter in
-          filterButton(for: filter)
+        HStack(alignment: .center, spacing: 0) {
+          filterButton(for: nil)
+
+          ForEach(enabledFilters) { filter in
+            filterButton(for: filter)
+          }
         }
       }
+      .padding(2)
+      .background(Color.ds.container.expressive.neutral.quiet.idle)
+      .clipShape(RoundedRectangle(cornerRadius: 9))
       .padding(.horizontal, 16)
     }
     .padding(.bottom, 10)
@@ -38,12 +47,36 @@ struct FiltersView: View {
   }
 
   private func filterButton(for filter: ItemCategory?) -> some View {
-    Button(filter.title) {
-      activeFilter = filter
+    Group {
+      if filter == activeFilter {
+        Button(filter.title) {}
+          .alignmentGuide(
+            .selectionHorizontalAlignment, computeValue: { d in d[HorizontalAlignment.center] })
+      } else {
+        Button(filter.title) {
+          withAnimation(.easeInOut(duration: 0.24)) {
+            activeFilter = filter
+          }
+        }
+      }
     }
     .buttonStyle(FilterButtonStyle(isSelected: filter == activeFilter))
     .fiberAccessibilityLabel(Text(L10n.Localizable.accessibilityTraitTab(filter.title)))
     .fiberAccessibilityAddTraits(filter == activeFilter ? .isSelected : [])
+  }
+
+  private func selectionBackground() -> some View {
+    Text(activeFilter.title)
+      .textStyle(.component.button.small)
+      .padding(.vertical, 6)
+      .padding(.horizontal, 10)
+      .foregroundColor(.clear)
+      .background {
+        RoundedRectangle(cornerRadius: 7)
+          .foregroundColor(.ds.container.agnostic.neutral.supershy)
+          .shadow(color: .black.opacity(0.04), radius: 0.5, x: 0, y: 3)
+          .shadow(color: .black.opacity(0.12), radius: 4, x: 0, y: 3)
+      }
   }
 }
 
@@ -52,23 +85,15 @@ struct FilterButtonStyle: ButtonStyle {
 
   func makeBody(configuration: Configuration) -> some View {
     configuration.label
-      .font(.headline)
+      .textStyle(.component.button.small)
       .padding(.vertical, 6)
       .padding(.horizontal, 10)
-      .background(backgroundColor)
+      .background(Color.clear)
       .foregroundColor(foregroundColor)
-      .cornerRadius(6)
-      .opacity(configuration.isPressed ? 0.5 : 1.0)
-
-  }
-
-  var backgroundColor: Color {
-    isSelected
-      ? .ds.container.expressive.neutral.catchy.active : .ds.container.expressive.neutral.quiet.idle
   }
 
   var foregroundColor: Color {
-    isSelected ? .ds.text.inverse.catchy : .ds.text.neutral.standard
+    isSelected ? .ds.text.brand.standard : .ds.text.neutral.standard
   }
 }
 
@@ -91,4 +116,33 @@ extension ItemCategory? {
       return CoreLocalization.L10n.Core.mainMenuSecrets
     }
   }
+}
+
+extension VerticalAlignment {
+  private enum SelectionVerticalAlignment: AlignmentID {
+    static func defaultValue(in d: ViewDimensions) -> CGFloat {
+      return d[.bottom]
+    }
+  }
+
+  static let selectionVerticalAlignment = VerticalAlignment(SelectionVerticalAlignment.self)
+}
+
+extension HorizontalAlignment {
+  private enum SelectionHorizontalAlignment: AlignmentID {
+    static func defaultValue(in d: ViewDimensions) -> CGFloat {
+      return d[.leading]
+    }
+  }
+
+  static let selectionHorizontalAlignment = HorizontalAlignment(SelectionHorizontalAlignment.self)
+}
+
+extension Alignment {
+  static let selectionAlignment = Alignment(
+    horizontal: .selectionHorizontalAlignment, vertical: .selectionVerticalAlignment)
+}
+
+#Preview {
+  FiltersView(activeFilter: .constant(nil))
 }

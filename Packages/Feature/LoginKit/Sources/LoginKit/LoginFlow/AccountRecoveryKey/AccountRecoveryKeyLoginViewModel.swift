@@ -7,21 +7,15 @@ import Foundation
 @MainActor
 public final class AccountRecoveryKeyLoginViewModel: ObservableObject, LoginKitServicesInjecting {
 
-  @Published var showNoMatchError = false
-
-  var recoveryKey: String = "" {
-    didSet {
-      showNoMatchError = false
-    }
-  }
+  var recoveryKey: String = ""
 
   let accountType: CoreSession.AccountType
 
-  private let generateMasterKey: @MainActor (_ recoveryKey: String) async throws -> Void
+  private let generateMasterKey: @MainActor (_ recoveryKey: String) async -> Void
 
   public init(
     accountType: CoreSession.AccountType,
-    generateMasterKey: @escaping @MainActor (_ recoveryKey: String) async throws -> Void
+    generateMasterKey: @escaping @MainActor (_ recoveryKey: String) async -> Void
   ) {
     self.accountType = accountType
     self.generateMasterKey = generateMasterKey
@@ -29,32 +23,23 @@ public final class AccountRecoveryKeyLoginViewModel: ObservableObject, LoginKitS
 
   fileprivate init(
     recoveryKey: String,
-    showNoMatchError: Bool,
     accountType: CoreSession.AccountType,
-    generateMasterKey: @escaping @MainActor (_ recoveryKey: String) async throws -> Void
+    generateMasterKey: @escaping @MainActor (_ recoveryKey: String) async -> Void
   ) {
     self.recoveryKey = recoveryKey
-    self.showNoMatchError = showNoMatchError
     self.accountType = accountType
     self.generateMasterKey = generateMasterKey
   }
 
   func validate() async {
-    do {
-      try await generateMasterKey(recoveryKey)
-    } catch {
-      showNoMatchError = true
-    }
+    await generateMasterKey(recoveryKey)
   }
 }
 
 extension AccountRecoveryKeyLoginViewModel {
-  static func mock(recoveryKey: String = "", showNoMatchError: Bool = false)
-    -> AccountRecoveryKeyLoginViewModel
-  {
+  static func mock(recoveryKey: String = "") -> AccountRecoveryKeyLoginViewModel {
     AccountRecoveryKeyLoginViewModel(
       recoveryKey: recoveryKey,
-      showNoMatchError: showNoMatchError,
       accountType: .invisibleMasterPassword,
       generateMasterKey: { _ in }
     )

@@ -1,5 +1,6 @@
 import AuthenticationServices
 import Combine
+import CoreFeature
 import CorePersonalData
 import DashTypes
 import Foundation
@@ -24,6 +25,7 @@ public class AutofillService {
     refreshStatusTrigger: AnyPublisher<Notification, Never>? = NotificationCenter.default
       .willEnterForegroundNotificationPublisher()?.eraseToAnyPublisher(),
     cryptoEngine: CryptoEngine,
+    vaultStateService: VaultStateServiceProtocol,
     logger: Logger, snapshotFolderURL: URL
   ) {
     self.appExtensionCommunicationCenter = .init(
@@ -38,8 +40,8 @@ public class AutofillService {
       snapshotPersistor: snapshotPersistor)
     self.logger = logger
 
-    refreshStatusTask = Task { @MainActor in
-      activationStatus = await identityStore.status()
+    refreshStatusTask = Task { @MainActor [weak self] in
+      self?.activationStatus = await identityStore.status()
 
       guard
         let statusSequence = refreshStatusTrigger?
@@ -49,28 +51,40 @@ public class AutofillService {
         return
       }
 
-      for await status in statusSequence where status != self.activationStatus {
-        self.activationStatus = status
+      for await status in statusSequence where status != self?.activationStatus {
+        self?.activationStatus = status
       }
     }
 
-    $activationStatus.filter {
-      $0 == .enabled
-    }
-    .removeDuplicates()
-    .flatMap { _ in
-      credentialsPublisher.combineLatest(passkeysPublisher) { credentials, passkeys in
-        return (credentials, passkeys)
+    vaultStateService
+      .vaultStatePublisher()
+      .removeDuplicates()
+      .filter { $0 == .frozen }
+      .sink { [weak self] _ in
+        self?.clearTask()
       }
-    }
-    .debounce(for: .milliseconds(500), scheduler: queue)
-    .map { (credentials, passkeys) in
-      return IncrementalIdentityStore.UpdateRequest(credentials: credentials, passkeys: passkeys)
-    }
-    .sink { [weak self] request in
-      self?.update(with: request)
-    }
-    .store(in: &subscriptions)
+      .store(in: &subscriptions)
+
+    $activationStatus
+      .combineLatest(vaultStateService.vaultStatePublisher()) { status, vaultState in
+        return (status, vaultState)
+      }
+      .filter { status, vaultState in
+        status == .enabled && vaultState != .frozen
+      }
+      .flatMap { _ in
+        credentialsPublisher.combineLatest(passkeysPublisher) { credentials, passkeys in
+          return (credentials, passkeys)
+        }
+      }
+      .debounce(for: .milliseconds(500), scheduler: queue)
+      .map { (credentials, passkeys) in
+        return IncrementalIdentityStore.UpdateRequest(credentials: credentials, passkeys: passkeys)
+      }
+      .sink { [weak self] request in
+        self?.update(with: request)
+      }
+      .store(in: &subscriptions)
   }
 
   private func update(with request: IncrementalIdentityStore.UpdateRequest) {
@@ -84,13 +98,20 @@ public class AutofillService {
   }
 
   public func unload() async {
+    refreshStatusTask?.cancel()
     subscriptions.forEach { $0.cancel() }
+
+    await clear()
+
+    appExtensionCommunicationCenter.write(message: .userDidLogout)
+  }
+
+  private func clear() async {
     do {
       try await incrementalIdentityStore.clear()
     } catch {
       logger.error("Fail to clear store on unload", error: error)
     }
-    appExtensionCommunicationCenter.write(message: .userDidLogout)
   }
 }
 
@@ -114,11 +135,22 @@ extension AutofillService {
 }
 
 extension AutofillService {
+  public func clearTask() {
+    Task {
+      await clear()
+    }
+  }
+}
+
+extension AutofillService {
   public static var fakeService: AutofillService {
     .init(
       channel: .fromApp,
       credentialsPublisher: Just<[Credential]>([]).eraseToAnyPublisher(),
-      passkeysPublisher: Just<[Passkey]>([]).eraseToAnyPublisher(), cryptoEngine: .mock(),
-      logger: .mock, snapshotFolderURL: URL.documentsDirectory)
+      passkeysPublisher: Just<[Passkey]>([]).eraseToAnyPublisher(),
+      cryptoEngine: .mock(),
+      vaultStateService: .mock,
+      logger: .mock,
+      snapshotFolderURL: URL.documentsDirectory)
   }
 }

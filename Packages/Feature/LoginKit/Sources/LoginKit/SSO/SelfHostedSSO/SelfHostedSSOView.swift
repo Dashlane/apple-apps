@@ -36,6 +36,7 @@
         model: SelfHostedSSOViewModel(
           login: "_",
           authorisationURL: URL(string: "_")!,
+          logger: .mock,
           completion: { _ in }))
     }
   }

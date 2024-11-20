@@ -8,7 +8,7 @@ public struct PaywallViewModel {
 
   public enum Trigger {
     case capability(key: CapabilityKey)
-    case frozenAccount(firstAnnouncement: Bool)
+    case frozenAccount
   }
 
   public struct OldPaywallContent {
@@ -32,7 +32,7 @@ public struct PaywallViewModel {
 
 extension PaywallViewModel {
   var upgradeText: String? {
-    if case .frozenAccount(let isFirstAnnouncement) = trigger, isFirstAnnouncement {
+    if case .frozenAccount = trigger {
       return L10n.Core.paywallsFrozenCTARegain
     }
 

@@ -7,14 +7,23 @@ import UIKit
 extension AppCoordinator {
   func configureAppearance() {
     UINavigationBar.appearance().tintColor = .ds.text.brand.standard
-    UITabBar.appearance().tintColor = .ds.text.brand.quiet
+
+    let tabBarAppearance = UITabBar.appearance()
+    let scrollEdgeAppearance = UITabBarAppearance()
+    scrollEdgeAppearance.configureWithDefaultBackground()
+    tabBarAppearance.scrollEdgeAppearance = scrollEdgeAppearance
+    tabBarAppearance.tintColor = .ds.text.brand.quiet
+
     UIView.appearance(whenContainedInInstancesOf: [UIAlertController.self]).tintColor =
       UIColor.ds.text.brand.standard
+
     UITableViewCell.appearance().backgroundColor = .ds.container.agnostic.neutral.supershy
     UITableView.appearance().tableFooterView = UIView()
+
     UIPageControl.appearance().currentPageIndicatorTintColor =
       .ds.container.expressive.brand.catchy.idle
     UIPageControl.appearance().pageIndicatorTintColor = .ds.container.expressive.brand.quiet.idle
+
     UISegmentedControl.appearance().selectedSegmentTintColor = UIColor(.ds.background.default)
     UISegmentedControl.appearance().setTitleTextAttributes(
       [
@@ -24,7 +33,6 @@ extension AppCoordinator {
       ],
       for: .selected
     )
-
     UISegmentedControl.appearance().setTitleTextAttributes(
       [
         .font: FontScaling.scaledFont(font: UIFont.systemFont(ofSize: UIFont.systemFontSize)),

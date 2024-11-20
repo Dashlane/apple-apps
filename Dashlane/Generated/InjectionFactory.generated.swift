@@ -115,6 +115,9 @@
 #if canImport(PDFKit)
   import PDFKit
 #endif
+#if canImport(PremiumKit)
+  import PremiumKit
+#endif
 #if canImport(QuickLook)
   import QuickLook
 #endif
@@ -329,9 +332,10 @@ extension MockVaultConnectedContainer {
 extension MockVaultConnectedContainer {
   @MainActor
   internal func makeAddOTPFlowViewModel(
-    mode: AddOTPFlowViewModel.Mode, completion: @escaping () -> Void
+    otpURL: URL? = nil, mode: AddOTPFlowViewModel.Mode, completion: @escaping () -> Void
   ) -> AddOTPFlowViewModel {
     return AddOTPFlowViewModel(
+      otpURL: otpURL,
       activityReporter: activityReporter,
       vaultItemsStore: vaultItemsStore,
       vaultItemDatabase: vaultItemDatabase,
@@ -372,17 +376,18 @@ extension MockVaultConnectedContainer {
     return AddressDetailViewModel(
       item: item,
       mode: mode,
+      session: session,
       vaultItemDatabase: vaultItemDatabase,
       vaultItemsStore: vaultItemsStore,
       vaultCollectionDatabase: vaultCollectionDatabase,
       vaultCollectionsStore: vaultCollectionsStore,
+      vaultStateService: vaultStateService,
       sharingService: sharedVaultHandling,
       userSpacesService: userSpacesService,
       deepLinkService: vaultKitDeepLinkingService,
       activityReporter: activityReporter,
       iconViewModelProvider: makeVaultItemIconViewModel,
       logger: logger,
-      accessControl: accessControl,
       activityLogsService: activityLogsService,
       regionInformationService: regionInformationService,
       userSettings: userSettings,
@@ -464,10 +469,12 @@ extension MockVaultConnectedContainer {
     return BankAccountDetailViewModel(
       item: item,
       mode: mode,
+      session: session,
       vaultItemDatabase: vaultItemDatabase,
       vaultItemsStore: vaultItemsStore,
       vaultCollectionDatabase: vaultCollectionDatabase,
       vaultCollectionsStore: vaultCollectionsStore,
+      vaultStateService: vaultStateService,
       sharingService: sharedVaultHandling,
       userSpacesService: userSpacesService,
       deepLinkService: vaultKitDeepLinkingService,
@@ -475,7 +482,6 @@ extension MockVaultConnectedContainer {
       activityLogsService: activityLogsService,
       iconViewModelProvider: makeVaultItemIconViewModel,
       logger: logger,
-      accessControl: accessControl,
       regionInformationService: regionInformationService,
       userSettings: userSettings,
       documentStorageService: documentStorageService,
@@ -536,10 +542,12 @@ extension MockVaultConnectedContainer {
     return CompanyDetailViewModel(
       item: item,
       mode: mode,
+      session: session,
       vaultItemDatabase: vaultItemDatabase,
       vaultItemsStore: vaultItemsStore,
       vaultCollectionDatabase: vaultCollectionDatabase,
       vaultCollectionsStore: vaultCollectionsStore,
+      vaultStateService: vaultStateService,
       sharingService: sharedVaultHandling,
       userSpacesService: userSpacesService,
       documentStorageService: documentStorageService,
@@ -548,7 +556,6 @@ extension MockVaultConnectedContainer {
       activityLogsService: activityLogsService,
       iconViewModelProvider: makeVaultItemIconViewModel,
       logger: logger,
-      accessControl: accessControl,
       userSettings: userSettings,
       pasteboardService: pasteboardService,
       attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
@@ -580,6 +587,7 @@ extension MockVaultConnectedContainer {
       generatedPasswordToLink: generatedPasswordToLink,
       vaultItemDatabase: vaultItemDatabase,
       vaultItemsStore: vaultItemsStore,
+      vaultStateService: vaultStateService,
       vaultCollectionDatabase: vaultCollectionDatabase,
       vaultCollectionsStore: vaultCollectionsStore,
       actionPublisher: actionPublisher,
@@ -593,7 +601,6 @@ extension MockVaultConnectedContainer {
       featureService: featureService,
       iconService: iconService,
       logger: logger,
-      accessControl: accessControl,
       userSettings: userSettings,
       passwordEvaluator: passwordEvaluator,
       onboardingService: onboardingService,
@@ -609,7 +616,7 @@ extension MockVaultConnectedContainer {
       domainsSectionModelFactory: InjectedFactory(makeDomainsSectionModel),
       makePasswordGeneratorViewModel: InjectedFactory(makePasswordGeneratorViewModel),
       addOTPFlowViewModelFactory: InjectedFactory(makeAddOTPFlowViewModel),
-      passwordGeneratorViewModelFactory: makePasswordGeneratorViewModel,
+      passwordGeneratorViewModelFactory: InjectedFactory(makePasswordGeneratorViewModel),
       attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
     )
   }
@@ -637,7 +644,7 @@ extension MockVaultConnectedContainer {
       sharingDetailSectionModelFactory: InjectedFactory(makeSharingDetailSectionModel),
       domainsSectionModelFactory: InjectedFactory(makeDomainsSectionModel),
       addOTPFlowViewModelFactory: InjectedFactory(makeAddOTPFlowViewModel),
-      passwordGeneratorViewModelFactory: makePasswordGeneratorViewModel,
+      passwordGeneratorViewModelFactory: InjectedFactory(makePasswordGeneratorViewModel),
       service: service
     )
   }
@@ -668,10 +675,12 @@ extension MockVaultConnectedContainer {
     return CreditCardDetailViewModel(
       item: item,
       mode: mode,
+      session: session,
       vaultItemDatabase: vaultItemDatabase,
       vaultItemsStore: vaultItemsStore,
       vaultCollectionDatabase: vaultCollectionDatabase,
       vaultCollectionsStore: vaultCollectionsStore,
+      vaultStateService: vaultStateService,
       sharingService: sharedVaultHandling,
       userSpacesService: userSpacesService,
       deepLinkService: vaultKitDeepLinkingService,
@@ -679,7 +688,6 @@ extension MockVaultConnectedContainer {
       activityLogsService: activityLogsService,
       iconViewModelProvider: makeVaultItemIconViewModel,
       logger: logger,
-      accessControl: accessControl,
       regionInformationService: regionInformationService,
       userSettings: userSettings,
       documentStorageService: documentStorageService,
@@ -718,10 +726,12 @@ extension MockVaultConnectedContainer {
     return DrivingLicenseDetailViewModel(
       item: item,
       mode: mode,
+      session: session,
       vaultItemDatabase: vaultItemDatabase,
       vaultItemsStore: vaultItemsStore,
       vaultCollectionDatabase: vaultCollectionDatabase,
       vaultCollectionsStore: vaultCollectionsStore,
+      vaultStateService: vaultStateService,
       sharingService: sharedVaultHandling,
       userSpacesService: userSpacesService,
       deepLinkService: vaultKitDeepLinkingService,
@@ -730,7 +740,6 @@ extension MockVaultConnectedContainer {
       regionInformationService: regionInformationService,
       iconViewModelProvider: makeVaultItemIconViewModel,
       logger: logger,
-      accessControl: accessControl,
       userSettings: userSettings,
       documentStorageService: documentStorageService,
       pasteboardService: pasteboardService,
@@ -757,10 +766,12 @@ extension MockVaultConnectedContainer {
     return EmailDetailViewModel(
       item: item,
       mode: mode,
+      session: session,
       vaultItemDatabase: vaultItemDatabase,
       vaultItemsStore: vaultItemsStore,
       vaultCollectionDatabase: vaultCollectionDatabase,
       vaultCollectionsStore: vaultCollectionsStore,
+      vaultStateService: vaultStateService,
       sharingService: sharedVaultHandling,
       userSpacesService: userSpacesService,
       documentStorageService: documentStorageService,
@@ -769,7 +780,6 @@ extension MockVaultConnectedContainer {
       activityLogsService: activityLogsService,
       iconViewModelProvider: makeVaultItemIconViewModel,
       logger: logger,
-      accessControl: accessControl,
       userSettings: userSettings,
       pasteboardService: pasteboardService,
       attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
@@ -794,10 +804,12 @@ extension MockVaultConnectedContainer {
     return FiscalInformationDetailViewModel(
       item: item,
       mode: mode,
+      session: session,
       vaultItemDatabase: vaultItemDatabase,
       vaultItemsStore: vaultItemsStore,
       vaultCollectionDatabase: vaultCollectionDatabase,
       vaultCollectionsStore: vaultCollectionsStore,
+      vaultStateService: vaultStateService,
       sharingService: sharedVaultHandling,
       userSpacesService: userSpacesService,
       documentStorageService: documentStorageService,
@@ -806,7 +818,6 @@ extension MockVaultConnectedContainer {
       activityLogsService: activityLogsService,
       iconViewModelProvider: makeVaultItemIconViewModel,
       logger: logger,
-      accessControl: accessControl,
       userSettings: userSettings,
       pasteboardService: pasteboardService,
       attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
@@ -851,10 +862,12 @@ extension MockVaultConnectedContainer {
     return IDCardDetailViewModel(
       item: item,
       mode: mode,
+      session: session,
       vaultItemDatabase: vaultItemDatabase,
       vaultItemsStore: vaultItemsStore,
       vaultCollectionDatabase: vaultCollectionDatabase,
       vaultCollectionsStore: vaultCollectionsStore,
+      vaultStateService: vaultStateService,
       sharingService: sharedVaultHandling,
       userSpacesService: userSpacesService,
       documentStorageService: documentStorageService,
@@ -863,7 +876,6 @@ extension MockVaultConnectedContainer {
       activityLogsService: activityLogsService,
       iconViewModelProvider: makeVaultItemIconViewModel,
       logger: logger,
-      accessControl: accessControl,
       userSettings: userSettings,
       pasteboardService: pasteboardService,
       attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
@@ -886,10 +898,12 @@ extension MockVaultConnectedContainer {
     return IdentityDetailViewModel(
       item: item,
       mode: mode,
+      session: session,
       vaultItemDatabase: vaultItemDatabase,
       vaultItemsStore: vaultItemsStore,
       vaultCollectionDatabase: vaultCollectionDatabase,
       vaultCollectionsStore: vaultCollectionsStore,
+      vaultStateService: vaultStateService,
       sharingService: sharedVaultHandling,
       userSpacesService: userSpacesService,
       documentStorageService: documentStorageService,
@@ -898,7 +912,6 @@ extension MockVaultConnectedContainer {
       activityLogsService: activityLogsService,
       iconViewModelProvider: makeVaultItemIconViewModel,
       logger: logger,
-      accessControl: accessControl,
       userSettings: userSettings,
       pasteboardService: pasteboardService,
       attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
@@ -949,10 +962,12 @@ extension MockVaultConnectedContainer {
     return PasskeyDetailViewModel(
       item: item,
       mode: mode,
+      session: session,
       vaultItemDatabase: vaultItemDatabase,
       vaultItemsStore: vaultItemsStore,
       vaultCollectionDatabase: vaultCollectionDatabase,
       vaultCollectionsStore: vaultCollectionsStore,
+      vaultStateService: vaultStateService,
       sharingService: sharedVaultHandling,
       userSpacesService: userSpacesService,
       deepLinkService: vaultKitDeepLinkingService,
@@ -987,10 +1002,12 @@ extension MockVaultConnectedContainer {
     return PassportDetailViewModel(
       item: item,
       mode: mode,
+      session: session,
       vaultItemDatabase: vaultItemDatabase,
       vaultItemsStore: vaultItemsStore,
       vaultCollectionDatabase: vaultCollectionDatabase,
       vaultCollectionsStore: vaultCollectionsStore,
+      vaultStateService: vaultStateService,
       sharingService: sharedVaultHandling,
       userSpacesService: userSpacesService,
       documentStorageService: documentStorageService,
@@ -999,7 +1016,6 @@ extension MockVaultConnectedContainer {
       activityLogsService: activityLogsService,
       iconViewModelProvider: makeVaultItemIconViewModel,
       logger: logger,
-      accessControl: accessControl,
       userSettings: userSettings,
       pasteboardService: pasteboardService,
       attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
@@ -1034,7 +1050,7 @@ extension MockVaultConnectedContainer {
   internal func makePasswordGeneratorViewModel(
     mode: PasswordGeneratorMode,
     saveGeneratedPassword: @escaping (GeneratedPassword) -> GeneratedPassword,
-    savePreferencesOnChange: Bool = true, copyAction: @escaping (String) -> Void
+    savePreferencesOnChange: Bool = true
   ) -> PasswordGeneratorViewModel {
     return PasswordGeneratorViewModel(
       mode: mode,
@@ -1042,14 +1058,15 @@ extension MockVaultConnectedContainer {
       passwordEvaluator: passwordEvaluator,
       sessionActivityReporter: activityReporter,
       userSettings: userSettings,
+      vaultStateService: vaultStateService,
+      deeplinkingService: deepLinkService,
       savePreferencesOnChange: savePreferencesOnChange,
-      copyAction: copyAction
+      pasteboardService: pasteboardService
     )
   }
 
   internal func makePasswordGeneratorViewModel(
-    mode: PasswordGeneratorMode, savePreferencesOnChange: Bool = true,
-    copyAction: @escaping (String) -> Void
+    mode: PasswordGeneratorMode, savePreferencesOnChange: Bool = true
   ) -> PasswordGeneratorViewModel {
     return PasswordGeneratorViewModel(
       mode: mode,
@@ -1057,21 +1074,25 @@ extension MockVaultConnectedContainer {
       passwordEvaluator: passwordEvaluator,
       sessionActivityReporter: activityReporter,
       userSettings: userSettings,
+      vaultStateService: vaultStateService,
+      deeplinkingService: deepLinkService,
       savePreferencesOnChange: savePreferencesOnChange,
-      copyAction: copyAction
+      pasteboardService: pasteboardService
     )
   }
 
-  internal func makePasswordGeneratorViewModel(
-    mode: PasswordGeneratorMode, copyAction: @escaping (String) -> Void
-  ) -> PasswordGeneratorViewModel {
+  internal func makePasswordGeneratorViewModel(mode: PasswordGeneratorMode)
+    -> PasswordGeneratorViewModel
+  {
     return PasswordGeneratorViewModel(
       mode: mode,
       database: database,
       passwordEvaluator: passwordEvaluator,
       sessionActivityReporter: activityReporter,
       userSettings: userSettings,
-      copyAction: copyAction
+      vaultStateService: vaultStateService,
+      deeplinkingService: deepLinkService,
+      pasteboardService: pasteboardService
     )
   }
 
@@ -1099,10 +1120,12 @@ extension MockVaultConnectedContainer {
     return PhoneDetailViewModel(
       item: item,
       mode: mode,
+      session: session,
       vaultItemDatabase: vaultItemDatabase,
       vaultItemsStore: vaultItemsStore,
       vaultCollectionDatabase: vaultCollectionDatabase,
       vaultCollectionsStore: vaultCollectionsStore,
+      vaultStateService: vaultStateService,
       sharingService: sharedVaultHandling,
       userSpacesService: userSpacesService,
       documentStorageService: documentStorageService,
@@ -1111,7 +1134,6 @@ extension MockVaultConnectedContainer {
       activityLogsService: activityLogsService,
       iconViewModelProvider: makeVaultItemIconViewModel,
       logger: logger,
-      accessControl: accessControl,
       userSettings: userSettings,
       pasteboardService: pasteboardService,
       attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
@@ -1151,6 +1173,7 @@ extension MockVaultConnectedContainer {
       vaultItemDatabase: vaultItemDatabase,
       vaultCollectionDatabase: vaultCollectionDatabase,
       vaultCollectionsStore: vaultCollectionsStore,
+      vaultStateService: vaultStateService,
       userSpacesService: userSpacesService,
       activityReporter: activityReporter,
       activityLogsService: activityLogsService,
@@ -1170,11 +1193,13 @@ extension MockVaultConnectedContainer {
   {
     return SecretDetailViewModel(
       item: item,
+      session: session,
       mode: mode,
       vaultItemDatabase: vaultItemDatabase,
       vaultItemsStore: vaultItemsStore,
       vaultCollectionDatabase: vaultCollectionDatabase,
       vaultCollectionsStore: vaultCollectionsStore,
+      vaultStateService: vaultStateService,
       sharingService: sharedVaultHandling,
       userSpacesService: userSpacesService,
       deepLinkService: vaultKitDeepLinkingService,
@@ -1187,7 +1212,6 @@ extension MockVaultConnectedContainer {
       attachmentsListViewModelFactory: InjectedFactory(makeAttachmentsListViewModel),
       attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
       logger: logger,
-      accessControl: accessControl,
       userSettings: userSettings
     )
   }
@@ -1197,47 +1221,6 @@ extension MockVaultConnectedContainer {
       service: service,
       attachmentsListViewModelFactory: InjectedFactory(makeAttachmentsListViewModel),
       sharingDetailSectionModelFactory: InjectedFactory(makeSharingDetailSectionModel)
-    )
-  }
-
-}
-
-extension MockVaultConnectedContainer {
-
-  internal func makeSecureNotesDetailFieldsModel(service: DetailService<SecureNote>)
-    -> SecureNotesDetailFieldsModel
-  {
-    return SecureNotesDetailFieldsModel(
-      service: service,
-      featureService: featureService
-    )
-  }
-
-}
-
-extension MockVaultConnectedContainer {
-
-  internal func makeSecureNotesDetailNavigationBarModel(
-    service: DetailService<SecureNote>, isEditingContent: FocusState<Bool>.Binding
-  ) -> SecureNotesDetailNavigationBarModel {
-    return SecureNotesDetailNavigationBarModel(
-      service: service,
-      isEditingContent: isEditingContent,
-      featureService: featureService
-    )
-  }
-
-}
-
-extension MockVaultConnectedContainer {
-
-  internal func makeSecureNotesDetailToolbarModel(service: DetailService<SecureNote>)
-    -> SecureNotesDetailToolbarModel
-  {
-    return SecureNotesDetailToolbarModel(
-      service: service,
-      session: session,
-      shareButtonViewModelFactory: InjectedFactory(makeShareButtonViewModel)
     )
   }
 
@@ -1256,6 +1239,7 @@ extension MockVaultConnectedContainer {
       vaultItemsStore: vaultItemsStore,
       vaultCollectionDatabase: vaultCollectionDatabase,
       vaultCollectionsStore: vaultCollectionsStore,
+      vaultStateService: vaultStateService,
       sharingService: sharedVaultHandling,
       userSpacesService: userSpacesService,
       deepLinkService: vaultKitDeepLinkingService,
@@ -1263,10 +1247,6 @@ extension MockVaultConnectedContainer {
       activityLogsService: activityLogsService,
       pasteboardService: pasteboardService,
       iconViewModelProvider: makeVaultItemIconViewModel,
-      secureNotesDetailNavigationBarModelFactory: InjectedFactory(
-        makeSecureNotesDetailNavigationBarModel),
-      secureNotesDetailFieldsModelFactory: InjectedFactory(makeSecureNotesDetailFieldsModel),
-      secureNotesDetailToolbarModelFactory: InjectedFactory(makeSecureNotesDetailToolbarModel),
       sharingDetailSectionModelFactory: InjectedFactory(makeSharingDetailSectionModel),
       sharingMembersDetailLinkModelFactory: InjectedFactory(makeSharingMembersDetailLinkModel),
       shareButtonViewModelFactory: InjectedFactory(makeShareButtonViewModel),
@@ -1274,7 +1254,6 @@ extension MockVaultConnectedContainer {
       attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
       logger: logger,
       documentStorageService: documentStorageService,
-      accessControl: accessControl,
       userSettings: userSettings
     )
   }
@@ -1285,10 +1264,6 @@ extension MockVaultConnectedContainer {
     return SecureNotesDetailViewModel(
       session: session,
       service: service,
-      secureNotesDetailNavigationBarModelFactory: InjectedFactory(
-        makeSecureNotesDetailNavigationBarModel),
-      secureNotesDetailFieldsModelFactory: InjectedFactory(makeSecureNotesDetailFieldsModel),
-      secureNotesDetailToolbarFactory: InjectedFactory(makeSecureNotesDetailToolbarModel),
       sharingDetailSectionModelFactory: InjectedFactory(makeSharingDetailSectionModel),
       sharingMembersDetailLinkModelFactory: InjectedFactory(makeSharingMembersDetailLinkModel),
       shareButtonViewModelFactory: InjectedFactory(makeShareButtonViewModel),
@@ -1308,7 +1283,9 @@ extension MockVaultConnectedContainer {
       userGroupIds: userGroupIds,
       userEmails: userEmails,
       userSpacesService: userSpacesService,
-      shareFlowViewModelFactory: InjectedFactory(makeShareFlowViewModel)
+      shareFlowViewModelFactory: InjectedFactory(makeShareFlowViewModel),
+      vaultStateService: vaultStateService,
+      deeplinkingService: vaultKitDeepLinkingService
     )
   }
 
@@ -1418,10 +1395,12 @@ extension MockVaultConnectedContainer {
     return SocialSecurityDetailViewModel(
       item: item,
       mode: mode,
+      session: session,
       vaultItemDatabase: vaultItemDatabase,
       vaultItemsStore: vaultItemsStore,
       vaultCollectionDatabase: vaultCollectionDatabase,
       vaultCollectionsStore: vaultCollectionsStore,
+      vaultStateService: vaultStateService,
       sharingService: sharedVaultHandling,
       userSpacesService: userSpacesService,
       documentStorageService: documentStorageService,
@@ -1430,7 +1409,6 @@ extension MockVaultConnectedContainer {
       activityLogsService: activityLogsService,
       iconViewModelProvider: makeVaultItemIconViewModel,
       logger: logger,
-      accessControl: accessControl,
       userSettings: userSettings,
       pasteboardService: pasteboardService,
       attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
@@ -1496,10 +1474,12 @@ extension MockVaultConnectedContainer {
     return WebsiteDetailViewModel(
       item: item,
       mode: mode,
+      session: session,
       vaultItemDatabase: vaultItemDatabase,
       vaultItemsStore: vaultItemsStore,
       vaultCollectionDatabase: vaultCollectionDatabase,
       vaultCollectionsStore: vaultCollectionsStore,
+      vaultStateService: vaultStateService,
       sharingService: sharedVaultHandling,
       userSpacesService: userSpacesService,
       documentStorageService: documentStorageService,
@@ -1508,7 +1488,6 @@ extension MockVaultConnectedContainer {
       activityLogsService: activityLogsService,
       iconViewModelProvider: makeVaultItemIconViewModel,
       logger: logger,
-      accessControl: accessControl,
       userSettings: userSettings,
       pasteboardService: pasteboardService,
       attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
@@ -1526,6 +1505,41 @@ extension MockVaultConnectedContainer {
 }
 
 internal protocol SessionServicesInjecting {}
+
+extension SessionServicesContainer {
+  @MainActor
+  internal func makeAccessControlRequestViewModifierModel() -> AccessControlRequestViewModifierModel
+  {
+    return AccessControlRequestViewModifierModel(
+      accessControlService: accessControlService,
+      accessControlViewModelFactory: InjectedFactory(makeAccessControlViewModel)
+    )
+  }
+
+}
+
+extension SessionServicesContainer {
+  @MainActor
+  internal func makeAccessControlViewModel(
+    mode: AccessControlViewModel.AccessMode, reason: AccessControlReason,
+    completion: @escaping AccessControlCompletion
+  ) -> AccessControlViewModel {
+    return AccessControlViewModel(
+      mode: mode,
+      reason: reason,
+      completion: completion
+    )
+  }
+  @MainActor
+  internal func makeAccessControlViewModel(request: AccessControlService.UserVerificationRequest)
+    -> AccessControlViewModel
+  {
+    return AccessControlViewModel(
+      request: request
+    )
+  }
+
+}
 
 extension SessionServicesContainer {
   @MainActor
@@ -1631,6 +1645,7 @@ extension SessionServicesContainer {
       accessControl: vaultKitAccessControl,
       pasteboardService: vaultKitPasteboardService,
       vaultItemDatabase: vaultServicesSuit.vaultItemDatabase,
+      vaultStateService: vaultKitVaultStateService,
       sharingPermissionProvider: vaultKitSharingServiceHandler,
       activityReporter: activityReporter,
       userSpacesService: userSpacesService
@@ -1713,9 +1728,10 @@ extension SessionServicesContainer {
 extension SessionServicesContainer {
   @MainActor
   internal func makeAddOTPFlowViewModel(
-    mode: AddOTPFlowViewModel.Mode, completion: @escaping () -> Void
+    otpURL: URL? = nil, mode: AddOTPFlowViewModel.Mode, completion: @escaping () -> Void
   ) -> AddOTPFlowViewModel {
     return AddOTPFlowViewModel(
+      otpURL: otpURL,
       activityReporter: activityReporter,
       vaultItemsStore: vaultServicesSuit.vaultItemsStore,
       vaultItemDatabase: vaultServicesSuit.vaultItemDatabase,
@@ -1773,17 +1789,18 @@ extension SessionServicesContainer {
     return AddressDetailViewModel(
       item: item,
       mode: mode,
+      session: session,
       vaultItemDatabase: vaultServicesSuit.vaultItemDatabase,
       vaultItemsStore: vaultServicesSuit.vaultItemsStore,
       vaultCollectionDatabase: vaultServicesSuit.vaultCollectionDatabase,
       vaultCollectionsStore: vaultServicesSuit.vaultCollectionsStore,
+      vaultStateService: vaultKitVaultStateService,
       sharingService: vaultKitSharingServiceHandler,
       userSpacesService: userSpacesService,
       deepLinkService: vaultKitDeepLinkingService,
       activityReporter: activityReporter,
       iconViewModelProvider: makeVaultItemIconViewModel,
       logger: appServices.rootLogger,
-      accessControl: vaultKitAccessControl,
       activityLogsService: activityLogsService,
       regionInformationService: appServices.regionInformationService,
       userSettings: vaultKitUserSettings,
@@ -1882,10 +1899,12 @@ extension SessionServicesContainer {
     return BankAccountDetailViewModel(
       item: item,
       mode: mode,
+      session: session,
       vaultItemDatabase: vaultServicesSuit.vaultItemDatabase,
       vaultItemsStore: vaultServicesSuit.vaultItemsStore,
       vaultCollectionDatabase: vaultServicesSuit.vaultCollectionDatabase,
       vaultCollectionsStore: vaultServicesSuit.vaultCollectionsStore,
+      vaultStateService: vaultKitVaultStateService,
       sharingService: vaultKitSharingServiceHandler,
       userSpacesService: userSpacesService,
       deepLinkService: vaultKitDeepLinkingService,
@@ -1893,7 +1912,6 @@ extension SessionServicesContainer {
       activityLogsService: activityLogsService,
       iconViewModelProvider: makeVaultItemIconViewModel,
       logger: appServices.rootLogger,
-      accessControl: vaultKitAccessControl,
       regionInformationService: appServices.regionInformationService,
       userSettings: vaultKitUserSettings,
       documentStorageService: documentStorageService,
@@ -2052,6 +2070,8 @@ extension SessionServicesContainer {
       initialStep: initialStep,
       vaultCollectionsStore: vaultServicesSuit.vaultCollectionsStore,
       database: database,
+      vaultStateService: vaultKitVaultStateService,
+      deeplinkingService: appServices.deepLinkingService,
       detailViewModelFactory: InjectedFactory(makeVaultDetailViewModel),
       collectionsListViewModelFactory: InjectedFactory(makeCollectionsListViewModel),
       collectionDetailViewModelFactory: InjectedFactory(makeCollectionDetailViewModel),
@@ -2071,10 +2091,12 @@ extension SessionServicesContainer {
     return CompanyDetailViewModel(
       item: item,
       mode: mode,
+      session: session,
       vaultItemDatabase: vaultServicesSuit.vaultItemDatabase,
       vaultItemsStore: vaultServicesSuit.vaultItemsStore,
       vaultCollectionDatabase: vaultServicesSuit.vaultCollectionDatabase,
       vaultCollectionsStore: vaultServicesSuit.vaultCollectionsStore,
+      vaultStateService: vaultKitVaultStateService,
       sharingService: vaultKitSharingServiceHandler,
       userSpacesService: userSpacesService,
       documentStorageService: documentStorageService,
@@ -2083,7 +2105,6 @@ extension SessionServicesContainer {
       activityLogsService: activityLogsService,
       iconViewModelProvider: makeVaultItemIconViewModel,
       logger: appServices.rootLogger,
-      accessControl: vaultKitAccessControl,
       userSettings: vaultKitUserSettings,
       pasteboardService: vaultKitPasteboardService,
       attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
@@ -2107,8 +2128,9 @@ extension SessionServicesContainer {
       featureService: featureService,
       userSpaceService: userSpacesService,
       capabilitiesService: premiumStatusServicesSuit.capabilityService,
-      activityReportProtocol: activityReporter,
-      syncedSettings: syncedSettings
+      activityReporter: activityReporter,
+      syncedSettings: syncedSettings,
+      pasteboardService: vaultKitPasteboardService
     )
   }
 
@@ -2153,7 +2175,8 @@ extension SessionServicesContainer {
     return ConnectedRootViewModel(
       iphoneRootViewModelFactory: InjectedFactory(makeConnectedIphoneRootViewModel),
       ipadMacRootViewModelFactory: InjectedFactory(makeConnectedIpadMacRootViewModel),
-      connectedEnvironmentModelFactory: InjectedFactory(makeConnectedEnvironmentModel)
+      connectedEnvironmentModelFactory: InjectedFactory(makeConnectedEnvironmentModel),
+      accessControlModelFactory: InjectedFactory(makeAccessControlRequestViewModifierModel)
     )
   }
 
@@ -2174,6 +2197,7 @@ extension SessionServicesContainer {
       generatedPasswordToLink: generatedPasswordToLink,
       vaultItemDatabase: vaultServicesSuit.vaultItemDatabase,
       vaultItemsStore: vaultServicesSuit.vaultItemsStore,
+      vaultStateService: vaultKitVaultStateService,
       vaultCollectionDatabase: vaultServicesSuit.vaultCollectionDatabase,
       vaultCollectionsStore: vaultServicesSuit.vaultCollectionsStore,
       actionPublisher: actionPublisher,
@@ -2187,7 +2211,6 @@ extension SessionServicesContainer {
       featureService: featureService,
       iconService: iconService,
       logger: appServices.rootLogger,
-      accessControl: vaultKitAccessControl,
       userSettings: vaultKitUserSettings,
       passwordEvaluator: appServices.passwordEvaluator,
       onboardingService: onboardingService,
@@ -2203,7 +2226,7 @@ extension SessionServicesContainer {
       domainsSectionModelFactory: InjectedFactory(makeDomainsSectionModel),
       makePasswordGeneratorViewModel: InjectedFactory(makePasswordGeneratorViewModel),
       addOTPFlowViewModelFactory: InjectedFactory(makeAddOTPFlowViewModel),
-      passwordGeneratorViewModelFactory: makePasswordGeneratorViewModel,
+      passwordGeneratorViewModelFactory: InjectedFactory(makePasswordGeneratorViewModel),
       attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
     )
   }
@@ -2231,7 +2254,7 @@ extension SessionServicesContainer {
       sharingDetailSectionModelFactory: InjectedFactory(makeSharingDetailSectionModel),
       domainsSectionModelFactory: InjectedFactory(makeDomainsSectionModel),
       addOTPFlowViewModelFactory: InjectedFactory(makeAddOTPFlowViewModel),
-      passwordGeneratorViewModelFactory: makePasswordGeneratorViewModel,
+      passwordGeneratorViewModelFactory: InjectedFactory(makePasswordGeneratorViewModel),
       service: service
     )
   }
@@ -2262,10 +2285,12 @@ extension SessionServicesContainer {
     return CreditCardDetailViewModel(
       item: item,
       mode: mode,
+      session: session,
       vaultItemDatabase: vaultServicesSuit.vaultItemDatabase,
       vaultItemsStore: vaultServicesSuit.vaultItemsStore,
       vaultCollectionDatabase: vaultServicesSuit.vaultCollectionDatabase,
       vaultCollectionsStore: vaultServicesSuit.vaultCollectionsStore,
+      vaultStateService: vaultKitVaultStateService,
       sharingService: vaultKitSharingServiceHandler,
       userSpacesService: userSpacesService,
       deepLinkService: vaultKitDeepLinkingService,
@@ -2273,7 +2298,6 @@ extension SessionServicesContainer {
       activityLogsService: activityLogsService,
       iconViewModelProvider: makeVaultItemIconViewModel,
       logger: appServices.rootLogger,
-      accessControl: vaultKitAccessControl,
       regionInformationService: appServices.regionInformationService,
       userSettings: vaultKitUserSettings,
       documentStorageService: documentStorageService,
@@ -2524,10 +2548,12 @@ extension SessionServicesContainer {
     return DrivingLicenseDetailViewModel(
       item: item,
       mode: mode,
+      session: session,
       vaultItemDatabase: vaultServicesSuit.vaultItemDatabase,
       vaultItemsStore: vaultServicesSuit.vaultItemsStore,
       vaultCollectionDatabase: vaultServicesSuit.vaultCollectionDatabase,
       vaultCollectionsStore: vaultServicesSuit.vaultCollectionsStore,
+      vaultStateService: vaultKitVaultStateService,
       sharingService: vaultKitSharingServiceHandler,
       userSpacesService: userSpacesService,
       deepLinkService: vaultKitDeepLinkingService,
@@ -2536,7 +2562,6 @@ extension SessionServicesContainer {
       regionInformationService: appServices.regionInformationService,
       iconViewModelProvider: makeVaultItemIconViewModel,
       logger: appServices.rootLogger,
-      accessControl: vaultKitAccessControl,
       userSettings: vaultKitUserSettings,
       documentStorageService: documentStorageService,
       pasteboardService: vaultKitPasteboardService,
@@ -2563,10 +2588,12 @@ extension SessionServicesContainer {
     return EmailDetailViewModel(
       item: item,
       mode: mode,
+      session: session,
       vaultItemDatabase: vaultServicesSuit.vaultItemDatabase,
       vaultItemsStore: vaultServicesSuit.vaultItemsStore,
       vaultCollectionDatabase: vaultServicesSuit.vaultCollectionDatabase,
       vaultCollectionsStore: vaultServicesSuit.vaultCollectionsStore,
+      vaultStateService: vaultKitVaultStateService,
       sharingService: vaultKitSharingServiceHandler,
       userSpacesService: userSpacesService,
       documentStorageService: documentStorageService,
@@ -2575,7 +2602,6 @@ extension SessionServicesContainer {
       activityLogsService: activityLogsService,
       iconViewModelProvider: makeVaultItemIconViewModel,
       logger: appServices.rootLogger,
-      accessControl: vaultKitAccessControl,
       userSettings: vaultKitUserSettings,
       pasteboardService: vaultKitPasteboardService,
       attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
@@ -2634,10 +2660,12 @@ extension SessionServicesContainer {
     return FiscalInformationDetailViewModel(
       item: item,
       mode: mode,
+      session: session,
       vaultItemDatabase: vaultServicesSuit.vaultItemDatabase,
       vaultItemsStore: vaultServicesSuit.vaultItemsStore,
       vaultCollectionDatabase: vaultServicesSuit.vaultCollectionDatabase,
       vaultCollectionsStore: vaultServicesSuit.vaultCollectionsStore,
+      vaultStateService: vaultKitVaultStateService,
       sharingService: vaultKitSharingServiceHandler,
       userSpacesService: userSpacesService,
       documentStorageService: documentStorageService,
@@ -2646,7 +2674,6 @@ extension SessionServicesContainer {
       activityLogsService: activityLogsService,
       iconViewModelProvider: makeVaultItemIconViewModel,
       logger: appServices.rootLogger,
-      accessControl: vaultKitAccessControl,
       userSettings: vaultKitUserSettings,
       pasteboardService: vaultKitPasteboardService,
       attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
@@ -2658,6 +2685,19 @@ extension SessionServicesContainer {
   {
     return FiscalInformationDetailViewModel(
       service: service
+    )
+  }
+
+}
+
+extension SessionServicesContainer {
+
+  internal func makeFrozenAccountNotificationRowViewModel(notification: DashlaneNotification)
+    -> FrozenAccountNotificationRowViewModel
+  {
+    return FrozenAccountNotificationRowViewModel(
+      notification: notification,
+      deepLinkingService: appServices.deepLinkingService
     )
   }
 
@@ -2704,7 +2744,7 @@ extension SessionServicesContainer {
 extension SessionServicesContainer {
 
   internal func makeGuidedOnboardingFlowViewModel(
-    navigator: DashlaneNavigationController? = nil, completion: @escaping () -> Void
+    navigator: DashlaneNavigationController, completion: @escaping () -> Void
   ) -> GuidedOnboardingFlowViewModel {
     return GuidedOnboardingFlowViewModel(
       navigator: navigator,
@@ -2825,10 +2865,12 @@ extension SessionServicesContainer {
     return IDCardDetailViewModel(
       item: item,
       mode: mode,
+      session: session,
       vaultItemDatabase: vaultServicesSuit.vaultItemDatabase,
       vaultItemsStore: vaultServicesSuit.vaultItemsStore,
       vaultCollectionDatabase: vaultServicesSuit.vaultCollectionDatabase,
       vaultCollectionsStore: vaultServicesSuit.vaultCollectionsStore,
+      vaultStateService: vaultKitVaultStateService,
       sharingService: vaultKitSharingServiceHandler,
       userSpacesService: userSpacesService,
       documentStorageService: documentStorageService,
@@ -2837,7 +2879,6 @@ extension SessionServicesContainer {
       activityLogsService: activityLogsService,
       iconViewModelProvider: makeVaultItemIconViewModel,
       logger: appServices.rootLogger,
-      accessControl: vaultKitAccessControl,
       userSettings: vaultKitUserSettings,
       pasteboardService: vaultKitPasteboardService,
       attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
@@ -2875,10 +2916,12 @@ extension SessionServicesContainer {
     return IdentityDetailViewModel(
       item: item,
       mode: mode,
+      session: session,
       vaultItemDatabase: vaultServicesSuit.vaultItemDatabase,
       vaultItemsStore: vaultServicesSuit.vaultItemsStore,
       vaultCollectionDatabase: vaultServicesSuit.vaultCollectionDatabase,
       vaultCollectionsStore: vaultServicesSuit.vaultCollectionsStore,
+      vaultStateService: vaultKitVaultStateService,
       sharingService: vaultKitSharingServiceHandler,
       userSpacesService: userSpacesService,
       documentStorageService: documentStorageService,
@@ -2887,7 +2930,6 @@ extension SessionServicesContainer {
       activityLogsService: activityLogsService,
       iconViewModelProvider: makeVaultItemIconViewModel,
       logger: appServices.rootLogger,
-      accessControl: vaultKitAccessControl,
       userSettings: vaultKitUserSettings,
       pasteboardService: vaultKitPasteboardService,
       attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
@@ -3092,7 +3134,8 @@ extension SessionServicesContainer {
       userSpacesService: userSpacesService,
       abtestService: authenticatedABTestingService,
       keychainService: appServices.keychainService,
-      featureService: featureService
+      featureService: featureService,
+      vaultStateService: vaultKitVaultStateService
     )
   }
 
@@ -3138,11 +3181,14 @@ extension SessionServicesContainer {
       featureService: featureService,
       notificationCenterService: notificationCenterService,
       identityDashboardService: identityDashboardService,
+      deepLinkService: appServices.deepLinkingService,
+      unresolvedAlertViewModelFactory: InjectedFactory(makeUnresolvedAlertViewModel),
       resetMasterPasswordNotificationFactory: makeResetMasterPasswordNotificationRowViewModel,
       trialPeriodNotificationFactory: makeTrialPeriodNotificationRowViewModel,
       secureLockNotificationFactory: makeSecureLockNotificationRowViewModel,
       sharingItemNotificationFactory: makeSharingRequestNotificationRowViewModel,
-      securityAlertNotificationFactory: makeSecurityAlertNotificationRowViewModel
+      securityAlertNotificationFactory: makeSecurityAlertNotificationRowViewModel,
+      frozenAccountNotificationFactory: makeFrozenAccountNotificationRowViewModel
     )
   }
 
@@ -3156,6 +3202,8 @@ extension SessionServicesContainer {
   ) -> OTPExplorerViewModel {
     return OTPExplorerViewModel(
       vaultItemsStore: vaultServicesSuit.vaultItemsStore,
+      vaultStateService: vaultKitVaultStateService,
+      deeplinkingService: appServices.deepLinkingService,
       otpSupportedDomainsRepository: otpSupportedDomainsRepository,
       rowModelFactory: InjectedFactory(makeActionableVaultItemRowViewModel),
       actionHandler: actionHandler
@@ -3228,10 +3276,12 @@ extension SessionServicesContainer {
     return PasskeyDetailViewModel(
       item: item,
       mode: mode,
+      session: session,
       vaultItemDatabase: vaultServicesSuit.vaultItemDatabase,
       vaultItemsStore: vaultServicesSuit.vaultItemsStore,
       vaultCollectionDatabase: vaultServicesSuit.vaultCollectionDatabase,
       vaultCollectionsStore: vaultServicesSuit.vaultCollectionsStore,
+      vaultStateService: vaultKitVaultStateService,
       sharingService: vaultKitSharingServiceHandler,
       userSpacesService: userSpacesService,
       deepLinkService: vaultKitDeepLinkingService,
@@ -3266,10 +3316,12 @@ extension SessionServicesContainer {
     return PassportDetailViewModel(
       item: item,
       mode: mode,
+      session: session,
       vaultItemDatabase: vaultServicesSuit.vaultItemDatabase,
       vaultItemsStore: vaultServicesSuit.vaultItemsStore,
       vaultCollectionDatabase: vaultServicesSuit.vaultCollectionDatabase,
       vaultCollectionsStore: vaultServicesSuit.vaultCollectionsStore,
+      vaultStateService: vaultKitVaultStateService,
       sharingService: vaultKitSharingServiceHandler,
       userSpacesService: userSpacesService,
       documentStorageService: documentStorageService,
@@ -3278,7 +3330,6 @@ extension SessionServicesContainer {
       activityLogsService: activityLogsService,
       iconViewModelProvider: makeVaultItemIconViewModel,
       logger: appServices.rootLogger,
-      accessControl: vaultKitAccessControl,
       userSettings: vaultKitUserSettings,
       pasteboardService: vaultKitPasteboardService,
       attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
@@ -3340,7 +3391,7 @@ extension SessionServicesContainer {
   internal func makePasswordGeneratorViewModel(
     mode: PasswordGeneratorMode,
     saveGeneratedPassword: @escaping (GeneratedPassword) -> GeneratedPassword,
-    savePreferencesOnChange: Bool = true, copyAction: @escaping (String) -> Void
+    savePreferencesOnChange: Bool = true
   ) -> PasswordGeneratorViewModel {
     return PasswordGeneratorViewModel(
       mode: mode,
@@ -3348,14 +3399,15 @@ extension SessionServicesContainer {
       passwordEvaluator: appServices.passwordEvaluator,
       sessionActivityReporter: activityReporter,
       userSettings: vaultKitUserSettings,
+      vaultStateService: vaultKitVaultStateService,
+      deeplinkingService: appServices.deepLinkingService,
       savePreferencesOnChange: savePreferencesOnChange,
-      copyAction: copyAction
+      pasteboardService: vaultKitPasteboardService
     )
   }
 
   internal func makePasswordGeneratorViewModel(
-    mode: PasswordGeneratorMode, savePreferencesOnChange: Bool = true,
-    copyAction: @escaping (String) -> Void
+    mode: PasswordGeneratorMode, savePreferencesOnChange: Bool = true
   ) -> PasswordGeneratorViewModel {
     return PasswordGeneratorViewModel(
       mode: mode,
@@ -3363,21 +3415,25 @@ extension SessionServicesContainer {
       passwordEvaluator: appServices.passwordEvaluator,
       sessionActivityReporter: activityReporter,
       userSettings: vaultKitUserSettings,
+      vaultStateService: vaultKitVaultStateService,
+      deeplinkingService: appServices.deepLinkingService,
       savePreferencesOnChange: savePreferencesOnChange,
-      copyAction: copyAction
+      pasteboardService: vaultKitPasteboardService
     )
   }
 
-  internal func makePasswordGeneratorViewModel(
-    mode: PasswordGeneratorMode, copyAction: @escaping (String) -> Void
-  ) -> PasswordGeneratorViewModel {
+  internal func makePasswordGeneratorViewModel(mode: PasswordGeneratorMode)
+    -> PasswordGeneratorViewModel
+  {
     return PasswordGeneratorViewModel(
       mode: mode,
       database: database,
       passwordEvaluator: appServices.passwordEvaluator,
       sessionActivityReporter: activityReporter,
       userSettings: vaultKitUserSettings,
-      copyAction: copyAction
+      vaultStateService: vaultKitVaultStateService,
+      deeplinkingService: appServices.deepLinkingService,
+      pasteboardService: vaultKitPasteboardService
     )
   }
 
@@ -3476,6 +3532,8 @@ extension SessionServicesContainer {
       passwordHealthListViewModelFactory: InjectedFactory(makePasswordHealthListViewModel),
       passwordHealthService: identityDashboardService,
       origin: origin,
+      vaultStateService: vaultKitVaultStateService,
+      deeplinkingService: appServices.deepLinkingService,
       userSpacesService: userSpacesService,
       userSpaceSwitcherViewModelFactory: InjectedFactory(makeUserSpaceSwitcherViewModel)
     )
@@ -3505,10 +3563,12 @@ extension SessionServicesContainer {
     return PhoneDetailViewModel(
       item: item,
       mode: mode,
+      session: session,
       vaultItemDatabase: vaultServicesSuit.vaultItemDatabase,
       vaultItemsStore: vaultServicesSuit.vaultItemsStore,
       vaultCollectionDatabase: vaultServicesSuit.vaultCollectionDatabase,
       vaultCollectionsStore: vaultServicesSuit.vaultCollectionsStore,
+      vaultStateService: vaultKitVaultStateService,
       sharingService: vaultKitSharingServiceHandler,
       userSpacesService: userSpacesService,
       documentStorageService: documentStorageService,
@@ -3517,7 +3577,6 @@ extension SessionServicesContainer {
       activityLogsService: activityLogsService,
       iconViewModelProvider: makeVaultItemIconViewModel,
       logger: appServices.rootLogger,
-      accessControl: vaultKitAccessControl,
       userSettings: vaultKitUserSettings,
       pasteboardService: vaultKitPasteboardService,
       attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
@@ -3610,6 +3669,7 @@ extension SessionServicesContainer {
       vaultItemDatabase: vaultServicesSuit.vaultItemDatabase,
       vaultCollectionDatabase: vaultServicesSuit.vaultCollectionDatabase,
       vaultCollectionsStore: vaultServicesSuit.vaultCollectionsStore,
+      vaultStateService: vaultKitVaultStateService,
       userSpacesService: userSpacesService,
       activityReporter: activityReporter,
       activityLogsService: activityLogsService,
@@ -3668,11 +3728,13 @@ extension SessionServicesContainer {
   {
     return SecretDetailViewModel(
       item: item,
+      session: session,
       mode: mode,
       vaultItemDatabase: vaultServicesSuit.vaultItemDatabase,
       vaultItemsStore: vaultServicesSuit.vaultItemsStore,
       vaultCollectionDatabase: vaultServicesSuit.vaultCollectionDatabase,
       vaultCollectionsStore: vaultServicesSuit.vaultCollectionsStore,
+      vaultStateService: vaultKitVaultStateService,
       sharingService: vaultKitSharingServiceHandler,
       userSpacesService: userSpacesService,
       deepLinkService: vaultKitDeepLinkingService,
@@ -3685,7 +3747,6 @@ extension SessionServicesContainer {
       attachmentsListViewModelFactory: InjectedFactory(makeAttachmentsListViewModel),
       attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
       logger: appServices.rootLogger,
-      accessControl: vaultKitAccessControl,
       userSettings: vaultKitUserSettings
     )
   }
@@ -3726,47 +3787,6 @@ extension SessionServicesContainer {
 
 extension SessionServicesContainer {
 
-  internal func makeSecureNotesDetailFieldsModel(service: DetailService<SecureNote>)
-    -> SecureNotesDetailFieldsModel
-  {
-    return SecureNotesDetailFieldsModel(
-      service: service,
-      featureService: featureService
-    )
-  }
-
-}
-
-extension SessionServicesContainer {
-
-  internal func makeSecureNotesDetailNavigationBarModel(
-    service: DetailService<SecureNote>, isEditingContent: FocusState<Bool>.Binding
-  ) -> SecureNotesDetailNavigationBarModel {
-    return SecureNotesDetailNavigationBarModel(
-      service: service,
-      isEditingContent: isEditingContent,
-      featureService: featureService
-    )
-  }
-
-}
-
-extension SessionServicesContainer {
-
-  internal func makeSecureNotesDetailToolbarModel(service: DetailService<SecureNote>)
-    -> SecureNotesDetailToolbarModel
-  {
-    return SecureNotesDetailToolbarModel(
-      service: service,
-      session: session,
-      shareButtonViewModelFactory: InjectedFactory(makeShareButtonViewModel)
-    )
-  }
-
-}
-
-extension SessionServicesContainer {
-
   internal func makeSecureNotesDetailViewModel(item: SecureNote, mode: DetailMode = .viewing)
     -> SecureNotesDetailViewModel
   {
@@ -3778,6 +3798,7 @@ extension SessionServicesContainer {
       vaultItemsStore: vaultServicesSuit.vaultItemsStore,
       vaultCollectionDatabase: vaultServicesSuit.vaultCollectionDatabase,
       vaultCollectionsStore: vaultServicesSuit.vaultCollectionsStore,
+      vaultStateService: vaultKitVaultStateService,
       sharingService: vaultKitSharingServiceHandler,
       userSpacesService: userSpacesService,
       deepLinkService: vaultKitDeepLinkingService,
@@ -3785,10 +3806,6 @@ extension SessionServicesContainer {
       activityLogsService: activityLogsService,
       pasteboardService: vaultKitPasteboardService,
       iconViewModelProvider: makeVaultItemIconViewModel,
-      secureNotesDetailNavigationBarModelFactory: InjectedFactory(
-        makeSecureNotesDetailNavigationBarModel),
-      secureNotesDetailFieldsModelFactory: InjectedFactory(makeSecureNotesDetailFieldsModel),
-      secureNotesDetailToolbarModelFactory: InjectedFactory(makeSecureNotesDetailToolbarModel),
       sharingDetailSectionModelFactory: InjectedFactory(makeSharingDetailSectionModel),
       sharingMembersDetailLinkModelFactory: InjectedFactory(makeSharingMembersDetailLinkModel),
       shareButtonViewModelFactory: InjectedFactory(makeShareButtonViewModel),
@@ -3796,7 +3813,6 @@ extension SessionServicesContainer {
       attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel),
       logger: appServices.rootLogger,
       documentStorageService: documentStorageService,
-      accessControl: vaultKitAccessControl,
       userSettings: vaultKitUserSettings
     )
   }
@@ -3807,10 +3823,6 @@ extension SessionServicesContainer {
     return SecureNotesDetailViewModel(
       session: session,
       service: service,
-      secureNotesDetailNavigationBarModelFactory: InjectedFactory(
-        makeSecureNotesDetailNavigationBarModel),
-      secureNotesDetailFieldsModelFactory: InjectedFactory(makeSecureNotesDetailFieldsModel),
-      secureNotesDetailToolbarFactory: InjectedFactory(makeSecureNotesDetailToolbarModel),
       sharingDetailSectionModelFactory: InjectedFactory(makeSharingDetailSectionModel),
       sharingMembersDetailLinkModelFactory: InjectedFactory(makeSharingMembersDetailLinkModel),
       shareButtonViewModelFactory: InjectedFactory(makeShareButtonViewModel),
@@ -3950,6 +3962,7 @@ extension SessionServicesContainer {
   internal func makeSettingsStatusSectionViewModel() -> SettingsStatusSectionViewModel {
     return SettingsStatusSectionViewModel(
       premiumStatusProvider: premiumStatusServicesSuit.statusProvider,
+      vaultStateService: vaultKitVaultStateService,
       deepLinkingService: appServices.deepLinkingService
     )
   }
@@ -3966,7 +3979,9 @@ extension SessionServicesContainer {
       userGroupIds: userGroupIds,
       userEmails: userEmails,
       userSpacesService: userSpacesService,
-      shareFlowViewModelFactory: InjectedFactory(makeShareFlowViewModel)
+      shareFlowViewModelFactory: InjectedFactory(makeShareFlowViewModel),
+      vaultStateService: vaultKitVaultStateService,
+      deeplinkingService: vaultKitDeepLinkingService
     )
   }
 
@@ -4066,8 +4081,7 @@ extension SessionServicesContainer {
       gravatarIconViewModelFactory: InjectedFactory(makeGravatarIconViewModel),
       detailViewModelFactory: InjectedFactory(makeVaultDetailViewModel),
       userSpacesService: userSpacesService,
-      sharingService: vaultKitSharingService,
-      accessControl: vaultKitAccessControl
+      sharingService: vaultKitSharingService
     )
   }
 
@@ -4088,8 +4102,7 @@ extension SessionServicesContainer {
       gravatarIconViewModelFactory: InjectedFactory(makeGravatarIconViewModel),
       userSpacesService: userSpacesService,
       detailViewModelFactory: InjectedFactory(makeVaultDetailViewModel),
-      sharingService: vaultKitSharingService,
-      accessControl: vaultKitAccessControl
+      sharingService: vaultKitSharingService
     )
   }
 
@@ -4261,10 +4274,12 @@ extension SessionServicesContainer {
     return SocialSecurityDetailViewModel(
       item: item,
       mode: mode,
+      session: session,
       vaultItemDatabase: vaultServicesSuit.vaultItemDatabase,
       vaultItemsStore: vaultServicesSuit.vaultItemsStore,
       vaultCollectionDatabase: vaultServicesSuit.vaultCollectionDatabase,
       vaultCollectionsStore: vaultServicesSuit.vaultCollectionsStore,
+      vaultStateService: vaultKitVaultStateService,
       sharingService: vaultKitSharingServiceHandler,
       userSpacesService: userSpacesService,
       documentStorageService: documentStorageService,
@@ -4273,7 +4288,6 @@ extension SessionServicesContainer {
       activityLogsService: activityLogsService,
       iconViewModelProvider: makeVaultItemIconViewModel,
       logger: appServices.rootLogger,
-      accessControl: vaultKitAccessControl,
       userSettings: vaultKitUserSettings,
       pasteboardService: vaultKitPasteboardService,
       attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
@@ -4299,6 +4313,7 @@ extension SessionServicesContainer {
       userSettings: vaultKitUserSettings,
       vpnService: vpnService,
       capabilityService: premiumStatusServicesSuit.capabilityService,
+      vaultStateService: vaultKitVaultStateService,
       deepLinkingService: appServices.deepLinkingService,
       darkWebMonitoringService: darkWebMonitoringService,
       toolsViewModelFactory: InjectedFactory(makeToolsViewModel),
@@ -4355,7 +4370,6 @@ extension SessionServicesContainer {
       appAPIClient: appServices.appAPIClient,
       userAPIClient: userDeviceAPIClient,
       logger: appServices.rootLogger,
-      authenticatorCommunicator: authenticatorAppCommunicator,
       syncService: syncService,
       keychainService: appServices.keychainService,
       sessionCryptoUpdater: sessionCryptoUpdater,
@@ -4546,6 +4560,7 @@ extension SessionServicesContainer {
       vaultItemsStore: vaultServicesSuit.vaultItemsStore,
       vaultItemDatabase: vaultServicesSuit.vaultItemDatabase,
       vaultItemsLimitService: vaultServicesSuit.vaultItemsLimitService,
+      vaultStateService: vaultKitVaultStateService,
       accessControl: vaultKitAccessControl,
       userSpacesService: userSpacesService,
       activityReporter: activityReporter,
@@ -4653,10 +4668,12 @@ extension SessionServicesContainer {
     return WebsiteDetailViewModel(
       item: item,
       mode: mode,
+      session: session,
       vaultItemDatabase: vaultServicesSuit.vaultItemDatabase,
       vaultItemsStore: vaultServicesSuit.vaultItemsStore,
       vaultCollectionDatabase: vaultServicesSuit.vaultCollectionDatabase,
       vaultCollectionsStore: vaultServicesSuit.vaultCollectionsStore,
+      vaultStateService: vaultKitVaultStateService,
       sharingService: vaultKitSharingServiceHandler,
       userSpacesService: userSpacesService,
       documentStorageService: documentStorageService,
@@ -4665,7 +4682,6 @@ extension SessionServicesContainer {
       activityLogsService: activityLogsService,
       iconViewModelProvider: makeVaultItemIconViewModel,
       logger: appServices.rootLogger,
-      accessControl: vaultKitAccessControl,
       userSettings: vaultKitUserSettings,
       pasteboardService: vaultKitPasteboardService,
       attachmentSectionFactory: InjectedFactory(makeAttachmentsSectionViewModel)
@@ -4680,6 +4696,61 @@ extension SessionServicesContainer {
     )
   }
 
+}
+
+internal typealias _AccessControlRequestViewModifierModelFactory = @MainActor (
+) -> AccessControlRequestViewModifierModel
+
+extension InjectedFactory where T == _AccessControlRequestViewModifierModelFactory {
+  @MainActor
+  func make() -> AccessControlRequestViewModifierModel {
+    return factory()
+  }
+}
+
+extension AccessControlRequestViewModifierModel {
+  internal typealias Factory = InjectedFactory<_AccessControlRequestViewModifierModelFactory>
+}
+
+internal typealias _AccessControlViewModelFactory = @MainActor (
+  _ mode: AccessControlViewModel.AccessMode,
+  _ reason: AccessControlReason,
+  _ completion: @escaping AccessControlCompletion
+) -> AccessControlViewModel
+
+extension InjectedFactory where T == _AccessControlViewModelFactory {
+  @MainActor
+  func make(
+    mode: AccessControlViewModel.AccessMode, reason: AccessControlReason,
+    completion: @escaping AccessControlCompletion
+  ) -> AccessControlViewModel {
+    return factory(
+      mode,
+      reason,
+      completion
+    )
+  }
+}
+
+extension AccessControlViewModel {
+  internal typealias Factory = InjectedFactory<_AccessControlViewModelFactory>
+}
+
+internal typealias _AccessControlViewModelSecondFactory = @MainActor (
+  _ request: AccessControlService.UserVerificationRequest
+) -> AccessControlViewModel
+
+extension InjectedFactory where T == _AccessControlViewModelSecondFactory {
+  @MainActor
+  func make(request: AccessControlService.UserVerificationRequest) -> AccessControlViewModel {
+    return factory(
+      request
+    )
+  }
+}
+
+extension AccessControlViewModel {
+  internal typealias SecondFactory = InjectedFactory<_AccessControlViewModelSecondFactory>
 }
 
 internal typealias _AccountCreationFlowViewModelFactory = @MainActor (
@@ -4934,15 +5005,18 @@ extension AddNewDeviceViewModel {
 }
 
 internal typealias _AddOTPFlowViewModelFactory = @MainActor (
+  _ otpURL: URL?,
   _ mode: AddOTPFlowViewModel.Mode,
   _ completion: @escaping () -> Void
 ) -> AddOTPFlowViewModel
 
 extension InjectedFactory where T == _AddOTPFlowViewModelFactory {
   @MainActor
-  func make(mode: AddOTPFlowViewModel.Mode, completion: @escaping () -> Void) -> AddOTPFlowViewModel
+  func make(otpURL: URL? = nil, mode: AddOTPFlowViewModel.Mode, completion: @escaping () -> Void)
+    -> AddOTPFlowViewModel
   {
     return factory(
+      otpURL,
       mode,
       completion
     )
@@ -6039,6 +6113,23 @@ extension FiscalInformationDetailViewModel {
   internal typealias SecondFactory = InjectedFactory<_FiscalInformationDetailViewModelSecondFactory>
 }
 
+internal typealias _FrozenAccountNotificationRowViewModelFactory = (
+  _ notification: DashlaneNotification
+) -> FrozenAccountNotificationRowViewModel
+
+extension InjectedFactory where T == _FrozenAccountNotificationRowViewModelFactory {
+
+  func make(notification: DashlaneNotification) -> FrozenAccountNotificationRowViewModel {
+    return factory(
+      notification
+    )
+  }
+}
+
+extension FrozenAccountNotificationRowViewModel {
+  internal typealias Factory = InjectedFactory<_FrozenAccountNotificationRowViewModelFactory>
+}
+
 internal typealias _GeneralSettingsViewModelFactory = @MainActor (
 ) -> GeneralSettingsViewModel
 
@@ -6090,13 +6181,13 @@ extension GravatarIconViewModel {
 }
 
 internal typealias _GuidedOnboardingFlowViewModelFactory = (
-  _ navigator: DashlaneNavigationController?,
+  _ navigator: DashlaneNavigationController,
   _ completion: @escaping () -> Void
 ) -> GuidedOnboardingFlowViewModel
 
 extension InjectedFactory where T == _GuidedOnboardingFlowViewModelFactory {
 
-  func make(navigator: DashlaneNavigationController? = nil, completion: @escaping () -> Void)
+  func make(navigator: DashlaneNavigationController, completion: @escaping () -> Void)
     -> GuidedOnboardingFlowViewModel
   {
     return factory(
@@ -6839,8 +6930,7 @@ extension PasswordGeneratorToolsFlowViewModel {
 public typealias _PasswordGeneratorViewModelFactory = (
   _ mode: PasswordGeneratorMode,
   _ saveGeneratedPassword: @escaping (GeneratedPassword) -> GeneratedPassword,
-  _ savePreferencesOnChange: Bool,
-  _ copyAction: @escaping (String) -> Void
+  _ savePreferencesOnChange: Bool
 ) -> PasswordGeneratorViewModel
 
 extension InjectedFactory where T == _PasswordGeneratorViewModelFactory {
@@ -6848,13 +6938,12 @@ extension InjectedFactory where T == _PasswordGeneratorViewModelFactory {
   public func make(
     mode: PasswordGeneratorMode,
     saveGeneratedPassword: @escaping (GeneratedPassword) -> GeneratedPassword,
-    savePreferencesOnChange: Bool = true, copyAction: @escaping (String) -> Void
+    savePreferencesOnChange: Bool = true
   ) -> PasswordGeneratorViewModel {
     return factory(
       mode,
       saveGeneratedPassword,
-      savePreferencesOnChange,
-      copyAction
+      savePreferencesOnChange
     )
   }
 }
@@ -6865,20 +6954,17 @@ extension PasswordGeneratorViewModel {
 
 public typealias _PasswordGeneratorViewModelSecondFactory = (
   _ mode: PasswordGeneratorMode,
-  _ savePreferencesOnChange: Bool,
-  _ copyAction: @escaping (String) -> Void
+  _ savePreferencesOnChange: Bool
 ) -> PasswordGeneratorViewModel
 
 extension InjectedFactory where T == _PasswordGeneratorViewModelSecondFactory {
 
-  public func make(
-    mode: PasswordGeneratorMode, savePreferencesOnChange: Bool = true,
-    copyAction: @escaping (String) -> Void
-  ) -> PasswordGeneratorViewModel {
+  public func make(mode: PasswordGeneratorMode, savePreferencesOnChange: Bool = true)
+    -> PasswordGeneratorViewModel
+  {
     return factory(
       mode,
-      savePreferencesOnChange,
-      copyAction
+      savePreferencesOnChange
     )
   }
 }
@@ -6888,18 +6974,14 @@ extension PasswordGeneratorViewModel {
 }
 
 public typealias _PasswordGeneratorViewModelThirdFactory = (
-  _ mode: PasswordGeneratorMode,
-  _ copyAction: @escaping (String) -> Void
+  _ mode: PasswordGeneratorMode
 ) -> PasswordGeneratorViewModel
 
 extension InjectedFactory where T == _PasswordGeneratorViewModelThirdFactory {
 
-  public func make(mode: PasswordGeneratorMode, copyAction: @escaping (String) -> Void)
-    -> PasswordGeneratorViewModel
-  {
+  public func make(mode: PasswordGeneratorMode) -> PasswordGeneratorViewModel {
     return factory(
-      mode,
-      copyAction
+      mode
     )
   }
 }
@@ -7322,61 +7404,6 @@ extension InjectedFactory where T == _SecureLockNotificationRowViewModelFactory 
 
 extension SecureLockNotificationRowViewModel {
   internal typealias Factory = InjectedFactory<_SecureLockNotificationRowViewModelFactory>
-}
-
-internal typealias _SecureNotesDetailFieldsModelFactory = (
-  _ service: DetailService<SecureNote>
-) -> SecureNotesDetailFieldsModel
-
-extension InjectedFactory where T == _SecureNotesDetailFieldsModelFactory {
-
-  func make(service: DetailService<SecureNote>) -> SecureNotesDetailFieldsModel {
-    return factory(
-      service
-    )
-  }
-}
-
-extension SecureNotesDetailFieldsModel {
-  internal typealias Factory = InjectedFactory<_SecureNotesDetailFieldsModelFactory>
-}
-
-internal typealias _SecureNotesDetailNavigationBarModelFactory = (
-  _ service: DetailService<SecureNote>,
-  _ isEditingContent: FocusState<Bool>.Binding
-) -> SecureNotesDetailNavigationBarModel
-
-extension InjectedFactory where T == _SecureNotesDetailNavigationBarModelFactory {
-
-  func make(service: DetailService<SecureNote>, isEditingContent: FocusState<Bool>.Binding)
-    -> SecureNotesDetailNavigationBarModel
-  {
-    return factory(
-      service,
-      isEditingContent
-    )
-  }
-}
-
-extension SecureNotesDetailNavigationBarModel {
-  internal typealias Factory = InjectedFactory<_SecureNotesDetailNavigationBarModelFactory>
-}
-
-internal typealias _SecureNotesDetailToolbarModelFactory = (
-  _ service: DetailService<SecureNote>
-) -> SecureNotesDetailToolbarModel
-
-extension InjectedFactory where T == _SecureNotesDetailToolbarModelFactory {
-
-  func make(service: DetailService<SecureNote>) -> SecureNotesDetailToolbarModel {
-    return factory(
-      service
-    )
-  }
-}
-
-extension SecureNotesDetailToolbarModel {
-  internal typealias Factory = InjectedFactory<_SecureNotesDetailToolbarModelFactory>
 }
 
 internal typealias _SecureNotesDetailViewModelFactory = (

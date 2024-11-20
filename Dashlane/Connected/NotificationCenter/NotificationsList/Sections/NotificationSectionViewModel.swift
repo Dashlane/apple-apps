@@ -16,6 +16,8 @@ class NotificationSectionViewModel {
     (DashlaneNotification) -> SharingRequestNotificationRowViewModel
   private let securityAlertNotificationFactory:
     (DashlaneNotification) -> SecurityAlertNotificationRowViewModel
+  private let frozenAccountNotificationFactory:
+    (DashlaneNotification) -> FrozenAccountNotificationRowViewModel
 
   var displayableNotifications: [DashlaneNotification] {
     isTruncated ? Array(dataSection.notifications.prefix(2)) : dataSection.notifications
@@ -35,13 +37,17 @@ class NotificationSectionViewModel {
     sharingItemNotificationFactory: @escaping (DashlaneNotification) ->
       SharingRequestNotificationRowViewModel,
     securityAlertNotificationFactory: @escaping (DashlaneNotification) ->
-      SecurityAlertNotificationRowViewModel
+      SecurityAlertNotificationRowViewModel,
+    frozenAccountNotificationFactory: @escaping (DashlaneNotification) ->
+      FrozenAccountNotificationRowViewModel
+
   ) {
     self.trialPeriodNotificationFactory = trialPeriodNotificationFactory
     self.securityAlertNotificationFactory = securityAlertNotificationFactory
     self.resetMasterPasswordNotificationFactory = resetMasterPasswordNotificationFactory
     self.sharingItemNotificationFactory = sharingItemNotificationFactory
     self.secureLockNotificationFactory = secureLockNotificationFactory
+    self.frozenAccountNotificationFactory = frozenAccountNotificationFactory
     self.isTruncated = isTruncated
     self.dataSection = dataSection
     self.shouldShowHeader = shouldShowHeader
@@ -77,6 +83,12 @@ class NotificationSectionViewModel {
   {
     securityAlertNotificationFactory(notification)
   }
+
+  func frozenAccountViewModel(_ notification: DashlaneNotification)
+    -> FrozenAccountNotificationRowViewModel
+  {
+    frozenAccountNotificationFactory(notification)
+  }
 }
 
 @MainActor
@@ -109,7 +121,8 @@ extension NotificationSectionViewModel {
       trialPeriodNotificationFactory: { _ in TrialPeriodNotificationRowViewModel.mock },
       secureLockNotificationFactory: { _ in SecureLockNotificationRowViewModel.mock },
       sharingItemNotificationFactory: { _ in SharingRequestNotificationRowViewModel.mock },
-      securityAlertNotificationFactory: { _ in SecurityAlertNotificationRowViewModel.mock }
+      securityAlertNotificationFactory: { _ in SecurityAlertNotificationRowViewModel.mock },
+      frozenAccountNotificationFactory: { _ in FrozenAccountNotificationRowViewModel.mock }
     )
   }
 }

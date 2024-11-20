@@ -66,6 +66,7 @@ public class AccountRecoveryKeyStatusDetailViewModel: ObservableObject, SessionS
         try await accountRecoveryKeyService.deactivateAccountRecoveryKey(for: .settings)
         activityReporter.report(
           UserEvent.DeleteAccountRecoveryKey(deleteKeyReason: .settingDisabled))
+        isEnabled = false
       } catch {
         presentedSheet = .error
       }

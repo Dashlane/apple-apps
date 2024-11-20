@@ -31,6 +31,8 @@ struct HelpCenterSettingsView: View {
             .textStyle(.body.standard.regular)
         }
       }
+      .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
+
       Section(
         header: Text(L10n.Localizable.settingsHelpLegalSection).textStyle(.title.supporting.small)
       ) {
@@ -45,6 +47,7 @@ struct HelpCenterSettingsView: View {
             .textStyle(.body.standard.regular)
         }
       }
+      .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
     }
     .listAppearance(.insetGrouped)
     .navigationTitle(Text(L10n.Localizable.helpCenterTitle))

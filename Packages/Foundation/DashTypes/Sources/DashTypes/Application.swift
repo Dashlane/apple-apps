@@ -1,7 +1,7 @@
 import Foundation
 
 public struct Application {
-  static let defaultAppVersion: String = {
+  public static let defaultAppVersion: String = {
     let date = Date()
     let week = Calendar.current.component(.weekOfYear, from: date)
     let year = Calendar.current.component(.year, from: date) - 2000
@@ -13,17 +13,12 @@ public struct Application {
       if let version = ProcessInfo.processInfo.environment["appVersion"] {
         return version
       }
-
-      let bundle: Bundle = Bundle(for: BundleClass.self)
-    #else
-      let bundle: Bundle = .main
     #endif
 
-    return bundle.appVersion() ?? defaultAppVersion
+    return Bundle.main.appVersion() ?? defaultAppVersion
   }
 
   public static func versionBuildOriginInformation() -> String? {
-
     guard let infoPlist = Bundle.main.infoDictionary,
       let info = infoPlist["DLBuildInformationDetails"] as? String
     else {
@@ -32,5 +27,3 @@ public struct Application {
     return info
   }
 }
-
-private class BundleClass {}

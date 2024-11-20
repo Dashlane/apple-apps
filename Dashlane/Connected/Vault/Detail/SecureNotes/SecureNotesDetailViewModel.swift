@@ -1,5 +1,6 @@
 import Combine
 import CoreActivityLogs
+import CoreFeature
 import CorePersonalData
 import CorePremium
 import CoreSession
@@ -34,9 +35,6 @@ final class SecureNotesDetailViewModel: DetailViewModelProtocol, SessionServices
   let service: DetailService<SecureNote>
 
   let attachmentsListViewModelFactory: AttachmentsListViewModel.Factory
-  let secureNotesDetailFieldsModelFactory: SecureNotesDetailFieldsModel.Factory
-  let secureNotesDetailNavigationBarModelFactory: SecureNotesDetailNavigationBarModel.Factory
-  let secureNotesDetailToolbarFactory: SecureNotesDetailToolbarModel.Factory
   let shareButtonViewModelFactory: ShareButtonViewModel.Factory
   let sharingDetailSectionModelFactory: SharingDetailSectionModel.Factory
   let sharingMembersDetailLinkModelFactory: SharingMembersDetailLinkModel.Factory
@@ -57,6 +55,7 @@ final class SecureNotesDetailViewModel: DetailViewModelProtocol, SessionServices
     vaultItemsStore: VaultItemsStore,
     vaultCollectionDatabase: VaultCollectionDatabaseProtocol,
     vaultCollectionsStore: VaultCollectionsStore,
+    vaultStateService: VaultStateServiceProtocol,
     sharingService: SharedVaultHandling,
     userSpacesService: UserSpacesService,
     deepLinkService: VaultKit.DeepLinkingServiceProtocol,
@@ -64,9 +63,6 @@ final class SecureNotesDetailViewModel: DetailViewModelProtocol, SessionServices
     activityLogsService: ActivityLogsServiceProtocol,
     pasteboardService: PasteboardServiceProtocol,
     iconViewModelProvider: @escaping (VaultItem) -> VaultItemIconViewModel,
-    secureNotesDetailNavigationBarModelFactory: SecureNotesDetailNavigationBarModel.Factory,
-    secureNotesDetailFieldsModelFactory: SecureNotesDetailFieldsModel.Factory,
-    secureNotesDetailToolbarModelFactory: SecureNotesDetailToolbarModel.Factory,
     sharingDetailSectionModelFactory: SharingDetailSectionModel.Factory,
     sharingMembersDetailLinkModelFactory: SharingMembersDetailLinkModel.Factory,
     shareButtonViewModelFactory: ShareButtonViewModel.Factory,
@@ -74,16 +70,17 @@ final class SecureNotesDetailViewModel: DetailViewModelProtocol, SessionServices
     attachmentSectionFactory: AttachmentsSectionViewModel.Factory,
     logger: Logger,
     documentStorageService: DocumentStorageService,
-    accessControl: AccessControlProtocol,
     userSettings: UserSettings
   ) {
     self.init(
       session: session,
       service: .init(
         item: item,
+        canLock: session.authenticationMethod.supportsLock,
         mode: mode,
         vaultItemDatabase: vaultItemDatabase,
         vaultItemsStore: vaultItemsStore,
+        vaultStateService: vaultStateService,
         vaultCollectionDatabase: vaultCollectionDatabase,
         vaultCollectionsStore: vaultCollectionsStore,
         sharingService: sharingService,
@@ -95,13 +92,9 @@ final class SecureNotesDetailViewModel: DetailViewModelProtocol, SessionServices
         iconViewModelProvider: iconViewModelProvider,
         attachmentSectionFactory: attachmentSectionFactory,
         logger: logger,
-        accessControl: accessControl,
         userSettings: userSettings,
         pasteboardService: pasteboardService
       ),
-      secureNotesDetailNavigationBarModelFactory: secureNotesDetailNavigationBarModelFactory,
-      secureNotesDetailFieldsModelFactory: secureNotesDetailFieldsModelFactory,
-      secureNotesDetailToolbarFactory: secureNotesDetailToolbarModelFactory,
       sharingDetailSectionModelFactory: sharingDetailSectionModelFactory,
       sharingMembersDetailLinkModelFactory: sharingMembersDetailLinkModelFactory,
       shareButtonViewModelFactory: shareButtonViewModelFactory,
@@ -112,9 +105,6 @@ final class SecureNotesDetailViewModel: DetailViewModelProtocol, SessionServices
   init(
     session: Session,
     service: DetailService<SecureNote>,
-    secureNotesDetailNavigationBarModelFactory: SecureNotesDetailNavigationBarModel.Factory,
-    secureNotesDetailFieldsModelFactory: SecureNotesDetailFieldsModel.Factory,
-    secureNotesDetailToolbarFactory: SecureNotesDetailToolbarModel.Factory,
     sharingDetailSectionModelFactory: SharingDetailSectionModel.Factory,
     sharingMembersDetailLinkModelFactory: SharingMembersDetailLinkModel.Factory,
     shareButtonViewModelFactory: ShareButtonViewModel.Factory,
@@ -122,9 +112,6 @@ final class SecureNotesDetailViewModel: DetailViewModelProtocol, SessionServices
   ) {
     self.session = session
     self.service = service
-    self.secureNotesDetailNavigationBarModelFactory = secureNotesDetailNavigationBarModelFactory
-    self.secureNotesDetailFieldsModelFactory = secureNotesDetailFieldsModelFactory
-    self.secureNotesDetailToolbarFactory = secureNotesDetailToolbarFactory
     self.sharingDetailSectionModelFactory = sharingDetailSectionModelFactory
     self.sharingMembersDetailLinkModelFactory = sharingMembersDetailLinkModelFactory
     self.shareButtonViewModelFactory = shareButtonViewModelFactory
@@ -140,6 +127,7 @@ final class SecureNotesDetailViewModel: DetailViewModelProtocol, SessionServices
   private func registerServiceChanges() {
     service
       .objectWillChange
+      .receive(on: DispatchQueue.main)
       .sink { [weak self] in
         self?.objectWillChange.send()
       }

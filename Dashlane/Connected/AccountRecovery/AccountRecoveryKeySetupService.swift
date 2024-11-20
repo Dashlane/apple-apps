@@ -13,7 +13,7 @@ struct AccountRecoveryKeySetupService {
   let userAPIClient: UserDeviceAPIClient
   let syncService: SyncServiceProtocol
   let syncedSettingsService: SyncedSettingsService
-  let masterKey: MasterKey
+  let masterKey: CoreSession.MasterKey
   let logger: Logger
   let appAPIClient: AppAPIClient
   let cryptoConfig: CryptoRawConfig
@@ -33,7 +33,7 @@ struct AccountRecoveryKeySetupService {
     userAPIClient: UserDeviceAPIClient,
     syncService: SyncServiceProtocol,
     syncedSettingsService: SyncedSettingsService,
-    masterKey: MasterKey,
+    masterKey: CoreSession.MasterKey,
     logger: Logger,
     activityReporter: ActivityReporterProtocol
   ) {
@@ -125,7 +125,7 @@ extension AccountRecoveryKeySetupService {
   }
 }
 
-extension MasterKey {
+extension CoreSession.MasterKey {
   var valueToEncrypt: Data? {
     switch self {
     case let .masterPassword(password, _):

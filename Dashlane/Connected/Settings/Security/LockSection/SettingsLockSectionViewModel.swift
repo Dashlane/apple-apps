@@ -26,9 +26,9 @@ final class SettingsLockSectionViewModel: ObservableObject, SessionServicesInjec
   var showBusinessEnforcedAlert = false
 
   private let lockService: LockServiceProtocol
-  private let accessControl: AccessControlProtocol
+  private let accessControl: AccessControlHandler
 
-  init(lockService: LockServiceProtocol, accessControl: AccessControlProtocol) {
+  init(lockService: LockServiceProtocol, accessControl: AccessControlHandler) {
     self.lockService = lockService
     self.accessControl = accessControl
 
@@ -53,7 +53,7 @@ final class SettingsLockSectionViewModel: ObservableObject, SessionServicesInjec
     if isLockOnExitEnabled {
       lockService.locker.screenLocker?.setting.lockOnExit = true
     } else {
-      accessControl.requestAccess(forReason: .lockOnExit) { [weak self] accessGranted in
+      accessControl.requestAccess(for: .lockOnExit) { [weak self] accessGranted in
         guard accessGranted else {
           withAnimation { self?.isLockOnExitEnabled = true }
           return
@@ -67,7 +67,6 @@ final class SettingsLockSectionViewModel: ObservableObject, SessionServicesInjec
 extension SettingsLockSectionViewModel {
 
   static var mock: SettingsLockSectionViewModel {
-    SettingsLockSectionViewModel(
-      lockService: LockServiceMock(), accessControl: FakeAccessControl(accept: true))
+    SettingsLockSectionViewModel(lockService: LockServiceMock(), accessControl: .mock())
   }
 }

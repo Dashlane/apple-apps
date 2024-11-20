@@ -66,6 +66,7 @@ class AddOTPFlowViewModel: ObservableObject, SessionServicesInjecting, MockVault
   let credentialDetailViewModelFactory: CredentialDetailViewModel.Factory
 
   init(
+    otpURL: URL? = nil,
     activityReporter: ActivityReporterProtocol,
     vaultItemsStore: VaultItemsStore,
     vaultItemDatabase: VaultItemDatabaseProtocol,
@@ -83,6 +84,13 @@ class AddOTPFlowViewModel: ObservableObject, SessionServicesInjecting, MockVault
     self.matchingCredentialListViewModelFactory = matchingCredentialListViewModelFactory
     self.credentialDetailViewModelFactory = credentialDetailViewModelFactory
     self.completion = completion
+    guard let otp = otpURL?.absoluteString,
+      let info = try? OTPConfiguration(otpString: otp, supportDashlane2FA: false)
+    else {
+      handleScanCompletion(.failure(OTPUrlParserError.incorrectFormat))
+      return
+    }
+    handleScanCompletion(.success(info))
   }
 
   func introViewCompletionHandler(action: AddOTPIntroView.Action) {

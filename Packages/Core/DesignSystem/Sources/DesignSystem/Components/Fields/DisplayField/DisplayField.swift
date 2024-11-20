@@ -76,7 +76,7 @@ public struct DisplayField<Content: View, Actions: View>: View {
   }
 
   public var body: some View {
-    container {
+    HStackLayout(alignment: isLabelOverflowing ? .top : .center, spacing: 0) {
       VStack(alignment: .leading, spacing: contentVerticalSpacing) {
         if !isLabelDisabled {
           FieldSmallLabel(label)
@@ -123,12 +123,6 @@ public struct DisplayField<Content: View, Actions: View>: View {
   }
 
   private var hasActions: Bool { Actions.self != EmptyView.self }
-
-  private var container: AnyLayout {
-    dynamicTypeSize.isAccessibilitySize
-      ? AnyLayout(VStackLayout())
-      : AnyLayout(HStackLayout(alignment: isLabelOverflowing ? .top : .center, spacing: 0))
-  }
 }
 
 public struct _DisplayFieldTextualPlaceholder: View {

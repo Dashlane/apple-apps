@@ -28,6 +28,6 @@ class VaultItemsLimitServiceMock: VaultItemsLimitServiceProtocol {
 
 extension VaultItemsLimitServiceProtocol where Self == VaultItemsLimitServiceMock {
   static var mock: VaultItemsLimitServiceMock {
-    .init(credentialsLimit: .limited(count: 10, limit: 10))
+    .init(credentialsLimit: .limited(count: 10, limit: 10, enforceFreeze: false))
   }
 }

@@ -1,5 +1,6 @@
 import Combine
 import CoreActivityLogs
+import CoreFeature
 import CorePersonalData
 import CorePremium
 import CoreSession
@@ -30,11 +31,13 @@ public final class SecretDetailViewModel: DetailViewModelProtocol, SessionServic
 
   convenience init(
     item: Secret,
+    session: Session,
     mode: DetailMode = .viewing,
     vaultItemDatabase: VaultItemDatabaseProtocol,
     vaultItemsStore: VaultItemsStore,
     vaultCollectionDatabase: VaultCollectionDatabaseProtocol,
     vaultCollectionsStore: VaultCollectionsStore,
+    vaultStateService: VaultStateServiceProtocol,
     sharingService: SharedVaultHandling,
     userSpacesService: UserSpacesService,
     deepLinkService: VaultKit.DeepLinkingServiceProtocol,
@@ -47,15 +50,16 @@ public final class SecretDetailViewModel: DetailViewModelProtocol, SessionServic
     attachmentsListViewModelFactory: AttachmentsListViewModel.Factory,
     attachmentSectionFactory: AttachmentsSectionViewModel.Factory,
     logger: Logger,
-    accessControl: AccessControlProtocol,
     userSettings: UserSettings
   ) {
     self.init(
       service: .init(
         item: item,
+        canLock: session.authenticationMethod.supportsLock,
         mode: mode,
         vaultItemDatabase: vaultItemDatabase,
         vaultItemsStore: vaultItemsStore,
+        vaultStateService: vaultStateService,
         vaultCollectionDatabase: vaultCollectionDatabase,
         vaultCollectionsStore: vaultCollectionsStore,
         sharingService: sharingService,
@@ -67,7 +71,6 @@ public final class SecretDetailViewModel: DetailViewModelProtocol, SessionServic
         iconViewModelProvider: iconViewModelProvider,
         attachmentSectionFactory: attachmentSectionFactory,
         logger: logger,
-        accessControl: accessControl,
         userSettings: userSettings,
         pasteboardService: pasteboardService
       ),

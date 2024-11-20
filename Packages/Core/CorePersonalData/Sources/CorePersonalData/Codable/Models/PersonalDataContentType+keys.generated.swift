@@ -7,7 +7,7 @@ extension PersonalDataContentType {
       "secondaryLogin", "title", "url", "useFixedUrl", "userSelectedUrl",
     ],
     "SECRET": ["content", "secured", "title"],
-    "SECURENOTE": ["content", "secured", "title"],
+    "SECURENOTE": ["content", "title"],
   ]
 
   var sharedPropertyKeys: Set<String> {

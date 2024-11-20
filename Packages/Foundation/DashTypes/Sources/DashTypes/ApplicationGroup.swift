@@ -45,30 +45,11 @@ public struct ApplicationGroup {
     return containerURL.appendingPathComponent("dashlaneAuthenticatorDB.json")
   }
 
-  public static var authenticatorAppId: String {
-    return "group.dashlane.authenticatorAppContainer"
-  }
-
   public static var dashlaneUserDefaults: UserDefaults {
     guard let userDefaults = UserDefaults(suiteName: dashlaneAppId) else {
       fatalError("Impossible to get the URL")
     }
     return userDefaults
-  }
-
-  public static var authenticatorUserDefaults: UserDefaults {
-    guard let userDefaults = UserDefaults(suiteName: authenticatorAppId) else {
-      fatalError("Impossible to get the URL")
-    }
-    return userDefaults
-  }
-
-  public static var authenticatorLogsLocalStoreURL: URL {
-    return documentsURL.appendingPathComponent("authenticatorLogsStore", isDirectory: true)
-  }
-
-  public static var authenticatorStandaloneStoreURL: URL {
-    return documentsURL.appendingPathComponent("authenticatorStore", isDirectory: true)
   }
 }
 

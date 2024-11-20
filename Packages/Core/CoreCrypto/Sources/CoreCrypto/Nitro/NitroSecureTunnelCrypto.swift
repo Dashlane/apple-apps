@@ -1,7 +1,7 @@
 import Foundation
 import Sodium
 
-public struct NitroSecureTunnelCrypto {
+struct NitroSecureTunnelCrypto {
   let sodium = Sodium()
   let keyPair: any KeyPairProtocol
 

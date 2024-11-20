@@ -3,11 +3,9 @@ import DashlaneAPI
 public enum VerificationMethod: Hashable {
   case emailToken
   case totp(PushType?)
-  case authenticatorPush
 
   public enum PushType: Hashable {
     case duo
-    case authenticator
   }
 
   public var pushType: PushType? {
@@ -24,8 +22,6 @@ extension AppAPIClient.Authentication.Get2FAStatusUnauthenticated.Response {
   public var pushType: VerificationMethod.PushType? {
     if isDuoEnabled {
       return .duo
-    } else if hasDashlaneAuthenticator {
-      return .authenticator
     }
     return nil
   }

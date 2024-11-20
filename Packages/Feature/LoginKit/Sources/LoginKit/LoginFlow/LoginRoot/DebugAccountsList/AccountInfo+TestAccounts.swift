@@ -3,7 +3,7 @@ import Foundation
 
 struct TestAccountInfo: AccountInfo {
   let email: String
-  let loginType: LoginType
+  let loginType: AccountLoginType
   let comment: String?
 
   var subtitle: String? {

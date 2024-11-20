@@ -73,15 +73,23 @@ public struct ImportListView<Model>: View where Model: ObservableObject, Model: 
   }
 
   private var importButton: some View {
-    Button(L10n.Core.m2WImportGenericImportScreenImport, action: save)
-      .buttonStyle(.designSystem(.titleOnly))
-      .buttonDisplayProgressIndicator(model.inProgress)
-      .disabled(model.inProgress || !model.isAnyItemSelected)
-      .padding(.horizontal, 16)
-      .padding(.vertical, 26)
-      .background {
-        importButtonBackground
+    Button(
+      action: {
+        save()
+      },
+      label: {
+        Text(L10n.Core.m2WImportGenericImportScreenImport)
+          .fixedSize(horizontal: false, vertical: true)
       }
+    )
+    .buttonStyle(.designSystem(.titleOnly))
+    .buttonDisplayProgressIndicator(model.inProgress)
+    .disabled(model.inProgress || !model.isAnyItemSelected)
+    .padding(.horizontal, 16)
+    .padding(.vertical, 26)
+    .background {
+      importButtonBackground
+    }
   }
 
   @ViewBuilder

@@ -54,8 +54,6 @@ public struct ThirdPartyOTPLoginStateMachine: StateMachine {
     case .sendPush:
       if option.pushType == VerificationMethod.PushType.duo {
         await validateUsingDUOPush()
-      } else {
-        await validateUsingAuthenticatorPush()
       }
     }
     logger.logInfo("Transition to state: \(state)")
@@ -90,22 +88,10 @@ public struct ThirdPartyOTPLoginStateMachine: StateMachine {
     }
 
   }
-
-  private mutating func validateUsingAuthenticatorPush() async {
-    do {
-      let verificationResponse = try await apiClient.authentication
-        .performDashlaneAuthenticatorVerification(login: login.email)
-      state = .didReceivedAuthTicket(AuthTicket(value: verificationResponse.authTicket))
-    } catch {
-      logger.error("Authenticator push verification failed", error: error)
-      state = .errorOccured(.duoChallengeFailed)
-    }
-  }
 }
 
 extension ThirdPartyOTPLoginStateMachine {
-  public static func mock(option: ThirdPartyOTPOption = .authenticatorPush)
-    -> ThirdPartyOTPLoginStateMachine
+  public static func mock(option: ThirdPartyOTPOption = .duoPush) -> ThirdPartyOTPLoginStateMachine
   {
     ThirdPartyOTPLoginStateMachine(
       initialState: .initialize(option.pushType),

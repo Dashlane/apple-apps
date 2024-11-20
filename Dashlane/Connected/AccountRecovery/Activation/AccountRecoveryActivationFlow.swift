@@ -17,7 +17,7 @@ struct AccountRecoveryActivationFlow: View {
         model: model.makeActivationViewModel {
           model.logCancel()
           dismiss()
-        }, canSkip: true)
+        }, canSkip: model.canSkip)
     }.navigationViewStyle(.stack)
   }
 }

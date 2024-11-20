@@ -9,9 +9,9 @@ public struct SSORemoteStateMachine: StateMachine {
 
   public enum State: Hashable {
     case waitingForUserInput
-    case receivedSSOKeys(SSOKeys, DeviceRegistrationData)
-    case failed
+    case failed(StateMachineError)
     case cancelled
+    case completed(RemoteLoginSession)
   }
 
   public enum Event {
@@ -52,6 +52,7 @@ public struct SSORemoteStateMachine: StateMachine {
       let errorMessage = "Unexpected \(event) event for the state \(state)"
       logger.error(errorMessage)
     }
+    logger.logInfo("Transition to state: \(state)")
   }
 
   private mutating func handleSSOCallbackResult(_ result: Result<SSOCompletion, Error>) async {
@@ -66,7 +67,7 @@ public struct SSORemoteStateMachine: StateMachine {
       }
     } catch {
       logger.error("SSO authentication failed", error: error)
-      state = .failed
+      state = .failed(StateMachineError(underlyingError: error))
     }
   }
 
@@ -85,10 +86,10 @@ public struct SSORemoteStateMachine: StateMachine {
         deviceAccessKey: deviceRegistrationResponse.deviceAccessKey,
         deviceSecretKey: deviceRegistrationResponse.deviceSecretKey,
         analyticsIds: deviceRegistrationResponse.analyticsIds,
+        authTicket: verificationResponse.authTicket,
         serverKey: deviceRegistrationResponse.serverKey,
         remoteKeys: deviceRegistrationResponse.remoteKeys,
-        ssoServerKey: deviceRegistrationResponse.ssoServerKey,
-        authTicket: verificationResponse.authTicket
+        ssoServerKey: deviceRegistrationResponse.ssoServerKey
       )
       let (encryptedRemoteKey, ssoKey) = try deviceRegistrationResponse.encryptedRemoteKeyAndSSOKey(
         usingKey: serviceProviderKey)
@@ -97,13 +98,55 @@ public struct SSORemoteStateMachine: StateMachine {
       let ssoKeys = SSOKeys(
         remoteKey: decryptedRemoteKey, ssoKey: ssoKey,
         authTicket: AuthTicket(value: verificationResponse.authTicket))
-      state = .receivedSSOKeys(ssoKeys, deviceRegistrationData)
-      logger.logInfo("Transition to state: \(state)")
+      logger.logInfo("SSO token validated")
+      try await validateSSOKey(
+        ssoKeys.ssoKey, authTicket: AuthTicket(value: verificationResponse.authTicket),
+        remoteKey: decryptedRemoteKey, data: deviceRegistrationData)
     } catch {
-      state = .failed
+      state = .failed(StateMachineError(underlyingError: error))
       logger.error("SSO validation failed", error: error)
     }
   }
+
+  private mutating func validateSSOKey(
+    _ ssoKey: Data,
+    authTicket: AuthTicket,
+    remoteKey: Data,
+    data: DeviceRegistrationData
+  ) async throws {
+
+    let authentication = ServerAuthentication(
+      deviceAccessKey: data.deviceAccessKey, deviceSecretKey: data.deviceSecretKey)
+
+    let userDeviceAPIClient = apiClient.makeUserClient(
+      login: ssoAuthenticationInfo.login,
+      signedAuthentication: authentication.signedAuthentication)
+
+    let cryptoConfig = try await cryptoEngineProvider.retriveCryptoConfig(
+      with: .ssoKey(ssoKey),
+      remoteKey: remoteKey,
+      encryptedSettings: data.initialSettings,
+      userDeviceAPIClient: userDeviceAPIClient)
+
+    let remoteLoginSession = RemoteLoginSession(
+      login: ssoAuthenticationInfo.login,
+      userData: data,
+      cryptoConfig: cryptoConfig,
+      masterKey: .ssoKey(ssoKey),
+      authentication: authentication,
+      remoteKey: remoteKey,
+      isRecoveryLogin: false,
+      newMasterPassword: nil,
+      authTicket: authTicket,
+      verificationMethod: nil,
+      pin: nil,
+      shouldEnableBiometry: false,
+      isBackupCode: false)
+    self.state = .completed(remoteLoginSession)
+    logger.logInfo("Transition to state: \(state)")
+
+  }
+
 }
 
 extension AppAPIClient.Authentication.CompleteDeviceRegistrationWithAuthTicket.Response {

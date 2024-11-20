@@ -42,6 +42,9 @@ struct HomeFlow: View {
       }
       .homeModalAnnouncements(model: viewModel.homeModalAnnouncementsViewModel)
       .badge(viewModel.remainingActionsCount)
+      .onAppear {
+        viewModel.displayAnnouncementIffNeeded()
+      }
   }
 
   @ViewBuilder

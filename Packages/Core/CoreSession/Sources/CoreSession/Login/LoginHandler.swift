@@ -3,6 +3,7 @@ import DashlaneAPI
 import Foundation
 import SwiftTreats
 
+@MainActor
 public class LoginHandler {
   public enum Error: Swift.Error {
     case loginDoesNotExist
@@ -11,14 +12,14 @@ public class LoginHandler {
 
   public enum LoginResult {
     case localLoginRequired(LocalLoginHandler)
-    case remoteLoginRequired(RegularRemoteLoginHandler)
+    case remoteLoginRequired(Login, LoginMethod, DeviceInfo)
     case ssoAccountCreation(_ login: Login, SSOLoginInfo)
-    case deviceToDeviceRemoteLogin(Login?, DeviceTransferLoginFlowStateMachine)
+    case deviceToDeviceRemoteLogin(Login?, DeviceInfo)
   }
 
   let logger: Logger
   let sessionsContainer: SessionsContainerProtocol
-  let deviceInfo: DeviceInfo
+  public let deviceInfo: DeviceInfo
   let removeLocalData: (Login) -> Void
   let cryptoEngineProvider: CryptoEngineProvider
   let appApiClient: AppAPIClient
@@ -103,27 +104,6 @@ public class LoginHandler {
     return loginHandler
   }
 
-  public func createRegularRemoteLoginHandler(
-    using login: Login, cryptoEngineProvider: CryptoEngineProvider,
-    accountInfo: AppAPIClient.Authentication.GetAuthenticationMethodsForDevice.Response
-  ) async throws -> RegularRemoteLoginHandler {
-
-    guard let method = accountInfo.verifications.loginMethod(for: login) else {
-      throw Error.loginDoesNotExist
-    }
-
-    let remoteHandler = RegularRemoteLoginHandler(
-      login: login,
-      deviceRegistrationMethod: method,
-      deviceInfo: self.deviceInfo,
-      ssoInfo: accountInfo.verifications.ssoInfo,
-      appAPIClient: appApiClient,
-      sessionsContainer: self.sessionsContainer,
-      logger: self.logger,
-      cryptoEngineProvider: cryptoEngineProvider)
-    return remoteHandler
-  }
-
   private func accountInfo(for login: Login) async throws
     -> AppAPIClient.Authentication.GetAuthenticationMethodsForDevice.Response
   {
@@ -151,33 +131,14 @@ public class LoginHandler {
       let accountInfo = try await accountInfo(for: login)
       switch accountInfo.accountType {
       case .invisibleMasterPassword:
-        let handler = await makeDeviceTransferLoginFlowStateMachine(login: login)
-        return LoginResult.deviceToDeviceRemoteLogin(login, handler)
+        return LoginResult.deviceToDeviceRemoteLogin(login, deviceInfo)
       default:
-        let result = try await self.createRegularRemoteLoginHandler(
-          using: login, cryptoEngineProvider: self.cryptoEngineProvider, accountInfo: accountInfo)
-        return LoginResult.remoteLoginRequired(result)
+        guard let method = accountInfo.verifications.loginMethod(for: login) else {
+          throw Error.loginDoesNotExist
+        }
+        return LoginResult.remoteLoginRequired(login, method, deviceInfo)
       }
     }
-  }
-
-  @MainActor
-  public func makeDeviceTransferLoginFlowStateMachine(login: Login? = nil)
-    -> DeviceTransferLoginFlowStateMachine
-  {
-    return DeviceTransferLoginFlowStateMachine(
-      login: login,
-      deviceInfo: deviceInfo,
-      apiClient: appApiClient,
-      sessionsContainer: sessionsContainer,
-      logger: logger,
-      cryptoEngineProvider: self.cryptoEngineProvider)
-  }
-
-  public func makeRemoteLoginHandler() -> RemoteLoginHandler {
-    RemoteLoginHandler(
-      deviceInfo: deviceInfo, apiclient: appApiClient, sessionsContainer: sessionsContainer,
-      logger: logger, cryptoEngineProvider: self.cryptoEngineProvider)
   }
 }
 

@@ -29,7 +29,6 @@ class AutofillRootCoordinator: Coordinator, SubcoordinatorOwner {
     set {
       InMemoryUserSessionStore.shared = newValue
     }
-
   }
 
   var allAppMessages: [AppExtensionCommunicationCenter.Message] = []

@@ -12,16 +12,6 @@ public struct PinCodeSelection: View {
   @Environment(\.dismiss)
   private var dismiss
 
-  @State
-  var showChangePinLengthDialog = false
-
-  var showChangePinLengthButton: Bool {
-    if case .select = model.current {
-      return true
-    }
-    return false
-  }
-
   public init(model: @autoclosure @escaping () -> PinCodeSelectionViewModel) {
     _model = .init(wrappedValue: model())
   }
@@ -35,27 +25,6 @@ public struct PinCodeSelection: View {
       ) {
         self.model.cancel()
         self.dismiss()
-      }
-      Button(L10n.Core.changePinLengthCta) {
-        showChangePinLengthDialog = true
-      }
-      .buttonStyle(.designSystem(.titleOnly))
-      .style(mood: .brand, intensity: .supershy)
-      .buttonStyle(.designSystem(.titleOnly))
-      .opacity(showChangePinLengthButton ? 1 : 0)
-      .disabled(!showChangePinLengthButton)
-      .confirmationDialog(
-        L10n.Core.changePinLengthDialogTitle, isPresented: $showChangePinLengthDialog
-      ) {
-        Button(L10n.Core.changePinLengthDialogSixDigits) {
-          model.pinCodeLength = 6
-        }
-        Button(L10n.Core.changePinLengthDialogFourDigits) {
-          model.pinCodeLength = 4
-        }
-        Button(L10n.Core.cancel, role: .cancel) {}
-      } message: {
-        Text(L10n.Core.changePinLengthDialogTitle)
       }
     }
     .animation(.default, value: model.current.prompt)

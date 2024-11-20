@@ -44,13 +44,13 @@
     private func configure(_ textField: UITextField, with coordinator: Coordinator) {
       let picker = makePicker(from: coordinator)
       update(textField)
-      picker.backgroundColor = UIColor.systemBackground
+      picker.backgroundColor = .ds.background.alternate
 
       let toolbarFrame = CGRect(
         x: 0, y: 0,
         width: UIScreen.main.bounds.size.width, height: 44)
       let accessoryToolbar = UIToolbar(frame: toolbarFrame)
-      accessoryToolbar.backgroundColor = UIColor.systemBackground
+      accessoryToolbar.backgroundColor = .ds.background.alternate
       let doneButton = UIBarButtonItem(
         barButtonSystemItem: .done,
         target: coordinator,

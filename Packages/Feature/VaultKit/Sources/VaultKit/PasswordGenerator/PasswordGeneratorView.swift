@@ -49,7 +49,7 @@ public struct PasswordGeneratorView: View {
       .navigationBarTitleDisplayMode(Device.isIpadOrMac ? .inline : .automatic)
       .reportPageAppearance(.passwordGenerator)
       .onAppear {
-        viewModel.refresh()
+        viewModel.forcedRefresh()
       }
       .scrollContentBackgroundStyle(.alternate)
   }
@@ -81,6 +81,7 @@ public struct PasswordGeneratorView: View {
       }
       .listRowInsets(.init(top: 0, leading: 16, bottom: 24, trailing: 16))
       .listRowSeparator(.hidden)
+      .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
 
       Section(
         header: Text(L10n.Core.kwPadExtensionGeneratorLength.uppercased())
@@ -90,6 +91,7 @@ public struct PasswordGeneratorView: View {
       }
       .listRowInsets(.init(top: 8, leading: 16, bottom: 8, trailing: 16))
       .listRowSeparator(.hidden)
+      .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
 
       Section(header: Text(L10n.Core.kwPadExtensionOptions.uppercased())) {
         PasswordGeneratorViewOptions(preferences: $viewModel.preferences)
@@ -97,6 +99,7 @@ public struct PasswordGeneratorView: View {
       }
       .listRowInsets(.init(top: 6, leading: 16, bottom: 6, trailing: 16))
       .listRowSeparator(.hidden)
+      .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
     }
   }
 

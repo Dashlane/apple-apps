@@ -20,13 +20,11 @@ public struct FakeAuthenticationKeychainService: AuthenticationKeychainServicePr
     return .available(accessMode: .whenDeviceUnlocked)
   }
 
-  public func masterKey(for login: Login) throws -> CoreKeychain.MasterKey {
+  public func masterKey(for login: Login) throws -> DashTypes.MasterKey {
     return .masterPassword("test")
   }
 
-  public func masterKey(for login: Login, using context: LAContext?) throws
-    -> CoreKeychain.MasterKey
-  {
+  public func masterKey(for login: Login, using context: LAContext?) throws -> DashTypes.MasterKey {
     return .masterPassword("test")
   }
 

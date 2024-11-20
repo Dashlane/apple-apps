@@ -20,9 +20,7 @@ extension DeepLinkingService: NotificationKitDeepLinkingServiceProtocol {
       handleLink(
         .premium(.planPurchase(initialView: .paywall(trigger: .capability(key: capability)))))
     case .displayFrozenPaywall:
-      handleLink(
-        .premium(
-          .planPurchase(initialView: .paywall(trigger: .frozenAccount(firstAnnouncement: false)))))
+      handleLink(.premium(.planPurchase(initialView: .paywall(trigger: .frozenAccount))))
     case .importFromLastPass:
       let link = DeepLink.importMethod(
         ImportMethodDeeplink.import(ImportMethodDeeplink.Method.lastpass))

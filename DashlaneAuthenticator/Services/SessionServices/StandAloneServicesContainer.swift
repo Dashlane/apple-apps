@@ -9,7 +9,13 @@ import Foundation
 import IconLibrary
 import Logger
 
-class StandAloneServicesContainer: DependenciesContainer {
+private final class NoOpDomainIconLibrary: DomainIconLibraryProtocol {
+  func icon(for domain: DashTypes.Domain) async throws -> Icon? {
+    return nil
+  }
+}
+
+final class StandAloneServicesContainer: DependenciesContainer {
   public let appServices: AppServices
   public let databaseService: AuthenticatorDatabaseServiceProtocol
   public let domainIconLibrary: DomainIconLibraryProtocol
@@ -18,8 +24,7 @@ class StandAloneServicesContainer: DependenciesContainer {
     self.appServices = appServices
     databaseService = AuthenticatorDatabaseService(
       logger: appServices.rootLogger[.localCommunication])
-    domainIconLibrary = DomainIconLibrary(
-      appAPIClient: appServices.appAPIClient, logger: appServices.rootLogger[.iconLibrary])
+    domainIconLibrary = NoOpDomainIconLibrary()
   }
 }
 

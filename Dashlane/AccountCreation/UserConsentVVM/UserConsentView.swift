@@ -34,12 +34,15 @@ struct UserConsentView<TopSection: View>: View {
       }
       .navigationTitle(L10n.Localizable.kwTitle)
       .reportPageAppearance(.accountCreationTermsServices)
+      .navigationBarStyle(.alternate)
   }
 
   private var mainView: some View {
     List {
       topSection
+        .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
       consentSection
+        .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
     }
     .listAppearance(.insetGrouped)
     .safeAreaInset(edge: .bottom, alignment: .center) {
@@ -75,21 +78,33 @@ struct UserConsentView<TopSection: View>: View {
       Button(CoreLocalization.L10n.Core.kwCreateAccountTermsConditions) { model.goToTerms() }
         .buttonStyle(.externalLink)
         .controlSize(.small)
+        .accessibilityAddTraits(.isLink)
+        .accessibilityRemoveTraits(.isButton)
 
       Button(CoreLocalization.L10n.Core.kwCreateAccountPrivacy) { model.goToPrivacy() }
         .buttonStyle(.externalLink)
         .controlSize(.small)
+        .accessibilityAddTraits(.isLink)
+        .accessibilityRemoveTraits(.isButton)
     }
     .listRowSeparator(.hidden)
   }
 
   private var createButton: some View {
-    Button(L10n.Localizable.AccountCreation.Finish.createButton, action: model.validate)
-      .buttonStyle(.designSystem(.titleOnly))
-      .buttonDisplayProgressIndicator(model.isAccountCreationRequestInProgress)
-      .padding(.horizontal, 24)
-      .padding(.bottom, 35)
-      .disabled(model.isAccountCreationRequestInProgress)
+    Button(
+      action: {
+        model.validate()
+      },
+      label: {
+        Text(L10n.Localizable.AccountCreation.Finish.createButton)
+          .fixedSize(horizontal: false, vertical: true)
+      }
+    )
+    .buttonStyle(.designSystem(.titleOnly))
+    .buttonDisplayProgressIndicator(model.isAccountCreationRequestInProgress)
+    .padding(.horizontal, 24)
+    .padding(.bottom, 35)
+    .disabled(model.isAccountCreationRequestInProgress)
   }
 
   private func userConsentAlert() -> Alert {

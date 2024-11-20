@@ -39,7 +39,6 @@ let package = Package(
     .package(path: "../../Core/CoreCrypto"),
     .package(path: "../../Foundation/StateMachine"),
     .package(name: "CoreUserTracking", path: "../../Core/CoreUserTracking"),
-    .package(url: "_", from: "0.4.6"),
     .package(url: "_", from: "8.13.0"),
   ],
   targets: [
@@ -62,7 +61,6 @@ let package = Package(
         .product(name: "CorePremium", package: "CorePremium"),
         .product(name: "CoreFeature", package: "CoreFeature"),
         .product(name: "CoreCrypto", package: "CoreCrypto"),
-        .product(name: "SwiftCBOR", package: "SwiftCBOR"),
         .product(name: "Sentry", package: "sentry-cocoa"),
         .product(name: "StateMachine", package: "StateMachine"),
       ],

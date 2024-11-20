@@ -120,12 +120,16 @@ public struct TOTPDetailField: View {
         DS.TextField(
           title, text: $formattedCode,
           actions: {
-            otpSubviewView
-            ForEach(actions, id: \.id) { action in
-              switch action {
-              case .copy(let action):
-                DS.FieldAction.CopyContent { action(code, fiberFieldType) }
+            HStack(spacing: 12) {
+              ForEach(actions, id: \.id) { action in
+                switch action {
+                case .copy(let action):
+                  DS.FieldAction.CopyContent { action(code, fiberFieldType) }
+                }
               }
+              otpSubviewView
+                .frame(width: 16, height: 16)
+                .padding(.trailing, 13)
             }
           }
         )

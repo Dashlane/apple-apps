@@ -116,6 +116,7 @@ struct DevicesList: View {
         LargeHeaderSection(title: devices.dateGroup.localizedDeviceTitle) {
           ForEach(devices.devices) { device in
             BucketDeviceRow(device: device, isCurrent: model.currentDeviceId == device.id)
+              .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
               .padding(6)
               .onTapGesture(enabled: mode?.wrappedValue != .active) {
                 self.selectedDevice = device

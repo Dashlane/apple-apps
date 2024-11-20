@@ -16,14 +16,18 @@ struct AccountRecoveryKeyStatusDetailView: View {
     List {
       Section(footer: Text(model.footerLabel).textStyle(.body.helper.regular)) {
         DS.Toggle(CoreLocalization.L10n.Core.recoveryKeySettingsLabel, isOn: $model.isEnabled)
+          .highPriorityGesture(
+            TapGesture()
+              .onEnded {
+                if !model.isEnabled {
+                  model.presentedSheet = .activation
+                } else {
+                  showAlert = true
+                }
+              }
+          )
       }
-      .onTapGesture {
-        if !model.isEnabled {
-          model.presentedSheet = .activation
-        } else {
-          showAlert = true
-        }
-      }
+      .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
     }
     .listAppearance(.insetGrouped)
     .navigationTitle(CoreLocalization.L10n.Core.recoveryKeySettingsLabel)
@@ -61,7 +65,7 @@ struct AccountRecoveryKeyStatusDetailView: View {
       isPresented: $showAlert,
       actions: {
         Button(CoreLocalization.L10n.Core.cancel, role: .cancel) {
-          model.isEnabled.toggle()
+          model.isEnabled = true
         }
         Button(L10n.Localizable.recoveryKeyDeactivationAlertCta, role: .destructive) {
           model.deactivate()

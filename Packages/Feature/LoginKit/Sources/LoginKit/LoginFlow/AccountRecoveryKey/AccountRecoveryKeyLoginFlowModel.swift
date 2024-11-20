@@ -12,20 +12,20 @@ public final class AccountRecoveryKeyLoginFlowModel: StateMachineBasedObservable
 {
 
   public enum Completion {
-    case completedWithChangeMP(MasterKey, AuthTicket, _ newMasterPassword: String)
-    case completed(MasterKey, AuthTicket)
+    case completed(AccountRecoveryKeyLoginFlowStateMachine.Completion)
     case cancel
   }
 
   enum Step {
     case verification(VerificationMethod, DeviceInfo)
     case recoveryKeyInput(_ authTicket: AuthTicket)
-    case changeMasterPassword(MasterKey, AuthTicket)
+    case changeMasterPassword(CoreSession.MasterKey, AuthTicket)
   }
 
   @Published var steps: [Step] = []
   @Published var inProgress = false
   @Published var showError = false
+  @Published var showNoMatchError: Bool = false
 
   private let login: Login
   private let accountType: CoreSession.AccountType
@@ -63,6 +63,7 @@ public final class AccountRecoveryKeyLoginFlowModel: StateMachineBasedObservable
     self.accountRecoveryKeyLoginViewModelFactory = accountRecoveryKeyLoginViewModelFactory
     self.newMasterPasswordViewModelFactory = newMasterPasswordViewModelFactory
     self.stateMachine = .init(
+      initialState: .loading,
       login: login,
       loginType: loginType,
       accountType: accountType,
@@ -95,7 +96,7 @@ public final class AccountRecoveryKeyLoginFlowModel: StateMachineBasedObservable
       verificationMethod: method,
       deviceInfo: deviceInfo
     ) { [weak self] completion in
-      self?.handleAccountVerificationFlowViewModelCompletion(completion)
+      self?.handleAccountVerificationFlowViewModelCompletion(completion, verificationMethod: method)
     }
   }
 
@@ -108,7 +109,7 @@ public final class AccountRecoveryKeyLoginFlowModel: StateMachineBasedObservable
     }
   }
 
-  func makeNewMasterPasswordViewModel(masterKey: MasterKey, authTicket: AuthTicket)
+  func makeNewMasterPasswordViewModel(masterKey: CoreSession.MasterKey, authTicket: AuthTicket)
     -> NewMasterPasswordViewModel
   {
     newMasterPasswordViewModelFactory.make(mode: .masterPasswordChange) { [weak self] completion in
@@ -127,14 +128,16 @@ extension AccountRecoveryKeyLoginFlowModel {
       if newState != .loading, inProgress {
         inProgress = false
       }
-      if newState != .error, showError {
-        showError = false
-      }
     }
 
     switch newState {
     case .loading:
       inProgress = true
+    case let .error(error)
+    where error.underlyingError as? AccountRecoveryKeyLoginFlowStateMachine.Error
+      == AccountRecoveryKeyLoginFlowStateMachine.Error.wrongRecoveryKey:
+      logFlowStep(.error)
+      showNoMatchError = true
     case .error:
       logFlowStep(.error)
       showError = true
@@ -144,10 +147,8 @@ extension AccountRecoveryKeyLoginFlowModel {
       steps.append(.recoveryKeyInput(authTicket))
     case .masterPasswordChangeNeeded(let masterKey, let authTicket):
       steps.append(.changeMasterPassword(masterKey, authTicket))
-    case .completed(let masterKey, let authTicket):
-      completion(.completed(masterKey, authTicket))
-    case .completedWithChangedMP(let masterKey, let authTicket, let newMasterPassword):
-      completion(.completedWithChangeMP(masterKey, authTicket, newMasterPassword))
+    case let .completed(result):
+      completion(.completed(result))
     case .cancel:
       cancel()
     }
@@ -157,7 +158,7 @@ extension AccountRecoveryKeyLoginFlowModel {
 extension AccountRecoveryKeyLoginFlowModel {
   fileprivate func handleNewMasterPasswordViewModelCompletion(
     _ completion: NewMasterPasswordViewModel.Completion,
-    _ masterKey: MasterKey,
+    _ masterKey: CoreSession.MasterKey,
     _ authTicket: AuthTicket
   ) {
     switch completion {
@@ -172,14 +173,15 @@ extension AccountRecoveryKeyLoginFlowModel {
   }
 
   fileprivate func handleAccountVerificationFlowViewModelCompletion(
-    _ completion: Result<(AuthTicket, Bool), Error>
+    _ completion: Result<(AuthTicket, Bool), Error>, verificationMethod: VerificationMethod
   ) {
     Task {
       do {
-        let (authTicket, _) = try completion.get()
-        await self.perform(.accountVerified(authTicket))
+        let (authTicket, isBackupCode) = try completion.get()
+        await self.perform(
+          .accountVerified(authTicket, isBackupCode: isBackupCode, verificationMethod))
       } catch {
-        await self.perform(.errorEncountered)
+        await self.perform(.errorEncountered(StateMachineError(underlyingError: error)))
       }
     }
   }
@@ -190,7 +192,7 @@ extension AccountRecoveryKeyLoginFlowModel {
     AccountRecoveryKeyLoginFlowModel(
       login: "_",
       accountType: .invisibleMasterPassword,
-      loginType: .local(AuthTicket(value: "authTicket"), .mock),
+      loginType: .local(.otp2User(AuthTicket(value: "authTicket")), .mock),
       appAPIClient: .fake,
       cryptoEngineProvider: SessionCryptoEngineProvider(logger: LoggerMock.mock),
       passwordEvaluator: PasswordEvaluatorMock.mock(),

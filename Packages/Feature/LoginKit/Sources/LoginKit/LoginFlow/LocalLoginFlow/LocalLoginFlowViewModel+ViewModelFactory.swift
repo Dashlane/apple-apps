@@ -27,9 +27,14 @@ extension LocalLoginFlowViewModel {
       switch completion {
       case .logout:
         self.completion(.success(.logout))
-      case .authenticated(let mode):
+      case let .authenticated(mode, localSession):
         self.lastSuccessfulAuthenticationMode = mode.authenticationLog
-        self.updateStep(for: mode)
+        guard let localSession = localSession, let session = localSession.session else {
+          self.updateStep(for: mode)
+          return
+        }
+        completed(
+          with: session, isRecoveryLogin: localSession.isRecoveryLogin, authenticationMode: mode)
       }
     }
   }

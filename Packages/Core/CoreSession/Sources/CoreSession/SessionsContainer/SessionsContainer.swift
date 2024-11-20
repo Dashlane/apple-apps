@@ -79,6 +79,7 @@ public struct SessionsContainer<StoreProvider: SessionStoreProviderProtocol>:
   public func createSession(with configuration: SessionConfiguration, cryptoConfig: CryptoRawConfig)
     throws -> Session
   {
+    try self.removeSessionDirectory(for: configuration.login)
     let localKey = cryptoEngineProvider.makeLocalKey()
     return try writeSession(with: configuration, localKey: localKey, cryptoConfig: cryptoConfig)
   }
@@ -98,7 +99,6 @@ public struct SessionsContainer<StoreProvider: SessionStoreProviderProtocol>:
   }
 
   public func loadSession(for loadInfo: LoadSessionInformation) throws -> Session {
-
     let login = loadInfo.login
     let directory = try sessionDirectory(for: login)
     let info = try sessionStoreProvider.infoStore(for: login, directory: directory).load()

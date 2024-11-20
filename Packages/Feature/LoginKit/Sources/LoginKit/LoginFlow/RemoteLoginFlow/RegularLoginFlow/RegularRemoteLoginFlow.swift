@@ -15,14 +15,14 @@
     public var body: some View {
       StepBasedContentNavigationView(steps: $viewModel.steps) { step in
         switch step {
-        case let .verification(method):
-          AccountVerificationFlow(
-            model: viewModel.makeAccountVerificationFlowViewModel(method: method))
-        case let .masterPassword(loginKeys):
-          MasterPasswordRemoteView(
-            model: viewModel.makeMasterPasswordViewModel(loginKeys: loginKeys))
-        case let .sso(info):
-          SSORemoteLoginView(model: viewModel.makeSSOLoginViewModel(ssoAuthenticationInfo: info))
+        case let .masterPassword(_, method, deviceInfo):
+          MasterPasswordRemoteLoginFlow(
+            viewModel: viewModel.makeMasterPasswordRemoteLoginFlowModel(
+              verificationMethod: method, deviceInfo: deviceInfo))
+        case let .sso(info, deviceInfo):
+          SSORemoteLoginView(
+            model: viewModel.makeSSOLoginViewModel(
+              ssoAuthenticationInfo: info, deviceInfo: deviceInfo))
         }
       }
     }

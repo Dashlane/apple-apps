@@ -25,8 +25,8 @@ import SwiftTreats
     }
   }
 
-  extension NitroConfiguration.Environment {
-    public static var `default`: NitroConfiguration.Environment {
+  extension NitroSSOConfiguration.Environment {
+    public static var `default`: NitroSSOConfiguration.Environment {
       let userDefault = UserDefaults.standard
       guard userDefault.bool(for: .stagingServersEnabled),
         let url = userDefault.sanitizedStringURL(for: .nitroServerURL),
@@ -95,8 +95,8 @@ import SwiftTreats
     }
   }
 
-  extension NitroConfiguration.Environment {
-    public static var `default`: NitroConfiguration.Environment {
+  extension NitroSSOConfiguration.Environment {
+    public static var `default`: NitroSSOConfiguration.Environment {
       return .production
     }
   }

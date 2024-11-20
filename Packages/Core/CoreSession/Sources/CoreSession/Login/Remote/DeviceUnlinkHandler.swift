@@ -3,7 +3,16 @@ import DashTypes
 import DashlaneAPI
 import Foundation
 
-public class DeviceUnlinker {
+public class DeviceUnlinker: Hashable {
+  public static func == (lhs: DeviceUnlinker, rhs: DeviceUnlinker) -> Bool {
+    return lhs.currentDeviceId == rhs.currentDeviceId && lhs.login == rhs.login
+  }
+
+  public func hash(into hasher: inout Hasher) {
+    hasher.combine(login)
+    hasher.combine(currentDeviceId)
+  }
+
   public enum UnlinkMode: Equatable {
     case monobucket
     case multiple(Int)

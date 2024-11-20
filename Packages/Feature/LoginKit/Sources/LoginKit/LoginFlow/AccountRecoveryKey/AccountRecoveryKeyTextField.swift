@@ -5,7 +5,11 @@ import SwiftUI
 
 public struct AccountRecoveryKeyTextField: View {
   @Binding
-  var recoveryKey: String
+  var recoveryKey: String {
+    didSet {
+      showNoMatchError = false
+    }
+  }
 
   @Binding
   var showNoMatchError: Bool

@@ -5,9 +5,7 @@ import SwiftUI
 
 extension BankAccount {
   public var icon: VaultItemIcon {
-    .static(
-      Image(asset: Asset.bankAccountThumb),
-      backgroundColor: Color.clear)
+    .bankAccount
   }
 
   public static var addIcon: SwiftUI.Image {

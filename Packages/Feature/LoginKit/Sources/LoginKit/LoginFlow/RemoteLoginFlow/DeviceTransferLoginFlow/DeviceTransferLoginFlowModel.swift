@@ -46,12 +46,13 @@ public class DeviceTransferLoginFlowModel: LoginKitServicesInjecting {
 
   public init(
     login: Login?,
+    deviceInfo: DeviceInfo,
     activityReporter: ActivityReporterProtocol,
-    stateMachine: DeviceTransferLoginFlowStateMachine,
     totpFactory: DeviceTransferOTPLoginViewModel.Factory,
     deviceToDeviceLoginFlowViewModelFactory: DeviceTransferQRCodeFlowModel.Factory,
     securityChallengeFlowModelFactory: DeviceTransferSecurityChallengeFlowModel.Factory,
     deviceTransferRecoveryFlowModelFactory: DeviceTransferRecoveryFlowModel.Factory,
+    deviceTransferLoginFlowStateMachineFactory: DeviceTransferLoginFlowStateMachine.Factory,
     completion: @escaping @MainActor (Result<DeviceTransferQRCodeFlowModel.Completion, Error>) ->
       Void
   ) {
@@ -67,7 +68,8 @@ public class DeviceTransferLoginFlowModel: LoginKitServicesInjecting {
     self.completion = completion
     self.deviceTransferRecoveryFlowModelFactory = deviceTransferRecoveryFlowModelFactory
     self.totpFactory = totpFactory
-    self.stateMachine = stateMachine
+    self.stateMachine = deviceTransferLoginFlowStateMachineFactory.make(
+      login: login, deviceInfo: deviceInfo)
   }
 
   func deviceTransferTypeSelected(event: DeviceTransferLoginFlowStateMachine.Event) async {
@@ -201,15 +203,16 @@ extension DeviceTransferLoginFlowModel {
     ) { [weak self] completionType in
       guard let self = self else { return }
       switch completionType {
-      case let .success(authTicket, _):
+      case let .success(authTicket, isBackupCode):
         let registerData = RegistrationData(
-          transferData: data, authTicket: authTicket, transferMethod: .qrCode)
+          transferData: data, authTicket: authTicket, isBackupCode: isBackupCode,
+          transferMethod: .qrCode, verificationMethod: .totp(nil))
         Task {
           await self.perform(.otpDidFinish(registerData))
         }
-      case .error:
+      case let .error(error):
         Task {
-          await self.perform(.errorOccurred)
+          await self.perform(.errorOccurred(StateMachineError(underlyingError: error)))
         }
       case .cancel:
         self.completion(.success(.logout))
@@ -228,16 +231,18 @@ extension DeviceTransferLoginFlowModel {
         }
 
         switch result {
-        case let .completed(masterKey, authTicket):
+        case let .completed(recoveryData):
           Task {
             let data = AccountTransferInfo(
-              login: info.login, masterKey: masterKey, accountType: info.accountType,
-              authTicket: authTicket)
+              login: info.login, masterKey: recoveryData.masterKey, accountType: info.accountType,
+              verificationMethod: recoveryData.verificationMethod,
+              authTicket: recoveryData.authTicket)
             await self.perform(
               .accountRecoveryDidFinish(
                 RegistrationData(
-                  transferData: data, authTicket: authTicket, isRecoveryLogin: true,
-                  transferMethod: .accountRecoveryKey)))
+                  transferData: data, authTicket: recoveryData.authTicket, isRecoveryLogin: true,
+                  isBackupCode: recoveryData.isBackupCode, transferMethod: .accountRecoveryKey,
+                  verificationMethod: recoveryData.verificationMethod)))
           }
         default:
           Task {

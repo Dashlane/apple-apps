@@ -15,15 +15,20 @@ public struct DeviceRegistrationData: Equatable, Hashable {
   let remoteKeys: [EncryptedRemoteKey]?
   let ssoServerKey: String?
   public let authTicket: AuthTicket
+  public let verificationMethod: VerificationMethod?
+
+  public let isBackupCode: Bool
   public init(
     initialSettings: String,
     deviceAccessKey: String,
     deviceSecretKey: String,
     analyticsIds: AnalyticsIdentifiers,
+    authTicket: String,
+    verificationMethod: VerificationMethod? = nil,
     serverKey: String? = nil,
     remoteKeys: [AuthenticationCompleteAuthTicketRemoteKeys]? = nil,
     ssoServerKey: String? = nil,
-    authTicket: String
+    isBackupCode: Bool = false
   ) {
     self.initialSettings = initialSettings
     self.deviceAccessKey = deviceAccessKey
@@ -33,6 +38,8 @@ public struct DeviceRegistrationData: Equatable, Hashable {
     self.ssoServerKey = ssoServerKey
     self.authTicket = AuthTicket(value: authTicket)
     self.analyticsIds = analyticsIds
+    self.isBackupCode = isBackupCode
+    self.verificationMethod = verificationMethod
   }
 
   public var masterPasswordRemoteKey: EncryptedRemoteKey? {
@@ -66,6 +73,7 @@ extension DeviceRegistrationData {
   public static var mock: DeviceRegistrationData {
     DeviceRegistrationData(
       initialSettings: "", deviceAccessKey: "deviceAccessKey", deviceSecretKey: "deviceSecretKey",
-      analyticsIds: AnalyticsIdentifiers(device: "device", user: "user"), authTicket: "authTicket")
+      analyticsIds: AnalyticsIdentifiers(device: "device", user: "user"), authTicket: "authTicket",
+      verificationMethod: .emailToken, isBackupCode: false)
   }
 }

@@ -90,7 +90,6 @@ class AppCoordinator: Coordinator {
     setupDeepLinking()
     setupTips()
     createSessionFromUITestCommandIfNeeded()
-    logAuthenticatorOnAppLaunch()
   }
 
   func initialSetup() {
@@ -128,25 +127,6 @@ class AppCoordinator: Coordinator {
   func logAppLaunch() {
     if appServices.globalSettings.isFirstLaunch {
       appServices.activityReporter.trackInstall()
-    }
-  }
-
-  func logAuthenticatorOnAppLaunch() {
-    guard isFirstLaunch ?? true else {
-      return
-    }
-    let authenticatorDatabaseService = AuthenticatorDatabaseService(
-      logger: self.appServices.rootLogger[.localCommunication])
-    authenticatorDatabaseService.codesPublisher.sinkOnce { [weak self] codes in
-      guard let self = self else {
-        return
-      }
-      self.appServices.activityReporter.report(
-        UserEvent.PasswordManagerLaunch(
-          authenticatorOtpCodesCount: codes.count,
-          hasAuthenticatorInstalled: Authenticator.isOnDevice,
-          isFirstLaunch: true))
-      self.isFirstLaunch = false
     }
   }
 

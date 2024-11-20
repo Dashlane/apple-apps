@@ -4,63 +4,79 @@ import CoreSession
 import DashTypes
 import DashlaneAPI
 import Foundation
+import StateMachine
 import SwiftTreats
 
 @MainActor
-public class ConfidentialSSOViewModel: ObservableObject, LoginKitServicesInjecting {
+public class ConfidentialSSOViewModel: StateMachineBasedObservableObject, LoginKitServicesInjecting
+{
 
   @Published
-  var loginService: ConfidentialSSOLoginHandler?
+  var viewState: ViewState = .inProgress
+
   let login: Login
-  let nitroClient: NitroAPIClient
   let completion: Completion<SSOCompletion>
+  public var machine: ConfidentialSSOLoginStateMachine!
+
+  @MainActor
+  lazy public var stateMachine: ConfidentialSSOLoginStateMachine = {
+    machine
+  }()
+
+  enum ViewState: Equatable {
+    case sso(
+      _ authorisationURL: URL,
+      _ injectionScript: String)
+    case inProgress
+  }
 
   public init(
     login: Login,
-    nitroClient: NitroAPIClient,
+    nitroClient: NitroSSOAPIClient,
+    logger: Logger,
     completion: @escaping Completion<SSOCompletion>
   ) {
     self.login = login
-    self.nitroClient = nitroClient
     self.completion = completion
     Task {
       do {
-        loginService = try await ConfidentialSSOLoginHandler(login: login, nitroClient: nitroClient)
+        machine = try await ConfidentialSSOLoginStateMachine(
+          login: login,
+          nitroClient: nitroClient,
+          tunnelCreator: NitroSecureTunnelCreatorImpl(nitroClient: nitroClient),
+          logger: logger)
+        await perform(.fetchSSOInfo)
       } catch {
         self.completion(.failure(error))
       }
     }
   }
 
+  public func update(
+    for event: ConfidentialSSOLoginStateMachine.Event,
+    from oldState: ConfidentialSSOLoginStateMachine.State,
+    to newState: ConfidentialSSOLoginStateMachine.State
+  ) async {
+    switch (state, event) {
+    case (.waitingForUserInput, _): break
+    case (let .ssoInfoReceived(ssoInfo), _):
+      self.viewState = .sso(ssoInfo.idpAuthorizeUrl, ssoInfo.injectionScript)
+    case (let .receivedCallbackInfo(callbackInfos), _):
+      self.completion(.success(.completed(callbackInfos)))
+    case (.failed, _):
+      self.completion(.failure(SSOAccountError.invalidServiceProviderKey))
+    case (.cancelled, _):
+      self.completion(.success(.cancel))
+    }
+  }
+
   func didReceiveSAML(_ result: Result<String, Error>) {
-    switch result {
-    case let .success(saml):
-      Task { @MainActor in
-        await self.completeLogin(withSAML: saml)
-      }
-    case let .failure(error):
-      self.completion(.failure(error))
+    Task {
+      await self.perform(.didReceiveCallback(result))
     }
   }
 
-  func completeLogin(withSAML saml: String) async {
-    do {
-      guard let loginService = loginService else {
-        assertionFailure()
-        return
-      }
-      let callbackInfos = try await loginService.callbackInfo(withSAML: saml)
-      await MainActor.run {
-        completion(.success(.completed(callbackInfos)))
-      }
-    } catch {
-      await MainActor.run {
-        completion(.failure(error))
-      }
-    }
-  }
-
-  func cancel() {
-    self.completion(.success(.cancel))
+  func cancel() async throws {
+    await self.perform(.cancel)
   }
 }

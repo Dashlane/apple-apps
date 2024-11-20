@@ -11,10 +11,9 @@ import UIComponents
 import UIDelight
 import VaultKit
 
-public struct SecretDetailView: View, DismissibleDetailView {
+public struct SecretDetailView: View {
   @StateObject var model: SecretDetailViewModel
 
-  @Environment(\.navigator) public var navigator
   @Environment(\.dismiss) public var dismissAction
   @Environment(\.detailContainerViewSpecificDismiss) public var dismissView
 
@@ -28,11 +27,11 @@ public struct SecretDetailView: View, DismissibleDetailView {
 
       SharingDetailSection(
         model: model.sharingDetailSectionModelFactory.make(item: model.item),
-        ctaLabel: CoreLocalization.L10n.Core.Secrets.Sharing.ctaLabel
+        ctaLabel: CoreLocalization.L10n.Core.Secrets.Sharing.ctaLabel,
+        canShare: !model.service.isFrozen
       )
     }
     .makeShortcuts(model: model)
-    .detailContainerViewSpecificSave(.init(model.save))
   }
 
   var mainSection: some View {

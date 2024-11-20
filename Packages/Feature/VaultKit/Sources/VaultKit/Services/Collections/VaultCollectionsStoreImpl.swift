@@ -26,25 +26,6 @@ final class VaultCollectionsStoreImpl:
     vaultCollectionDatabase
       .collectionsPublisher()
       .assign(to: &$collections)
-
-    $collections
-      .receive(on: DispatchQueue.global(qos: .background))
-      .sink { [weak self] collecitons in
-        self?.logUnknownXMLDataType(in: collecitons)
-      }.store(in: &subscriptions)
-  }
-
-  private func logUnknownXMLDataType(in collections: [VaultCollection]) {
-    for collection in collections {
-      guard let privateCollection = collection.privateCollection,
-        case let types = privateCollection.items.filter({ $0.type == nil }).map(\.$type),
-        !types.isEmpty
-      else {
-        continue
-      }
-
-      logger.fatal("Unknown types [\(types.joined(separator: ","))] in collection \(collection.id)")
-    }
   }
 
   public func collectionsPublisher<Output: VaultItem>(

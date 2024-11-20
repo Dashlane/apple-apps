@@ -118,19 +118,68 @@ extension UserDeviceAPIClient.Premium.GetSubscriptionInfo {
       public enum CodingKeys: String, CodingKey {
         case hasInvoices = "hasInvoices"
         case billingInformation = "billingInformation"
+        case planDetails = "planDetails"
         case vatNumber = "vatNumber"
+      }
+
+      public struct PlanDetails: Codable, Equatable, Sendable {
+        public enum CodingKeys: String, CodingKey {
+          case duration = "duration"
+          case type = "type"
+        }
+
+        public enum Duration: String, Sendable, Equatable, CaseIterable, Codable {
+          case monthly = "monthly"
+          case yearly = "yearly"
+          case other = "other"
+          case undecodable
+          public init(from decoder: Decoder) throws {
+            let container = try decoder.singleValueContainer()
+            let rawValue = try container.decode(String.self)
+            self = Self(rawValue: rawValue) ?? .undecodable
+          }
+        }
+
+        public enum `Type`: String, Sendable, Equatable, CaseIterable, Codable {
+          case stripe = "stripe"
+          case freeTrial = "free_trial"
+          case offer = "offer"
+          case invoice = "invoice"
+          case undecodable
+          public init(from decoder: Decoder) throws {
+            let container = try decoder.singleValueContainer()
+            let rawValue = try container.decode(String.self)
+            self = Self(rawValue: rawValue) ?? .undecodable
+          }
+        }
+
+        public let duration: Duration?
+        public let type: `Type`?
+
+        public init(duration: Duration? = nil, type: `Type`? = nil) {
+          self.duration = duration
+          self.type = type
+        }
+
+        public func encode(to encoder: Encoder) throws {
+          var container = encoder.container(keyedBy: CodingKeys.self)
+          try container.encodeIfPresent(duration, forKey: .duration)
+          try container.encodeIfPresent(type, forKey: .type)
+        }
       }
 
       public let hasInvoices: Bool
       public let billingInformation: PremiumSubscriptionInfoBillingInformation?
+      public let planDetails: PlanDetails?
       public let vatNumber: String?
 
       public init(
         hasInvoices: Bool, billingInformation: PremiumSubscriptionInfoBillingInformation? = nil,
-        vatNumber: String? = nil
+        planDetails: PlanDetails? = nil, vatNumber: String? = nil
       ) {
         self.hasInvoices = hasInvoices
         self.billingInformation = billingInformation
+        self.planDetails = planDetails
         self.vatNumber = vatNumber
       }
 
@@ -138,6 +187,7 @@ extension UserDeviceAPIClient.Premium.GetSubscriptionInfo {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(hasInvoices, forKey: .hasInvoices)
         try container.encodeIfPresent(billingInformation, forKey: .billingInformation)
+        try container.encodeIfPresent(planDetails, forKey: .planDetails)
         try container.encodeIfPresent(vatNumber, forKey: .vatNumber)
       }
     }

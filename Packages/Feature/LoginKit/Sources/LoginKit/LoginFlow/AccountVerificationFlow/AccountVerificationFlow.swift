@@ -19,8 +19,6 @@
         TokenVerificationView(model: model.makeTokenVerificationViewModel())
       case .totp:
         TOTPVerificationView(model: model.makeTOTPVerificationViewModel())
-      case .authenticatorPush:
-        AuthenticatorPushVerificationView(model: model.makeAuthenticatorPushViewModel())
       }
     }
   }
@@ -34,7 +32,7 @@
         AccountVerificationFlow(model: .mock(verificationMethod: .totp(nil)))
       }
       NavigationView {
-        AccountVerificationFlow(model: .mock(verificationMethod: .authenticatorPush))
+        AccountVerificationFlow(model: .mock(verificationMethod: .emailToken))
       }
     }
   }

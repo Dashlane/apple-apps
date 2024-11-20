@@ -68,11 +68,9 @@ extension NewPaywallContent {
       default:
         return nil
       }
-    case .frozenAccount(let firstAnnouncement):
+    case .frozenAccount:
       self.banner = Asset.frozen
-      self.title =
-        firstAnnouncement
-        ? L10n.Core.paywallsFrozenTitleTrialEnded : L10n.Core.paywallsFrozenTitleReadOnly
+      self.title = L10n.Core.paywallsFrozenTitleReadOnly
       self.features = [
         Feature(asset: .ds.unlock.outlined, description: L10n.Core.paywallsFrozenFeatureStorage),
         Feature(

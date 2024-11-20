@@ -74,7 +74,7 @@ struct RefreshableDetailField_Previews: PreviewProvider {
         RefreshableDetailField(
           title: "Title", text: .constant("test"), shouldReveal: .constant(false), didTapRefresh: {}
         )
-      }.background(Color(UIColor.systemBackground))
+      }.background(.ds.background.alternate)
     }.previewLayout(.sizeThatFits)
   }
 }

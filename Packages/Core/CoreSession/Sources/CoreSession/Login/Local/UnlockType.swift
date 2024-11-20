@@ -30,7 +30,7 @@ public enum UnlockType {
 extension UnlockType {
   @MainActor func localLoginStep(
     with handler: LocalLoginHandler, session: Session, cryptoEngineProvider: CryptoEngineProvider,
-    isRecoveryLogin: Bool
+    isRecoveryLogin: Bool = false
   ) -> LocalLoginHandler.Step {
     switch self {
     case let .ssoValidation(validator, authTicket, _):

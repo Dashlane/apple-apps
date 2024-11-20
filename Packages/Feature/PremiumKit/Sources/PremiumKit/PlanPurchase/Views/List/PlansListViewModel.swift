@@ -2,8 +2,10 @@
 
   import Foundation
   import CorePremium
+  import CoreFeature
   import Combine
   import CoreUserTracking
+  import DashlaneAPI
 
   class PlansListViewModel: ObservableObject {
 
@@ -15,33 +17,35 @@
     @Published
     var selectedDuration: PlanDuration
 
-    private let activityReporter: ActivityReporterProtocol
-    let planTiers: [PlanTier]
-    let mostDiscountedPlanGroup: PlanTier?
+    @Published
+    var plans: [PurchasePlanRowModel] = []
 
+    private let activityReporter: ActivityReporterProtocol
+    private let vaultStateService: VaultStateServiceProtocol?
+    let allPlanTiers: [PlanTier]
+    let mostDiscountedPlanGroup: PlanTier?
     let mode: Mode
 
     init(
       activityReporter: ActivityReporterProtocol,
-      planTiers: [PlanTier]
+      vaultStateService: VaultStateServiceProtocol?,
+      allPlanTiers: [PlanTier]
     ) {
       self.activityReporter = activityReporter
-      self.planTiers = planTiers
+      self.vaultStateService = vaultStateService
+      self.allPlanTiers = allPlanTiers
+      self.mostDiscountedPlanGroup = allPlanTiers.mostDiscountedPlanGroup()
 
-      self.mostDiscountedPlanGroup = planTiers.mostDiscountedPlanGroup()
-
-      let monthlyRows: [PurchasePlanRowModel] = planTiers.compactMap { tier in
-        guard let plan = tier.purchasePlan(for: .monthly) else {
-          return nil
+      let monthlyRows: [PurchasePlanRowModel] = allPlanTiers.compactMap { tier in
+        tier.purchasePlan(for: .monthly).map { plan in
+          PurchasePlanRowModel(planTier: tier, plan: plan, vaultStateService: vaultStateService)
         }
-        return PurchasePlanRowModel(planTier: tier, plan: plan)
       }
 
-      let yearlyRows: [PurchasePlanRowModel] = planTiers.compactMap { tier in
-        guard let plan = tier.purchasePlan(for: .yearly) else {
-          return nil
+      let yearlyRows: [PurchasePlanRowModel] = allPlanTiers.compactMap { tier in
+        tier.purchasePlan(for: .yearly).map { plan in
+          PurchasePlanRowModel(planTier: tier, plan: plan, vaultStateService: vaultStateService)
         }
-        return PurchasePlanRowModel(planTier: tier, plan: plan)
       }
 
       if monthlyRows.isEmpty {
@@ -52,19 +56,33 @@
         selectedDuration = .monthly
       }
 
-    }
+      $selectedDuration
+        .combineLatest(
+          vaultStateService?.vaultStatePublisher() ?? Just(VaultState.default).eraseToAnyPublisher()
+        )
+        .map { [weak self] duration, vaultState in
+          guard let self = self else { return [] }
 
-    func plans(for duration: PlanDuration) -> [PurchasePlanRowModel] {
-      switch mode {
-      case let .monthlyAndYearlyPlans(monthly, yearly):
-        return duration == .monthly ? monthly : yearly
-      case let .yearlyPlans(yearly):
-        return yearly
-      }
+          var plans = [PurchasePlanRowModel]()
+
+          if vaultState == .frozen {
+            plans.append(free)
+          }
+
+          switch mode {
+          case let .monthlyAndYearlyPlans(monthly, yearly):
+            plans.append(contentsOf: duration == .monthly ? monthly : yearly)
+          case let .yearlyPlans(yearly):
+            plans.append(contentsOf: yearly)
+          }
+
+          return plans
+        }
+        .assign(to: &$plans)
     }
 
     func select(_ plan: PlanTier) {
-      let planTiers = planTiers
+      let planTiers = allPlanTiers
       activityReporter.report(
         UserEvent.CallToAction(
           callToActionList: planTiers.compactMap { $0.userTrackingCallToAction },
@@ -72,7 +90,7 @@
     }
 
     func cancel() {
-      let planTiers = planTiers
+      let planTiers = allPlanTiers
       activityReporter.report(
         UserEvent.CallToAction(
           callToActionList: planTiers.compactMap { $0.userTrackingCallToAction },
@@ -92,6 +110,30 @@
       default:
         return nil
       }
+    }
+  }
+
+  extension PlansListViewModel {
+    var free: PurchasePlanRowModel {
+      let capabilities = PaymentsAccessibleStoreOffersCapabilities()
+      let plan = PurchasePlan(
+        subscription: .init(id: "free", price: 0, purchaseAction: { _ in .userCancelled }),
+        offer: PaymentsAccessibleStoreOffers(
+          planName: "Free",
+          duration: .monthly,
+          enabled: true
+        ),
+        kind: .free,
+        capabilities: capabilities,
+        isCurrentSubscription: false
+      )
+      let planTier = PlanTier(
+        plans: [plan],
+        capabilities: capabilities
+      )
+
+      return PurchasePlanRowModel(
+        planTier: planTier, plan: plan, vaultStateService: vaultStateService)
     }
   }
 

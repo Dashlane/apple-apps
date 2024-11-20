@@ -5,11 +5,11 @@ import SwiftUI
 
 extension Address {
   public var listIcon: VaultItemIcon {
-    .static(.ds.home.outlined)
+    .address
   }
 
   public var icon: VaultItemIcon {
-    .static(.ds.home.outlined)
+    .address
   }
 
   public static var addIcon: SwiftUI.Image {

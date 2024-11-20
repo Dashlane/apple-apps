@@ -29,12 +29,14 @@ public struct SuggestionsDetailView: View {
           if item == self.selection {
             Spacer()
             Image(systemName: "checkmark")
-              .foregroundColor(.ds.border.neutral.quiet.idle)
+              .foregroundColor(.ds.text.brand.quiet)
           }
         }
+        .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
       }
     }
     .navigationBarTitleDisplayMode(.inline)
+    .listAppearance(.insetGrouped)
   }
 }
 

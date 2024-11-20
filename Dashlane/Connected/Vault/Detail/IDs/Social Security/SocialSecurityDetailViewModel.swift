@@ -1,8 +1,10 @@
 import Combine
 import CoreActivityLogs
+import CoreFeature
 import CorePasswords
 import CorePersonalData
 import CorePremium
+import CoreSession
 import CoreSettings
 import CoreUserTracking
 import DashTypes
@@ -37,10 +39,12 @@ class SocialSecurityDetailViewModel: DetailViewModelProtocol, SessionServicesInj
   convenience init(
     item: SocialSecurityInformation,
     mode: DetailMode = .viewing,
+    session: Session,
     vaultItemDatabase: VaultItemDatabaseProtocol,
     vaultItemsStore: VaultItemsStore,
     vaultCollectionDatabase: VaultCollectionDatabaseProtocol,
     vaultCollectionsStore: VaultCollectionsStore,
+    vaultStateService: VaultStateServiceProtocol,
     sharingService: SharedVaultHandling,
     userSpacesService: UserSpacesService,
     documentStorageService: DocumentStorageService,
@@ -49,7 +53,6 @@ class SocialSecurityDetailViewModel: DetailViewModelProtocol, SessionServicesInj
     activityLogsService: ActivityLogsServiceProtocol,
     iconViewModelProvider: @escaping (VaultItem) -> VaultItemIconViewModel,
     logger: Logger,
-    accessControl: AccessControlProtocol,
     userSettings: UserSettings,
     pasteboardService: PasteboardServiceProtocol,
     attachmentSectionFactory: AttachmentsSectionViewModel.Factory
@@ -57,9 +60,11 @@ class SocialSecurityDetailViewModel: DetailViewModelProtocol, SessionServicesInj
     self.init(
       service: .init(
         item: item,
+        canLock: session.authenticationMethod.supportsLock,
         mode: mode,
         vaultItemDatabase: vaultItemDatabase,
         vaultItemsStore: vaultItemsStore,
+        vaultStateService: vaultStateService,
         vaultCollectionDatabase: vaultCollectionDatabase,
         vaultCollectionsStore: vaultCollectionsStore,
         sharingService: sharingService,
@@ -71,7 +76,6 @@ class SocialSecurityDetailViewModel: DetailViewModelProtocol, SessionServicesInj
         iconViewModelProvider: iconViewModelProvider,
         attachmentSectionFactory: attachmentSectionFactory,
         logger: logger,
-        accessControl: accessControl,
         userSettings: userSettings,
         pasteboardService: pasteboardService
       )
@@ -90,6 +94,7 @@ class SocialSecurityDetailViewModel: DetailViewModelProtocol, SessionServicesInj
   private func registerServiceChanges() {
     service
       .objectWillChange
+      .receive(on: DispatchQueue.main)
       .sink { [weak self] in
         self?.objectWillChange.send()
       }

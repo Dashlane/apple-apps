@@ -22,6 +22,10 @@ public enum L10n {
     public static let accessibilityGeneratedPasswordRefreshed = L10n.tr(
       "Core", "accessibilityGeneratedPasswordRefreshed",
       fallback: "The generated password has been refreshed")
+    public static func accessibilityGenericNumberEndingWidth(_ p1: Int, _ p2: Any) -> String {
+      return L10n.tr(
+        "Core", "accessibilityGenericNumberEndingWidth", p1, String(describing: p2), fallback: "_")
+    }
     public static let accessibilityHidden = L10n.tr(
       "Core", "accessibilityHidden", fallback: "Hidden")
     public static let accessibilityPresented = L10n.tr(
@@ -1453,6 +1457,13 @@ public enum L10n {
       "Core", "NoBackupSyncPremiumRenewal_Title", fallback: "Your Premium benefits have expired")
     public static let noSecureFilesAttachedCta = L10n.tr(
       "Core", "noSecureFilesAttachedCta", fallback: "Attach a file")
+    public static let notificationFrozenAccountDescription = L10n.tr(
+      "Core", "notification_frozenAccount_description",
+      fallback:
+        "You have over 25 passwords saved. Remove passwords or upgrade to regain full access to your account."
+    )
+    public static let notificationFrozenAccountTitle = L10n.tr(
+      "Core", "notification_frozenAccount_title", fallback: "Your account is read-only")
     public static func numberedSecureFilesAttachedCta(_ p1: Any) -> String {
       return L10n.tr(
         "Core", "numberedSecureFilesAttachedCta", String(describing: p1), fallback: "_")
@@ -1667,10 +1678,10 @@ public enum L10n {
     public static let paywallsVpnMessage = L10n.tr(
       "Core", "paywalls_vpn_message",
       fallback: "Upgrade to our Premium plan to browse privately and securely online with VPN.")
-    public static let paywallsVPNTitle = L10n.tr(
-      "Core", "paywalls_VPN_title", fallback: "Get access to the fastest VPN on the market")
     public static let paywallsVpnTitle = L10n.tr(
       "Core", "paywalls_vpn_title", fallback: "VPN is a paid feature")
+    public static let paywallsVPNTitle = L10n.tr(
+      "Core", "paywalls_VPN_title", fallback: "Get access to the fastest VPN on the market")
     public static let paywallsFrozenCTARegain = L10n.tr(
       "Core", "paywallsFrozenCTARegain", fallback: "Regain Premium benefits")
     public static let paywallsFrozenFeatureDWMandVPN = L10n.tr(
@@ -1789,6 +1800,13 @@ public enum L10n {
       fallback:
         "You are over this plan’s 25-password limit. Select a different plan for unlimited storage."
     )
+    public static let planScreensFreePageFrozenWarningDescription = L10n.tr(
+      "Core", "planScreens_freePage_frozenWarningDescription",
+      fallback: "Remove passwords or select a different plan to regain full access to your account."
+    )
+    public static let planScreensFreePageFrozenWarningTitle = L10n.tr(
+      "Core", "planScreens_freePage_frozenWarningTitle",
+      fallback: "You're over the 25-password limit, so your account is read-only.")
     public static let planScreensFreePlanDescription = L10n.tr(
       "Core", "planScreens_freePlanDescription",
       fallback: "Simple, secure password manager on one device")
@@ -1943,6 +1961,10 @@ public enum L10n {
       "Core", "SECURITY_DASHBOARD_STRENGTH_WEAK", fallback: "Very weak")
     public static let selectNoneOptionLabel = L10n.tr(
       "Core", "selectNoneOptionLabel", fallback: "None")
+    public static let settingsHeaderFrozenAcountLearnMore = L10n.tr(
+      "Core", "settingsHeader_frozenAcount_learnMore", fallback: "Learn what read-only means")
+    public static let settingsHeaderFrozenAcountWarning = L10n.tr(
+      "Core", "settingsHeader_frozenAcount_warning", fallback: "Your account is read-only.")
     public static func sharingAcceptedMessage(_ p1: Any) -> String {
       return L10n.tr("Core", "sharing_accepted_message", String(describing: p1), fallback: "_")
     }

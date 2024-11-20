@@ -13,9 +13,6 @@ struct VaultFlow: View {
   @ObservedObject
   var viewModel: VaultFlowViewModel
 
-  @FeatureState(.newSecureNoteDetailView)
-  var newSecureNoteDetailViewEnabled
-
   init(viewModel: VaultFlowViewModel) {
     self.viewModel = viewModel
   }
@@ -40,9 +37,6 @@ struct VaultFlow: View {
       case .autofillDemoDummyFields(let credential):
         autofillDemoDummyFields(credential)
           .toolbar(.visible, for: .tabBar)
-
-      case .authenticatorSunset:
-        AuthenticatorSunsetView()
       }
     }
     .fullScreenCoverOrSheet(isPresented: $viewModel.showAddItemFlow) {
@@ -75,20 +69,8 @@ struct VaultFlow: View {
 
   @ViewBuilder
   private func detailView(for item: VaultItem, viewType: ItemDetailViewType) -> some View {
-    if item is SecureNote, !newSecureNoteDetailViewEnabled {
-      VaultDetailView(
-        model: viewModel.makeDetailViewModel(), itemDetailViewType: viewType,
-        dismiss: .init {
-          if viewModel.steps.isEmpty == false {
-            viewModel.steps.removeLast()
-          }
-        }
-      )
+    VaultDetailView(model: viewModel.makeDetailViewModel(), itemDetailViewType: viewType)
       .navigationBarHidden(true)
-    } else {
-      VaultDetailView(model: viewModel.makeDetailViewModel(), itemDetailViewType: viewType)
-        .navigationBarHidden(true)
-    }
   }
 }
 

@@ -36,12 +36,6 @@ public class AccountVerificationService {
     return AuthTicket(value: verificationResponse.authTicket)
   }
 
-  public func validateUsingAuthenticatorPush() async throws -> AuthTicket {
-    let verificationResponse = try await self.appAPIClient.authentication
-      .performDashlaneAuthenticatorVerification(login: login)
-    return AuthTicket(value: verificationResponse.authTicket)
-  }
-
   public func validateOTP(_ otp: String) async throws -> AuthTicket {
     let verificationResponse = try await self.appAPIClient.authentication.performTotpVerification(
       login: login, otp: otp)

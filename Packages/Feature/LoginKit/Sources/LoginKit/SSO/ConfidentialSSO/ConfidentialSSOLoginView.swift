@@ -16,21 +16,24 @@
 
     public var body: some View {
       ZStack {
-        if let loginInfo = model.loginService {
+        switch model.viewState {
+        case let .sso(authorisationURL, injectionScript):
           SSOWebView(
-            url: loginInfo.authorisationURL,
-            injectionScript: loginInfo.injectionScript,
+            url: authorisationURL,
+            injectionScript: injectionScript,
             didReceiveSAML: model.didReceiveSAML)
-        } else {
+        case .inProgress:
           ProgressView()
         }
       }
-      .animation(.default, value: model.loginService)
+      .animation(.default, value: model.viewState)
       .navigationBarBackButtonHidden()
       .toolbar {
         ToolbarItem(placement: .navigationBarLeading) {
           Button(CoreLocalization.L10n.Core.cancel) {
-            model.cancel()
+            Task {
+              try await model.cancel()
+            }
           }
           .foregroundColor(.ds.text.brand.standard)
         }
@@ -44,6 +47,7 @@
         model: ConfidentialSSOViewModel(
           login: "_",
           nitroClient: .fake,
+          logger: .mock,
           completion: { _ in }))
     }
   }

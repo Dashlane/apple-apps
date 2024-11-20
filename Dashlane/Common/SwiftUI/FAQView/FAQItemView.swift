@@ -57,6 +57,7 @@ struct FAQItemView: View {
                 .buttonStyle(.externalLink)
                 .controlSize(.mini)
                 .accessibilityAddTraits(.isLink)
+                .accessibilityRemoveTraits(.isButton)
               }
             }
           }
@@ -67,7 +68,7 @@ struct FAQItemView: View {
     .frame(maxWidth: .infinity, alignment: .leading)
     .padding(16)
     .background(
-      Color.ds.container.agnostic.neutral.quiet
+      Color.ds.container.agnostic.neutral.supershy
         .onTapGesture {
           toggleCollapse()
         }

@@ -6,6 +6,8 @@ struct ThumbnailsView: View {
   enum ViewConfiguration: String, CaseIterable {
     case singleUser
     case userGroup
+    case login
+    case secureNote
   }
 
   var viewConfiguration: ViewConfiguration? {
@@ -42,6 +44,27 @@ struct ThumbnailsView: View {
         Thumbnail.User.group
           .controlSize(.regular)
         Thumbnail.User.group
+          .controlSize(.large)
+      }
+    case .login:
+      HStack {
+        Thumbnail.login(Image(.profilePicture))
+          .controlSize(.small)
+        Thumbnail.login(Image(.profilePicture))
+          .controlSize(.regular)
+        Thumbnail.login(Image(.profilePicture))
+          .controlSize(.large)
+      }
+    case .secureNote:
+      HStack {
+        Thumbnail.VaultItem.secureNote
+          .foregroundStyle(.pink)
+          .controlSize(.small)
+        Thumbnail.VaultItem.secureNote
+          .foregroundStyle(.orange)
+          .controlSize(.regular)
+        Thumbnail.VaultItem.secureNote
+          .foregroundStyle(.yellow)
           .controlSize(.large)
       }
     case .none:

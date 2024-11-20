@@ -5,6 +5,7 @@ public enum ProvisioningMethod: String, Sendable, Equatable, CaseIterable, Codab
   case tac = "TAC"
   case ad = "AD"
   case scim = "SCIM"
+  case saml = "SAML"
   case undecodable
   public init(from decoder: Decoder) throws {
     let container = try decoder.singleValueContainer()

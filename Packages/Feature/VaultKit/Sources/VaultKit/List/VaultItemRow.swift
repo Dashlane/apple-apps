@@ -39,6 +39,10 @@ public struct VaultItemRow: View {
             Image.ds.shared.outlined
               .resizable()
           }
+          if item is Passkey {
+            Image.ds.passkey.outlined
+              .resizable()
+          }
         }
       } description: {
         DS.ListItemLabelDescription(descriptionValue, icon: item.subtitleImage)
@@ -104,6 +108,12 @@ extension VaultItemRow {
     VaultItemRow(item: PersonalDataMock.IDCards.personal)
     VaultItemRow(item: PersonalDataMock.Passports.personal)
     VaultItemRow(item: PersonalDataMock.BankAccounts.personal)
+  }
+}
+
+#Preview("Passkey") {
+  List {
+    VaultItemRow(item: Passkey.github)
   }
 }
 

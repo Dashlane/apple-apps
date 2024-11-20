@@ -27,7 +27,8 @@ let package = Package(
         .product(name: "CoreNetworking", package: "CoreNetworking"),
         .product(name: "CyrilKit", package: "CyrilKit"),
         .product(name: "StateMachine", package: "StateMachine"),
-      ]
+      ],
+      resources: [.process("Resources")]
     ),
     .testTarget(
       name: "CoreSessionTests",

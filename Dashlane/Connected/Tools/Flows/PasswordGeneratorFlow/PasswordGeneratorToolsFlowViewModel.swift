@@ -67,8 +67,7 @@ class PasswordGeneratorToolsFlowViewModel: ObservableObject, SessionServicesInje
       }
     }
 
-    return passwordGeneratorViewModelFactory.make(
-      mode: .standalone(action), copyAction: { password in self.pasteboardService.set(password) })
+    return passwordGeneratorViewModelFactory.make(mode: .standalone(action))
   }
 
   func showHistory() {
@@ -81,7 +80,7 @@ extension PasswordGeneratorToolsFlowViewModel {
     .init(
       deepLinkingService: DeepLinkingService.fakeService,
       pasteboardService: PasteboardService.mock(),
-      passwordGeneratorViewModelFactory: .init({ _, _ in .mock }),
+      passwordGeneratorViewModelFactory: .init({ _ in .mock }),
       passwordGeneratorHistoryViewModelFactory: .init({ .mock() }))
   }
 }

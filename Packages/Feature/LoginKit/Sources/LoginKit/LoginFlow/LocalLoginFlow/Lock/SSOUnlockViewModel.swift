@@ -17,7 +17,7 @@ public class SSOUnlockViewModel: ObservableObject, LoginKitServicesInjecting {
 
   let login: Login
   let apiClient: AppAPIClient
-  let nitroClient: NitroAPIClient
+  let nitroClient: NitroSSOAPIClient
   let deviceAccessKey: String
   let cryptoEngineProvider: CryptoEngineProvider
   let activityReporter: ActivityReporterProtocol
@@ -36,7 +36,7 @@ public class SSOUnlockViewModel: ObservableObject, LoginKitServicesInjecting {
   public init(
     login: Login,
     apiClient: AppAPIClient,
-    nitroClient: NitroAPIClient,
+    nitroClient: NitroSSOAPIClient,
     deviceAccessKey: String,
     cryptoEngineProvider: CryptoEngineProvider,
     activityReporter: ActivityReporterProtocol,

@@ -1,5 +1,6 @@
 import Combine
 import CoreActivityLogs
+import CoreFeature
 import CorePersonalData
 import CorePremium
 import CoreSettings
@@ -74,13 +75,13 @@ public final class DetailService<Item: VaultItem & Equatable>: ObservableObject 
   }
 
   @Published var shouldReveal: Bool = false
-  @Published var hasSecureAccess: Bool = false
   @Published var isLoading: Bool = false
   @Published var isSaving: Bool = false {
     didSet {
       vaultCollectionEditionService.isSaving = isSaving
     }
   }
+  @Published public var isFrozen: Bool = false
 
   @Published var alert: DetailViewAlert?
 
@@ -90,6 +91,7 @@ public final class DetailService<Item: VaultItem & Equatable>: ObservableObject 
 
   let vaultItemEditionService: VaultItemEditionService<Item>
   let vaultCollectionEditionService: VaultCollectionAndItemEditionService
+  let vaultStateService: VaultStateServiceProtocol
   public let vaultItemDatabase: VaultItemDatabaseProtocol
   public let vaultItemsStore: VaultItemsStore
   public let userSpacesService: UserSpacesService
@@ -97,19 +99,21 @@ public final class DetailService<Item: VaultItem & Equatable>: ObservableObject 
   public let activityReporter: ActivityReporterProtocol
   public let deepLinkService: DeepLinkingServiceProtocol
   public let logger: Logger
-  public let accessControl: AccessControlProtocol
   private let documentStorageService: DocumentStorageService
-  let itemPasteboard: ItemPasteboard
+  let pasteboardService: PasteboardServiceProtocol
   public let userSettings: UserSettings
+  public let canLock: Bool
 
   private let iconViewModelProvider: (VaultItem) -> VaultItemIconViewModel
   let attachmentSectionFactory: AttachmentsSectionViewModel.Factory
 
   public init(
     item: Item,
+    canLock: Bool,
     mode: DetailMode = .viewing,
     vaultItemDatabase: VaultItemDatabaseProtocol,
     vaultItemsStore: VaultItemsStore,
+    vaultStateService: VaultStateServiceProtocol,
     vaultCollectionDatabase: VaultCollectionDatabaseProtocol,
     vaultCollectionsStore: VaultCollectionsStore,
     sharingService: SharedVaultHandling,
@@ -121,15 +125,16 @@ public final class DetailService<Item: VaultItem & Equatable>: ObservableObject 
     iconViewModelProvider: @escaping (VaultItem) -> VaultItemIconViewModel,
     attachmentSectionFactory: AttachmentsSectionViewModel.Factory,
     logger: Logger,
-    accessControl: AccessControlProtocol,
     userSettings: UserSettings,
     pasteboardService: PasteboardServiceProtocol
   ) {
     self.documentStorageService = documentStorageService
     self.iconViewModel = iconViewModelProvider(item)
+    self.canLock = canLock
     self.mode = mode
     self.vaultItemsStore = vaultItemsStore
     self.vaultItemDatabase = vaultItemDatabase
+    self.vaultStateService = vaultStateService
     self.iconViewModelProvider = iconViewModelProvider
     self.attachmentSectionFactory = attachmentSectionFactory
     self.userSpacesService = userSpacesService
@@ -137,11 +142,9 @@ public final class DetailService<Item: VaultItem & Equatable>: ObservableObject 
     self.deepLinkService = deepLinkService
     self.userSettings = userSettings
     self.logger = logger
-    self.accessControl = accessControl
     self.activityReporter = activityReporter
     self.shouldReveal = mode.isAdding
-    self.itemPasteboard = ItemPasteboard(
-      accessControl: accessControl, pasteboardService: pasteboardService)
+    self.pasteboardService = pasteboardService
     self.vaultItemEditionService = .init(
       item: item,
       mode: .constant(mode),
@@ -185,6 +188,12 @@ public final class DetailService<Item: VaultItem & Equatable>: ObservableObject 
         self.iconViewModel = self.iconViewModelProvider(item)
       }
       .store(in: &cancellables)
+
+    vaultStateService
+      .vaultStatePublisher()
+      .map { $0 == .frozen }
+      .receive(on: DispatchQueue.main)
+      .assign(to: &$isFrozen)
   }
 
   public func cancel() {

@@ -15,8 +15,6 @@ extension Array where Element == AuthenticationMethodsVerifications {
       return .thirdPartyOTP(.duoPush)
     } else if types.contains(.totp) {
       return .thirdPartyOTP(.totp)
-    } else if types.contains(.dashlaneAuthenticator) {
-      return .authenticator
     } else if types.contains(.sso) {
       guard let string = ssoInfo?.serviceProviderUrl,
         let url = URL(string: "\(string)?redirect=mobile&username=\(login.email)&frag=true"),

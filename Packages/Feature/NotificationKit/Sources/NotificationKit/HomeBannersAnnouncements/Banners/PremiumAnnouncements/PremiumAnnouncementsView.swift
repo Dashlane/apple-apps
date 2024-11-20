@@ -17,18 +17,18 @@ struct PremiumAnnouncementsView: View {
 
   @ViewBuilder
   func banner(for announcement: PremiumAnnouncement) -> some View {
-    if announcement == PremiumAnnouncement.autorenewalFailedAnnouncement {
+    switch announcement {
+    case .autorenewalFailedAnnouncement:
       failedAutoRenewalView
-    } else if announcement == PremiumAnnouncement.specialOfferAnnouncement {
+    case .specialOfferAnnouncement:
       specialOfferView
-    } else if announcement == PremiumAnnouncement.premiumExpiredAnnouncement {
+    case .premiumExpiredAnnouncement:
       premiumExpiredView
-    } else if announcement == PremiumAnnouncement.premiumWillExpireAnnouncement {
+    case .premiumWillExpireAnnouncement:
       premiumWillExpireView
-    } else if announcement == PremiumAnnouncement.passwordLimitReached {
+    case .passwordLimitReached:
       passwordLimitReachedView
-    } else if case let PremiumAnnouncement.passwordLimitNearlyReached(remainingItems) = announcement
-    {
+    case .passwordLimitNearlyReached(let remainingItems):
       passwordLimitNearlyReachedView(remainingItems: remainingItems)
     }
   }
@@ -55,20 +55,28 @@ struct PremiumAnnouncementsView: View {
 
   var premiumExpiredView: some View {
     Infobox(L10n.Core.announcePremiumExpiredBody) {
-      Button(L10n.Core.announcePremiumExpiredCta) {
-        model.showPremium()
-      }
+      premiumPurchaseCTA
     }
     .style(mood: .danger)
   }
 
   var premiumWillExpireView: some View {
     Infobox(model.premiumWillExpireTitle) {
+      premiumPurchaseCTA
+    }
+    .style(mood: model.premiumWillExpireSoon ? .warning : .brand)
+  }
+
+  var premiumPurchaseCTA: some View {
+    if model.isPremiumTrial {
+      Button(L10n.Core.currentPlanCtaPremium) {
+        model.showPremium()
+      }
+    } else {
       Button(L10n.Core.announcePremiumExpiredCta) {
         model.showPremium()
       }
     }
-    .style(mood: model.premiumWillExpireSoon ? .warning : .brand)
   }
 
   var passwordLimitReachedView: some View {

@@ -56,13 +56,14 @@ extension CapabilityServiceProtocol.Capabilities {
       return .unlimited
     }
     let remainingCount = limit - itemsCount
+    let enforceFreeze = capability.info?.action == .enforceFreeze
 
     if remainingCount > 5 {
       return .unlimited
     } else if remainingCount > 0 {
       return .reachingLimit(count: itemsCount, limit: limit)
     } else {
-      return .limited(count: itemsCount, limit: limit)
+      return .limited(count: itemsCount, limit: limit, enforceFreeze: enforceFreeze)
     }
   }
 }

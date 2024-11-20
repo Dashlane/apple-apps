@@ -18,7 +18,7 @@ class SecurityAlertNotificationRowViewModel: SessionServicesInjecting {
     guard case let .dynamic(dynamicNotification) = notification.kind,
       case let .securityAlert(unresolvedAlert) = dynamicNotification
     else { return }
-    deepLinkingService.handleLink(.tool(.unresolvedAlert(unresolvedAlert.alert), origin: nil))
+    deepLinkingService.handleLink(.unresolvedAlert(unresolvedAlert.alert))
   }
 }
 

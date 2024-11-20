@@ -5,11 +5,11 @@ import SwiftUI
 
 extension PersonalWebsite {
   public var listIcon: VaultItemIcon {
-    .static(.ds.web.outlined)
+    .personalWebsite
   }
 
   public var icon: VaultItemIcon {
-    .static(.ds.web.outlined)
+    .personalWebsite
   }
 
   public static var addIcon: SwiftUI.Image {

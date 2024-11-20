@@ -48,7 +48,7 @@ extension AuthenticationKeychainServiceProtocol {
   }
 
   public func save(
-    _ masterKey: CoreKeychain.MasterKey,
+    _ masterKey: DashTypes.MasterKey,
     for login: Login,
     expiresAfter timeInterval: TimeInterval,
     accessMode: KeychainAccessMode = .afterBiometricAuthentication
@@ -116,9 +116,7 @@ public struct AuthenticationKeychainService: AuthenticationKeychainServiceProtoc
     }
   }
 
-  public func masterKey(for login: Login, using context: LAContext?) throws
-    -> CoreKeychain.MasterKey
-  {
+  public func masterKey(for login: Login, using context: LAContext?) throws -> DashTypes.MasterKey {
     let settings = try settingsDataProvider(for: login)
     let store = MasterKeyStore(
       cryptoEngine: cryptoEngine,
@@ -129,7 +127,7 @@ public struct AuthenticationKeychainService: AuthenticationKeychainServiceProtoc
   }
 
   public func save(
-    _ masterKey: CoreKeychain.MasterKey,
+    _ masterKey: DashTypes.MasterKey,
     for login: Login,
     expiresAfter timeInterval: TimeInterval,
     accessMode: KeychainAccessMode

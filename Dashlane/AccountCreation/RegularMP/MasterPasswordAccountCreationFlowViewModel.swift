@@ -92,7 +92,7 @@ class MasterPasswordAccountCreationFlowViewModel: ObservableObject,
       switch completion {
       case .next(_, let hasUserAcceptedEmailMarketing):
         self.configuration.hasUserAcceptedEmailMarketing = hasUserAcceptedEmailMarketing
-        Task {
+        Task { @MainActor in
           await self.load()
         }
 

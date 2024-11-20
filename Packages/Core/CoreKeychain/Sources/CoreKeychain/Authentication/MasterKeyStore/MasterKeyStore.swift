@@ -1,3 +1,4 @@
+import DashTypes
 import Foundation
 import LocalAuthentication
 
@@ -82,7 +83,7 @@ final public class MasterKeyStore: KeychainManager {
 
   @discardableResult
   public func storeMasterKey(
-    _ masterKey: MasterKey,
+    _ masterKey: DashTypes.MasterKey,
     expiringIn expirationTimeInterval: TimeInterval,
     accessMode: KeychainAccessMode
   ) throws -> MasterKeyContainer {

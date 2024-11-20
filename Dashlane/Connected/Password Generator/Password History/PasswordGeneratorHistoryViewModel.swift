@@ -53,7 +53,7 @@ class PasswordGeneratorHistoryViewModel: ObservableObject, SessionServicesInject
   }
 
   func copy(_ generatedPassword: GeneratedPassword) {
-    pasteboardService.set(generatedPassword.password ?? "")
+    pasteboardService.copy(generatedPassword.password ?? "")
     logCopy(for: generatedPassword)
   }
 
@@ -75,7 +75,7 @@ class PasswordGeneratorHistoryViewModel: ObservableObject, SessionServicesInject
   }
 
   func makeDomainIconViewModel(url: PersonalDataURL?) -> DomainIconViewModel {
-    return DomainIconViewModel(domain: url?.domain, size: .small, iconService: iconService)
+    return DomainIconViewModel(domain: url?.domain, iconService: iconService)
   }
 }
 

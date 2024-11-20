@@ -6,7 +6,12 @@ import UIComponents
 
 extension ConnectedCoordinator {
   func showOnboarding() {
-    let model = sessionServices.makeGuidedOnboardingFlowViewModel {
+    let navigator = DashlaneNavigationController()
+    let model = sessionServices.makeGuidedOnboardingFlowViewModel(navigator: navigator) {
+      [weak self] in
+      guard let self else {
+        return
+      }
       self.window.rootViewController = self.connectedViewController
 
       if self.onboardingService.shouldShowBiometricsOrPinOnboardingForSSO {
@@ -15,23 +20,24 @@ extension ConnectedCoordinator {
         self.finishLaunch()
       }
     }
+
+    let sessionServices = sessionServices
     let onboardingView = GuidedOnboardingFlow(model: model)
       .modifier(
-        ConnectedEnvironmentViewModifier(
-          model: self.sessionServices.makeConnectedEnvironmentModel()))
+        ConnectedEnvironmentViewModifier(model: sessionServices.makeConnectedEnvironmentModel()))
     let backgroundViewController = makeBackgroundViewController()
 
-    model.navigator.setRootNavigation(onboardingView, barStyle: .hidden(), animated: true)
-    self.window.rootViewController = model.navigator
+    navigator.setRootNavigation(onboardingView, barStyle: .hidden(), animated: true)
+    self.window.rootViewController = navigator
 
-    model.navigator.present(backgroundViewController, animated: false) {
+    navigator.present(backgroundViewController, animated: false) {
       backgroundViewController.dismiss(animated: true) { [weak self] in
         guard let self else {
           return
         }
         self.window.rootViewController = UIViewController()
         self.window.rootViewController?.view.backgroundColor = .ds.background.default
-        self.window.rootViewController?.present(model.navigator, animated: false) {
+        self.window.rootViewController?.present(navigator, animated: false) {
 
         }
       }

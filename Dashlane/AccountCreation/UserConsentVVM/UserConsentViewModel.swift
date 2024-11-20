@@ -29,7 +29,7 @@ class UserConsentViewModel: ObservableObject, UserConsentViewModelProtocol,
   var isAccountCreationRequestInProgress: Bool = false
 
   private let userCountryProvider: UserCountryProvider
-  let completion: (Completion) -> Void
+  let completion: @MainActor (Completion) -> Void
 
   enum Completion {
     case back(hasUserAcceptedTermsAndConditions: Bool, hasUserAcceptedEmailMarketing: Bool)
@@ -38,7 +38,7 @@ class UserConsentViewModel: ObservableObject, UserConsentViewModelProtocol,
 
   init(
     userCountryProvider: UserCountryProvider,
-    completion: @escaping (UserConsentViewModel.Completion) -> Void
+    completion: @MainActor @escaping (UserConsentViewModel.Completion) -> Void
   ) {
     self.completion = completion
     self.userCountryProvider = userCountryProvider

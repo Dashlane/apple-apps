@@ -227,6 +227,7 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
         case usageReports = "usageReports"
         case adminPolicies = "adminPolicies"
         case secretManagement = "secretManagement"
+        case messageIntegrations = "messageIntegrations"
         case undecodable
         public init(from decoder: Decoder) throws {
           let container = try decoder.singleValueContainer()

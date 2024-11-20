@@ -24,5 +24,6 @@ public protocol HomeAnnouncementsServicesContainer: DependenciesContainer {
   var userSettings: UserSettings { get }
   var notificationKitAutofillService: NotificationKitAutofillServiceProtocol { get }
   var notificationKitFeatureService: FeatureServiceProtocol { get }
+  var notificationKitVaultStateService: VaultStateServiceProtocol { get }
   var itemsLimitNotificationProvider: ItemsLimitNotificationProvider { get }
 }

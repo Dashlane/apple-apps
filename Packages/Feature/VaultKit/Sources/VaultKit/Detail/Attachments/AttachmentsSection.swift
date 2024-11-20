@@ -59,6 +59,7 @@ struct AttachmentsSection: View {
         }
         .disabled(model.uploadInProgress)
         .buttonStyle(DetailRowButtonStyle())
+        .accessibilityLabel(addAttachmentButtonTitle)
       }
     }
   }

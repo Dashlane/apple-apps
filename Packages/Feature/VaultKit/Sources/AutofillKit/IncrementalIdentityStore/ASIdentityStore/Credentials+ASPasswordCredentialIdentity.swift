@@ -4,8 +4,7 @@ import CorePersonalData
 import Foundation
 
 extension Credential {
-
-  var credentialIdentities: [ASPasswordCredentialIdentity] {
+  func makeCredentialIdentities() -> [SnapshotSummary.CredentialIdentity] {
     guard !self.subdomainOnly else {
       guard let host = self.url?.host else { return [] }
 
@@ -32,14 +31,13 @@ extension Credential {
     return domains.map(self.credentialIdentity)
   }
 
-  private func credentialIdentity(forServiceIdentifier domain: String)
-    -> ASPasswordCredentialIdentity
+  private func credentialIdentity(forServiceIdentifier serviceIdentifier: String)
+    -> SnapshotSummary.CredentialIdentity
   {
-    let serviceIdentifier = ASCredentialServiceIdentifier(identifier: domain, type: .domain)
-    return ASPasswordCredentialIdentity(
+    return SnapshotSummary.CredentialIdentity(
+      vaultId: id,
       serviceIdentifier: serviceIdentifier,
-      user: autofillTitle,
-      recordIdentifier: self.id.rawValue)
+      user: autofillTitle)
   }
 
   var autofillTitle: String {

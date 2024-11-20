@@ -4,6 +4,7 @@ import DashTypes
 import Foundation
 import LoginKit
 import PremiumKit
+import SecurityDashboard
 import VaultKit
 
 enum DeepLink {
@@ -24,6 +25,7 @@ enum DeepLink {
   case notifications(NotificationCategory?)
   case settings(SettingsDeepLinkComponent)
   case mplessLogin(qrCode: String)
+  case unresolvedAlert(TrayAlertProtocol)
 
   init?(pathComponents: [String], queryParameters: [String: String]? = nil, origin: String?) {
     let pathComponent = pathComponents[0]
@@ -93,6 +95,12 @@ enum DeepLink {
       self = .mplessLogin(qrCode: url.absoluteString)
       return
     }
+
+    if url.absoluteString.contains("otpauth") {
+      self = .tool(.authenticator(url))
+      return
+    }
+
     let components = url.pathComponents.filter {
       return $0 != "/" && !DashTypes.Email($0).isValid
     }
@@ -241,6 +249,9 @@ extension DeepLink {
       link = component.rawValue
     case let .mplessLogin(info):
       link = info.replacingOccurrences(of: "dashlane:///", with: "")
+    case .unresolvedAlert:
+      assertionFailure("No representation")
+      link = nil
     }
 
     guard let unwrapped = link else { return nil }

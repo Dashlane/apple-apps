@@ -23,6 +23,10 @@ extension DetailViewModelProtocol {
     }
   }
 
+  public var canShowLock: Bool {
+    item is SecureItem && service.canLock
+  }
+
   public var originalItem: Item {
     service.vaultItemEditionService.originalItem
   }
@@ -105,6 +109,10 @@ extension DetailViewModelProtocol {
     }
   }
 
+  public var isFrozen: Bool {
+    service.isFrozen
+  }
+
   public var isLoading: Bool {
     service.isLoading
   }
@@ -113,29 +121,12 @@ extension DetailViewModelProtocol {
     service.isSaving
   }
 
-  public var shouldReveal: Bool {
-    get {
-      service.shouldReveal
-    }
-    set {
-      service.shouldReveal = newValue
-    }
-  }
-
-  public func reveal(fieldType: DetailFieldType) {
-    service.reveal(fieldType: fieldType)
+  public func sendUsageLog(fieldType: DetailFieldType) {
+    service.sendViewUsageLog(for: fieldType)
   }
 
   public func copy(_ value: String, fieldType: DetailFieldType) {
     service.copy(value, fieldType: fieldType)
-  }
-
-  public func requestAccess(forReason reason: AccessControlReason) -> AccessControlPublisher {
-    service.requestAccess(forReason: reason)
-  }
-
-  public func requestAccess(_ completion: @escaping (Bool) -> Void) {
-    service.requestAccess(completion)
   }
 
   public func showInVault() {

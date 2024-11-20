@@ -28,7 +28,7 @@ public class LocalLoginUnlockViewModel: ObservableObject, LoginKitServicesInject
       case sso
     }
 
-    case authenticated(AuthenticationMode)
+    case authenticated(AuthenticationMode, LocalLoginConfiguration?)
 
     case logout
   }
@@ -72,7 +72,7 @@ public class LocalLoginUnlockViewModel: ObservableObject, LoginKitServicesInject
   let keychainService: AuthenticationKeychainServiceProtocol
   let context: LoginUnlockContext
   let appAPIClient: AppAPIClient
-  let nitroClient: NitroAPIClient
+  let nitroClient: NitroSSOAPIClient
   let masterPasswordLocalViewModelFactory: MasterPasswordLocalViewModel.Factory
   let biometryViewModelFactory: BiometryViewModel.Factory
   let lockPinCodeAndBiometryViewModelFactory: LockPinCodeAndBiometryViewModel.Factory
@@ -87,6 +87,8 @@ public class LocalLoginUnlockViewModel: ObservableObject, LoginKitServicesInject
     accountType: CoreSession.AccountType,
     unlockType: UnlockType,
     secureLockMode: SecureLockMode,
+    sessionsContainer: SessionsContainerProtocol,
+    logger: Logger,
     unlocker: UnlockSessionHandler,
     context: LoginUnlockContext,
     userSettings: UserSettings,
@@ -95,7 +97,7 @@ public class LocalLoginUnlockViewModel: ObservableObject, LoginKitServicesInject
     resetMasterPasswordService: ResetMasterPasswordServiceProtocol,
     appAPIClient: AppAPIClient,
     localLoginHandler: LocalLoginHandler,
-    nitroClient: NitroAPIClient,
+    nitroClient: NitroSSOAPIClient,
     sessionCleaner: SessionCleaner,
     keychainService: AuthenticationKeychainServiceProtocol,
     masterPasswordLocalViewModelFactory: MasterPasswordLocalViewModel.Factory,
@@ -190,7 +192,7 @@ public class LocalLoginUnlockViewModel: ObservableObject, LoginKitServicesInject
       case let .completed(ssoKeys):
         try await self.localLoginHandler.validateSSOKey(
           ssoKeys, ssoAuthenticationInfo: ssoAuthenticationInfo)
-        self.completion(.authenticated(.sso))
+        self.completion(.authenticated(.sso, nil))
       case .cancel, .logout:
         self.completion(.logout)
       }
@@ -211,14 +213,14 @@ extension LocalLoginUnlockViewModel {
   }
 
   private func validateLocalMasterKeyForRememberPassword(
-    _ masterKey: CoreKeychain.MasterKey, unlocker: UnlockSessionHandler
+    _ masterKey: DashTypes.MasterKey, unlocker: UnlockSessionHandler
   ) async {
     switch masterKey {
     case .masterPassword(let masterPassword):
       do {
         try await unlocker.validateMasterKey(
           .masterPassword(masterPassword, serverKey: nil), isRecoveryLogin: false)
-        self.completion(.authenticated(.rememberMasterPassword))
+        self.completion(.authenticated(.rememberMasterPassword, nil))
       } catch {
         try? self.keychainService.removeMasterKey(for: self.login)
         self.showRememberPassword = false
@@ -226,7 +228,7 @@ extension LocalLoginUnlockViewModel {
     case .key(let key):
       do {
         try await unlocker.validateMasterKey(.ssoKey(key), isRecoveryLogin: false)
-        self.completion(.authenticated(.rememberMasterPassword))
+        self.completion(.authenticated(.rememberMasterPassword, nil))
       } catch {
         self.showRememberPassword = false
       }
@@ -236,28 +238,37 @@ extension LocalLoginUnlockViewModel {
 
 extension LocalLoginUnlockViewModel {
   func makeMasterPasswordLocalViewModel() -> MasterPasswordLocalViewModel {
-    masterPasswordLocalViewModelFactory.make(
+    let user: AccountRecoveryKeyLoginFlowStateMachine.User =
+      if let authTicket = unlockType.authTicket {
+        .otp2User(authTicket)
+      } else {
+        .normalUser
+      }
+    return masterPasswordLocalViewModelFactory.make(
       login: login,
       biometry: unlockMode.biometryType,
-      authTicket: unlockType.authTicket,
+      user: user,
       unlocker: unlocker,
       context: context,
       resetMasterPasswordService: resetMasterPasswordService,
       userSettings: userSettings
-    ) { [weak self] mode in
+    ) { [weak self] result in
       guard let self = self else { return }
-      switch mode {
+      switch result {
+      case let .authenticated(config):
+        if config.shouldResetMP {
+          self.completion(.authenticated(.resetMasterPassword, config))
+        } else if let newMasterPassword = config.newMasterPassword {
+          self.completion(.authenticated(.accountRecovered(newMasterPassword), config))
+        } else {
+          self.completion(.authenticated(.masterPassword, config))
+        }
+
       case .biometry(let biometry):
         self.activityReporter.logAskOtherAuthentication(for: .masterPassword, nextMode: .biometric)
         self.unlockMode = .biometry(biometry)
-      case .masterPasswordReset:
-        self.completion(.authenticated(.resetMasterPassword))
-      case .authenticated:
-        self.completion(.authenticated(.masterPassword))
-      case .none:
+      case .cancel:
         self.completion(.logout)
-      case let .accountRecovered(newMasterPassword):
-        self.completion(.authenticated(.accountRecovered(newMasterPassword)))
       }
     }
   }
@@ -278,7 +289,7 @@ extension LocalLoginUnlockViewModel {
         self.unlockMode = self.accountType.fallbackUnlockMode(afterFailure: true)
         self.activityReporter.logFailure(for: self.unlockType)
       } else {
-        self.completion(.authenticated(.biometry))
+        self.completion(.authenticated(.biometry, nil))
       }
     }
   }
@@ -301,10 +312,10 @@ extension LocalLoginUnlockViewModel {
 
       switch result {
       case .biometricAuthenticationSuccess:
-        self.completion(.authenticated(.biometry))
+        self.completion(.authenticated(.biometry, nil))
 
       case .pinAuthenticationSuccess:
-        self.completion(.authenticated(.pincode))
+        self.completion(.authenticated(.pincode, nil))
 
       case .failure:
         self.unlockMode = self.accountType.fallbackUnlockMode(afterFailure: true)

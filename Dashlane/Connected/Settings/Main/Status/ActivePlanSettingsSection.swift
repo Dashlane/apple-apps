@@ -1,3 +1,5 @@
+import CoreFeature
+import CoreLocalization
 import CorePremium
 import DesignSystem
 import SwiftUI
@@ -6,7 +8,13 @@ import UIDelight
 
 struct ActivePlanSettingsSection: View {
   let status: CorePremium.Status.B2cStatus
+  var vaultState: VaultState
   let showPurchase: () -> Void
+  let learnMore: () -> Void
+
+  var showFrozenRestrictions: Bool {
+    vaultState == .frozen
+  }
 
   var plan: ActivePlan {
     return status.humanReadableActivePlan
@@ -20,7 +28,11 @@ struct ActivePlanSettingsSection: View {
           actionButton
         }
         subtitle
-      }.padding(.vertical, 10)
+      }.padding(.vertical, showFrozenRestrictions ? 0 : 10)
+
+      if showFrozenRestrictions {
+        learnMoreAboutFrozen
+      }
     }
   }
 
@@ -37,6 +49,10 @@ struct ActivePlanSettingsSection: View {
       Text(info)
         .font(.subheadline)
         .foregroundColor(.ds.text.neutral.quiet)
+    } else if showFrozenRestrictions {
+      Text(CoreLocalization.L10n.Core.settingsHeaderFrozenAcountWarning)
+        .font(.subheadline)
+        .foregroundColor(.ds.text.danger.standard)
     }
   }
 
@@ -51,6 +67,11 @@ struct ActivePlanSettingsSection: View {
     }
   }
 
+  var learnMoreAboutFrozen: some View {
+    Button(CoreLocalization.L10n.Core.settingsHeaderFrozenAcountLearnMore) {
+      learnMore()
+    }.foregroundColor(.ds.text.neutral.standard)
+  }
 }
 
 extension CorePremium.Status.B2cStatus {
@@ -167,46 +188,67 @@ struct PremiumStatusSectionView_Previews: PreviewProvider {
   static var previews: some View {
     MultiContextPreview {
       List {
-        ActivePlanSettingsSection(status: CorePremium.Status.Mock.freeTrial.b2cStatus) {}
-
-        ActivePlanSettingsSection(status: CorePremium.Status.Mock.free.b2cStatus) {}
-        ActivePlanSettingsSection(status: CorePremium.Status.Mock.legacy.b2cStatus) {}
+        ActivePlanSettingsSection(
+          status: CorePremium.Status.Mock.freeTrial.b2cStatus, vaultState: .default,
+          showPurchase: {}, learnMore: {})
+        ActivePlanSettingsSection(
+          status: CorePremium.Status.Mock.free.b2cStatus, vaultState: .default, showPurchase: {},
+          learnMore: {})
+        ActivePlanSettingsSection(
+          status: CorePremium.Status.Mock.legacy.b2cStatus, vaultState: .default, showPurchase: {},
+          learnMore: {})
       }
       .listAppearance(.insetGrouped)
       .previewDisplayName("Free and trial")
     }
 
     List {
-      ActivePlanSettingsSection(status: CorePremium.Status.Mock.premiumWithAutoRenew.b2cStatus) {}
-      ActivePlanSettingsSection(status: CorePremium.Status.Mock.premiumWithoutAutoRenew.b2cStatus) {
-      }
+      ActivePlanSettingsSection(
+        status: CorePremium.Status.Mock.premiumWithAutoRenew.b2cStatus, vaultState: .default,
+        showPurchase: {}, learnMore: {})
+      ActivePlanSettingsSection(
+        status: CorePremium.Status.Mock.premiumWithoutAutoRenew.b2cStatus, vaultState: .default,
+        showPurchase: {}, learnMore: {})
 
     }
     .listAppearance(.insetGrouped)
     .previewDisplayName("Premium")
 
     List {
-      ActivePlanSettingsSection(status: CorePremium.Status.Mock.premiumLifeTime.b2cStatus) {}
-      ActivePlanSettingsSection(status: CorePremium.Status.Mock.premiumFreeOfCharge.b2cStatus) {}
+      ActivePlanSettingsSection(
+        status: CorePremium.Status.Mock.premiumLifeTime.b2cStatus, vaultState: .default,
+        showPurchase: {}, learnMore: {})
+      ActivePlanSettingsSection(
+        status: CorePremium.Status.Mock.premiumFreeOfCharge.b2cStatus, vaultState: .default,
+        showPurchase: {}, learnMore: {})
     }
     .listAppearance(.insetGrouped)
     .previewDisplayName("Special Premium")
 
     List {
-      ActivePlanSettingsSection(status: CorePremium.Status.Mock.premiumPlusWithAutoRenew.b2cStatus)
-      {}
       ActivePlanSettingsSection(
-        status: CorePremium.Status.Mock.premiumPlusWithoutAutoRenew.b2cStatus
-      ) {}
+        status: CorePremium.Status.Mock.premiumPlusWithAutoRenew.b2cStatus, vaultState: .default,
+        showPurchase: {}, learnMore: {})
+      ActivePlanSettingsSection(
+        status: CorePremium.Status.Mock.premiumPlusWithoutAutoRenew.b2cStatus, vaultState: .default,
+        showPurchase: {}, learnMore: {})
     }
     .listAppearance(.insetGrouped)
     .previewDisplayName("Premium Plus")
 
     List {
-      ActivePlanSettingsSection(status: CorePremium.Status.Mock.familyAdmin.b2cStatus) {}
-      ActivePlanSettingsSection(status: CorePremium.Status.Mock.familyInvitee.b2cStatus) {}
-      ActivePlanSettingsSection(status: CorePremium.Status.Mock.familyPlusAdmin.b2cStatus) {}
-      ActivePlanSettingsSection(status: CorePremium.Status.Mock.familyPlusInvitee.b2cStatus) {}
+      ActivePlanSettingsSection(
+        status: CorePremium.Status.Mock.familyAdmin.b2cStatus, vaultState: .default,
+        showPurchase: {}, learnMore: {})
+      ActivePlanSettingsSection(
+        status: CorePremium.Status.Mock.familyInvitee.b2cStatus, vaultState: .default,
+        showPurchase: {}, learnMore: {})
+      ActivePlanSettingsSection(
+        status: CorePremium.Status.Mock.familyPlusAdmin.b2cStatus, vaultState: .default,
+        showPurchase: {}, learnMore: {})
+      ActivePlanSettingsSection(
+        status: CorePremium.Status.Mock.familyPlusInvitee.b2cStatus, vaultState: .default,
+        showPurchase: {}, learnMore: {})
     }
     .listAppearance(.insetGrouped)
     .previewDisplayName("Family")

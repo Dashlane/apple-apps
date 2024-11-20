@@ -5,11 +5,11 @@ import SwiftUI
 
 extension FiscalInformation {
   public var listIcon: VaultItemIcon {
-    .static(.ds.item.bankAccount.outlined)
+    .bankAccount
   }
 
   public var icon: VaultItemIcon {
-    .static(.ds.item.bankAccount.outlined)
+    .bankAccount
   }
 
   public static var addIcon: SwiftUI.Image {

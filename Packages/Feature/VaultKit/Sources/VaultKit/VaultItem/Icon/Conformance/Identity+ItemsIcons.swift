@@ -5,11 +5,11 @@ import SwiftUI
 
 extension Identity {
   public var icon: VaultItemIcon {
-    .static(.ds.item.personalInfo.outlined)
+    .identity
   }
 
   public var listIcon: VaultItemIcon {
-    .static(.ds.item.personalInfo.outlined)
+    .identity
   }
 
   public static var addIcon: SwiftUI.Image {

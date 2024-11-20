@@ -30,8 +30,8 @@ public class AutofillActivationModalAnnouncement: HomeModalAnnouncement,
     self.userSettings = userSettings
     self.featureService = featureService
 
-    autofillService.notificationKitActivationStatus.sink { status in
-      self.activationStatus = status
+    autofillService.notificationKitActivationStatus.sink { [weak self] status in
+      self?.activationStatus = status
     }
     .store(in: &subscriptions)
   }

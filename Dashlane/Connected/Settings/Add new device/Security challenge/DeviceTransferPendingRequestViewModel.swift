@@ -27,7 +27,7 @@ class DeviceTransferPendingRequestViewModel: ObservableObject, SessionServicesIn
 
   var displayLocation: String {
     "\(pendingTransfer.receiver.city)" + ", "
-      + "\(Locale.current.localizedString(forRegionCode: pendingTransfer.receiver.countryCode) ?? "")"
+      + "\(Locale.current.localizedString(forRegionCode: pendingTransfer.receiver.countryCode ?? System.country) ?? "")"
   }
 
   init(
@@ -79,8 +79,10 @@ extension PendingTransfer {
         hashedPublicKey: "hashedPublicKey",
         deviceName: "Dashlane's iPhone 15 Pro",
         devicePlatform: nil,
-        countryCode: "FR",
+        requestedAtDateUnix: Int(Date().timeIntervalSince1970),
         city: "Paris",
-        requestedAtDateUnix: Int(Date().timeIntervalSince1970)))
+        countryCode: "FR"
+      )
+    )
   }
 }

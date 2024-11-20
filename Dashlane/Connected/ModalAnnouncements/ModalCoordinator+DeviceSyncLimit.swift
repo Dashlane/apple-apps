@@ -55,7 +55,7 @@ extension ModalCoordinator {
       authentication: sessionServices.session.configuration.keys.serverAuthentication,
       logger: sessionServices.appServices.rootLogger[.session],
       purchasePlanFlowProvider: PurchasePlanFlowProvider(appServices: sessionServices.appServices),
-      userTrackingSessionActivityReporter: sessionServices.activityReporter.activityReporter
+      userTrackingSessionActivityReporter: sessionServices.activityReporter
     ) { completion in
       switch completion {
       case .logout:

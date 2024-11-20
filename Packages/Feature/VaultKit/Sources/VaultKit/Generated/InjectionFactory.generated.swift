@@ -199,6 +199,8 @@ extension VaultKitServicesContainer {
       vaultCollectionDatabase: vaultServicesSuit.vaultCollectionDatabase,
       userSpacesService: userSpacesService,
       premiumStatusProvider: premiumStatusProvider,
+      vaultStateService: vaultKitVaultStateService,
+      deeplinkingService: vaultKitDeepLinkingService,
       collectionNamingViewModelFactory: InjectedFactory(makeCollectionNamingViewModel),
       collectionRowViewModelFactory: InjectedFactory(makeCollectionRowViewModel)
     )

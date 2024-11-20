@@ -21,7 +21,7 @@ import ZXCVBN
 
 final class AppServicesContainer: DependenciesContainer {
   let appAPIClient: AppAPIClient
-  let nitroClient: NitroAPIClient
+  let nitroClient: NitroSSOAPIClient
   let sessionCryptoEngineProvider: SessionCryptoEngineProvider
   let sessionContainer: SessionsContainerProtocol
   let rootLogger: Logger
@@ -62,7 +62,7 @@ final class AppServicesContainer: DependenciesContainer {
 
     let localLogger = LocalLogger()
     self.appAPIClient = try AppAPIClient()
-    self.nitroClient = try NitroAPIClient()
+    self.nitroClient = try NitroSSOAPIClient()
     networkReachability = NetworkReachability()
 
     remoteLogger = try KibanaLogger(

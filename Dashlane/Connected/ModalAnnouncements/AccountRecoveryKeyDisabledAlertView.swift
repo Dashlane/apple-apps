@@ -54,13 +54,25 @@ struct AccountRecoveryKeyDisabledAlertView: View {
   var overlayButton: some View {
     VStack(spacing: 8) {
       Spacer()
-      Button(L10n.Localizable.postLoginRecoveryKeyDisabledCta) {
-        model.goToSettings()
-        dismiss()
-      }
-      Button(L10n.Localizable.postLoginRecoveryKeyDisabledCancel) {
-        dismiss()
-      }
+      Button(
+        action: {
+          model.goToSettings()
+          dismiss()
+        },
+        label: {
+          Text(L10n.Localizable.postLoginRecoveryKeyDisabledCta)
+            .fixedSize(horizontal: false, vertical: true)
+        })
+
+      Button(
+        action: {
+          dismiss()
+        },
+        label: {
+          Text(L10n.Localizable.postLoginRecoveryKeyDisabledCancel)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+      )
       .style(mood: .brand, intensity: .quiet)
     }
     .buttonStyle(.designSystem(.titleOnly))

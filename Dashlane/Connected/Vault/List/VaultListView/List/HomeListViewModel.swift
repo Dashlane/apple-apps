@@ -21,7 +21,6 @@ class HomeListViewModel: ObservableObject, SessionServicesInjecting {
   private let isLastpassInstalled: Bool
   let sessionActivityReporter: ActivityReporterProtocol
   private let autofillService: AutofillService
-  private let authenticatorPairingProvider: AuthenticatorPairingProviderProtocol
   private let onboardingAction: (OnboardingChecklistFlowViewModel.Action) -> Void
   private let completion: (VaultListCompletion) -> Void
 
@@ -48,7 +47,6 @@ class HomeListViewModel: ObservableObject, SessionServicesInjecting {
     self.homeBottomBannerFactory = homeBottomBannerFactory
     self.homeTopBannerFactory = homeTopBannerFactory
     self.autofillService = autofillService
-    self.authenticatorPairingProvider = lockService.secureLockProvider
     self.userSettings = userSettings
     self.vaultItemsStore = vaultItemsStore
     self.action = action
@@ -71,15 +69,6 @@ class HomeListViewModel: ObservableObject, SessionServicesInjecting {
           self?.action(.showAutofillDemo)
         }
       },
-      authenticatorSunsetBannerViewModel: .init(
-        authenticatorPairingProvider: authenticatorPairingProvider,
-        userSettings: userSettings,
-        action: { [weak self] action in
-          switch action {
-          case .showAuthenticatorSunsetPage:
-            self?.action(.showAuthenticatorSunsetPage)
-          }
-        }),
       isLastpassInstalled: isLastpassInstalled,
       credentialsCount: vaultItemsStore.credentials.count
     )
@@ -105,7 +94,7 @@ extension HomeListViewModel {
       action: { _ in },
       vaultItemsListFactory: .init { _, _, _ in .mock },
       homeBottomBannerFactory: .init { _, _ in .mock },
-      homeTopBannerFactory: .init { _, _, _, _ in .mock },
+      homeTopBannerFactory: .init { _, _, _ in .mock },
       lastpassDetector: .mock,
       sessionActivityReporter: .mock,
       completion: { _ in }

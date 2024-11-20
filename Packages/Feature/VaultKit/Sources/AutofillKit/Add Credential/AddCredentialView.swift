@@ -68,9 +68,10 @@ public struct AddCredentialView: View {
     List {
       content
         .fieldAppearance(.grouped)
+        .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
         .environment(\.detailMode, .adding())
     }
-    .detailListStyle()
+    .listAppearance(.insetGrouped)
   }
 
   @ViewBuilder
@@ -158,9 +159,8 @@ public struct AddCredentialView: View {
       DS.TextField(
         L10n.Core.KWAuthentifiantIOS.password, text: $model.item.password,
         actions: {
-          #warning("Lacks of proper label (used for accessibility purposes!)")
           DS.FieldAction.Button(
-            "",
+            L10n.Core.kwPadExtensionGeneratorRefresh,
             image: .ds.action.refresh.outlined,
             action: model.refreshPassword
           )

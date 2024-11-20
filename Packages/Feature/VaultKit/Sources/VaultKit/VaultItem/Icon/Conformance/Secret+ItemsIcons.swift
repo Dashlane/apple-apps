@@ -5,7 +5,7 @@ import SwiftUI
 
 extension Secret {
   public var icon: VaultItemIcon {
-    .static(Asset.imgSecret.swiftUIImage, backgroundColor: .gray)
+    .secret
   }
 
   public static var addIcon: SwiftUI.Image {

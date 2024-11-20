@@ -55,6 +55,17 @@ class TwoFASettingsViewModel: SessionServicesInjecting, ObservableObject {
   let reachability: NetworkReachability
   private var subcription: AnyCancellable?
 
+  var twoFASettingsMessage: String {
+    if isTwoFAEnforced {
+      if currentOTP == .otp2 {
+        return L10n.Localizable.twofaSettingsEnforcedMessageOtp2
+      } else {
+        return L10n.Localizable.twofaSettingsEnforcedMessageOtp1
+      }
+    }
+    return L10n.Localizable.twofaSettingsMessage
+  }
+
   init(
     login: Login,
     loginOTPOption: ThirdPartyOTPOption?,
@@ -76,7 +87,6 @@ class TwoFASettingsViewModel: SessionServicesInjecting, ObservableObject {
     self.twoFADeactivationViewModelFactory = twoFADeactivationViewModelFactory
     self.twoFactorEnforcementViewModelFactory = twoFactorEnforcementViewModelFactory
     self.reachability = reachability
-
     Task {
       await fetch()
     }

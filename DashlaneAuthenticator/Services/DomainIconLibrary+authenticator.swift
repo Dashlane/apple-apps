@@ -8,16 +8,17 @@ import IconLibrary
 import VaultKit
 
 extension DomainIconLibrary {
-  init(appAPIClient: AppAPIClient, logger: Logger) {
-    self.init(
+  init(userDeviceAPIClient: UserDeviceAPIClient, logger: Logger) async {
+    await self.init(
       cacheDirectory: ApplicationGroup.authenticatorStandaloneStoreURL.appendingPathComponent(
         "icons"),
       cryptoEngine: DomainIconCryptoEngine(),
-      appAPIClient: appAPIClient,
-      logger: logger)
+      userDeviceAPIClient: userDeviceAPIClient,
+      logger: logger
+    )
   }
 
-  init(appAPIClient: AppAPIClient, session: Session, logger: Logger) {
+  init(userDeviceAPIClient: UserDeviceAPIClient, session: Session, logger: Logger) async {
     let cacheDirectory: URL
     do {
       cacheDirectory = try session.directory.storeURL(for: .icons, in: .authenticator)
@@ -27,11 +28,12 @@ extension DomainIconLibrary {
       cacheDirectory = URL(fileURLWithPath: NSTemporaryDirectory()).appendingPathComponent(
         "\(session.login.email)-authenticator-icons")
     }
-    self.init(
+    await self.init(
       cacheDirectory: cacheDirectory,
       cryptoEngine: session.localCryptoEngine,
-      appAPIClient: appAPIClient,
-      logger: logger)
+      userDeviceAPIClient: userDeviceAPIClient,
+      logger: logger
+    )
   }
 
 }

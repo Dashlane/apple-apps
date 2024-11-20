@@ -129,12 +129,12 @@ struct CollectionDetailView: View {
             .vaultItemRowCollectionActions(
               [.removeFromThisCollection(.init { viewModel.remove(item, with: toast) })]
             )
+            .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
           }
         }
       }
     }
     .scrollContentBackground(.hidden)
-    .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
   }
 
   private var emptyState: some View {

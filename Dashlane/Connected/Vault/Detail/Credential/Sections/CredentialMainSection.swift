@@ -53,7 +53,7 @@ struct CredentialMainSection: View {
       text: $model.item.title,
       placeholder: CoreLocalization.L10n.Core.KWAuthentifiantIOS.Title.placeholder
     )
-    .limitedRights(item: model.item)
+    .limitedRights(model: .init(item: model.item, isFrozen: model.service.isFrozen))
     .textInputAutocapitalization(.words)
   }
 
@@ -63,7 +63,7 @@ struct CredentialMainSection: View {
       text: $model.item.email,
       placeholder: CoreLocalization.L10n.Core.kwEmailPlaceholder,
       actions: [
-        .copy(model.copy),
+        !model.isFrozen ? .copy(model.copy) : nil,
         model.emailsSuggestions.isEmpty || !model.mode.isEditing
           ? nil
           : .other(
@@ -73,10 +73,10 @@ struct CredentialMainSection: View {
           ),
       ].compactMap { $0 }
     )
-    .actions([.copy(model.copy)])
+    .actions(!model.isFrozen ? [.copy(model.copy)] : [])
     .textContentType(.emailAddress)
     .fiberFieldType(.email)
-    .limitedRights(item: model.item)
+    .limitedRights(model: .init(item: model.item, isFrozen: model.service.isFrozen))
   }
 
   private var loginField: some View {
@@ -84,11 +84,11 @@ struct CredentialMainSection: View {
       title: CoreLocalization.L10n.Core.KWAuthentifiantIOS.login,
       text: $model.item.login,
       placeholder: CoreLocalization.L10n.Core.KWAuthentifiantIOS.login,
-      actions: [.copy(model.copy)]
+      actions: !model.isFrozen ? [.copy(model.copy)] : []
     )
-    .actions([.copy(model.copy)])
+    .actions(!model.isFrozen ? [.copy(model.copy)] : [])
     .fiberFieldType(.login)
-    .limitedRights(item: model.item)
+    .limitedRights(model: .init(item: model.item, isFrozen: model.service.isFrozen))
   }
 
   private var secondaryLoginField: some View {
@@ -97,10 +97,10 @@ struct CredentialMainSection: View {
         ? CoreLocalization.L10n.Core.KWAuthentifiantIOS.secondaryLogin
         : CoreLocalization.L10n.Core.KWAuthentifiantIOS.login,
       text: $model.item.secondaryLogin,
-      actions: [.copy(model.copy)]
+      actions: !model.isFrozen ? [.copy(model.copy)] : []
     )
-    .actions([.copy(model.copy)])
-    .limitedRights(item: model.item)
+    .actions(!model.isFrozen ? [.copy(model.copy)] : [])
+    .limitedRights(model: .init(item: model.item, isFrozen: model.service.isFrozen))
     .fiberFieldType(.secondaryLogin)
   }
 
@@ -109,11 +109,10 @@ struct CredentialMainSection: View {
       SecureDetailField(
         title: CoreLocalization.L10n.Core.KWAuthentifiantIOS.password,
         text: $model.item.password,
-        shouldReveal: $model.shouldReveal,
-        onRevealAction: model.reveal,
+        onRevealAction: model.sendUsageLog,
         isColored: true,
         actions: [
-          model.sharingPermission?.canCopy != false ? .copy(model.copy) : nil,
+          !model.isFrozen && model.sharingPermission?.canCopy != false ? .copy(model.copy) : nil,
           model.mode != .limitedViewing && model.item.password.isEmpty
             ? .other(
               title: CoreLocalization.L10n.Core.kwGenerate,
@@ -123,8 +122,13 @@ struct CredentialMainSection: View {
         ].compactMap { $0 },
         feedback: passwordHealthAccessory
       )
-      .actions(model.sharingPermission?.canCopy != false ? [.copy(model.copy), .largeDisplay] : [])
-      .limitedRights(item: model.item)
+      .actions(
+        (!model.isFrozen && model.sharingPermission?.canCopy != false)
+          ? [.copy(model.copy), .largeDisplay] : [.largeDisplay]
+      )
+      .limitedRights(
+        model: .init(item: model.item, isFrozen: (model.service.isFrozen && model.mode.isEditing))
+      )
       .fiberFieldType(.password)
     }
   }
@@ -155,7 +159,7 @@ struct CredentialMainSection: View {
     }
     .actions([.copy(model.copy), .largeDisplay])
     .fiberFieldType(.otp)
-    .limitedRights(item: model.item)
+    .limitedRights(model: .init(item: model.item, isFrozen: model.service.isFrozen))
     .onAppear { model.startTotpUpdates() }
   }
 }

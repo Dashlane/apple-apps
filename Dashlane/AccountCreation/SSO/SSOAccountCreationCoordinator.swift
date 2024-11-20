@@ -98,6 +98,7 @@ class SSOAccountCreationCoordinator: NSObject, Coordinator {
       ssoAuthenticationInfo: SSOAuthenticationInfo(
         login: Login(email.address), serviceProviderUrl: url, isNitroProvider: isNitroProvider,
         migration: nil),
+      selfHostedSSOViewModelFactory: InjectedFactory(loginKitServices.makeSelfHostedSSOViewModel),
       confidentialSSOViewModelFactory: InjectedFactory(
         loginKitServices.makeConfidentialSSOViewModel)
     ) { result in

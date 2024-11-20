@@ -52,12 +52,23 @@ struct MasterPasswordMigrationView: View {
     VStack {
       Spacer()
       VStack(spacing: 8) {
-        Button(migrateButtonTitle) {
-          completion(.migrate)
-        }
-        Button(cancelButtonTitle) {
-          completion(.cancel)
-        }
+        Button(
+          action: {
+            completion(.migrate)
+          },
+          label: {
+            Text(migrateButtonTitle)
+              .fixedSize(horizontal: false, vertical: true)
+          })
+        Button(
+          action: {
+            completion(.cancel)
+          },
+          label: {
+            Text(cancelButtonTitle)
+              .fixedSize(horizontal: false, vertical: true)
+          }
+        )
         .style(mood: .brand, intensity: .quiet)
       }
       .buttonStyle(.designSystem(.titleOnly))

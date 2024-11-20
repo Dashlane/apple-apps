@@ -22,7 +22,7 @@ extension L10n {
       return L10n.Core.badToken
     case ThirdPartyOTPError.duoChallengeFailed:
       return L10n.Core.duoChallengeFailedMessage
-    case RemoteLoginHandler.Error.wrongMasterKey, LocalLoginHandler.Error.wrongMasterKey:
+    case RemoteLoginStateMachine.Error.wrongMasterKey, LocalLoginHandler.Error.wrongMasterKey:
       return L10n.Core.kwWrongMasterPasswordTryAgain
     case let error as DashlaneAPI.APIError where error.hasAccountCode(.accountAlreadyExists):
       return L10n.Core.kwAccountCreationExistingAccount

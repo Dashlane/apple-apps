@@ -1,5 +1,6 @@
 import AuthenticationServices
 import AutofillKit
+import CoreFeature
 import CorePremium
 import CoreUserTracking
 import DomainParser
@@ -14,7 +15,10 @@ class HomeFlowViewModel: ObservableObject, SessionServicesInjecting {
   var showOnlyMatchingCredentials: Bool = true
 
   @Published
-  var selection: CredentialSelection? = nil
+  var selection: CredentialSelection?
+
+  @Published
+  var vaultState: VaultState = .default
 
   var visitedWebsite: String?
   let completion: (CredentialSelection?) -> Void
@@ -28,6 +32,7 @@ class HomeFlowViewModel: ObservableObject, SessionServicesInjecting {
   init(
     credentialListViewModelFactory: CredentialListViewModel.Factory,
     sessionActivityReporter: ActivityReporterProtocol,
+    vaultStateService: VaultStateServiceProtocol,
     domainParser: DomainParserProtocol,
     request: CredentialsListRequest,
     environmentModelFactory: AutofillConnectedEnvironmentModel.Factory,
@@ -42,6 +47,10 @@ class HomeFlowViewModel: ObservableObject, SessionServicesInjecting {
       let domain = domainParser.parse(host: host)?.domain
       self.visitedWebsite = domain
     }
+
+    vaultStateService
+      .vaultStatePublisher()
+      .assign(to: &$vaultState)
   }
 
   func cancel() {

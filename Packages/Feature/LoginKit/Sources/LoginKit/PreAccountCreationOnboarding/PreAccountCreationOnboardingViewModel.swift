@@ -20,7 +20,6 @@ public class PreAccountCreationOnboardingViewModel {
   let keychainService: AuthenticationKeychainServiceProtocol
   let logger: Logger
   let analyticsInstallationId: LowercasedUUID
-  let hasAuthenticator = Authenticator.isOnDevice
   let completion: ((NextStep) -> Void)
 
   public init(

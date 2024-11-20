@@ -18,7 +18,6 @@ class ConnectedCoordinator: NSObject, Coordinator, SubcoordinatorOwner {
   let window: UIWindow
   var subcoordinator: Coordinator?
   let lockCoordinator: LockCoordinator
-  let accessControlCoordinator: AccessControlCoordinator
   let modalCoordinator: ModalCoordinator
   let onboardingService: OnboardingService
   private let appTrackingTransparencyService: AppTrackingTransparencyService
@@ -26,8 +25,11 @@ class ConnectedCoordinator: NSObject, Coordinator, SubcoordinatorOwner {
   private weak var logoutHandler: SessionLifeCycleHandler?
   private var syncStatusSubscription: AnyCancellable?
 
-  lazy var connectedViewController: UIViewController = DashlaneHostingViewController(
-    rootView: ConnectedRootView(model: self.sessionServices.makeConnectedRootViewModel()))
+  lazy var connectedViewController: UIViewController = {
+    let services = self.sessionServices
+    return DashlaneHostingViewController(
+      rootView: ConnectedRootView(model: services.makeConnectedRootViewModel()))
+  }()
 
   private let mainMenuHandler: SessionMainMenuHandler
 
@@ -42,9 +44,6 @@ class ConnectedCoordinator: NSObject, Coordinator, SubcoordinatorOwner {
       sessionServices: sessionServices,
       baseWindow: window)
     self.sessionServices = sessionServices
-    self.accessControlCoordinator = AccessControlCoordinator(
-      baseWindow: window,
-      accessControl: sessionServices.accessControl)
     self.modalCoordinator = .init(baseWindow: window, sessionServices: sessionServices)
     self.onboardingService = sessionServices.onboardingService
     self.logoutHandler = logoutHandler
@@ -85,7 +84,6 @@ class ConnectedCoordinator: NSObject, Coordinator, SubcoordinatorOwner {
   func dismiss(completion: @escaping () -> Void) {
     mainMenuHandler.unload()
     lockCoordinator.dismiss()
-    accessControlCoordinator.dismiss()
     syncStatusSubscription?.cancel()
     completion()
   }
@@ -134,7 +132,6 @@ class ConnectedCoordinator: NSObject, Coordinator, SubcoordinatorOwner {
 
     self.sessionServices.appServices.notificationService.requestUserAuthorization()
     self.lockCoordinator.start()
-    self.accessControlCoordinator.start()
     self.modalCoordinator.start()
     self.setupDeepLinking()
     self.lockCoordinator.showBiometryChangeIfNeeded()
@@ -175,10 +172,11 @@ extension ConnectedCoordinator {
     sessionServices.appServices.versionValidityService.shouldShowAlertPublisher()
       .receive(on: DispatchQueue.main)
       .sink { [weak self] status in
-        guard let self = self else { return }
-        let alertDismissed = {
-          self.sessionServices.appServices.versionValidityService.messageDismissed(for: status)
-        }
+        guard let self else { return }
+        let versionValidityService = self.sessionServices.appServices.versionValidityService
+
+        let alertDismissed = { versionValidityService.messageDismissed(for: status) }
+
         guard
           let alert = VersionValidityAlert(status: status, alertDismissed: alertDismissed)
             .makeAlert()
@@ -187,7 +185,7 @@ extension ConnectedCoordinator {
         }
 
         self.window.rootViewController?.present(alert, animated: true)
-        self.sessionServices.appServices.versionValidityService.messageShown(for: status)
+        versionValidityService.messageShown(for: status)
       }.store(in: &subscriptions)
   }
 }

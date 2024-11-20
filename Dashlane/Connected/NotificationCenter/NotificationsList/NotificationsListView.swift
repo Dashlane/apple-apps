@@ -1,4 +1,5 @@
 import DesignSystem
+import SecurityDashboard
 import SwiftTreats
 import SwiftUI
 import UIDelight
@@ -8,6 +9,7 @@ struct NotificationsListView: View {
   enum Step {
     case root
     case section(NotificationDataSection)
+    case unresolvedAlert(TrayAlertContainer)
   }
 
   @StateObject
@@ -33,9 +35,27 @@ struct NotificationsListView: View {
           }
       case let .section(section):
         NotificationsCategoryListView(model: model.categoryListViewModel(section: section))
+
+      case let .unresolvedAlert(alert):
+        UnresolvedAlertView(
+          viewModel: model.unresolvedAlertViewModelFactory.make(),
+          trayAlert: alert.alert
+        )
+        .toolbar(.hidden, for: .tabBar)
+        .navigationBarTitleDisplayMode(.inline)
       }
     }
     .accentColor(.ds.text.neutral.standard)
+    .onReceive(model.deepLinkPublisher, perform: handle)
+  }
+
+  func handle(_ deepLink: DeepLink) {
+    switch deepLink {
+    case .unresolvedAlert(let alert):
+      steps.append(.unresolvedAlert(.init(alert)))
+    default: break
+
+    }
   }
 
   var listContent: some View {

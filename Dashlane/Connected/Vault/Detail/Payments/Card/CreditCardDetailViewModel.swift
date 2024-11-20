@@ -1,8 +1,10 @@
 import Combine
 import CoreActivityLogs
+import CoreFeature
 import CoreLocalization
 import CorePersonalData
 import CorePremium
+import CoreSession
 import CoreSettings
 import CoreUserTracking
 import DashTypes
@@ -71,10 +73,12 @@ class CreditCardDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
   convenience init(
     item: CreditCard,
     mode: DetailMode = .viewing,
+    session: Session,
     vaultItemDatabase: VaultItemDatabaseProtocol,
     vaultItemsStore: VaultItemsStore,
     vaultCollectionDatabase: VaultCollectionDatabaseProtocol,
     vaultCollectionsStore: VaultCollectionsStore,
+    vaultStateService: VaultStateServiceProtocol,
     sharingService: SharedVaultHandling,
     userSpacesService: UserSpacesService,
     deepLinkService: VaultKit.DeepLinkingServiceProtocol,
@@ -82,7 +86,6 @@ class CreditCardDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
     activityLogsService: ActivityLogsServiceProtocol,
     iconViewModelProvider: @escaping (VaultItem) -> VaultItemIconViewModel,
     logger: Logger,
-    accessControl: AccessControlProtocol,
     regionInformationService: RegionInformationService,
     userSettings: UserSettings,
     documentStorageService: DocumentStorageService,
@@ -93,9 +96,11 @@ class CreditCardDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
     self.init(
       service: .init(
         item: item,
+        canLock: session.authenticationMethod.supportsLock,
         mode: mode,
         vaultItemDatabase: vaultItemDatabase,
         vaultItemsStore: vaultItemsStore,
+        vaultStateService: vaultStateService,
         vaultCollectionDatabase: vaultCollectionDatabase,
         vaultCollectionsStore: vaultCollectionsStore,
         sharingService: sharingService,
@@ -107,7 +112,6 @@ class CreditCardDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
         iconViewModelProvider: iconViewModelProvider,
         attachmentSectionFactory: attachmentSectionFactory,
         logger: logger,
-        accessControl: accessControl,
         userSettings: userSettings,
         pasteboardService: pasteboardService
       ),
@@ -130,6 +134,7 @@ class CreditCardDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
   private func registerServiceChanges() {
     service
       .objectWillChange
+      .receive(on: DispatchQueue.main)
       .sink { [weak self] in
         self?.objectWillChange.send()
       }

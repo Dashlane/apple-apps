@@ -17,6 +17,7 @@ internal typealias AssetImageTypeAlias = ImageAsset.Image
 
 internal enum Asset {
   internal static let logomark = ImageAsset(name: "Logomark")
+  internal static let avatar = ImageAsset(name: "avatar")
 }
 internal struct ImageAsset {
   internal fileprivate(set) var name: String

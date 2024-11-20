@@ -1,3 +1,4 @@
+import CoreFeature
 import CorePremium
 import CoreUserTracking
 import DashTypes
@@ -10,16 +11,19 @@ public struct PlanPurchaseServicesContainer {
   let logger: Logger
   let screenLocker: ScreenLocker?
   let activityReporter: ActivityReporterProtocol
+  let vaultStateService: VaultStateServiceProtocol?
 
   public init(
     purchaseService: PurchaseService, userDeviceAPIClient: UserDeviceAPIClient, logger: Logger,
-    screenLocker: ScreenLocker?, activityReporter: ActivityReporterProtocol
+    screenLocker: ScreenLocker?, activityReporter: ActivityReporterProtocol,
+    vaultStateService: VaultStateServiceProtocol?
   ) {
     self.purchaseService = purchaseService
     self.userDeviceAPIClient = userDeviceAPIClient
     self.logger = logger
     self.screenLocker = screenLocker
     self.activityReporter = activityReporter
+    self.vaultStateService = vaultStateService
   }
 }
 

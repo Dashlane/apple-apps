@@ -81,27 +81,28 @@ extension SnapshotSummary {
 
 extension Collection<Credential> {
   public func makeSnapshots() -> SnapshotDictionary<SnapshotSummary.CredentialIdentity> {
-    let identities = self.flatMap { credential in
-      let rank = credential.autofillRank
+    var snapshots = SnapshotDictionary<SnapshotSummary.CredentialIdentity>()
 
-      return credential.credentialIdentities.map {
-        let identity = SnapshotSummary.CredentialIdentity(
-          vaultId: credential.id, serviceIdentifier: $0.serviceIdentifier.identifier, user: $0.user)
-        return (identity, rank)
+    for credential in self {
+      let rank = credential.autofillRank
+      for identity in credential.makeCredentialIdentities() {
+        snapshots[identity] = rank
       }
     }
 
-    return Dictionary(uniqueKeysWithValues: identities)
+    return snapshots
   }
 }
 
 extension Collection<Passkey> {
   public func makeSnapshots() -> SnapshotDictionary<SnapshotSummary.PasskeyIdentity> {
-    let identities = self.compactMap { passkey -> (SnapshotSummary.PasskeyIdentity, Rank)? in
+    var snapshots = SnapshotDictionary<SnapshotSummary.PasskeyIdentity>()
+
+    for passkey in self {
       guard let decodedCredentialId = Data(base64URLEncoded: passkey.credentialId),
         let decodedUserHandle = Data(base64URLEncoded: passkey.userHandle)
       else {
-        return nil
+        continue
       }
 
       let rank = passkey.autofillRank
@@ -111,11 +112,10 @@ extension Collection<Passkey> {
         userName: passkey.userDisplayName,
         credentialId: decodedCredentialId,
         userHandle: decodedUserHandle)
-
-      return (identity, rank)
+      snapshots[identity] = rank
     }
 
-    return Dictionary(uniqueKeysWithValues: identities)
+    return snapshots
   }
 }
 

@@ -42,7 +42,7 @@ final class PostMasterKeyChangerHandler: PostAccountCryptoChangeHandler {
 }
 
 extension CoreSession.MasterKey {
-  var keyChainMasterKey: CoreKeychain.MasterKey {
+  var keyChainMasterKey: DashTypes.MasterKey {
     switch self {
     case .masterPassword(let password, _):
       return .masterPassword(password)

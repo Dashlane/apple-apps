@@ -4,6 +4,10 @@ extension Thumbnail {
   public static var collection: some View {
     BaseThumbnail {
       IconThumbnailContentView(Image.ds.collection.outlined)
+        .background {
+          Rectangle()
+            .foregroundStyle(Color.ds.container.agnostic.neutral.standard)
+        }
     }
   }
 }

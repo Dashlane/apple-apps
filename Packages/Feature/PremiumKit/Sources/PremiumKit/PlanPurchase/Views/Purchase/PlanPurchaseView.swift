@@ -27,10 +27,20 @@
 
     var body: some View {
       VStack(alignment: .leading) {
-        Text(model.planTier.localizedTitle)
+
+        Text(model.title)
           .textStyle(.title.section.medium)
           .foregroundColor(.ds.text.brand.standard)
           .padding(.vertical, 12)
+
+        if model.displayFrozenMessage {
+          Infobox(
+            L10n.Core.planScreensFreePageFrozenWarningTitle,
+            description: L10n.Core.planScreensFreePageFrozenWarningDescription
+          )
+          .style(mood: .warning)
+          .padding(.bottom, 20)
+        }
 
         capabilities
 
@@ -51,9 +61,11 @@
 
     @ViewBuilder
     var capabilities: some View {
-      PlanCapabilitiesView(
-        kind: model.planTier.kind,
-        capabilities: model.planTier.capabilities)
+      if let kind = model.kind, let capabilities = model.capabilities {
+        PlanCapabilitiesView(
+          kind: kind,
+          capabilities: capabilities)
+      }
     }
 
     @ViewBuilder
@@ -84,10 +96,14 @@
         Button(L10n.Core.kwCreateAccountPrivacy) { action(.policyPrivacy) }
           .buttonStyle(.externalLink)
           .controlSize(.small)
+          .accessibilityAddTraits(.isLink)
+          .accessibilityRemoveTraits(.isButton)
 
         Button(L10n.Core.kwCreateAccountTermsConditions) { action(.termsAndConditions) }
           .buttonStyle(.externalLink)
           .controlSize(.small)
+          .accessibilityAddTraits(.isLink)
+          .accessibilityRemoveTraits(.isButton)
       }
       .padding(.bottom, 12)
     }
@@ -99,7 +115,7 @@
     }
 
     private func buy(duration: PaymentsAccessibleStoreOffersDuration) {
-      guard let plan = model.planTier.plans.first(where: { $0.offer.duration == duration }) else {
+      guard let plan = model.plan(for: duration) else {
         return
       }
       action(.buy(plan))
@@ -110,7 +126,6 @@
     static let capabilities = PaymentsAccessibleStoreOffersCapabilities(
       dataLeak: .init(enabled: true, info: nil), secureWiFi: .init(enabled: true, info: nil))
     static let planGroup = PlanTier(
-      kind: .premium,
       plans: [
         PurchasePlan(
           subscription: .init(id: "id", price: 4.99, purchaseAction: { _ in fatalError() }),
@@ -129,8 +144,9 @@
 
     static var previews: some View {
       MultiContextPreview {
-        PlanPurchaseView(model: PlanPurchaseViewModel(planTier: planGroup), firstStep: false) { _ in
-        }
+        PlanPurchaseView(
+          model: PlanPurchaseViewModel(planDisplay: .tier(planGroup)), firstStep: false
+        ) { _ in }
       }
     }
   }

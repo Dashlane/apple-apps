@@ -123,7 +123,8 @@ struct PaywallView_Previews: PreviewProvider {
     ForEach(previewedCapabilities, id: \.rawValue) { capability in
       MultiContextPreview {
         PaywallViewModel(
-          .capability(key: capability), purchasePlanGroup: PurchasePlanRowView_Previews.planTier
+          .capability(key: capability),
+          purchasePlanGroup: PurchasePlanRowView_Previews.planTier(kind: .advanced)
         ).map { PaywallView(model: $0, shouldDisplayCloseButton: false, action: { _ in }) }
           .background(.ds.background.default)
       }
@@ -136,7 +137,7 @@ struct PaywallView_Previews: PreviewProvider {
     }
 
     MultiContextPreview {
-      PaywallViewModel(.frozenAccount(firstAnnouncement: false), purchasePlanGroup: nil).map {
+      PaywallViewModel(.frozenAccount, purchasePlanGroup: nil).map {
         PaywallView(model: $0, shouldDisplayCloseButton: false, action: { _ in })
       }
       .background(.ds.background.default)

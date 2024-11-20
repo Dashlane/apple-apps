@@ -60,7 +60,7 @@ public struct AccountCreationSurveyView: View {
                 .frame(maxWidth: .infinity, alignment: .leading)
                 .background(
                   RoundedRectangle(cornerRadius: 5)
-                    .foregroundStyle(Color.ds.container.agnostic.neutral.quiet)
+                    .foregroundStyle(Color.ds.container.agnostic.neutral.supershy)
                 )
                 .padding(.horizontal)
                 .padding(.vertical, 6)
@@ -70,7 +70,7 @@ public struct AccountCreationSurveyView: View {
         Spacer()
       }
     }
-    .loginAppearance(backgroundColor: .ds.background.default)
+    .loginAppearance(backgroundColor: .ds.background.alternate)
     .reportPageAppearance(.userProfilingFamiliarityWithDashlane)
   }
 }
