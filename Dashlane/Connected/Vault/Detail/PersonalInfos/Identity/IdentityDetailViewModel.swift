@@ -1,7 +1,9 @@
 import Combine
 import CoreActivityLogs
+import CoreFeature
 import CorePersonalData
 import CorePremium
+import CoreSession
 import CoreSettings
 import CoreUserTracking
 import DashTypes
@@ -21,10 +23,12 @@ class IdentityDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting
   convenience init(
     item: Identity,
     mode: DetailMode = .viewing,
+    session: Session,
     vaultItemDatabase: VaultItemDatabaseProtocol,
     vaultItemsStore: VaultItemsStore,
     vaultCollectionDatabase: VaultCollectionDatabaseProtocol,
     vaultCollectionsStore: VaultCollectionsStore,
+    vaultStateService: VaultStateServiceProtocol,
     sharingService: SharedVaultHandling,
     userSpacesService: UserSpacesService,
     documentStorageService: DocumentStorageService,
@@ -33,7 +37,6 @@ class IdentityDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting
     activityLogsService: ActivityLogsServiceProtocol,
     iconViewModelProvider: @escaping (VaultItem) -> VaultItemIconViewModel,
     logger: Logger,
-    accessControl: AccessControlProtocol,
     userSettings: UserSettings,
     pasteboardService: PasteboardServiceProtocol,
     attachmentSectionFactory: AttachmentsSectionViewModel.Factory
@@ -41,9 +44,11 @@ class IdentityDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting
     self.init(
       service: .init(
         item: item,
+        canLock: session.authenticationMethod.supportsLock,
         mode: mode,
         vaultItemDatabase: vaultItemDatabase,
         vaultItemsStore: vaultItemsStore,
+        vaultStateService: vaultStateService,
         vaultCollectionDatabase: vaultCollectionDatabase,
         vaultCollectionsStore: vaultCollectionsStore,
         sharingService: sharingService,
@@ -55,7 +60,6 @@ class IdentityDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting
         iconViewModelProvider: iconViewModelProvider,
         attachmentSectionFactory: attachmentSectionFactory,
         logger: logger,
-        accessControl: accessControl,
         userSettings: userSettings,
         pasteboardService: pasteboardService
       )
@@ -73,6 +77,7 @@ class IdentityDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting
   private func registerServiceChanges() {
     service
       .objectWillChange
+      .receive(on: DispatchQueue.main)
       .sink { [weak self] in
         self?.objectWillChange.send()
       }

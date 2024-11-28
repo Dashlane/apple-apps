@@ -61,9 +61,9 @@ public struct FakeCryptoEngineProvider: CryptoEngineProvider {
     with masterKey: MasterKey, remoteKey: Data?, encryptedSettings: String,
     userDeviceAPIClient: UserDeviceAPIClient
   ) async throws -> CryptoRawConfig {
-    if validMasterKey == masterKey {
+    if validMasterKey == masterKey || !masterKey.secret.isPassword {
       return CryptoRawConfig(fixedSalt: nil, marker: "fakeConfig")
     }
-    throw RemoteLoginHandler.Error.wrongMasterKey
+    throw RemoteLoginStateMachine.Error.wrongMasterKey
   }
 }

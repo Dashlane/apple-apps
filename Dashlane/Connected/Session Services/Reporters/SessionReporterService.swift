@@ -1,6 +1,7 @@
 import Combine
 import CoreFeature
 import CoreSession
+import CoreSettings
 import CoreUserTracking
 import DashTypes
 import DashlaneAPI
@@ -8,32 +9,50 @@ import Foundation
 import LoginKit
 import VaultKit
 
-class SessionReporterService: DependenciesContainer {
+final class SessionReporterService: DependenciesContainer {
   let activityReporter: ActivityReporterProtocol
   let deviceInformation: DeviceInformationReporting
   let loginMetricsReporter: LoginMetricsReporter
+  let syncService: SyncService
+  let reportSettings: KeyedSettings<ReporterSettingsKey>
+  let vaultReportService: VaultReportService
+  let reportUserSettingsService: ReportUserSettingsService
 
   private var subscriptions: Set<AnyCancellable> = []
 
   init(
     activityReporter: ActivityReporterProtocol,
+    deviceInformation: DeviceInformationReporting,
     loginMetricsReporter: LoginMetricsReporter,
-    deviceInformation: DeviceInformationReporting
+    syncService: SyncService,
+    settings: LocalSettingsStore,
+    vaultReportService: VaultReportService,
+    reportUserSettingsService: ReportUserSettingsService
   ) {
     self.activityReporter = activityReporter
-    self.loginMetricsReporter = loginMetricsReporter
     self.deviceInformation = deviceInformation
+    self.loginMetricsReporter = loginMetricsReporter
+    self.syncService = syncService
+    self.reportSettings = settings.keyed(by: ReporterSettingsKey.self)
+    self.vaultReportService = vaultReportService
+    self.reportUserSettingsService = reportUserSettingsService
   }
 
-  func postLoadConfigure(
-    using services: SessionServicesContainer, loadingContext: SessionLoadingContext
-  ) {
-
+  func postLoadReport(for loadingContext: SessionLoadingContext) {
     reportPerformanceMetrics(for: loadingContext)
-    services.appServices.loginMetricsReporter.reset()
+    loginMetricsReporter.reset()
     deviceInformation.report()
 
-    configureReportOnSync(using: services)
+  }
+
+  func configureReportOnSync() {
+    syncService.$syncStatus
+      .throttle(for: .seconds(5), scheduler: DispatchQueue.backgroundReporter, latest: true)
+      .filter { $0.isIdle }
+      .receive(on: DispatchQueue.main)
+      .sink { [weak self] _ in
+        self?.onSync()
+      }.store(in: &subscriptions)
   }
 
   func unload(reason: SessionServicesUnloadReason) {
@@ -55,47 +74,20 @@ class SessionReporterService: DependenciesContainer {
 
 extension SessionReporterService {
 
-  fileprivate func configureReportOnSync(using services: SessionServicesContainer) {
-
-    services.syncService.$syncStatus
-      .throttle(for: .seconds(5), scheduler: DispatchQueue.backgroundReporter, latest: true)
-      .filter { $0.isIdle }
-      .receive(on: DispatchQueue.main)
-      .sink { [weak self] _ in
-        self?.onSync(services: services)
-      }.store(in: &subscriptions)
-  }
-
-  fileprivate func onSync(services: SessionServicesContainer) {
-    reportGeneralStates(using: services)
+  fileprivate func onSync() {
+    reportGeneralStates()
     activityReporter.flush()
   }
 
-  fileprivate func reportGeneralStates(using services: SessionServicesContainer) {
-
-    let settings = services.spiegelLocalSettingsStore.keyed(by: ReporterSettingsKey.self)
-
-    let lastReportDate: Date = settings[.lastStateReportDate] ?? .distantPast
+  fileprivate func reportGeneralStates() {
+    let lastReportDate: Date = reportSettings[.lastStateReportDate] ?? .distantPast
     guard lastReportDate.hoursPassed > 24 else {
       return
     }
-    settings[.lastStateReportDate] = Date()
+    reportSettings[.lastStateReportDate] = Date()
 
-    let vaultReportService = VaultReportService(
-      identityDashboardService: services.identityDashboardService,
-      userSettings: services.spiegelUserSettings,
-      vaultItemsStore: services.vaultServicesSuit.vaultItemsStore,
-      vaultCollectionsStore: services.vaultServicesSuit.vaultCollectionsStore,
-      apiClient: services.userDeviceAPIClient.useractivity,
-      userSpacesService: services.userSpacesService,
-      activityReporter: services.activityReporter)
     vaultReportService.report()
-
-    activityReporter.reportUserSettings(
-      services.spiegelUserSettings,
-      autofillService: services.autofillService,
-      resetMPService: services.resetMasterPasswordService,
-      lock: services.lockService)
+    reportUserSettingsService.report()
   }
 }
 

@@ -86,9 +86,6 @@ struct ConnectedIphoneRootView: View {
         selection = .tools(.passwordGenerator)
         return
 
-      case .unresolvedAlert:
-        selection = .notifications
-
       default:
         selection = .tools(nil)
       }
@@ -98,6 +95,9 @@ struct ConnectedIphoneRootView: View {
 
     case .other(.contacts, _), .other(.sharing, _):
       selection = .tools(nil)
+
+    case .unresolvedAlert:
+      selection = .notifications
 
     default: break
 

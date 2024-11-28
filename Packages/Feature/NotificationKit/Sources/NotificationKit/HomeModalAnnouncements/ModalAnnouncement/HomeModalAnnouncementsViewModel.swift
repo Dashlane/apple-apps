@@ -64,9 +64,16 @@ public class HomeModalAnnouncementsViewModel: ObservableObject, HomeAnnouncement
 
   func listenTriggers() {
     trigger
-      .filter({ _ in self.sheet == nil })
+      .filter { [weak self] _ in
+        guard let self else {
+          return false
+        }
+        return self.sheet == nil
+      }
       .receive(on: DispatchQueue.global(qos: .background))
-      .compactMap { self.scheduler.evaluate(for: $0) }
+      .compactMap { [scheduler] in
+        scheduler.evaluate(for: $0)
+      }
       .receive(on: DispatchQueue.main)
       .sink(receiveValue: { [weak self] announcement in
         guard let self else { return }

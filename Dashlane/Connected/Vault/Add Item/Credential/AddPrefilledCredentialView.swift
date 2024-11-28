@@ -20,17 +20,11 @@ struct AddPrefilledCredentialView: View {
   @Environment(\.dismiss)
   private var dismiss
 
-  @Environment(\.isPresented)
-  private var isPresented
-
   @Environment(\.detailContainerViewSpecificDismiss)
   private var dismissView
 
   @Environment(\.prefilledCredentialViewSpecificBackButton)
   var specificBackButton
-
-  @Environment(\.navigator)
-  var navigator
 
   @ScaledMetric private var searchBarCornerRadius: CGFloat = 10
 
@@ -43,13 +37,9 @@ struct AddPrefilledCredentialView: View {
       ) {
         dismissView()
       }
-    } else if isPresented {
+    } else {
       BackButton {
         dismiss()
-      }
-    } else {
-      NavigationBarButton(CoreLocalization.L10n.Core.cancel) {
-        self.navigator()?.dismiss()
       }
     }
   }
@@ -114,13 +104,13 @@ struct AddPrefilledCredentialView: View {
       }
       .padding(.top, 20)
     }
+    .scrollDismissesKeyboard(.immediately)
     .padding(.horizontal, 20)
   }
 
   @ViewBuilder
   var prefilledCredentials: some View {
-    let gridItem = GridItem(
-      .fixed(IconSizeType.prefilledCredential.size.width), spacing: 24, alignment: .top)
+    let gridItem = GridItem(.fixed(70), spacing: 24, alignment: .top)
 
     LazyVGrid(columns: [gridItem, gridItem, gridItem], spacing: 18) {
       ForEach(Array(model.onboardingItems.enumerated()), id: \.offset) { index, credential in
@@ -150,6 +140,7 @@ struct AddPrefilledCredentialView: View {
       Text(website).onTapWithFeedback {
         self.model.select(website: website)
       }
+      .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
     }
     .onAppear {
       UICollectionView.appearance().contentInset.top = -16
@@ -157,15 +148,10 @@ struct AddPrefilledCredentialView: View {
     .onDisappear {
       UICollectionView.appearance().contentInset.top = 0
     }
-    .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
     .scrollContentBackground(.hidden)
   }
 }
 
-struct AddPrefilledCredentialView_Previews: PreviewProvider {
-  static var previews: some View {
-    MultiContextPreview {
-      AddPrefilledCredentialView(model: .mock)
-    }
-  }
+#Preview {
+  AddPrefilledCredentialView(model: .mock)
 }

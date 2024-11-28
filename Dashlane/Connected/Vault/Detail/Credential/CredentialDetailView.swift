@@ -16,9 +16,6 @@ struct CredentialDetailView: View, DismissibleDetailView {
   @StateObject
   var model: CredentialDetailViewModel
 
-  @Environment(\.navigator)
-  var navigator
-
   @Environment(\.dismiss)
   var dismissAction
 
@@ -134,7 +131,8 @@ struct CredentialDetailView: View, DismissibleDetailView {
   var sharingSection: some View {
     SharingDetailSection(
       model: model.sharingDetailSectionModelFactory.make(item: model.item),
-      ctaLabel: L10n.Localizable.kwSharePassword
+      ctaLabel: L10n.Localizable.kwSharePassword,
+      canShare: !model.service.isFrozen
     )
   }
 

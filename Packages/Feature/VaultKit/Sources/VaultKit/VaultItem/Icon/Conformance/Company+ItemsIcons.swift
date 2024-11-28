@@ -5,11 +5,11 @@ import SwiftUI
 
 extension Company {
   public var icon: VaultItemIcon {
-    .static(.ds.item.company.outlined)
+    .company
   }
 
   public var listIcon: VaultItemIcon {
-    .static(.ds.item.company.outlined)
+    .company
   }
 
   public static var addIcon: SwiftUI.Image {

@@ -41,8 +41,12 @@ public struct SessionInfo: Codable, Equatable, Sendable {
   public init(from decoder: Decoder) throws {
     let container = try decoder.container(keyedBy: CodingKeys.self)
     self.deviceAccessKey = try container.decodeIfPresent(String.self, forKey: .deviceAccessKey)
-    self.loginOTPOption = try container.decodeIfPresent(
-      ThirdPartyOTPOption.self, forKey: .loginOTPOption)
+    do {
+      self.loginOTPOption = try container.decodeIfPresent(
+        ThirdPartyOTPOption.self, forKey: .loginOTPOption)
+    } catch {
+      self.loginOTPOption = .totp
+    }
     self.isPartOfSSOCompany = try container.decode(Bool.self, forKey: .isPartOfSSOCompany)
     if let accountType = try container.decodeIfPresent(AccountType.self, forKey: .accountType) {
       self.accountType = accountType

@@ -115,10 +115,7 @@ struct TokenRowView: View {
 
   @ViewBuilder
   private var icon: some View {
-    DomainIconView(
-      animate: false,
-      model: model.makeDomainIconViewModel(),
-      placeholderTitle: model.token.configuration.issuerOrTitle)
+    DomainIconView(model: model.makeDomainIconViewModel())
   }
 
   @ViewBuilder

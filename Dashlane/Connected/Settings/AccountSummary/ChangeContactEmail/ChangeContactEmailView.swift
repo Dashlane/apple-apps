@@ -1,3 +1,4 @@
+import DashTypes
 import DesignSystem
 import SwiftUI
 
@@ -35,7 +36,7 @@ struct ChangeContactEmailView: View {
             .textInputAutocapitalization(.never)
             .fieldAppearance(.grouped)
             .onSubmit {
-              model.requestEmailChange(to: newContactEmail, with: toast)
+              changeEmail()
             }
         }
       }
@@ -48,15 +49,23 @@ struct ChangeContactEmailView: View {
         }
         ToolbarItem(placement: .navigationBarTrailing) {
           Button(L10n.Localizable.changeContactEmailSave) {
-            model.requestEmailChange(to: newContactEmail, with: toast)
+            changeEmail()
           }
           .foregroundStyle(Color.ds.text.brand.standard)
           .disabled(newContactEmail.isEmpty)
         }
       }
     }
-    .onReceive(model.dismissActionPublisher) { _ in
-      dismiss()
+  }
+
+  func changeEmail() {
+    Task {
+      do {
+        try await model.changeContactEmail(to: newContactEmail)
+        dismiss()
+      } catch {
+        toast(L10n.Localizable.changeContactEmailErrorToast, image: .ds.feedback.fail.outlined)
+      }
     }
   }
 }

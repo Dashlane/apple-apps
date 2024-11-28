@@ -38,8 +38,6 @@ extension SQLiteClientIdentifier {
       self = .mainApp
     case .tachyon:
       self = .autofillExtension
-    case .authenticator:
-      self = .authenticator
     }
   }
 }

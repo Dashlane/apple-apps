@@ -59,6 +59,7 @@ struct GeneralSettingsView: View {
           isOn: $viewModel.isUniversalClipboardEnabled
         )
       }
+      .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
 
       if !Device.isMac {
         Section(
@@ -70,6 +71,7 @@ struct GeneralSettingsView: View {
             isOn: $viewModel.isAdvancedSystemIntegrationEnabled
           )
         }
+        .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
       }
 
       Section(footer: Text(L10n.Localizable.clipboardSettingsShouldBeOverridenFooter)) {
@@ -77,6 +79,7 @@ struct GeneralSettingsView: View {
           L10n.Localizable.clipboardSettingsShouldBeOverriden,
           isOn: $viewModel.isClipboardOverridden)
       }
+      .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
 
       if isRemoveDuplicatesEnabled {
         Section(
@@ -93,7 +96,7 @@ struct GeneralSettingsView: View {
                 .textStyle(.body.standard.regular)
             })
         }
-
+        .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
       }
 
       if !Device.isMac {
@@ -112,6 +115,7 @@ struct GeneralSettingsView: View {
                   .textStyle(.body.standard.regular)
               })
           }
+          .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
         }
 
         if isDashExportEnabled {
@@ -119,6 +123,7 @@ struct GeneralSettingsView: View {
             SecureArchiveSectionContent(
               viewModel: viewModel.secureArchiveSectionContentViewModelFactory.make())
           }
+          .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
         }
 
         Section {
@@ -130,6 +135,7 @@ struct GeneralSettingsView: View {
               .foregroundStyle(Color.ds.text.neutral.standard)
           }
         }
+        .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
       }
     }
     .listAppearance(.insetGrouped)

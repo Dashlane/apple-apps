@@ -37,7 +37,8 @@
               method: method, deviceInfo: deviceInfo))
         case let .recoveryKeyInput(authTicket):
           AccountRecoveryKeyLoginView(
-            model: model.makeAccountRecoveryKeyLoginViewModel(authTicket: authTicket))
+            model: model.makeAccountRecoveryKeyLoginViewModel(authTicket: authTicket),
+            showNoMatchError: $model.showNoMatchError)
         case let .changeMasterPassword(masterKey, authTicket):
           NewMasterPasswordView(
             model: model.makeNewMasterPasswordViewModel(

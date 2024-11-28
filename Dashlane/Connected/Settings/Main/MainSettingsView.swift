@@ -35,6 +35,7 @@ struct MainSettingsView: View {
   var body: some View {
     List {
       SettingsStatusSection(model: viewModel.settingsStatusSectionViewModelFactory.make())
+        .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
 
       Section {
         NavigationLink(value: SettingsSubSection.accountSummary) {
@@ -61,6 +62,7 @@ struct MainSettingsView: View {
             .textStyle(.body.standard.regular)
         }
       }
+      .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
 
       Section {
         Button(
@@ -72,6 +74,7 @@ struct MainSettingsView: View {
           }
         )
       }
+      .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
 
       Section {
         Button(
@@ -104,6 +107,7 @@ struct MainSettingsView: View {
       } footer: {
         informationFooter(display: Device.isMac)
       }
+      .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
 
       if !Device.isMac {
         Section {
@@ -118,6 +122,7 @@ struct MainSettingsView: View {
         } footer: {
           informationFooter(display: !Device.isMac)
         }
+        .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
       }
     }
     .listAppearance(.insetGrouped)

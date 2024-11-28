@@ -34,6 +34,8 @@ struct NotificationSectionView: View {
       case .resetMasterPassword:
         ResetMasterPasswordNotificationRowView(
           model: model.resetMasterPasswordViewModel(notification))
+      case .frozenAccount:
+        FrozenAccountNotificationRowView(model: model.frozenAccountViewModel(notification))
       }
     case .dynamic(let kind):
       switch kind {

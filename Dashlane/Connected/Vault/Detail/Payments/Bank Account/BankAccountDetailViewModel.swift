@@ -1,7 +1,9 @@
 import Combine
 import CoreActivityLogs
+import CoreFeature
 import CorePersonalData
 import CorePremium
+import CoreSession
 import CoreSettings
 import CoreUserTracking
 import DashTypes
@@ -54,10 +56,12 @@ final class BankAccountDetailViewModel: DetailViewModelProtocol, SessionServices
   convenience init(
     item: BankAccount,
     mode: DetailMode = .viewing,
+    session: Session,
     vaultItemDatabase: VaultItemDatabaseProtocol,
     vaultItemsStore: VaultItemsStore,
     vaultCollectionDatabase: VaultCollectionDatabaseProtocol,
     vaultCollectionsStore: VaultCollectionsStore,
+    vaultStateService: VaultStateServiceProtocol,
     sharingService: SharedVaultHandling,
     userSpacesService: UserSpacesService,
     deepLinkService: VaultKit.DeepLinkingServiceProtocol,
@@ -65,7 +69,6 @@ final class BankAccountDetailViewModel: DetailViewModelProtocol, SessionServices
     activityLogsService: ActivityLogsServiceProtocol,
     iconViewModelProvider: @escaping (VaultItem) -> VaultItemIconViewModel,
     logger: Logger,
-    accessControl: AccessControlProtocol,
     regionInformationService: RegionInformationService,
     userSettings: UserSettings,
     documentStorageService: DocumentStorageService,
@@ -75,9 +78,11 @@ final class BankAccountDetailViewModel: DetailViewModelProtocol, SessionServices
     self.init(
       service: .init(
         item: item,
+        canLock: session.authenticationMethod.supportsLock,
         mode: mode,
         vaultItemDatabase: vaultItemDatabase,
         vaultItemsStore: vaultItemsStore,
+        vaultStateService: vaultStateService,
         vaultCollectionDatabase: vaultCollectionDatabase,
         vaultCollectionsStore: vaultCollectionsStore,
         sharingService: sharingService,
@@ -89,7 +94,6 @@ final class BankAccountDetailViewModel: DetailViewModelProtocol, SessionServices
         iconViewModelProvider: iconViewModelProvider,
         attachmentSectionFactory: attachmentSectionFactory,
         logger: logger,
-        accessControl: accessControl,
         userSettings: userSettings,
         pasteboardService: pasteboardService
       ),
@@ -111,6 +115,7 @@ final class BankAccountDetailViewModel: DetailViewModelProtocol, SessionServices
   private func registerServiceChanges() {
     service
       .objectWillChange
+      .receive(on: DispatchQueue.main)
       .sink { [weak self] in
         self?.objectWillChange.send()
       }

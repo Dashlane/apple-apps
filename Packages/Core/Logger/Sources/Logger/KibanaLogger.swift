@@ -9,7 +9,6 @@ public final class KibanaLogger: @unchecked Sendable {
   public enum Origin: String, Sendable {
     case mainApplication
     case tachyon
-    case authenticator
   }
 
   public enum Level: Int, Comparable {
@@ -66,7 +65,7 @@ public final class KibanaLogger: @unchecked Sendable {
     self.subSection = nil
     self.outputLevel = outputLevel
     self.origin = origin
-    self.platform = origin == .authenticator ? .authenticator : .passwordManager
+    self.platform = .passwordManager
   }
 
   private init(

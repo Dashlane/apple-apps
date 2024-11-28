@@ -51,6 +51,7 @@ struct PasswordGeneratorHistoryView: View {
     List {
       ForEach(DateGroup.allCases) { group in
         section(for: group, in: passwords)
+          .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
       }
     }
     .listAppearance(.insetGrouped)
@@ -91,11 +92,8 @@ private struct PasswordGeneratedRow: View {
 
   var body: some View {
     HStack(spacing: 16) {
-      DomainIconView(
-        model: iconViewModel,
-        placeholderTitle: iconPlaceholderText
-      )
-      .fiberAccessibilityHidden(true)
+      DomainIconView(model: iconViewModel)
+        .fiberAccessibilityHidden(true)
       VStack(alignment: .leading, spacing: 1) {
         textField
         VStack(alignment: .leading, spacing: 1) {
@@ -287,10 +285,8 @@ struct PasswordGeneratorHistory_Previews: PreviewProvider {
       Group {
         PasswordGeneratedRow(
           generatedPassword: generatedPassword,
-          iconViewModel: .makeMock(domain: generatedPassword.domain?.domain, size: .small)
-        ) {
-
-        }
+          iconViewModel: .makeMock(domain: generatedPassword.domain?.domain)
+        ) {}
         .previewLayout(.sizeThatFits)
 
         let model = PasswordGeneratorHistoryViewModel(
@@ -299,14 +295,16 @@ struct PasswordGeneratorHistory_Previews: PreviewProvider {
           ]),
           userSettings: settings,
           activityReporter: .mock,
-          iconService: IconServiceMock())
+          iconService: IconServiceMock()
+        )
         PasswordGeneratorHistoryView(model: model)
 
         let emptyModel = PasswordGeneratorHistoryViewModel(
           database: ApplicationDBStack.mock(),
           userSettings: settings,
           activityReporter: .mock,
-          iconService: IconServiceMock())
+          iconService: IconServiceMock()
+        )
         PasswordGeneratorHistoryView(model: emptyModel)
 
       }.background(Color.ds.background.default)

@@ -1,6 +1,7 @@
+import DashTypes
 import Foundation
 
 public struct MasterKeyContainer {
-  public let masterKey: MasterKey
+  public let masterKey: DashTypes.MasterKey
   public let expirationDate: Date
 }

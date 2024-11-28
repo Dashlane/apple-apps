@@ -18,7 +18,7 @@ class AccountSummaryViewModel: ObservableObject, SessionServicesInjecting {
   init(
     session: Session,
     userDeviceAPI: UserDeviceAPIClient,
-    accessControl: AccessControlProtocol,
+    accessControl: AccessControlHandler,
     changeContactEmailViewModelFactory: ChangeContactEmailViewModel.Factory
   ) {
     self.session = session
@@ -43,7 +43,7 @@ extension AccountSummaryViewModel {
     AccountSummaryViewModel(
       session: .mock,
       userDeviceAPI: .fake,
-      accessControl: FakeAccessControl(accept: true),
+      accessControl: .mock(),
       changeContactEmailViewModelFactory: .init({ _, _ in .mock }))
   }
 }

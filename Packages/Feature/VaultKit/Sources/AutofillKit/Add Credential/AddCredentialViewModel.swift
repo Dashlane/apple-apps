@@ -65,11 +65,13 @@ public class AddCredentialViewModel: ObservableObject {
   let logger: Logger
   let session: Session
   let personalDataURLDecoder: PersonalDataURLDecoderProtocol
-  let pasteboardService: PasteboardService
+  let pasteboardService: PasteboardServiceProtocol
   let domainLibrary: DomainIconLibraryProtocol
   let visitedWebsite: String?
   let didFinish: (Credential) -> Void
   let userSettings: UserSettings
+  let vaultStateService: VaultStateServiceProtocol
+  let deeplinkingService: DeepLinkingServiceProtocol
   let activityLogsService: ActivityLogsServiceProtocol
   let sessionActivityReporter: ActivityReporterProtocol
   let userSpacesService: UserSpacesService
@@ -83,9 +85,11 @@ public class AddCredentialViewModel: ObservableObject {
     session: Session,
     userSpacesService: UserSpacesService,
     personalDataURLDecoder: PersonalDataURLDecoderProtocol,
-    pasteboardService: PasteboardService,
+    pasteboardService: PasteboardServiceProtocol,
     passwordEvaluator: PasswordEvaluatorProtocol,
     activityReporter: ActivityReporterProtocol,
+    vaultStateService: VaultStateServiceProtocol,
+    deeplinkingService: DeepLinkingServiceProtocol,
     domainLibrary: DomainIconLibraryProtocol,
     visitedWebsite: String?,
     userSettings: UserSettings,
@@ -97,6 +101,8 @@ public class AddCredentialViewModel: ObservableObject {
     self.database = database
     self.passwordEvaluator = passwordEvaluator
     self.activityReporter = activityReporter
+    self.vaultStateService = vaultStateService
+    self.deeplinkingService = deeplinkingService
     self.logger = logger
     self.session = session
     self.activityLogsService = activityLogsService
@@ -121,9 +127,7 @@ public class AddCredentialViewModel: ObservableObject {
       .receive(on: DispatchQueue.main)
       .assign(to: \.emails, on: self)
 
-    availableUserSpaces = userSpacesService.configuration.availableSpaces.filter {
-      $0 != .both
-    }
+    availableUserSpaces = userSpacesService.configuration.availableSpaces.filter { $0 != .both }
 
     $item
       .removeDuplicates()
@@ -162,9 +166,10 @@ public class AddCredentialViewModel: ObservableObject {
       passwordEvaluator: passwordEvaluator,
       sessionActivityReporter: activityReporter,
       userSettings: userSettings,
-      copyAction: { [weak self] password in
-        self?.pasteboardService.set(password)
-      })
+      vaultStateService: vaultStateService,
+      deeplinkingService: deeplinkingService,
+      pasteboardService: pasteboardService
+    )
 
     passwordGeneratorViewModel
       .$preferences
@@ -268,6 +273,8 @@ extension AddCredentialViewModel {
       pasteboardService: PasteboardService.mock(),
       passwordEvaluator: .mock(),
       activityReporter: .mock,
+      vaultStateService: .mock,
+      deeplinkingService: MockVaultKitServicesContainer().deeplinkService,
       domainLibrary: FakeDomainIconLibrary(icon: nil),
       visitedWebsite: nil,
       userSettings: UserSettings.mock,

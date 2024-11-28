@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Domain: Equatable, Codable {
+public struct Domain: Equatable, Codable, Sendable {
   public let name: String
   public let publicSuffix: String?
   public var linkedDomains: [String]? {

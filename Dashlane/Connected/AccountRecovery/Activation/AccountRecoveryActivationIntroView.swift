@@ -25,7 +25,7 @@ struct AccountRecoveryActivationIntroView: View {
         .navigationBarBackButtonHidden(true)
         .toolbar {
           ToolbarItem(placement: .navigationBarLeading) {
-            if canSkip {
+            if !canSkip {
               Button(
                 action: {
                   completion(.cancel)
@@ -90,13 +90,24 @@ struct AccountRecoveryActivationIntroView: View {
   var overlayButton: some View {
     VStack(spacing: 8) {
       Spacer()
-      Button(L10n.Localizable.recoveryKeyActivationIntroCta) {
-        completion(.generateKey)
-      }
+      Button(
+        action: {
+          completion(.generateKey)
+        },
+        label: {
+          Text(L10n.Localizable.recoveryKeyActivationIntroCta)
+            .fixedSize(horizontal: false, vertical: true)
+        })
       if canSkip {
-        Button(L10n.Localizable.mplessRecoverySkipCta) {
-          showSkipAlert = true
-        }
+        Button(
+          action: {
+            showSkipAlert = true
+          },
+          label: {
+            Text(L10n.Localizable.mplessRecoverySkipCta)
+              .fixedSize(horizontal: false, vertical: true)
+          }
+        )
         .style(mood: .brand, intensity: .quiet)
       }
     }

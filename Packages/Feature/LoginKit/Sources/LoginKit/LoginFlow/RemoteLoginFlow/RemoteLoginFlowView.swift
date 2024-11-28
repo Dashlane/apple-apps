@@ -14,20 +14,24 @@ import UIDelight
 
     public var body: some View {
       switch viewModel.step {
-      case let .remoteLogin(type):
+      case let .login(type):
         switch type {
-        case let .classicRemoteLogin(handler):
+        case let .regularRemoteLogin(
+          login,
+          deviceRegistrationMethod,
+          deviceInfo):
           RegularRemoteLoginFlow(
-            viewModel: viewModel.makeClassicRemoteLoginFlowViewModel(using: handler))
-        case let .deviceToDeviceRemoteLogin(login, handler):
+            viewModel: viewModel.makeRegularRemoteLoginFlowViewModel(
+              login: login, deviceRegistrationMethod: deviceRegistrationMethod,
+              deviceInfo: deviceInfo))
+        case let .deviceToDeviceRemoteLogin(login, deviceInfo):
           DeviceTransferLoginFlow(
-            model: viewModel.makeDeviceTransferLoginFlowModel(using: handler, login: login))
+            model: viewModel.makeDeviceTransferLoginFlowModel(login: login, deviceInfo: deviceInfo))
         }
-      case let .deviceUnlinking(unlinker, session, logInfo, handler):
+      case let .deviceUnlinking(unlinker, session, logInfo):
         DeviceUnlinkingFlow(
           viewModel: viewModel.makeDeviceUnlinkLoadingViewModel(
-            deviceUnlinker: unlinker, session: session, logInfo: logInfo,
-            remoteLoginHandler: handler))
+            deviceUnlinker: unlinker, session: session, logInfo: logInfo))
       }
     }
   }

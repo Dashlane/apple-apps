@@ -28,8 +28,10 @@ struct VaultItemsList<Header: View>: View {
       listContent(for: configuration)
     } header: {
       header
+        .listRowBackground(Color.ds.background.default)
     } footer: {
       count
+        .listRowBackground(Color.ds.background.default)
     }
     .indexed(shouldHideIndexes: !model.activeFilter.supportIndexes, priority: .indexedList)
     .vaultItemsListDelete(.init(model.delete))

@@ -153,7 +153,7 @@ struct DarkWebMonitoringDetailsView: View {
   @ViewBuilder
   private var headerView: some View {
     VStack(alignment: .center, spacing: 10) {
-      BreachIconView(model: model.breachViewModel.iconViewModel, iconSize: IconSizeType.small)
+      BreachIconView(model: model.breachViewModel.iconViewModel)
       Text(model.breachViewModel.url.displayDomain)
         .font(DashlaneFont.custom(20, .medium).font)
       Text(L10n.Localizable.dwmDetailViewSubtitle)

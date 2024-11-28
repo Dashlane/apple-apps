@@ -61,7 +61,6 @@ public struct DateDetailField: DetailField {
   }
 
   public var body: some View {
-
     ZStack {
       datePicker
         .modifier(FocusingOnTapModifier())

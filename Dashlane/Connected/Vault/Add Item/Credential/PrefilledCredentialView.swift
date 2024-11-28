@@ -23,10 +23,7 @@ struct PrefilledCredentialView: View {
 
   @ViewBuilder
   var icon: some View {
-    DomainIconView(
-      model: iconViewModel.makeDomainIconViewModel(
-        credential: credential, size: .prefilledCredential),
-      placeholderTitle: credential.localizedTitle)
+    DomainIconView(model: iconViewModel.makeDomainIconViewModel(credential: credential))
   }
 }
 

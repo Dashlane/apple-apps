@@ -8,13 +8,17 @@ public protocol TimeshiftProvider: Sendable {
   var timeshift: TimeInterval { get async throws }
 }
 
+protocol RemoteTimeProvider: Sendable {
+  func remoteTime() async throws -> Int
+}
+
 actor TimeshiftProviderImpl: TimeshiftProvider {
-  let client: UnsignedAPIClient
+  let remoteTimeProvider: RemoteTimeProvider
   private var currentTimeshiftRequestTask: Task<TimeInterval, Error>?
   private var currentTimeshift: TimeInterval?
 
-  init(engine: APIClientEngine) {
-    self.client = UnsignedAPIClient(engine: engine)
+  init(remoteTimeProvider: RemoteTimeProvider) {
+    self.remoteTimeProvider = remoteTimeProvider
   }
 
   var timeshift: TimeInterval {
@@ -39,8 +43,8 @@ actor TimeshiftProviderImpl: TimeshiftProvider {
   }
 
   private func retrieveTimeshift() async throws -> TimeInterval {
-    let result = try await client.time.getRemoteTime()
-    let timeshift = TimeInterval(result.timestamp)
+    let result = try await remoteTimeProvider.remoteTime()
+    let timeshift = TimeInterval(result)
 
     guard let bootTime = TimeInterval.currentKernelBootTime() else {
       let now = Date()

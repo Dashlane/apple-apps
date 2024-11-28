@@ -43,7 +43,7 @@ private struct DebugAccountSubtitle: View {
   }
 }
 
-extension LoginType {
+extension AccountLoginType {
   var image: ImageAsset? {
     switch self {
     case .masterPassword:

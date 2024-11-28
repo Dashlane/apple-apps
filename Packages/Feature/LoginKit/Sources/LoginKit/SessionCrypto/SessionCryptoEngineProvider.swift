@@ -21,19 +21,20 @@ public struct SessionCryptoEngineProvider: CoreSession.CryptoEngineProvider {
     return try Settings.makeSettings(compressedContent: content).cryptoConfig
   }
 
-  public func sessionCryptoEngine(for config: CryptoRawConfig, masterKey: MasterKey) throws
-    -> SessionCryptoEngine
+  public func sessionCryptoEngine(for config: CryptoRawConfig, masterKey: CoreSession.MasterKey)
+    throws -> SessionCryptoEngine
   {
     return try ConfigurableCryptoEngineImpl(secret: masterKey.secret, config: config)
   }
 
-  public func sessionCryptoEngine(forEncryptedPayload payload: Data, masterKey: MasterKey) throws
-    -> SessionCryptoEngine
-  {
+  public func sessionCryptoEngine(
+    forEncryptedPayload payload: Data, masterKey: CoreSession.MasterKey
+  ) throws -> SessionCryptoEngine {
     return try ConfigurableCryptoEngineImpl(secret: masterKey.secret, encryptedData: payload)
   }
 
-  public func defaultCryptoRawConfig(for masterKey: MasterKey) throws -> CryptoRawConfig {
+  public func defaultCryptoRawConfig(for masterKey: CoreSession.MasterKey) throws -> CryptoRawConfig
+  {
     switch masterKey {
     case .masterPassword:
       return CryptoRawConfig.masterPasswordBasedDefault
@@ -64,13 +65,13 @@ public struct SessionCryptoEngineProvider: CoreSession.CryptoEngineProvider {
   }
 
   public func retriveCryptoConfig(
-    with masterKey: MasterKey,
+    with masterKey: CoreSession.MasterKey,
     remoteKey: Data?,
     encryptedSettings: String,
     userDeviceAPIClient: UserDeviceAPIClient
   ) async throws -> CryptoRawConfig {
     guard let encryptedSettings = Data(base64Encoded: encryptedSettings) else {
-      throw RemoteLoginHandler.Error.invalidSettings
+      throw RemoteLoginStateMachine.Error.invalidSettings
     }
 
     let sessionCryptoEngine = try sessionCryptoEngine(
@@ -84,11 +85,13 @@ public struct SessionCryptoEngineProvider: CoreSession.CryptoEngineProvider {
       }
 
     guard let rawSettings = try? decryptSettingEngine.decrypt(encryptedSettings) else {
-      throw RemoteLoginHandler.Error.wrongMasterKey
+      throw RemoteLoginStateMachine.Error.wrongMasterKey
     }
 
     var cryptoConfig =
-      if let configFromSettings = try? retrieveCryptoConfig(fromRawSettings: rawSettings) {
+      if masterKey.secret.isPassword,
+        let configFromSettings = try? retrieveCryptoConfig(fromRawSettings: rawSettings)
+      {
         configFromSettings
       } else {
         sessionCryptoEngine.config

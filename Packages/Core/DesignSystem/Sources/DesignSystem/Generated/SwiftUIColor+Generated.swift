@@ -71,6 +71,16 @@ extension SwiftUI.Color {
           public static let supershy = SwiftUI.Color("container/agnostic/neutral/supershy")
         }
       }
+      public enum decorative {
+        public static let black = SwiftUI.Color("container/decorative/black")
+        public static let blue = SwiftUI.Color("container/decorative/blue")
+        public static let green = SwiftUI.Color("container/decorative/green")
+        public static let grey = SwiftUI.Color("container/decorative/grey")
+        public static let orange = SwiftUI.Color("container/decorative/orange")
+        public static let purple = SwiftUI.Color("container/decorative/purple")
+        public static let red = SwiftUI.Color("container/decorative/red")
+        public static let yellow = SwiftUI.Color("container/decorative/yellow")
+      }
       public enum expressive {
         public enum brand {
           public enum catchy {
@@ -186,8 +196,8 @@ extension SwiftUI.Color {
       }
       public enum oddity {
         public static let disabled = SwiftUI.Color("text/oddity/disabled")
-        public static let passwordDigits = SwiftUI.Color("text/oddity/passwordDigits")
-        public static let passwordSymbols = SwiftUI.Color("text/oddity/passwordSymbols")
+        public static let passwordDigits = SwiftUI.Color("text/oddity/password-digits")
+        public static let passwordSymbols = SwiftUI.Color("text/oddity/password-symbols")
       }
       public enum positive {
         public static let quiet = SwiftUI.Color("text/positive/quiet")

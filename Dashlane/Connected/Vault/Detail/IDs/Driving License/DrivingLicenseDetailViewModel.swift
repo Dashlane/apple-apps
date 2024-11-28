@@ -1,9 +1,11 @@
 import Combine
 import CoreActivityLogs
+import CoreFeature
 import CorePasswords
 import CorePersonalData
 import CorePremium
 import CoreRegion
+import CoreSession
 import CoreSettings
 import CoreUserTracking
 import DashTypes
@@ -44,10 +46,12 @@ class DrivingLicenseDetailViewModel: DetailViewModelProtocol, SessionServicesInj
   convenience init(
     item: DrivingLicence,
     mode: DetailMode = .viewing,
+    session: Session,
     vaultItemDatabase: VaultItemDatabaseProtocol,
     vaultItemsStore: VaultItemsStore,
     vaultCollectionDatabase: VaultCollectionDatabaseProtocol,
     vaultCollectionsStore: VaultCollectionsStore,
+    vaultStateService: VaultStateServiceProtocol,
     sharingService: SharedVaultHandling,
     userSpacesService: UserSpacesService,
     deepLinkService: VaultKit.DeepLinkingServiceProtocol,
@@ -56,7 +60,6 @@ class DrivingLicenseDetailViewModel: DetailViewModelProtocol, SessionServicesInj
     regionInformationService: RegionInformationService,
     iconViewModelProvider: @escaping (VaultItem) -> VaultItemIconViewModel,
     logger: Logger,
-    accessControl: AccessControlProtocol,
     userSettings: UserSettings,
     documentStorageService: DocumentStorageService,
     pasteboardService: PasteboardServiceProtocol,
@@ -65,9 +68,11 @@ class DrivingLicenseDetailViewModel: DetailViewModelProtocol, SessionServicesInj
     self.init(
       service: .init(
         item: item,
+        canLock: session.authenticationMethod.supportsLock,
         mode: mode,
         vaultItemDatabase: vaultItemDatabase,
         vaultItemsStore: vaultItemsStore,
+        vaultStateService: vaultStateService,
         vaultCollectionDatabase: vaultCollectionDatabase,
         vaultCollectionsStore: vaultCollectionsStore,
         sharingService: sharingService,
@@ -79,7 +84,6 @@ class DrivingLicenseDetailViewModel: DetailViewModelProtocol, SessionServicesInj
         iconViewModelProvider: iconViewModelProvider,
         attachmentSectionFactory: attachmentSectionFactory,
         logger: logger,
-        accessControl: accessControl,
         userSettings: userSettings,
         pasteboardService: pasteboardService
       ),
@@ -101,6 +105,7 @@ class DrivingLicenseDetailViewModel: DetailViewModelProtocol, SessionServicesInj
   private func registerServiceChanges() {
     service
       .objectWillChange
+      .receive(on: DispatchQueue.main)
       .sink { [weak self] in
         self?.objectWillChange.send()
       }

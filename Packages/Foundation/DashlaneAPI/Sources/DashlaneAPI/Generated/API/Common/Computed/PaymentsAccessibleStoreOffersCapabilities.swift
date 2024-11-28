@@ -14,6 +14,7 @@ public struct PaymentsAccessibleStoreOffersCapabilities: Codable, Equatable, Sen
     case identityRestoration = "identityRestoration"
     case identityTheftProtection = "identityTheftProtection"
     case internalSharingOnly = "internalSharingOnly"
+    case messageIntegrations = "messageIntegrations"
     case multipleAccounts = "multipleAccounts"
     case passwordChanger = "passwordChanger"
     case passwordsLimit = "passwordsLimit"
@@ -32,6 +33,48 @@ public struct PaymentsAccessibleStoreOffersCapabilities: Codable, Equatable, Sen
     case yubikey = "yubikey"
   }
 
+  public struct MessageIntegrations: Codable, Equatable, Sendable {
+    public enum CodingKeys: String, CodingKey {
+      case enabled = "enabled"
+      case info = "info"
+    }
+
+    public let enabled: Bool
+    public let info: PaymentsAccessibleStoreOffersInfo2?
+
+    public init(enabled: Bool, info: PaymentsAccessibleStoreOffersInfo2? = nil) {
+      self.enabled = enabled
+      self.info = info
+    }
+
+    public func encode(to encoder: Encoder) throws {
+      var container = encoder.container(keyedBy: CodingKeys.self)
+      try container.encode(enabled, forKey: .enabled)
+      try container.encodeIfPresent(info, forKey: .info)
+    }
+  }
+
+  public struct SecretManagement: Codable, Equatable, Sendable {
+    public enum CodingKeys: String, CodingKey {
+      case enabled = "enabled"
+      case info = "info"
+    }
+
+    public let enabled: Bool
+    public let info: PaymentsAccessibleStoreOffersInfo2?
+
+    public init(enabled: Bool, info: PaymentsAccessibleStoreOffersInfo2? = nil) {
+      self.enabled = enabled
+      self.info = info
+    }
+
+    public func encode(to encoder: Encoder) throws {
+      var container = encoder.container(keyedBy: CodingKeys.self)
+      try container.encode(enabled, forKey: .enabled)
+      try container.encodeIfPresent(info, forKey: .info)
+    }
+  }
+
   public let activeDirectorySync: CapabilitySchema?
   public let activityLog: CapabilitySchema?
   public let adminPolicies: PaymentsAccessibleStoreOffersAdminPolicies?
@@ -44,13 +87,14 @@ public struct PaymentsAccessibleStoreOffersCapabilities: Codable, Equatable, Sen
   public let identityRestoration: CapabilitySchema?
   public let identityTheftProtection: CapabilitySchema?
   public let internalSharingOnly: CapabilitySchema?
+  public let messageIntegrations: MessageIntegrations?
   public let multipleAccounts: CapabilitySchema?
   public let passwordChanger: CapabilitySchema?
   public let passwordsLimit: CapabilitySchema?
   public let phoneSupport: CapabilitySchema?
   public let samlProvisioning: CapabilitySchema?
   public let scim: CapabilitySchema?
-  public let secretManagement: PaymentsAccessibleStoreOffersSecretManagement?
+  public let secretManagement: SecretManagement?
   public let secureFiles: CapabilitySchema?
   public let secureNotes: CapabilitySchema?
   public let secureWiFi: CapabilitySchema?
@@ -69,16 +113,15 @@ public struct PaymentsAccessibleStoreOffersCapabilities: Codable, Equatable, Sen
     dataLeak: CapabilitySchema? = nil, devicesLimit: CapabilitySchema? = nil,
     groupSharing: PaymentsAccessibleStoreOffersGroupSharing? = nil,
     identityRestoration: CapabilitySchema? = nil, identityTheftProtection: CapabilitySchema? = nil,
-    internalSharingOnly: CapabilitySchema? = nil, multipleAccounts: CapabilitySchema? = nil,
-    passwordChanger: CapabilitySchema? = nil, passwordsLimit: CapabilitySchema? = nil,
-    phoneSupport: CapabilitySchema? = nil, samlProvisioning: CapabilitySchema? = nil,
-    scim: CapabilitySchema? = nil,
-    secretManagement: PaymentsAccessibleStoreOffersSecretManagement? = nil,
-    secureFiles: CapabilitySchema? = nil, secureNotes: CapabilitySchema? = nil,
-    secureWiFi: CapabilitySchema? = nil, securityBreach: CapabilitySchema? = nil,
-    sharingLimit: CapabilitySchema? = nil, sso: CapabilitySchema? = nil,
-    sync: CapabilitySchema? = nil, usageReports: CapabilitySchema? = nil,
-    yubikey: CapabilitySchema? = nil
+    internalSharingOnly: CapabilitySchema? = nil, messageIntegrations: MessageIntegrations? = nil,
+    multipleAccounts: CapabilitySchema? = nil, passwordChanger: CapabilitySchema? = nil,
+    passwordsLimit: CapabilitySchema? = nil, phoneSupport: CapabilitySchema? = nil,
+    samlProvisioning: CapabilitySchema? = nil, scim: CapabilitySchema? = nil,
+    secretManagement: SecretManagement? = nil, secureFiles: CapabilitySchema? = nil,
+    secureNotes: CapabilitySchema? = nil, secureWiFi: CapabilitySchema? = nil,
+    securityBreach: CapabilitySchema? = nil, sharingLimit: CapabilitySchema? = nil,
+    sso: CapabilitySchema? = nil, sync: CapabilitySchema? = nil,
+    usageReports: CapabilitySchema? = nil, yubikey: CapabilitySchema? = nil
   ) {
     self.activeDirectorySync = activeDirectorySync
     self.activityLog = activityLog
@@ -92,6 +135,7 @@ public struct PaymentsAccessibleStoreOffersCapabilities: Codable, Equatable, Sen
     self.identityRestoration = identityRestoration
     self.identityTheftProtection = identityTheftProtection
     self.internalSharingOnly = internalSharingOnly
+    self.messageIntegrations = messageIntegrations
     self.multipleAccounts = multipleAccounts
     self.passwordChanger = passwordChanger
     self.passwordsLimit = passwordsLimit
@@ -125,6 +169,7 @@ public struct PaymentsAccessibleStoreOffersCapabilities: Codable, Equatable, Sen
     try container.encodeIfPresent(identityRestoration, forKey: .identityRestoration)
     try container.encodeIfPresent(identityTheftProtection, forKey: .identityTheftProtection)
     try container.encodeIfPresent(internalSharingOnly, forKey: .internalSharingOnly)
+    try container.encodeIfPresent(messageIntegrations, forKey: .messageIntegrations)
     try container.encodeIfPresent(multipleAccounts, forKey: .multipleAccounts)
     try container.encodeIfPresent(passwordChanger, forKey: .passwordChanger)
     try container.encodeIfPresent(passwordsLimit, forKey: .passwordsLimit)

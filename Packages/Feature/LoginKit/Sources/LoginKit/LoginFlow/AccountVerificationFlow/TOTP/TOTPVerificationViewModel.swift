@@ -44,16 +44,12 @@ public class TOTPVerificationViewModel: ObservableObject, LoginKitServicesInject
   let loginMetricsReporter: LoginMetricsReporterProtocol
   let completion: (Result<(AuthTicket, Bool), Error>) -> Void
   public let hasDuoPush: Bool
-  public let hasAuthenticatorPush: Bool
   let activityReporter: ActivityReporterProtocol
   public let lostOTPSheetViewModel: LostOTPSheetViewModel
   public let context: LocalLoginFlowContext = .passwordApp
 
   @Published
   public var showDuoPush: Bool = false
-
-  @Published
-  public var showAuthenticatorPush: Bool = false
 
   public init(
     accountVerificationService: AccountVerificationService,
@@ -67,7 +63,6 @@ public class TOTPVerificationViewModel: ObservableObject, LoginKitServicesInject
     self.loginMetricsReporter = loginMetricsReporter
     self.activityReporter = activityReporter
     self.hasDuoPush = pushType == .duo
-    self.hasAuthenticatorPush = pushType == .authenticator
     self.lostOTPSheetViewModel = LostOTPSheetViewModel(
       appAPIClient: appAPIClient,
       login: Login(accountVerificationService.login))
@@ -102,11 +97,7 @@ public class TOTPVerificationViewModel: ObservableObject, LoginKitServicesInject
     inProgress = true
     do {
       let authTicket: AuthTicket
-      if type == .duo {
-        authTicket = try await accountVerificationService.validateUsingDUOPush()
-      } else {
-        authTicket = try await accountVerificationService.validateUsingAuthenticatorPush()
-      }
+      authTicket = try await accountVerificationService.validateUsingDUOPush()
       self.errorMessage = nil
       self.completion(.success((authTicket, false)))
     } catch {
@@ -143,26 +134,6 @@ public class TOTPVerificationViewModel: ObservableObject, LoginKitServicesInject
     }
     inProgress = false
   }
-
-  public func makeAuthenticatorPushViewModel() -> AuthenticatorPushVerificationViewModel {
-    AuthenticatorPushVerificationViewModel(
-      login: Login(accountVerificationService.login),
-      accountVerificationService: accountVerificationService
-    ) { [weak self] completionType in
-      guard let self = self else {
-        return
-      }
-      switch completionType {
-      case let .success(authTicket):
-        self.completion(.success((authTicket, false)))
-      case .error(let error):
-        self.completion(.failure(error))
-      case .token:
-        self.showAuthenticatorPush = false
-      }
-      self.inProgress = false
-    }
-  }
 }
 
 extension TOTPVerificationViewModel {
@@ -172,7 +143,7 @@ extension TOTPVerificationViewModel {
       appAPIClient: .fake,
       loginMetricsReporter: LoginMetricsReporter(appLaunchTimeStamp: 1.0),
       activityReporter: .mock,
-      pushType: .authenticator,
+      pushType: .duo,
       completion: { _ in }
     )
   }

@@ -90,6 +90,12 @@ extension Image {
     public enum attachment {
       public static let outlined = Image("attachment/outlined")
     }
+    public enum business {
+      public static let outlined = Image("business/outlined")
+    }
+    public enum calendar {
+      public static let outlined = Image("calendar/outlined")
+    }
     public enum caretDoubleLeft {
       public static let outlined = Image("caret-double-left/outlined")
     }
@@ -107,6 +113,9 @@ extension Image {
     }
     public enum caretUp {
       public static let outlined = Image("caret-up/outlined")
+    }
+    public enum chat {
+      public static let outlined = Image("chat/outlined")
     }
     public enum checkmark {
       public static let outlined = Image("checkmark/outlined")
@@ -140,6 +149,9 @@ extension Image {
       }
       public enum autofill {
         public static let outlined = Image("feature/autofill/outlined")
+      }
+      public enum automations {
+        public static let outlined = Image("feature/automations/outlined")
       }
       public enum darkWebMonitoring {
         public static let outlined = Image("feature/dark-web-monitoring/outlined")
@@ -207,6 +219,9 @@ extension Image {
       public enum italic {
         public static let outlined = Image("formatting/italic/outlined")
       }
+    }
+    public enum geolocation {
+      public static let outlined = Image("geolocation/outlined")
     }
     public enum googleChrome {
       public static let outlined = Image("google-chrome/outlined")
@@ -333,6 +348,12 @@ extension Image {
       public static let filled = Image("passkey/filled")
       public static let outlined = Image("passkey/outlined")
     }
+    public enum phishingAlert {
+      public static let outlined = Image("phishing-alert/outlined")
+    }
+    public enum pinCode {
+      public static let outlined = Image("pin-code/outlined")
+    }
     public enum premium {
       public static let outlined = Image("premium/outlined")
     }
@@ -342,6 +363,9 @@ extension Image {
     }
     public enum recoveryKey {
       public static let outlined = Image("recovery-key/outlined")
+    }
+    public enum riskDetection {
+      public static let outlined = Image("risk-detection/outlined")
     }
     public enum settings {
       public static let filled = Image("settings/filled")
@@ -389,6 +413,9 @@ extension Image {
       public enum all {
         public static let outlined = Image("spaces/all/outlined")
       }
+    }
+    public enum sso {
+      public static let outlined = Image("sso/outlined")
     }
     public enum time {
       public static let outlined = Image("time/outlined")

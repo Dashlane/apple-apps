@@ -9,7 +9,6 @@ public struct Secret: Equatable, Identifiable, DatedPersonalData {
   public var spaceId: String?
   @Searchable
   public var title: String
-  @Searchable
   public var content: String
   public var secured: Bool
   public var creationDatetime: Date?
@@ -72,6 +71,6 @@ extension Secret: Displayable {
     return title
   }
   public var displaySubtitle: String? {
-    return content
+    return nil
   }
 }

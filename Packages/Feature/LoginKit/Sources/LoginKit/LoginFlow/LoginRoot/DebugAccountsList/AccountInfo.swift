@@ -4,11 +4,11 @@ import Foundation
 
 protocol AccountInfo: Codable {
   var email: String { get }
-  var loginType: LoginType { get }
+  var loginType: AccountLoginType { get }
   var subtitle: String? { get }
 }
 
-enum LoginType: Codable {
+enum AccountLoginType: Codable {
   enum OTP: Codable {
     case otp1
     case otp2
@@ -30,7 +30,7 @@ extension SessionsContainerProtocol {
 
 struct LocalAccount: LoginKit.AccountInfo {
   let email: String
-  let loginType: LoginType
+  let loginType: AccountLoginType
 
   var subtitle: String? {
     loginType.subtitle
@@ -38,7 +38,7 @@ struct LocalAccount: LoginKit.AccountInfo {
 }
 
 extension SessionInfo {
-  fileprivate var loginType: LoginType {
+  fileprivate var loginType: AccountLoginType {
     if self.accountType == .sso {
       return .sso
     } else if self.loginOTPOption == .duoPush {

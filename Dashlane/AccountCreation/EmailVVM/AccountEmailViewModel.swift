@@ -79,6 +79,9 @@ class AccountEmailViewModel: ObservableObject, AccountCreationFlowDependenciesIn
       handleAccountCreationMethodAvailibility(method, for: login)
     } catch let error as DashlaneAPI.APIError where error.hasAccountCode(.expiredVersion) {
       self.currentAlert = VersionValidityAlert.errorAlert()
+    } catch let error as AccountExistsError where error == .unlikelyValue {
+      self.activityReporter.logAccountCreation(.errorNotValidEmail)
+      self.bubbleErrorMessage = CoreLocalization.L10n.errorMessage(for: error)
     } catch {
       self.bubbleErrorMessage = CoreLocalization.L10n.errorMessage(for: error)
     }

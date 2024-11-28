@@ -1,11 +1,13 @@
+import CoreFeature
 import CorePersonalData
 import CorePremium
 import CoreSharing
 import CoreUserTracking
+import DashTypes
 import Foundation
 import VaultKit
 
-struct ActionableVaultItemRowViewModel: SessionServicesInjecting {
+class ActionableVaultItemRowViewModel: ObservableObject, SessionServicesInjecting {
 
   public enum Origin {
     case vault
@@ -20,8 +22,9 @@ struct ActionableVaultItemRowViewModel: SessionServicesInjecting {
 
   let origin: Origin
   let isSuggested: Bool
+  @Published var isFrozen: Bool = false
 
-  private let itemPasteboard: ItemPasteboardProtocol
+  private let pasteboardService: PasteboardServiceProtocol
   private let vaultItemDatabase: VaultItemDatabaseProtocol
   private let sharingPermissionProvider: SharedVaultHandling
   private let activityReporter: ActivityReporterProtocol
@@ -33,9 +36,10 @@ struct ActionableVaultItemRowViewModel: SessionServicesInjecting {
     origin: ActionableVaultItemRowViewModel.Origin,
     quickActionsMenuViewModelFactory: QuickActionsMenuViewModel.Factory,
     vaultItemIconViewModelFactory: VaultItemIconViewModel.Factory,
-    accessControl: AccessControlProtocol,
+    accessControl: AccessControlHandler,
     pasteboardService: PasteboardServiceProtocol,
     vaultItemDatabase: VaultItemDatabaseProtocol,
+    vaultStateService: VaultStateServiceProtocol,
     sharingPermissionProvider: SharedVaultHandling,
     activityReporter: ActivityReporterProtocol,
     userSpacesService: UserSpacesService
@@ -43,14 +47,18 @@ struct ActionableVaultItemRowViewModel: SessionServicesInjecting {
     self.item = item
     self.quickActionsMenuViewModelFactory = quickActionsMenuViewModelFactory
     self.vaultItemIconViewModelFactory = vaultItemIconViewModelFactory
-    self.itemPasteboard = ItemPasteboard(
-      accessControl: accessControl, pasteboardService: pasteboardService)
+    self.pasteboardService = pasteboardService
     self.vaultItemDatabase = vaultItemDatabase
     self.sharingPermissionProvider = sharingPermissionProvider
     self.activityReporter = activityReporter
     self.userSpacesService = userSpacesService
     self.origin = origin
     self.isSuggested = isSuggested
+
+    vaultStateService.vaultStatePublisher()
+      .receive(on: DispatchQueue.main)
+      .map { $0 == .frozen }
+      .assign(to: &$isFrozen)
   }
 }
 
@@ -91,11 +99,9 @@ extension ActionableVaultItemRowViewModel {
     vaultItemDatabase.updateLastUseDate(of: [item], origin: origin)
 
     sendCopyUsageLog(fieldType: fieldType)
-    let isSuccess =
-      await itemPasteboard
-      .copy(item, valueToCopy: valueToCopy).values.first { _ in true }
+    pasteboardService.copy(valueToCopy)
 
-    return isSuccess == true ? .success(fieldType: fieldType) : .authenticationDenied
+    return .success(fieldType: fieldType)
   }
 
   private func sendCopyUsageLog(fieldType: Definition.Field) {
@@ -174,9 +180,10 @@ extension ActionableVaultItemRowViewModel {
       origin: .vault,
       quickActionsMenuViewModelFactory: .init { _, _, _ in .mock(item: item) },
       vaultItemIconViewModelFactory: .init { item in .mock(item: item) },
-      accessControl: FakeAccessControl(accept: true),
+      accessControl: .mock(),
       pasteboardService: .mock(),
       vaultItemDatabase: MockVaultKitServicesContainer().vaultItemDatabase,
+      vaultStateService: .mock,
       sharingPermissionProvider: SharedVaultHandlerMock(),
       activityReporter: .mock,
       userSpacesService: .mock()

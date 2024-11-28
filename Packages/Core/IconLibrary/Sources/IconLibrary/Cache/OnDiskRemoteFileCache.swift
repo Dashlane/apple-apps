@@ -3,7 +3,7 @@ import DashTypes
 import Foundation
 import SwiftTreats
 
-struct OnDiskRemoteFileCache {
+actor OnDiskRemoteFileCache {
   private static let etagFilenameSuffix = "Etag"
 
   enum Error: Swift.Error {
@@ -11,7 +11,7 @@ struct OnDiskRemoteFileCache {
   }
 
   let cacheDirectory: URL
-  let cryptoEngine: CryptoEngine
+  private let cryptoEngine: CryptoEngine
 
   private let fileManager = FileManager.default
 

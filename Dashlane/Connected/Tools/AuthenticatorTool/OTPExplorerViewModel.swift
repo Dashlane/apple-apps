@@ -1,5 +1,6 @@
 import AuthenticatorKit
 import Combine
+import CoreFeature
 import CorePersonalData
 import DashTypes
 import Foundation
@@ -13,6 +14,7 @@ class OTPExplorerViewModel: ObservableObject, SessionServicesInjecting {
   }
 
   private let vaultItemsStore: VaultItemsStore
+  private let deeplinkingService: DeepLinkingServiceProtocol
   private let rowModelFactory: ActionableVaultItemRowViewModel.Factory
   private let actionHandler: (Action) -> Void
 
@@ -22,13 +24,19 @@ class OTPExplorerViewModel: ObservableObject, SessionServicesInjecting {
   @Published
   var otpSupportedCredentials: [Credential] = []
 
+  @Published
+  private var vaultState: VaultState = .default
+
   init(
     vaultItemsStore: VaultItemsStore,
+    vaultStateService: VaultStateServiceProtocol,
+    deeplinkingService: DeepLinkingServiceProtocol,
     otpSupportedDomainsRepository: OTPSupportedDomainsRepository,
     rowModelFactory: ActionableVaultItemRowViewModel.Factory,
     actionHandler: @escaping (OTPExplorerViewModel.Action) -> Void
   ) {
     self.vaultItemsStore = vaultItemsStore
+    self.deeplinkingService = deeplinkingService
     self.rowModelFactory = rowModelFactory
     self.actionHandler = actionHandler
 
@@ -50,9 +58,18 @@ class OTPExplorerViewModel: ObservableObject, SessionServicesInjecting {
         return otpSupportedDomainsRepository.isOTPSupported(domain: domain) && $0.otpURL == nil
       }
     }.assign(to: &$otpNotConfiguredCredentials)
+
+    vaultStateService
+      .vaultStatePublisher()
+      .assign(to: &$vaultState)
   }
 
   func startAddCredentialFlow() {
+    guard vaultState != .frozen else {
+      deeplinkingService.handleLink(
+        .premium(.planPurchase(initialView: .paywall(trigger: .frozenAccount))))
+      return
+    }
     actionHandler(.addNewLogin)
   }
 
@@ -73,6 +90,8 @@ extension OTPExplorerViewModel {
   static var mock: OTPExplorerViewModel {
     return OTPExplorerViewModel(
       vaultItemsStore: MockVaultKitServicesContainer().vaultItemsStore,
+      vaultStateService: .mock,
+      deeplinkingService: DeepLinkingService.fakeService,
       otpSupportedDomainsRepository: OTPSupportedDomainsRepository(),
       rowModelFactory: .init { item, _, _ in .mock(item: item) },
       actionHandler: { _ in }

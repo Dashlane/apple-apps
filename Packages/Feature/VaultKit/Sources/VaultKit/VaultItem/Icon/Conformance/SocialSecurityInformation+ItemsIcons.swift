@@ -5,11 +5,11 @@ import SwiftUI
 
 extension SocialSecurityInformation {
   public var listIcon: VaultItemIcon {
-    return .static(.ds.item.socialSecurity.outlined, backgroundColor: backgroundColor)
+    .socialSecurityCard
   }
 
   public var icon: VaultItemIcon {
-    return .static(.ds.item.socialSecurity.outlined, backgroundColor: backgroundColor)
+    .socialSecurityCard
   }
 
   public static var addIcon: SwiftUI.Image {

@@ -58,7 +58,7 @@ public struct NavigationBar<Leading: View, Title: View, TitleAccessory: View, Tr
       .font(.system(size: 17).weight(.semibold))
       .multilineTextAlignment(.center)
       .lineLimit(2)
-      .padding(.vertical, 8)
+      .padding(.vertical, 16)
       .padding(.horizontal, 5)
       .background(accessory.alignmentGuide(.top, to: .bottom), alignment: .top)
       .frame(minHeight: navigationBarMinHeight)
@@ -69,7 +69,6 @@ public struct NavigationBar<Leading: View, Title: View, TitleAccessory: View, Tr
   private var accessory: some View {
     if !isCollapsed {
       titleAccessory
-        .padding(.bottom, 4)
         .transition(AnyTransition.move(edge: .top).combined(with: .opacity))
     }
   }

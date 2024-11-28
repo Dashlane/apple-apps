@@ -5,6 +5,8 @@ extension DeepLinkingService: VaultKit.DeepLinkingServiceProtocol {
     switch action {
     case let .vault(link):
       handleLink(.vault(link))
+    case .frozenAccount:
+      handleLink(.premium(.planPurchase(initialView: .paywall(trigger: .frozenAccount))))
     }
   }
 }

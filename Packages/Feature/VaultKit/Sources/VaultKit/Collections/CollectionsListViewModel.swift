@@ -16,6 +16,9 @@ public final class CollectionsListViewModel: ObservableObject, VaultKitServicesI
   @Published
   var showSharedCollectionErrorMessage: Bool = false
 
+  @Published
+  var vaultState: VaultState = .default
+
   var isSharingDisabledForStarterUser: Bool {
     premiumStatusProvider.status.b2bStatus?.currentTeam?.isAdminOfAStarterTeam == false
       && premiumStatusProvider.status.isConcernedByStarterPlanSharingLimit
@@ -23,6 +26,10 @@ public final class CollectionsListViewModel: ObservableObject, VaultKitServicesI
 
   var isSharingDisabled: Bool {
     userSpacesService.configuration.currentTeam?.teamInfo.sharingDisabled == true
+  }
+
+  var isAdditionRestrictedByFrozenAccount: Bool {
+    return vaultState == .frozen
   }
 
   private let collectionNamingViewModelFactory: CollectionNamingViewModel.Factory
@@ -34,6 +41,8 @@ public final class CollectionsListViewModel: ObservableObject, VaultKitServicesI
   private let vaultCollectionDatabase: VaultCollectionDatabaseProtocol
   private let userSpacesService: UserSpacesService
   private let premiumStatusProvider: PremiumStatusProvider
+  private let deeplinkingService: VaultKit.DeepLinkingServiceProtocol
+  private let vaultStateService: VaultStateServiceProtocol
 
   public init(
     activityReporter: ActivityReporterProtocol,
@@ -42,6 +51,8 @@ public final class CollectionsListViewModel: ObservableObject, VaultKitServicesI
     vaultCollectionDatabase: VaultCollectionDatabaseProtocol,
     userSpacesService: UserSpacesService,
     premiumStatusProvider: PremiumStatusProvider,
+    vaultStateService: VaultStateServiceProtocol,
+    deeplinkingService: VaultKit.DeepLinkingServiceProtocol,
     collectionNamingViewModelFactory: CollectionNamingViewModel.Factory,
     collectionRowViewModelFactory: CollectionRowViewModel.Factory
   ) {
@@ -51,6 +62,8 @@ public final class CollectionsListViewModel: ObservableObject, VaultKitServicesI
     self.vaultCollectionDatabase = vaultCollectionDatabase
     self.userSpacesService = userSpacesService
     self.premiumStatusProvider = premiumStatusProvider
+    self.deeplinkingService = deeplinkingService
+    self.vaultStateService = vaultStateService
     self.collectionNamingViewModelFactory = collectionNamingViewModelFactory
     self.collectionRowViewModelFactory = collectionRowViewModelFactory
 
@@ -63,6 +76,11 @@ public final class CollectionsListViewModel: ObservableObject, VaultKitServicesI
       .filter(by: userSpacesService.$configuration)
       .receive(on: DispatchQueue.main)
       .assign(to: &$collections)
+
+    vaultStateService
+      .vaultStatePublisher()
+      .receive(on: DispatchQueue.main)
+      .assign(to: &$vaultState)
   }
 
   func isSharingDisabledByStarterPack(_ collection: VaultCollection) -> Bool {
@@ -106,6 +124,10 @@ public final class CollectionsListViewModel: ObservableObject, VaultKitServicesI
     return collection.sharingPermission != .limited
       && capabilityService.status(of: .collectionSharing).isAvailable
       && !isSharingDisabledByStarterPack(collection)
+  }
+
+  func redirectToFrozenPaywall() {
+    deeplinkingService.handle(.frozenAccount)
   }
 }
 
@@ -159,6 +181,8 @@ extension CollectionsListViewModel {
     vaultCollectionDatabase: VaultCollectionDatabaseProtocol,
     userSpacesService: UserSpacesService,
     premiumStatusProvider: PremiumStatusProvider,
+    vaultStateService: VaultStateServiceProtocol,
+    deeplinkingService: VaultKit.DeepLinkingServiceProtocol,
     collectionNamingViewModelFactory: CollectionNamingViewModel.Factory,
     collectionRowViewModelFactory: CollectionRowViewModel.Factory
   ) {
@@ -169,6 +193,8 @@ extension CollectionsListViewModel {
       vaultCollectionDatabase: vaultCollectionDatabase,
       userSpacesService: userSpacesService,
       premiumStatusProvider: premiumStatusProvider,
+      vaultStateService: vaultStateService,
+      deeplinkingService: deeplinkingService,
       collectionNamingViewModelFactory: collectionNamingViewModelFactory,
       collectionRowViewModelFactory: collectionRowViewModelFactory
     )
@@ -184,6 +210,8 @@ extension CollectionsListViewModel {
       vaultCollectionDatabase: MockVaultKitServicesContainer().vaultCollectionDatabase,
       userSpacesService: MockVaultKitServicesContainer().userSpacesService,
       premiumStatusProvider: .mock(),
+      vaultStateService: .mock,
+      deeplinkingService: MockVaultKitServicesContainer().deeplinkService,
       collectionNamingViewModelFactory: .init { mode in .mock(mode: mode) },
       collectionRowViewModelFactory: .init { collection in .mock(collection: collection) }
     )

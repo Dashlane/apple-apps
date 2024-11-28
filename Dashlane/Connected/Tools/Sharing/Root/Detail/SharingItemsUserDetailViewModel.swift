@@ -25,7 +25,6 @@ class SharingItemsUserDetailViewModel: ObservableObject, SessionServicesInjectin
   private let sharingService: SharingServiceProtocol
   private let userSpacesService: UserSpacesService
   private let vaultIconViewModelFactory: VaultItemIconViewModel.Factory
-  private let accessControl: AccessControlProtocol
   let gravatarIconViewModelFactory: GravatarIconViewModel.SecondFactory
 
   init(
@@ -36,15 +35,13 @@ class SharingItemsUserDetailViewModel: ObservableObject, SessionServicesInjectin
     gravatarIconViewModelFactory: GravatarIconViewModel.SecondFactory,
     detailViewModelFactory: VaultDetailViewModel.Factory,
     userSpacesService: UserSpacesService,
-    sharingService: SharingServiceProtocol,
-    accessControl: AccessControlProtocol
+    sharingService: SharingServiceProtocol
   ) {
     self.vaultIconViewModelFactory = vaultIconViewModelFactory
     self.detailViewModelFactory = detailViewModelFactory
     self.gravatarIconViewModelFactory = gravatarIconViewModelFactory
     self.userSpacesService = userSpacesService
     self.sharingService = sharingService
-    self.accessControl = accessControl
     self.user = user
 
     userUpdatePublisher.assign(to: &$user)
@@ -118,18 +115,6 @@ class SharingItemsUserDetailViewModel: ObservableObject, SessionServicesInjectin
       userSpacesService: userSpacesService
     )
   }
-
-  func requestShowDetail(for item: VaultItem, _ access: @escaping () -> Void) {
-    if let secureItem = item as? SecureItem, secureItem.secured {
-      accessControl.requestAccess().sinkOnce { success in
-        if success {
-          access()
-        }
-      }
-    } else {
-      access()
-    }
-  }
 }
 
 extension SharingItemsUserDetailViewModel {
@@ -140,8 +125,7 @@ extension SharingItemsUserDetailViewModel {
     vaultIconViewModelFactory: VaultItemIconViewModel.Factory = .init { .mock(item: $0) },
     gravatarIconViewModelFactory: GravatarIconViewModel.SecondFactory = .init { .mock(email: $0) },
     userSpacesService: UserSpacesService = UserSpacesService.mock(),
-    sharingService: SharingServiceProtocol = SharingServiceMock(),
-    accessControl: AccessControlProtocol = FakeAccessControl(accept: true)
+    sharingService: SharingServiceProtocol = SharingServiceMock()
   ) -> SharingItemsUserDetailViewModel {
     SharingItemsUserDetailViewModel(
       user: user,
@@ -151,8 +135,7 @@ extension SharingItemsUserDetailViewModel {
       gravatarIconViewModelFactory: gravatarIconViewModelFactory,
       detailViewModelFactory: .init { .mock() },
       userSpacesService: userSpacesService,
-      sharingService: sharingService,
-      accessControl: accessControl
+      sharingService: sharingService
     )
   }
 }

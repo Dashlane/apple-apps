@@ -25,8 +25,12 @@ class NotificationsListViewModel: ObservableObject, SessionServicesInjecting {
     (DashlaneNotification) -> SharingRequestNotificationRowViewModel
   private let securityAlertNotificationFactory:
     (DashlaneNotification) -> SecurityAlertNotificationRowViewModel
+  private let frozenAccountNotificationFactory:
+    (DashlaneNotification) -> FrozenAccountNotificationRowViewModel
   private let computingQueue = DispatchQueue(label: "notificationCenterList")
   let notificationCategoryDeeplink: AnyPublisher<NotificationCategory, Never>
+  let unresolvedAlertViewModelFactory: UnresolvedAlertViewModel.Factory
+  let deepLinkPublisher: AnyPublisher<DeepLink, Never>
 
   init(
     session: Session,
@@ -41,6 +45,8 @@ class NotificationsListViewModel: ObservableObject, SessionServicesInjecting {
     featureService: FeatureServiceProtocol,
     notificationCenterService: NotificationCenterServiceProtocol,
     identityDashboardService: IdentityDashboardServiceProtocol,
+    deepLinkService: DeepLinkingServiceProtocol,
+    unresolvedAlertViewModelFactory: UnresolvedAlertViewModel.Factory,
     resetMasterPasswordNotificationFactory: @escaping (DashlaneNotification) ->
       ResetMasterPasswordNotificationRowViewModel,
     trialPeriodNotificationFactory: @escaping (DashlaneNotification) ->
@@ -50,7 +56,9 @@ class NotificationsListViewModel: ObservableObject, SessionServicesInjecting {
     sharingItemNotificationFactory: @escaping (DashlaneNotification) ->
       SharingRequestNotificationRowViewModel,
     securityAlertNotificationFactory: @escaping (DashlaneNotification) ->
-      SecurityAlertNotificationRowViewModel
+      SecurityAlertNotificationRowViewModel,
+    frozenAccountNotificationFactory: @escaping (DashlaneNotification) ->
+      FrozenAccountNotificationRowViewModel
   ) {
     self.notificationCategoryDeeplink = deeplinkService.notificationsDeeplinkPublisher()
     self.trialPeriodNotificationFactory = trialPeriodNotificationFactory
@@ -58,7 +66,10 @@ class NotificationsListViewModel: ObservableObject, SessionServicesInjecting {
     self.sharingItemNotificationFactory = sharingItemNotificationFactory
     self.securityAlertNotificationFactory = securityAlertNotificationFactory
     self.secureLockNotificationFactory = secureLockNotificationFactory
+    self.frozenAccountNotificationFactory = frozenAccountNotificationFactory
     self.notificationCenterService = notificationCenterService
+    self.unresolvedAlertViewModelFactory = unresolvedAlertViewModelFactory
+    self.deepLinkPublisher = deepLinkService.deepLinkPublisher
     setupSections()
   }
 
@@ -87,7 +98,8 @@ class NotificationsListViewModel: ObservableObject, SessionServicesInjecting {
       trialPeriodNotificationFactory: trialPeriodNotificationFactory,
       secureLockNotificationFactory: secureLockNotificationFactory,
       sharingItemNotificationFactory: sharingItemNotificationFactory,
-      securityAlertNotificationFactory: securityAlertNotificationFactory
+      securityAlertNotificationFactory: securityAlertNotificationFactory,
+      frozenAccountNotificationFactory: frozenAccountNotificationFactory
     )
   }
 
@@ -100,7 +112,8 @@ class NotificationsListViewModel: ObservableObject, SessionServicesInjecting {
       trialPeriodNotificationFactory: trialPeriodNotificationFactory,
       secureLockNotificationFactory: secureLockNotificationFactory,
       sharingItemNotificationFactory: sharingItemNotificationFactory,
-      securityAlertNotificationFactory: securityAlertNotificationFactory
+      securityAlertNotificationFactory: securityAlertNotificationFactory,
+      frozenAccountNotificationFactory: frozenAccountNotificationFactory
     )
   }
 
@@ -127,11 +140,14 @@ extension NotificationsListViewModel {
       featureService: .mock(),
       notificationCenterService: NotificationCenterService.mock,
       identityDashboardService: IdentityDashboardService.mock,
+      deepLinkService: DeepLinkingService.fakeService,
+      unresolvedAlertViewModelFactory: .init { .mock },
       resetMasterPasswordNotificationFactory: { _ in .mock },
       trialPeriodNotificationFactory: { _ in .mock },
       secureLockNotificationFactory: { _ in .mock },
       sharingItemNotificationFactory: { _ in .mock },
-      securityAlertNotificationFactory: { _ in .mock }
+      securityAlertNotificationFactory: { _ in .mock },
+      frozenAccountNotificationFactory: { _ in .mock }
     )
   }
 }

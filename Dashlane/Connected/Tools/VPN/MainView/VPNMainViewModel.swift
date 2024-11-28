@@ -15,7 +15,6 @@ class VPNMainViewModel: ObservableObject, SessionServicesInjecting {
   }
 
   @Published var mode: VPNMainViewMode = .activationNeeded
-  @Published var shouldReveal: Bool = false
 
   @Published
   var hasDismissedNewProviderMessage = false
@@ -29,8 +28,8 @@ class VPNMainViewModel: ObservableObject, SessionServicesInjecting {
 
   private var subscriptions = Set<AnyCancellable>()
   private var copyActionSubscription: AnyCancellable?
-  private let accessControl: AccessControlProtocol
-  private let itemPasteboard: ItemPasteboard
+  private let accessControl: AccessControlHandler
+  private let pasteboardService: PasteboardServiceProtocol
   private let userSettings: UserSettings
   private let activityReporter: ActivityReporterProtocol
 
@@ -68,7 +67,7 @@ class VPNMainViewModel: ObservableObject, SessionServicesInjecting {
     vaultItemsStore: VaultItemsStore,
     userSettings: UserSettings,
     activityReporter: ActivityReporterProtocol,
-    accessControl: AccessControlProtocol,
+    accessControl: AccessControlHandler,
     iconService: IconServiceProtocol,
     pasteboardService: PasteboardServiceProtocol,
     actionPublisher: PassthroughSubject<VPNAvailableToolsFlowViewModel.Action, Never>? = nil
@@ -81,8 +80,7 @@ class VPNMainViewModel: ObservableObject, SessionServicesInjecting {
     self.userSettings = userSettings
     self.activityReporter = activityReporter
     self.accessControl = accessControl
-    self.itemPasteboard = ItemPasteboard(
-      accessControl: accessControl, pasteboardService: pasteboardService)
+    self.pasteboardService = pasteboardService
     self.vaultItemsStore.$credentials
       .receive(on: DispatchQueue.main)
       .map { $0.filter { $0.url?.host == VPNService.vpnCredentialURL.host } }
@@ -101,14 +99,8 @@ class VPNMainViewModel: ObservableObject, SessionServicesInjecting {
   func copy(_ value: String, fieldType: DetailFieldType) {
     guard let item = credential else { return }
 
-    copyActionSubscription =
-      itemPasteboard
-      .copy(value, for: item, hasSecureAccess: false)
-      .sink { [weak self] success in
-        guard success else { return }
-        self?.sendCopyUsageLog(for: fieldType)
-
-      }
+    pasteboardService.copy(value)
+    sendCopyUsageLog(for: fieldType)
   }
 
   func sendCopyUsageLog(for fieldType: DetailFieldType) {
@@ -149,7 +141,7 @@ class VPNMainViewModel: ObservableObject, SessionServicesInjecting {
       vaultItemsStore: MockVaultKitServicesContainer().vaultItemsStore,
       userSettings: KeyedSettings(internalStore: .mock()),
       activityReporter: .mock,
-      accessControl: FakeAccessControl(accept: true),
+      accessControl: .mock(),
       iconService: IconServiceMock(),
       pasteboardService: .mock())
   }

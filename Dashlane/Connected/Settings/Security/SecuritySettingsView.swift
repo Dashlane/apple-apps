@@ -40,16 +40,16 @@ struct SecuritySettingsView: View {
       Section(footer: Text(authenticationSectionFooter).textStyle(.body.helper.regular)) {
         SettingsAuthenticationSectionContent(viewModels: viewModel.authenticationSectionViewModels)
       }
-      if viewModel.shouldDisplayOTP, viewModel.is2FAEnabled {
-        Section(footer: Text(viewModel.twoFASettingsMessage).textStyle(.body.helper.regular)) {
-          TwoFASettingsView(model: viewModel.makeTwoFASettingsViewModel())
-        }
-      }
+      .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
+
+      TwoFASettingsView(model: viewModel.makeTwoFASettingsViewModel())
+
       if viewModel.shouldDisplayAutoLockOptions {
         Section {
           SettingsLockSectionContent(
             viewModel: viewModel.settingsLockSectionViewModelFactory.make())
         }
+        .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
       }
 
       if spacesConfiguration.currentTeam?.isRichIconsDisabled != true {
@@ -60,6 +60,7 @@ struct SecuritySettingsView: View {
           Text(L10n.Localizable.Settings.Security.richIconsDescription)
             .textStyle(.body.helper.regular)
         }
+        .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
       }
 
       Section(header: Text(L10n.Localizable.kwAccount).textStyle(.title.supporting.small)) {
@@ -67,6 +68,8 @@ struct SecuritySettingsView: View {
           viewModel: viewModel.accountSectionViewModel,
           masterPasswordChallengeItem: $masterPasswordChallengeItem)
       }
+      .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
+
       Section {
         SettingsCryptographySectionContent(derivationKey: viewModel.derivationKey)
       } header: {
@@ -77,6 +80,7 @@ struct SecuritySettingsView: View {
         Text(viewModel.userKind.cryptoKeyDescription)
           .textStyle(.body.helper.regular)
       }
+      .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
     }
     .listAppearance(.insetGrouped)
     .navigationTitle(L10n.Localizable.kwSecurity)

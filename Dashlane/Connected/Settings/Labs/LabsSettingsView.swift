@@ -29,12 +29,15 @@ struct LabsSettingsView: View {
         }
         .buttonStyle(.externalLink)
         .controlSize(.small)
+        .accessibilityAddTraits(.isLink)
+        .accessibilityRemoveTraits(.isButton)
 
       }
       .padding(.vertical, 8)
+      .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
 
       Section {
-        Infobox("Modifications will apply onyl after you restart the app.")
+        Infobox("Modifications will apply only after you restart the app.")
           .style(.warning)
           .listRowInsets(EdgeInsets())
       } header: {
@@ -43,6 +46,7 @@ struct LabsSettingsView: View {
 
       ForEach($model.experiences) { experience in
         experienceView(experience)
+          .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
       }
 
     }

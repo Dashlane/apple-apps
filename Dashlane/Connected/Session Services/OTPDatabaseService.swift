@@ -84,12 +84,15 @@ class OTPDatabaseService: AuthenticatorDatabaseServiceProtocol {
 
   func load() {
     vaultItemsStore.$credentials.map {
-      defer { self.isLoaded = true }
       return Set(
         $0.compactMap {
           OTPInfo(credential: $0, supportDashlane2FA: true)
         })
-    }.assign(to: &$codes)
+    }
+    .handleEvents(receiveOutput: { [weak self] _ in
+      self?.isLoaded = true
+    })
+    .assign(to: &$codes)
   }
 
 }

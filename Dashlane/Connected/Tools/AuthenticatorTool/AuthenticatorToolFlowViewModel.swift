@@ -28,6 +28,7 @@ class AuthenticatorToolFlowViewModel: ObservableObject, SessionServicesInjecting
   @Published
   var presentAdd2FAFlow: Bool = false
 
+  private var otpURL: URL?
   private let iconService: IconServiceProtocol
   private let deepLinkingService: DeepLinkingServiceProtocol
   private let otpDatabaseService: AuthenticatorDatabaseServiceProtocol
@@ -37,7 +38,6 @@ class AuthenticatorToolFlowViewModel: ObservableObject, SessionServicesInjecting
   private let supportedDomainsRepository: OTPSupportedDomainsRepository
   private let addOTPFlowViewModelFactory: AddOTPFlowViewModel.Factory
   private var cancellables = Set<AnyCancellable>()
-
   let credentialDetailViewModelProvider: CredentialDetailViewModel.Factory
 
   init(
@@ -59,7 +59,6 @@ class AuthenticatorToolFlowViewModel: ObservableObject, SessionServicesInjecting
     self.credentialDetailViewModelProvider = credentialDetailViewModelFactory
     self.addOTPFlowViewModelFactory = addOTPFlowViewModelFactory
     self.iconService = iconService
-
     start()
   }
 
@@ -79,6 +78,20 @@ class AuthenticatorToolFlowViewModel: ObservableObject, SessionServicesInjecting
       }
     }.store(in: &cancellables)
 
+    deepLinkingService.deepLinkPublisher.sink { [weak self] deeplink in
+      guard let self = self else {
+        return
+      }
+      switch deeplink {
+      case let .tool(toolDeeplink, origin):
+        guard case let .authenticator(url) = toolDeeplink else {
+          return
+        }
+        self.otpURL = url
+        presentAdd2FAFlow = true
+      default: break
+      }
+    }.store(in: &cancellables)
   }
 
   func makeExplorerViewModel() -> OTPExplorerViewModel {
@@ -112,7 +125,8 @@ class AuthenticatorToolFlowViewModel: ObservableObject, SessionServicesInjecting
 
     let mode: AddOTPFlowViewModel.Mode =
       selectedCredential.map(AddOTPFlowViewModel.Mode.credentialPrefilled) ?? .newCredential
-    return addOTPFlowViewModelFactory.make(mode: mode) { [weak self] in
+    return addOTPFlowViewModelFactory.make(otpURL: otpURL, mode: mode) { [weak self] in
+      self?.otpURL = nil
       self?.steps = [.otpList]
     }
   }
@@ -148,7 +162,7 @@ extension AuthenticatorToolFlowViewModel {
         MockVaultConnectedContainer().makeCredentialDetailViewModel(
           item: PersonalDataMock.Credentials.amazon, mode: .viewing)
       }),
-      addOTPFlowViewModelFactory: .init({ _, _ in .mock })
+      addOTPFlowViewModelFactory: .init({ _, _, _ in .mock })
     )
   }
 }

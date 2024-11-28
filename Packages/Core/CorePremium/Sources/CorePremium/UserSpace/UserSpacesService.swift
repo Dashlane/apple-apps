@@ -60,8 +60,8 @@ public final class UserSpacesService {
     self.update(with: provider.status)
 
     subscription = provider.statusPublisher
-      .sink { status in
-        self.update(with: status)
+      .sink { [weak self] status in
+        self?.update(with: status)
       }
 
     configuration.selectedSpace = configuration.availableSpaces.first ?? .personal

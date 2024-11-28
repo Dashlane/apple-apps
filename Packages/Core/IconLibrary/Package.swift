@@ -8,7 +8,8 @@ let package = Package(
   products: [
     .library(
       name: "IconLibrary",
-      targets: ["IconLibrary"])
+      targets: ["IconLibrary"]
+    )
   ],
   dependencies: [
     .package(path: "../../Foundation/DashTypes"),
@@ -23,17 +24,21 @@ let package = Package(
       name: "IconLibrary",
       dependencies: [
         .product(name: "DashTypes", package: "DashTypes"),
-        .product(name: "DashTypes", package: "DashTypes"),
         .product(name: "DesignSystem", package: "DesignSystem"),
         .product(name: "UIDelight", package: "UIDelight"),
         .product(name: "DashlaneAPI", package: "DashlaneAPI"),
         .product(name: "OrderedCollections", package: "swift-collections"),
-      ]),
+      ],
+      swiftSettings: [
+        .enableExperimentalFeature("StrictConcurrency")
+      ]
+    ),
     .testTarget(
       name: "IconLibraryTests",
       dependencies: ["IconLibrary"],
       resources: [
         .process("Resources/")
-      ]),
+      ]
+    ),
   ]
 )

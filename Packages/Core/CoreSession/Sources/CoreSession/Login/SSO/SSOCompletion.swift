@@ -1,4 +1,3 @@
-import CoreSession
 import Foundation
 
 public enum SSOCompletion {

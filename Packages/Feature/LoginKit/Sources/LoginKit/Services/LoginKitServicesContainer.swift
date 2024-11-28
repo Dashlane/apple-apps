@@ -19,7 +19,7 @@ public struct LoginKitServicesContainer: DependenciesContainer {
   public let rootLogger: Logger
   public let settingsManager: LocalSettingsFactory
   public let appAPIClient: AppAPIClient
-  public let nitroClient: NitroAPIClient
+  public let nitroClient: NitroSSOAPIClient
   public let passwordEvaluator: PasswordEvaluatorProtocol
 
   public init(
@@ -29,10 +29,10 @@ public struct LoginKitServicesContainer: DependenciesContainer {
     settingsManager: LocalSettingsFactory,
     keychainService: AuthenticationKeychainServiceProtocol,
     appAPIClient: AppAPIClient,
-    sessionCryptoEngineProvider: SessionCryptoEngineProvider,
+    sessionCryptoEngineProvider: CryptoEngineProvider,
     sessionContainer: SessionsContainerProtocol,
     rootLogger: Logger,
-    nitroClient: NitroAPIClient,
+    nitroClient: NitroSSOAPIClient,
     passwordEvaluator: PasswordEvaluatorProtocol
   ) {
     self.loginMetricsReporter = loginMetricsReporter

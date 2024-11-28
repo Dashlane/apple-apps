@@ -69,7 +69,7 @@ struct ListItemsView: View {
           ListItemCreditCardLabelDescription(
             icon: .ds.item.payment.outlined,
             number: "5425233430109903",
-            expirationDate: .now
+            expirationDate: Date(timeIntervalSince1970: 0)
           )
         }
       } leadingAccessory: {

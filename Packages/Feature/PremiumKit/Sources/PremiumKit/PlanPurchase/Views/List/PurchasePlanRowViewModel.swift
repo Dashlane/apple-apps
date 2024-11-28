@@ -3,10 +3,37 @@
   import StoreKit
   import CorePremium
   import CoreLocalization
+  import CoreFeature
 
-  struct PurchasePlanRowModel {
+  public class PurchasePlanRowModel: ObservableObject {
     let planTier: PlanTier
     let plan: PurchasePlan
+    let vaultStateService: VaultStateServiceProtocol?
+
+    @Published
+    var hasLock: Bool = false
+    @Published
+    var frozenWarning: String?
+
+    init(planTier: PlanTier, plan: PurchasePlan, vaultStateService: VaultStateServiceProtocol?) {
+      self.planTier = planTier
+      self.plan = plan
+      self.vaultStateService = vaultStateService
+
+      vaultStateService?.vaultStatePublisher()
+        .receive(on: DispatchQueue.main)
+        .sinkOnce { [weak self] state in
+          guard let self = self else { return }
+          if (state == .frozen) && (plan.kind == .free) {
+            hasLock = true
+            frozenWarning = L10n.Core.planScreensFreeFrozenWarning
+          }
+        }
+    }
+
+    var showPrice: Bool {
+      return plan.kind != .free
+    }
 
     var showStrikedthroughPrice: Bool {
       guard !showRenewalPrice else { return false }
@@ -102,7 +129,7 @@
 
   extension PurchasePlanRowModel: Identifiable {
     public var id: PurchasePlan.Kind {
-      return planTier.kind
+      return plan.kind
     }
   }
 

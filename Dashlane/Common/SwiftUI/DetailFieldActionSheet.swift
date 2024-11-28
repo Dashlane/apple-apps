@@ -15,7 +15,6 @@ public struct DetailFieldActionSheet: ViewModifier {
   var text: String
   let actions: [DetailFieldActionSheet.Action]
   let hasAccessory: Bool
-  let requestAccess: (@escaping (Bool) -> Void) -> Void
 
   @State
   var showActionSheet: Bool = false
@@ -46,7 +45,11 @@ public struct DetailFieldActionSheet: ViewModifier {
                 Button(CoreLocalization.L10n.Core.kwCopy, action: copy)
               }
               if self.actions.hasLargeDisplay {
-                Button(L10n.Localizable.editMenuShowLargeCharacters, action: requestLargeDisplay)
+                Button(
+                  L10n.Localizable.editMenuShowLargeCharacters,
+                  action: {
+                    showLargeDisplay = true
+                  })
               }
             }
         #else
@@ -59,7 +62,7 @@ public struct DetailFieldActionSheet: ViewModifier {
             }
             .onLongPressGesture {
               if !self.text.isEmpty && self.actions.hasLargeDisplay {
-                requestLargeDisplay()
+                showLargeDisplay = true
               }
             }.actionSheet(isPresented: self.$showActionSheet) {
               self.detailFieldActionSheet
@@ -83,12 +86,6 @@ public struct DetailFieldActionSheet: ViewModifier {
 
   private func copy() {
     self.actions.copyAction?(self.text, self.fieldType)
-  }
-
-  private func requestLargeDisplay() {
-    self.requestAccess { canAccess in
-      self.showLargeDisplay = canAccess
-    }
   }
 }
 
@@ -121,29 +118,23 @@ extension DetailFieldActionSheet {
   }
 
   private var largeDisplayButton: ActionSheet.Button {
-    .default(Text(L10n.Localizable.editMenuShowLargeCharacters), action: requestLargeDisplay)
+    .default(Text(L10n.Localizable.editMenuShowLargeCharacters)) {
+      showLargeDisplay = true
+    }
   }
 }
 
 extension CopiableDetailField {
   public func actions(
     _ actions: [DetailFieldActionSheet.Action],
-    hasAccessory: Bool = true,
-    accessHandler: ((@escaping (Bool) -> Void) -> Void)? = nil
+    hasAccessory: Bool = true
   ) -> some View {
     self.modifier(
       DetailFieldActionSheet(
         title: title,
         text: copiableValue,
         actions: actions,
-        hasAccessory: hasAccessory,
-        requestAccess: { completion in
-          if accessHandler == nil {
-            completion(true)
-          } else {
-            accessHandler?(completion)
-          }
-        }))
+        hasAccessory: hasAccessory))
   }
 
 }

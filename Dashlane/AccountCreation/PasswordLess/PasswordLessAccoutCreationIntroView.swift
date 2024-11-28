@@ -11,7 +11,7 @@ struct PasswordLessAccountCreationIntroView: View {
   var isLearnMoreDisplayed: Bool = false
 
   var body: some View {
-    ZStack {
+    VStack {
       ScrollView {
         VStack(alignment: .leading) {
           Text(l10n.title)
@@ -28,15 +28,14 @@ struct PasswordLessAccountCreationIntroView: View {
       }
       actions
     }
-
     .loginAppearance()
-    .navigationTitle(l10n.navigationTitle)
+    .navigationTitle(L10n.Localizable.kwTitle)
     .safariSheet(isPresented: $isLearnMoreDisplayed, url: URL(string: "_")!)
+    .navigationBarStyle(.alternate)
   }
 
   var actions: some View {
     VStack(spacing: 8) {
-      Spacer()
       Button(l10n.getStartedButton) {
         completion()
       }

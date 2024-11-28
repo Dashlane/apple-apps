@@ -54,6 +54,15 @@ class AutofillConnectedCoordinator: Coordinator, SubcoordinatorOwner {
       autofillService: sessionServices.autofillService,
       otpNotificationSender: { notificationSender.send(for: $0) },
       context: context)
+
+    sessionServicesContainer
+      .vaultStateService
+      .vaultStatePublisher()
+      .filter { $0 == .frozen }
+      .receive(on: DispatchQueue.main)
+      .sinkOnce { _ in
+        self.appServices.deeplinkingService.handle(.frozenAccount)
+      }
   }
 
   @MainActor

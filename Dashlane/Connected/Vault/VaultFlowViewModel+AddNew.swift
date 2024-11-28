@@ -4,6 +4,11 @@ import VaultKit
 
 extension VaultFlowViewModel {
   func showAddItemMenuView(displayMode: AddItemFlowViewModel.DisplayMode) {
+    guard vaultState != .frozen else {
+      deepLinkingService.handleLink(
+        .premium(.planPurchase(initialView: .paywall(trigger: .frozenAccount))))
+      return
+    }
     guard vaultItemsLimitService.canAddNewItem(for: displayMode) else {
       deepLinkingService.handleLink(
         .premium(.planPurchase(initialView: .paywall(trigger: .capability(key: .passwordsLimit)))))

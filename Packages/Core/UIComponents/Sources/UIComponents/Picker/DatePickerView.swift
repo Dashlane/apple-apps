@@ -94,11 +94,11 @@
             minimumDate: minimumDate)
         }
         .frame(width: 320)
-        .background(Color(UIColor.systemBackground))
         .cornerRadius(8)
         .shadow(radius: 10)
       }
       .frame(maxWidth: .infinity, maxHeight: .infinity)
+      .background(.ds.background.alternate)
     }
   }
 

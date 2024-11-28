@@ -44,7 +44,7 @@ extension DetailContainerView {
 
   var showCollections: Bool {
     model.item.metadata.contentType.canBeEmbeddedInCollection
-      && (model.item.metadata.contentType != .secureNote || areSecureNoteCollectionsEnabled)
+      && (!model.itemCollections.isEmpty || !model.service.isFrozen)
   }
 
   var collectionAdditionView: some View {
@@ -107,7 +107,7 @@ extension DetailContainerView {
 
   @ViewBuilder
   var preferencesSection: some View {
-    if model.item is SecureItem {
+    if model.canShowLock {
       Section(
         header: Text(CoreLocalization.L10n.Core.KWVaultItem.Preferences.Section.title),
         footer: Text(CoreLocalization.L10n.Core.KWVaultItem.Preferences.SecureToggle.message)

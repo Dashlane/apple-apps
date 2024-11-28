@@ -72,6 +72,16 @@
             public static let supershy = UIColor("container/agnostic/neutral/supershy")
           }
         }
+        public enum decorative {
+          public static let black = UIColor("container/decorative/black")
+          public static let blue = UIColor("container/decorative/blue")
+          public static let green = UIColor("container/decorative/green")
+          public static let grey = UIColor("container/decorative/grey")
+          public static let orange = UIColor("container/decorative/orange")
+          public static let purple = UIColor("container/decorative/purple")
+          public static let red = UIColor("container/decorative/red")
+          public static let yellow = UIColor("container/decorative/yellow")
+        }
         public enum expressive {
           public enum brand {
             public enum catchy {
@@ -180,8 +190,8 @@
         }
         public enum oddity {
           public static let disabled = UIColor("text/oddity/disabled")
-          public static let passwordDigits = UIColor("text/oddity/passwordDigits")
-          public static let passwordSymbols = UIColor("text/oddity/passwordSymbols")
+          public static let passwordDigits = UIColor("text/oddity/password-digits")
+          public static let passwordSymbols = UIColor("text/oddity/password-symbols")
         }
         public enum positive {
           public static let quiet = UIColor("text/positive/quiet")

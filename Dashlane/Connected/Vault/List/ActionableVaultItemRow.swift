@@ -8,8 +8,8 @@ struct ActionableVaultItemRow: View {
   @Environment(\.highlightedValue) private var highlightedValue
 
   @State var showLimitedRightsAlert: Bool = false
+  @ObservedObject var model: ActionableVaultItemRowViewModel
 
-  let model: ActionableVaultItemRowViewModel
   let select: (() -> Void)
 
   var body: some View {
@@ -52,7 +52,9 @@ struct ActionableVaultItemRow: View {
 
   @ViewBuilder
   private var copyPasswordAction: some View {
-    if case let .credential(credential) = model.item.enumerated, !credential.password.isEmpty {
+    if case let .credential(credential) = model.item.enumerated, !model.isFrozen,
+      !credential.password.isEmpty
+    {
       FieldAction.CopyContent {
         Task {
           await performCopyPassword(credential.password)

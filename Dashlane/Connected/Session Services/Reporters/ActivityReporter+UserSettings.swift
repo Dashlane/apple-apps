@@ -5,15 +5,14 @@ import CoreUserTracking
 import Foundation
 import LoginKit
 
-extension ActivityReporterProtocol {
+struct ReportUserSettingsService {
+  let userSettings: UserSettings
+  let resetMPService: ResetMasterPasswordService
+  let lock: LockService
+  let autofillService: AutofillService
+  let activityReporter: ActivityReporterProtocol
 
-  func reportUserSettings(
-    _ userSettings: UserSettings,
-    autofillService: AutofillService,
-    resetMPService: ResetMasterPasswordService,
-    lock: LockService
-  ) {
-
+  func report() {
     let lockConfigurator = lock.secureLockConfigurator
     let clipboardExpirationActivated =
       userSettings[.clipboardExpirationDelay] as TimeInterval? != nil
@@ -26,7 +25,6 @@ extension ActivityReporterProtocol {
       hasLockOnExit: lock.locker.screenLocker?.lockOnExitState != .disabled,
       hasMasterPasswordBiometricReset: resetMPService.isActive,
       lockAutoTimeout: lock.locker.screenLocker?.lockDelay.map(Int.init))
-    report(settings)
+    activityReporter.report(settings)
   }
-
 }

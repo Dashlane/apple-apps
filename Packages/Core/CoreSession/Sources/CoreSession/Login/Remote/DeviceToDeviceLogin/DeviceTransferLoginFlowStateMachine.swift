@@ -29,7 +29,7 @@ public struct DeviceTransferLoginFlowStateMachine: StateMachine {
 
     case cancel
 
-    case error
+    case error(StateMachineError)
   }
 
   public enum Event {
@@ -51,7 +51,7 @@ public struct DeviceTransferLoginFlowStateMachine: StateMachine {
 
     case startRecovery(Login)
 
-    case errorOccurred
+    case errorOccurred(StateMachineError)
 
     case cancel
   }
@@ -118,14 +118,14 @@ public struct DeviceTransferLoginFlowStateMachine: StateMachine {
         let info = try await apiClient.accountRecoveryInfo(for: login)
         state = .recovery(info, deviceInfo)
       } catch {
-        state = .error
+        state = .error(StateMachineError(underlyingError: error))
       }
     case (_, let .loadAccount(data)):
       await loadAccount(with: data)
     case (.startThirdPartyOTPFlow, let .otpDidFinish(data)):
       await loadAccount(with: data)
-    case (_, .errorOccurred):
-      self.state = .error
+    case (_, let .errorOccurred(error)):
+      self.state = .error(StateMachineError(underlyingError: error))
     case (.recovery, let .accountRecoveryDidFinish(data)):
       if data.transferData.accountType == .invisibleMasterPassword {
         self.state = .pin(data)
@@ -154,13 +154,14 @@ public struct DeviceTransferLoginFlowStateMachine: StateMachine {
             .initialize(otpOption.pushType), otpOption, receivedData)
           return
         }
-        state = .error
+        state = .error(StateMachineError(underlyingError: StateMachineError.ErrorType.unknown))
         logger.error("No authTicket found, cannot continue")
         return
       }
 
       let data = RegistrationData(
-        transferData: receivedData, authTicket: authTicket, transferMethod: transferMethod)
+        transferData: receivedData, authTicket: authTicket, isBackupCode: false,
+        transferMethod: transferMethod, verificationMethod: receivedData.verificationMethod)
 
       switch receivedData.accountType {
       case .invisibleMasterPassword:
@@ -170,7 +171,7 @@ public struct DeviceTransferLoginFlowStateMachine: StateMachine {
       }
     } catch {
       logger.error("Transfer failed with error", error: error)
-      state = .error
+      state = .error(StateMachineError(underlyingError: error))
     }
   }
 
@@ -180,7 +181,7 @@ public struct DeviceTransferLoginFlowStateMachine: StateMachine {
       self.state = .completed(type)
     } catch {
       logger.error("Device registration failed", error: error)
-      state = .error
+      state = .error(StateMachineError(underlyingError: error))
     }
   }
 
@@ -202,9 +203,10 @@ public struct DeviceTransferLoginFlowStateMachine: StateMachine {
       analyticsIds: AnalyticsIdentifiers(
         device: deviceRegistrationResponse.deviceAnalyticsId,
         user: deviceRegistrationResponse.userAnalyticsId),
+      authTicket: loginData.authTicket.value,
+      verificationMethod: loginData.verificationMethod,
       serverKey: deviceRegistrationResponse.serverKey,
-      remoteKeys: deviceRegistrationResponse.remoteKeys,
-      authTicket: loginData.authTicket.value)
+      remoteKeys: deviceRegistrationResponse.remoteKeys)
 
     let remoteLoginSession: RemoteLoginSession
     switch loginData.transferData.accountType {
@@ -219,7 +221,9 @@ public struct DeviceTransferLoginFlowStateMachine: StateMachine {
         isRecoveryLogin: loginData.isRecoveryLogin,
         newMasterPassword: loginData.newMasterPassword,
         pin: loginData.pin,
-        shouldEnableBiometry: loginData.shouldEnableBiometry)
+        isBackupcode: loginData.isBackupCode,
+        shouldEnableBiometry: loginData.shouldEnableBiometry,
+        verificationMethod: loginData.verificationMethod)
     case .sso:
       guard let ssoKey = loginData.transferData.ssoKey else {
         throw CryptoError.decryptionFailure
@@ -237,7 +241,8 @@ public struct DeviceTransferLoginFlowStateMachine: StateMachine {
         isRecoveryLogin: loginData.isRecoveryLogin,
         newMasterPassword: loginData.newMasterPassword,
         pin: loginData.pin,
-        shouldEnableBiometry: loginData.shouldEnableBiometry)
+        shouldEnableBiometry: loginData.shouldEnableBiometry,
+        verificationMethod: loginData.verificationMethod)
     }
     return remoteLoginSession
   }
@@ -251,7 +256,9 @@ public struct DeviceTransferLoginFlowStateMachine: StateMachine {
     isRecoveryLogin: Bool,
     newMasterPassword: String? = nil,
     pin: String?,
-    shouldEnableBiometry: Bool
+    isBackupcode: Bool = false,
+    shouldEnableBiometry: Bool,
+    verificationMethod: VerificationMethod?
   ) async throws -> RemoteLoginSession {
     let masterKey = masterKey.masterKey(withServerKey: data.serverKey)
 
@@ -278,8 +285,10 @@ public struct DeviceTransferLoginFlowStateMachine: StateMachine {
       isRecoveryLogin: isRecoveryLogin,
       newMasterPassword: newMasterPassword,
       authTicket: authTicket,
+      verificationMethod: verificationMethod,
       pin: pin,
-      shouldEnableBiometry: shouldEnableBiometry)
+      shouldEnableBiometry: shouldEnableBiometry,
+      isBackupCode: isBackupcode)
 
   }
 

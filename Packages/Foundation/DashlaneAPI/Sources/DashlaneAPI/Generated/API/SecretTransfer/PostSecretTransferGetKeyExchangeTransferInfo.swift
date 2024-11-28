@@ -42,28 +42,28 @@ extension UserDeviceAPIClient.SecretTransfer.GetKeyExchangeTransferInfo {
           case hashedPublicKey = "hashedPublicKey"
           case deviceName = "deviceName"
           case devicePlatform = "devicePlatform"
-          case countryCode = "countryCode"
-          case city = "city"
           case requestedAtDateUnix = "requestedAtDateUnix"
+          case city = "city"
+          case countryCode = "countryCode"
         }
 
         public let hashedPublicKey: String
         public let deviceName: String
         public let devicePlatform: String?
-        public let countryCode: String
-        public let city: String
         public let requestedAtDateUnix: Int
+        public let city: String?
+        public let countryCode: String?
 
         public init(
-          hashedPublicKey: String, deviceName: String, devicePlatform: String?, countryCode: String,
-          city: String, requestedAtDateUnix: Int
+          hashedPublicKey: String, deviceName: String, devicePlatform: String?,
+          requestedAtDateUnix: Int, city: String? = nil, countryCode: String? = nil
         ) {
           self.hashedPublicKey = hashedPublicKey
           self.deviceName = deviceName
           self.devicePlatform = devicePlatform
-          self.countryCode = countryCode
-          self.city = city
           self.requestedAtDateUnix = requestedAtDateUnix
+          self.city = city
+          self.countryCode = countryCode
         }
 
         public func encode(to encoder: Encoder) throws {
@@ -71,9 +71,9 @@ extension UserDeviceAPIClient.SecretTransfer.GetKeyExchangeTransferInfo {
           try container.encode(hashedPublicKey, forKey: .hashedPublicKey)
           try container.encode(deviceName, forKey: .deviceName)
           try container.encode(devicePlatform, forKey: .devicePlatform)
-          try container.encode(countryCode, forKey: .countryCode)
-          try container.encode(city, forKey: .city)
           try container.encode(requestedAtDateUnix, forKey: .requestedAtDateUnix)
+          try container.encodeIfPresent(city, forKey: .city)
+          try container.encodeIfPresent(countryCode, forKey: .countryCode)
         }
       }
 

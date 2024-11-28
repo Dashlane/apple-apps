@@ -31,7 +31,11 @@ public struct CollectionAdditionView: View {
   private var showLimitedRightsErrorMessage: Bool = false
 
   @State
-  private var collectionToModify: VaultCollection?
+  private var collectionToModify: VaultCollection? {
+    didSet {
+      showSharedCollectionDialog = collectionToModify != nil
+    }
+  }
 
   @FocusState
   private var textFieldFocus
@@ -74,10 +78,6 @@ public struct CollectionAdditionView: View {
             .textInputAutocapitalization(.words)
             .disableAutocorrection(true)
             .onSubmit(createOrAdd)
-            .onReceive(Just(newCollectionName)) { _ in
-              guard newCollectionName.count > VaultCollection.maxNameLength else { return }
-              newCollectionName = String(newCollectionName.prefix(VaultCollection.maxNameLength))
-            }
 
           if canBeCreatedOrAdded {
             collectionRow(name: formattedCollectionName)
@@ -126,6 +126,13 @@ public struct CollectionAdditionView: View {
           Text(L10n.Core.KWVaultItem.Collections.Sharing.AdditionAlert.message(collection.name))
         }
       )
+      .onChange(of: newCollectionName) { name in
+        guard name.count > VaultCollection.maxNameLength else {
+          return
+        }
+
+        newCollectionName = String(name.prefix(VaultCollection.maxNameLength))
+      }
     }
   }
 
@@ -165,13 +172,12 @@ public struct CollectionAdditionView: View {
 
   private func select(collection: VaultCollection) {
     if collection.isShared {
-      switch item.metadata.sharingPermission {
-      case .admin:
-        collectionToModify = collection
-        showSharedCollectionDialog = true
-      case .limited, .none:
+      guard item.metadata.isShareable else {
         showLimitedRightsErrorMessage = true
+        return
       }
+
+      collectionToModify = collection
     } else {
       completion(.select(collection: collection))
     }

@@ -9,13 +9,10 @@ let package = Package(
   products: [
     .library(
       name: "DesignSystem",
-      targets: ["DesignSystem"]),
-    .executable(
-      name: "DesignSystemGenerator",
-      targets: ["DesignSystemGenerator"]),
+      targets: ["DesignSystem"]
+    )
   ],
   dependencies: [
-    .package(url: "_", from: "1.2.0"),
     .package(path: "../../Foundation/UIDelight"),
     .package(path: "../../Foundation/SwiftTreats"),
     .package(path: "../../Core/CoreLocalization"),
@@ -39,18 +36,6 @@ let package = Package(
         .process("Resources/Assets.xcassets"),
         .process("Resources/Fonts"),
       ]
-    ),
-    .executableTarget(
-      name: "DesignSystemGenerator",
-      dependencies: [
-        .product(name: "ArgumentParser", package: "swift-argument-parser")
-      ],
-      path: "Sources/Generator"
-    ),
-    .testTarget(
-      name: "DesignSystemGeneratorTests",
-      dependencies: ["DesignSystemGenerator"],
-      path: "Tests/GeneratorTests"
     ),
     .testTarget(
       name: "DesignSystemTests",

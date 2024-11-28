@@ -14,8 +14,9 @@ extension ConnectedCoordinator {
       .sink { [weak self] in
         guard let self = self else { return }
         self.didReceiveDeepLink($0)
+        let sessionServices = sessionServices
         DispatchQueue.main.asyncAfter(deadline: .now() + 1) {
-          self.sessionServices.appServices.deepLinkingService.resetLastLink()
+          sessionServices.appServices.deepLinkingService.resetLastLink()
         }
       }.store(in: &subscriptions)
   }

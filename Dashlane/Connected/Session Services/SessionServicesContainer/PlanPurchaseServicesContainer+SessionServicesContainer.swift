@@ -8,6 +8,7 @@ extension SessionServicesContainer {
       userDeviceAPIClient: userDeviceAPIClient,
       logger: appServices.rootLogger[.inAppPurchase],
       screenLocker: lockService.locker.screenLocker,
-      activityReporter: activityReporter)
+      activityReporter: activityReporter,
+      vaultStateService: vaultStateService)
   }
 }

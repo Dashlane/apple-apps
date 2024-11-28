@@ -40,13 +40,12 @@ struct CreditCardDetailView: View {
         SecureDetailField(
           title: CoreLocalization.L10n.Core.KWPaymentMeanCreditCardIOS.cardNumber,
           text: $model.item.cardNumber,
-          shouldReveal: $model.shouldReveal,
-          onRevealAction: model.reveal,
+          onRevealAction: model.sendUsageLog,
           formatter: CreditCardNumberFormatter(),
           obfuscatingFormatter: CreditCardNumberFormatter(obfuscate: true),
           actions: [.copy(model.copy)]
         )
-        .actions([.copy(model.copy), .largeDisplay], accessHandler: model.requestAccess)
+        .actions([.copy(model.copy), .largeDisplay])
         .keyboardType(.numberPad)
         .fiberFieldType(.cardNumber)
 
@@ -54,14 +53,13 @@ struct CreditCardDetailView: View {
           SecureDetailField(
             title: CoreLocalization.L10n.Core.KWPaymentMeanCreditCardIOS.securityCode,
             text: $model.item.securityCode,
-            shouldReveal: $model.shouldReveal,
-            onRevealAction: model.reveal,
+            onRevealAction: model.sendUsageLog,
             hasDisplayEmptyIndicator: false,
             formatter: .uppercase,
             obfuscatingFormatter: .obfuscatedCode,
             actions: [.copy(model.copy)]
           )
-          .actions([.copy(model.copy), .largeDisplay], accessHandler: model.requestAccess)
+          .actions([.copy(model.copy), .largeDisplay])
           .keyboardType(.numberPad)
           .fiberFieldType(.securityCode)
         }
@@ -70,13 +68,12 @@ struct CreditCardDetailView: View {
           SecureDetailField(
             title: CoreLocalization.L10n.Core.KWPaymentMeanCreditCardIOS.ccNote,
             text: $model.item.note,
-            shouldReveal: $model.shouldReveal,
-            onRevealAction: model.reveal,
+            onRevealAction: model.sendUsageLog,
             hasDisplayEmptyIndicator: false,
             obfuscatingFormatter: .obfuscatedCode(max: 4),
             actions: [.copy(model.copy)]
           )
-          .actions([.copy(model.copy), .largeDisplay], accessHandler: model.requestAccess)
+          .actions([.copy(model.copy), .largeDisplay])
           .fiberFieldType(.cCNote)
         }
 

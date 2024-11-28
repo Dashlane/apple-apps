@@ -5,11 +5,11 @@ import SwiftUI
 
 extension Phone {
   public var listIcon: VaultItemIcon {
-    .static(.ds.item.phoneMobile.outlined)
+    .phoneNumber
   }
 
   public var icon: VaultItemIcon {
-    .static(.ds.item.phoneMobile.outlined)
+    .phoneNumber
   }
 
   public static var addIcon: SwiftUI.Image {

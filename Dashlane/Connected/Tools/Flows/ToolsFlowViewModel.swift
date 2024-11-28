@@ -1,4 +1,5 @@
 import Combine
+import CoreFeature
 import CorePersonalData
 import CorePremium
 import CoreSession
@@ -15,7 +16,6 @@ class ToolsFlowViewModel: ObservableObject, SessionServicesInjecting {
     case root
     case item(ToolsItem)
     case placeholder(ToolsItem)
-    case unresolvedAlert(TrayAlertContainer)
   }
 
   enum Sheet: Identifiable, Equatable {
@@ -67,12 +67,16 @@ class ToolsFlowViewModel: ObservableObject, SessionServicesInjecting {
     session.configuration.info.accountType == .invisibleMasterPassword
   }
 
+  @Published
+  var vaultState: VaultState = .default
+
   init(
     toolsItem: ToolsItem?,
     session: Session,
     userSettings: UserSettings,
     vpnService: VPNServiceProtocol,
     capabilityService: CapabilityServiceProtocol,
+    vaultStateService: VaultStateServiceProtocol,
     deepLinkingService: DeepLinkingServiceProtocol,
     darkWebMonitoringService: DarkWebMonitoringServiceProtocol,
     toolsViewModelFactory: ToolsViewModel.Factory,
@@ -116,10 +120,25 @@ class ToolsFlowViewModel: ObservableObject, SessionServicesInjecting {
       guard let self else { return }
       self.didSelect(item: item)
     }.store(in: &cancellables)
+
+    vaultStateService
+      .vaultStatePublisher()
+      .assign(to: &$vaultState)
   }
 
   func didSelect(item: ToolsItem) {
     setupSecondaryView(for: item)
+
+    if vaultState == .frozen {
+      switch item {
+      case .secureWifi, .multiDevices, .darkWebMonitoring:
+        deepLinkingService.handleLink(
+          .premium(.planPurchase(initialView: .paywall(trigger: .frozenAccount))))
+        return
+      default: break
+      }
+    }
+
     switch item {
     case .secureWifi:
       guard !vpnService.isAvailable else {
@@ -148,7 +167,6 @@ class ToolsFlowViewModel: ObservableObject, SessionServicesInjecting {
   }
 
   func setupSecondaryView(for item: ToolsItem) {
-
     if case let .item(lastItem) = steps.last, item == lastItem {
       return
     }
@@ -208,6 +226,7 @@ extension ToolsFlowViewModel {
       userSettings: .mock,
       vpnService: vpnService,
       capabilityService: .mock(),
+      vaultStateService: .mock,
       deepLinkingService: DeepLinkingService.fakeService,
       darkWebMonitoringService: DarkWebMonitoringServiceMock(),
       toolsViewModelFactory: .init({ _ in .mock }),

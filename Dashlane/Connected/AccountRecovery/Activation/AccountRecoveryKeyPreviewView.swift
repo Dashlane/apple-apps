@@ -110,8 +110,16 @@ struct AccountRecoveryKeyPreviewView: View {
   var overlayButton: some View {
     VStack(spacing: 24) {
       Spacer()
-      Button(L10n.Localizable.recoveryKeyActivationPreviewCta, action: completion)
-        .buttonStyle(.designSystem(.titleOnly))
+      Button(
+        action: {
+          completion()
+        },
+        label: {
+          Text(L10n.Localizable.recoveryKeyActivationPreviewCta)
+            .fixedSize(horizontal: false, vertical: true)
+        }
+      )
+      .buttonStyle(.designSystem(.titleOnly))
 
     }
     .padding(.horizontal, 24)

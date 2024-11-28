@@ -1,5 +1,6 @@
 import Combine
 import CoreKeychain
+import CoreSession
 import CoreSettings
 import DashTypes
 import Foundation

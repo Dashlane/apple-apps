@@ -49,7 +49,7 @@ struct PasswordLessAccountCreationFlow: View {
         UserConsentView(model: model.makeUserContentViewModel()) {
           PasswordLessCreationRecapSection()
         }
-        .navigationTitle("Create account")
+        .navigationTitle(L10n.Localizable.kwTitle)
         .navigationBarHidden(false)
 
       case let .complete(sessionServices):

@@ -13,8 +13,6 @@ public struct HomeTopBannerView: View {
     Group {
       if let banner = model.additionnalBanner {
         switch banner {
-        case .authenticatorSunset:
-          AuthenticatorSunsetBanner(model: model.authenticatorSunsetBannerViewModel)
         case .frozen:
           FrozenBanner(model: model.frozenBannerViewModel)
         case .lastpassImport:

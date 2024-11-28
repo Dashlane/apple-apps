@@ -155,7 +155,7 @@ public actor SyncLoop<Database: SyncableDatabase> {
       sharingSummary = summary
     }
 
-    if shouldHandleSharingKeys,
+    if needsKeys,
       let sharingData = output.sharingData,
       let timestamp = await handleSharingKeys(for: sharingData, syncTimestamp: output.timestamp)
     {

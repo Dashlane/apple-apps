@@ -1,5 +1,6 @@
 import CoreKeychain
 import CoreSession
+import DashTypes
 import Foundation
 import SwiftTreats
 
@@ -10,7 +11,7 @@ extension UnlockSessionHandler {
     try await unlock(with: masterKey, isRecoveryLogin: isRecoveryLogin)
   }
 
-  public func validateMasterKey(_ masterKey: CoreKeychain.MasterKey, isRecoveryLogin: Bool)
+  public func validateMasterKey(_ masterKey: DashTypes.MasterKey, isRecoveryLogin: Bool)
     async throws
   {
     switch masterKey {

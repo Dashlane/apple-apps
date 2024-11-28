@@ -5,11 +5,11 @@ import SwiftUI
 
 extension DrivingLicence {
   public var listIcon: VaultItemIcon {
-    .static(.ds.item.driversLicense.outlined, backgroundColor: backgroundColor)
+    .drivingLicense
   }
 
   public var icon: VaultItemIcon {
-    .static(.ds.item.driversLicense.outlined)
+    .drivingLicense
   }
 
   private var backgroundColor: SwiftUI.Color? {

@@ -49,7 +49,6 @@ final class SecuritySettingsViewModel: ObservableObject, SessionServicesInjectin
   private(set) lazy var pinCodeSettingsViewModel = makePinCodeSettingsViewModel()
   private(set) lazy var rememberMasterPasswordToggleViewModel =
     makeRememberMasterPasswordToggleViewModel()
-  private(set) lazy var twoFASettingsViewModel = makeTwoFASettingsViewModel()
 
   private(set) lazy var authenticationSectionViewModels:
     SettingsAuthenticationSectionContent.ViewModels = {
@@ -102,14 +101,6 @@ final class SecuritySettingsViewModel: ObservableObject, SessionServicesInjectin
     syncedSettings.changes(of: \.richIcons)
       .receive(on: DispatchQueue.main)
       .assign(to: &$richIconsEnabled)
-    twoFASettingsViewModel.$isTFAEnabled
-      .receive(on: DispatchQueue.main)
-      .assign(to: &$is2FAEnabled)
-  }
-
-  var shouldDisplayOTP: Bool {
-    session.configuration.info.accountType == .masterPassword && !Device.isMac
-      && featureService.isEnabled(.twoFASettings)
   }
 
   var shouldDisplayAutoLockOptions: Bool {
@@ -118,17 +109,6 @@ final class SecuritySettingsViewModel: ObservableObject, SessionServicesInjectin
 
   var isMasterPasswordAccount: Bool {
     return session.configuration.info.accountType == .masterPassword
-  }
-
-  var twoFASettingsMessage: String {
-    if status.isTwoFAEnforced {
-      if session.configuration.info.loginOTPOption != nil {
-        return L10n.Localizable.twofaSettingsEnforcedMessageOtp2
-      } else {
-        return L10n.Localizable.twofaSettingsEnforcedMessageOtp1
-      }
-    }
-    return L10n.Localizable.twofaSettingsMessage
   }
 
   @Published
@@ -147,28 +127,57 @@ final class SecuritySettingsViewModel: ObservableObject, SessionServicesInjectin
   }
 
   func makeAccountSectionViewModel() -> SettingsAccountSectionViewModel {
-    settingsAccountSectionViewModelFactory.make(actionHandler: handleMasterPasswordResetAction)
+    settingsAccountSectionViewModelFactory.make { [weak self] action in
+      guard let self else {
+        return
+      }
+
+      self.handleMasterPasswordResetAction(action)
+    }
   }
 
   private func makeBiometricToggleViewModel() -> SettingsBiometricToggleViewModel {
-    settingsBiometricToggleViewModelFactory.make(actionHandler: handleBiometricAction)
+    settingsBiometricToggleViewModelFactory.make { [weak self] action in
+      guard let self else {
+        return
+      }
+
+      self.handleBiometricAction(action)
+    }
   }
 
   private func makeMasterPasswordResetActivationViewModel(masterPassword: String)
     -> MasterPasswordResetActivationViewModel
   {
-    masterPasswordResetActivationViewModelFactory.make(
-      masterPassword: masterPassword, actionHandler: handleMasterPasswordResetAction)
+    masterPasswordResetActivationViewModelFactory.make(masterPassword: masterPassword) {
+      [weak self] action in
+      guard let self else {
+        return
+      }
+
+      self.handleMasterPasswordResetAction(action)
+    }
   }
 
   private func makePinCodeSettingsViewModel() -> PinCodeSettingsViewModel {
-    pinCodeSettingsViewModelFactory.make(actionHandler: handlePinCodeAction)
+    pinCodeSettingsViewModelFactory.make { [weak self] action in
+      guard let self = self else {
+        return
+      }
+
+      self.handlePinCodeAction(action)
+    }
   }
 
   private func makeRememberMasterPasswordToggleViewModel() -> RememberMasterPasswordToggleViewModel
   {
-    rememberMasterPasswordToggleViewModelFactory.make(
-      actionHandler: handleRememberMasterPasswordAction)
+    rememberMasterPasswordToggleViewModelFactory.make { [weak self] action in
+      guard let self else {
+        return
+      }
+
+      self.handleRememberMasterPasswordAction(action)
+    }
   }
 
   func makeTwoFASettingsViewModel() -> TwoFASettingsViewModel {

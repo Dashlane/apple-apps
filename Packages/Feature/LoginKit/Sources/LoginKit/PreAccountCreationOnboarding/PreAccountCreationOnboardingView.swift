@@ -22,9 +22,6 @@
       VStack {
         TabView {
           Group {
-            if model.hasAuthenticator {
-              PreAccountCreationOnboardingPage(step: .authenticator)
-            }
             PreAccountCreationOnboardingPage(step: .trust)
             PreAccountCreationOnboardingPage(step: .vault)
             PreAccountCreationOnboardingPage(step: .autofill)
@@ -50,7 +47,9 @@
         if BuildEnvironment.current != .appstore {
           Button(
             action: { alertContent = analyticsAlert },
-            label: { Label(icon: .ds.feedback.info.outlined) }
+            label: {
+              Image.ds.feedback.info.outlined
+            }
           )
           .buttonStyle(.designSystem(.iconLeading))
           .style(mood: .brand, intensity: .supershy)

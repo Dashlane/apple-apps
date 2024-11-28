@@ -1,3 +1,6 @@
+#if canImport(AuthenticationServices)
+  import AuthenticationServices
+#endif
 #if canImport(Combine)
   import Combine
 #endif
@@ -90,7 +93,7 @@ extension LoginKitServicesContainer {
   @MainActor
   public func makeAccountRecoveryKeyLoginViewModel(
     accountType: CoreSession.AccountType,
-    generateMasterKey: @MainActor @escaping (_ recoveryKey: String) async throws -> Void
+    generateMasterKey: @MainActor @escaping (_ recoveryKey: String) async -> Void
   ) -> AccountRecoveryKeyLoginViewModel {
     return AccountRecoveryKeyLoginViewModel(
       accountType: accountType,
@@ -116,21 +119,6 @@ extension LoginKitServicesContainer {
       debugTokenPublisher: debugTokenPublisher,
       tokenVerificationViewModelFactory: InjectedFactory(makeTokenVerificationViewModel),
       totpVerificationViewModelFactory: InjectedFactory(makeTOTPVerificationViewModel),
-      completion: completion
-    )
-  }
-
-}
-
-extension LoginKitServicesContainer {
-  @MainActor
-  public func makeAuthenticatorPushVerificationViewModel(
-    login: Login, accountVerificationService: AccountVerificationService,
-    completion: @escaping (AuthenticatorPushVerificationViewModel.CompletionType) -> Void
-  ) -> AuthenticatorPushVerificationViewModel {
-    return AuthenticatorPushVerificationViewModel(
-      login: login,
-      accountVerificationService: accountVerificationService,
       completion: completion
     )
   }
@@ -168,6 +156,7 @@ extension LoginKitServicesContainer {
     return ConfidentialSSOViewModel(
       login: login,
       nitroClient: nitroClient,
+      logger: rootLogger,
       completion: completion
     )
   }
@@ -188,19 +177,21 @@ extension LoginKitServicesContainer {
 extension LoginKitServicesContainer {
   @MainActor
   public func makeDeviceTransferLoginFlowModel(
-    login: Login?, stateMachine: DeviceTransferLoginFlowStateMachine,
+    login: Login?, deviceInfo: DeviceInfo,
     completion: @MainActor @escaping (Result<DeviceTransferQRCodeFlowModel.Completion, Error>) ->
       Void
   ) -> DeviceTransferLoginFlowModel {
     return DeviceTransferLoginFlowModel(
       login: login,
+      deviceInfo: deviceInfo,
       activityReporter: activityReporter,
-      stateMachine: stateMachine,
       totpFactory: InjectedFactory(makeDeviceTransferOTPLoginViewModel),
       deviceToDeviceLoginFlowViewModelFactory: InjectedFactory(makeDeviceTransferQRCodeFlowModel),
       securityChallengeFlowModelFactory: InjectedFactory(
         makeDeviceTransferSecurityChallengeFlowModel),
       deviceTransferRecoveryFlowModelFactory: InjectedFactory(makeDeviceTransferRecoveryFlowModel),
+      deviceTransferLoginFlowStateMachineFactory: InjectedFactory(
+        makeDeviceTransferLoginFlowStateMachine),
       completion: completion
     )
   }
@@ -431,6 +422,8 @@ extension LoginKitServicesContainer {
       accountType: accountType,
       unlockType: unlockType,
       secureLockMode: secureLockMode,
+      sessionsContainer: sessionContainer,
+      logger: rootLogger,
       unlocker: unlocker,
       context: context,
       userSettings: userSettings,
@@ -530,24 +523,39 @@ extension LoginKitServicesContainer {
 
 extension LoginKitServicesContainer {
   @MainActor
-  public func makeMasterPasswordLocalViewModel(
-    login: Login, biometry: Biometry?, authTicket: AuthTicket?, unlocker: UnlockSessionHandler,
-    context: LoginUnlockContext, resetMasterPasswordService: ResetMasterPasswordServiceProtocol,
-    userSettings: UserSettings,
-    completion: @escaping (MasterPasswordLocalViewModel.CompletionMode?) -> Void
-  ) -> MasterPasswordLocalViewModel {
-    return MasterPasswordLocalViewModel(
+  public func makeMasterPasswordFlowRemoteStateMachine(
+    state: MasterPasswordFlowRemoteStateMachine.State, verificationMethod: VerificationMethod,
+    deviceInfo: DeviceInfo, login: Login
+  ) -> MasterPasswordFlowRemoteStateMachine {
+    return MasterPasswordFlowRemoteStateMachine(
+      state: state,
+      verificationMethod: verificationMethod,
+      deviceInfo: deviceInfo,
       login: login,
-      biometry: biometry,
-      authTicket: authTicket,
-      unlocker: unlocker,
-      context: context,
-      resetMasterPasswordService: resetMasterPasswordService,
+      appAPIClient: appAPIClient,
+      cryptoEngineProvider: sessionCryptoEngineProvider,
+      logger: rootLogger
+    )
+  }
+
+}
+
+extension LoginKitServicesContainer {
+  @MainActor
+  public func makeMasterPasswordInputRemoteViewModel(
+    state: MasterPasswordRemoteStateMachine.State, login: Login, data: DeviceRegistrationData,
+    completion: @escaping (RemoteLoginSession) -> Void
+  ) -> MasterPasswordInputRemoteViewModel {
+    return MasterPasswordInputRemoteViewModel(
+      state: state,
+      login: login,
       loginMetricsReporter: loginMetricsReporter,
       activityReporter: activityReporter,
-      appAPIClient: appAPIClient,
-      userSettings: userSettings,
+      data: data,
+      logger: rootLogger,
       recoveryKeyLoginFlowModelFactory: InjectedFactory(makeAccountRecoveryKeyLoginFlowModel),
+      masterPasswordRemoteStateMachineFactory: InjectedFactory(
+        makeMasterPasswordRemoteStateMachine),
       completion: completion
     )
   }
@@ -556,25 +564,86 @@ extension LoginKitServicesContainer {
 
 extension LoginKitServicesContainer {
   @MainActor
-  public func makeMasterPasswordRemoteViewModel(
-    login: Login, verificationMode: Definition.VerificationMode, isBackupCode: Bool,
-    isExtension: Bool, validator: RegularRemoteLoginHandler, keys: LoginKeys,
-    completion: @escaping () -> Void
-  ) -> MasterPasswordRemoteViewModel {
-    return MasterPasswordRemoteViewModel(
+  public func makeMasterPasswordLocalLoginStateMachine(
+    login: Login, unlocker: UnlockSessionHandler,
+    resetMasterPasswordService: ResetMasterPasswordServiceProtocol,
+    loginType: AccountRecoveryKeyLoginFlowStateMachine.LoginType
+  ) -> MasterPasswordLocalLoginStateMachine {
+    return MasterPasswordLocalLoginStateMachine(
       login: login,
+      unlocker: unlocker,
       appAPIClient: appAPIClient,
-      verificationMode: verificationMode,
-      isBackupCode: isBackupCode,
-      isExtension: isExtension,
+      resetMasterPasswordService: resetMasterPasswordService,
+      loginType: loginType,
+      logger: rootLogger
+    )
+  }
+
+}
+
+extension LoginKitServicesContainer {
+  @MainActor
+  public func makeMasterPasswordLocalViewModel(
+    login: Login, biometry: Biometry?, user: AccountRecoveryKeyLoginFlowStateMachine.User,
+    unlocker: UnlockSessionHandler, context: LoginUnlockContext,
+    resetMasterPasswordService: ResetMasterPasswordServiceProtocol, userSettings: UserSettings,
+    completion: @escaping (MasterPasswordLocalViewModel.CompletionType) -> Void
+  ) -> MasterPasswordLocalViewModel {
+    return MasterPasswordLocalViewModel(
+      login: login,
+      biometry: biometry,
+      user: user,
+      unlocker: unlocker,
+      context: context,
+      resetMasterPasswordService: resetMasterPasswordService,
       loginMetricsReporter: loginMetricsReporter,
       activityReporter: activityReporter,
-      validator: validator,
+      userSettings: userSettings,
       logger: rootLogger,
-      keys: keys,
-      cryptoEngineProvider: sessionCryptoEngineProvider,
       recoveryKeyLoginFlowModelFactory: InjectedFactory(makeAccountRecoveryKeyLoginFlowModel),
+      masterPasswordLocalStateMachineFactory: InjectedFactory(
+        makeMasterPasswordLocalLoginStateMachine),
       completion: completion
+    )
+  }
+
+}
+
+extension LoginKitServicesContainer {
+  @MainActor
+  public func makeMasterPasswordRemoteLoginFlowModel(
+    login: Login, deviceInfo: DeviceInfo, verificationMethod: VerificationMethod,
+    tokenPublisher: AnyPublisher<String, Never>,
+    completion: @MainActor @escaping (Result<RegularRemoteLoginFlowViewModel.CompletionType, Error>)
+      -> Void
+  ) -> MasterPasswordRemoteLoginFlowModel {
+    return MasterPasswordRemoteLoginFlowModel(
+      login: login,
+      deviceInfo: deviceInfo,
+      verificationMethod: verificationMethod,
+      tokenPublisher: tokenPublisher,
+      accountVerificationFlowModelFactory: InjectedFactory(makeAccountVerificationFlowModel),
+      masterPasswordFactory: InjectedFactory(makeMasterPasswordInputRemoteViewModel),
+      masterPasswordRemoteStateMachineFactory: InjectedFactory(
+        makeMasterPasswordFlowRemoteStateMachine),
+      completion: completion
+    )
+  }
+
+}
+
+extension LoginKitServicesContainer {
+  @MainActor
+  public func makeMasterPasswordRemoteStateMachine(
+    state: MasterPasswordRemoteStateMachine.State, login: Login, data: DeviceRegistrationData
+  ) -> MasterPasswordRemoteStateMachine {
+    return MasterPasswordRemoteStateMachine(
+      state: state,
+      login: login,
+      data: data,
+      appAPIClient: appAPIClient,
+      cryptoEngineProvider: sessionCryptoEngineProvider,
+      logger: rootLogger
     )
   }
 
@@ -667,29 +736,26 @@ extension LoginKitServicesContainer {
 extension LoginKitServicesContainer {
   @MainActor
   public func makeRegularRemoteLoginFlowViewModel(
-    remoteLoginHandler: RegularRemoteLoginHandler, email: String,
-    sessionActivityReporterProvider: SessionActivityReporterProvider,
+    login: Login, deviceRegistrationMethod: LoginMethod, deviceInfo: DeviceInfo,
     tokenPublisher: AnyPublisher<String, Never>, steps: [RegularRemoteLoginFlowViewModel.Step] = [],
     completion: @MainActor @escaping (Result<RegularRemoteLoginFlowViewModel.CompletionType, Error>)
       -> Void
   ) -> RegularRemoteLoginFlowViewModel {
     return RegularRemoteLoginFlowViewModel(
-      remoteLoginHandler: remoteLoginHandler,
+      login: login,
+      deviceRegistrationMethod: deviceRegistrationMethod,
+      deviceInfo: deviceInfo,
       settingsManager: settingsManager,
-      sessionCryptoEngineProvider: sessionCryptoEngineProvider,
       activityReporter: activityReporter,
       logger: rootLogger,
-      appAPIClient: appAPIClient,
-      keychainService: keychainService,
-      email: email,
-      sessionActivityReporterProvider: sessionActivityReporterProvider,
       tokenPublisher: tokenPublisher,
       deviceUnlinkingFactory: InjectedFactory(makeDeviceUnlinkingFlowViewModel),
-      masterPasswordFactory: InjectedFactory(makeMasterPasswordRemoteViewModel),
-      nitroClient: nitroClient,
       accountVerificationFlowModelFactory: InjectedFactory(makeAccountVerificationFlowModel),
       steps: steps,
+      regularRemoteLoginStateMachineFactory: InjectedFactory(makeRegularRemoteLoginStateMachine),
       ssoRemoteLoginViewModelFactory: InjectedFactory(makeSSORemoteLoginViewModel),
+      masterPasswordRemoteLoginFlowModelFactory: InjectedFactory(
+        makeMasterPasswordRemoteLoginFlowModel),
       completion: completion
     )
   }
@@ -698,8 +764,28 @@ extension LoginKitServicesContainer {
 
 extension LoginKitServicesContainer {
   @MainActor
+  public func makeRegularRemoteLoginStateMachine(
+    login: Login, deviceRegistrationMethod: LoginMethod, deviceInfo: DeviceInfo,
+    ssoInfo: SSOInfo? = nil
+  ) -> RegularRemoteLoginStateMachine {
+    return RegularRemoteLoginStateMachine(
+      login: login,
+      deviceRegistrationMethod: deviceRegistrationMethod,
+      deviceInfo: deviceInfo,
+      ssoInfo: ssoInfo,
+      appAPIClient: appAPIClient,
+      sessionsContainer: sessionContainer,
+      logger: rootLogger,
+      cryptoEngineProvider: sessionCryptoEngineProvider
+    )
+  }
+
+}
+
+extension LoginKitServicesContainer {
+  @MainActor
   public func makeRemoteLoginFlowViewModel(
-    type: LoginFlowViewModel.RemoteLoginType, remoteLoginHandler: RemoteLoginHandler,
+    type: RemoteLoginType, deviceInfo: DeviceInfo,
     purchasePlanFlowProvider: PurchasePlanFlowProvider,
     sessionActivityReporterProvider: SessionActivityReporterProvider,
     tokenPublisher: AnyPublisher<String, Never>,
@@ -707,9 +793,7 @@ extension LoginKitServicesContainer {
   ) -> RemoteLoginFlowViewModel {
     return RemoteLoginFlowViewModel(
       type: type,
-      remoteLoginHandler: remoteLoginHandler,
-      loginMetricsReporter: loginMetricsReporter,
-      sessionCryptoEngineProvider: sessionCryptoEngineProvider,
+      deviceInfo: deviceInfo,
       purchasePlanFlowProvider: purchasePlanFlowProvider,
       remoteLoginViewModelFactory: InjectedFactory(makeRegularRemoteLoginFlowViewModel),
       sessionActivityReporterProvider: sessionActivityReporterProvider,
@@ -717,7 +801,26 @@ extension LoginKitServicesContainer {
       deviceTransferLoginFlowModelFactory: InjectedFactory(makeDeviceTransferLoginFlowModel),
       tokenPublisher: tokenPublisher,
       deviceUnlinkingFactory: InjectedFactory(makeDeviceUnlinkingFlowViewModel),
+      remoteLoginStateMachineFactory: InjectedFactory(makeRemoteLoginStateMachine),
       completion: completion
+    )
+  }
+
+}
+
+extension LoginKitServicesContainer {
+  @MainActor
+  public func makeRemoteLoginStateMachine(
+    type: RemoteLoginType, deviceInfo: DeviceInfo, ssoInfo: SSOInfo? = nil
+  ) -> RemoteLoginStateMachine {
+    return RemoteLoginStateMachine(
+      type: type,
+      deviceInfo: deviceInfo,
+      ssoInfo: ssoInfo,
+      apiclient: appAPIClient,
+      sessionsContainer: sessionContainer,
+      logger: rootLogger,
+      cryptoEngineProvider: sessionCryptoEngineProvider
     )
   }
 
@@ -816,6 +919,7 @@ extension LoginKitServicesContainer {
   ) -> SSOViewModel {
     return SSOViewModel(
       ssoAuthenticationInfo: ssoAuthenticationInfo,
+      selfHostedSSOViewModelFactory: InjectedFactory(makeSelfHostedSSOViewModel),
       confidentialSSOViewModelFactory: InjectedFactory(makeConfidentialSSOViewModel),
       completion: completion
     )
@@ -847,6 +951,21 @@ extension LoginKitServicesContainer {
       apiClient: appAPIClient,
       cryptoProvider: cryptoProvider,
       logger: rootLogger
+    )
+  }
+
+}
+
+extension LoginKitServicesContainer {
+  @MainActor
+  public func makeSelfHostedSSOViewModel(
+    login: Login, authorisationURL: URL, completion: @escaping Completion<SSOCompletion>
+  ) -> SelfHostedSSOViewModel {
+    return SelfHostedSSOViewModel(
+      login: login,
+      authorisationURL: authorisationURL,
+      logger: rootLogger,
+      completion: completion
     )
   }
 
@@ -933,14 +1052,14 @@ extension AccountRecoveryKeyLoginFlowModel {
 
 public typealias _AccountRecoveryKeyLoginViewModelFactory = @MainActor (
   _ accountType: CoreSession.AccountType,
-  _ generateMasterKey: @MainActor @escaping (_ recoveryKey: String) async throws -> Void
+  _ generateMasterKey: @MainActor @escaping (_ recoveryKey: String) async -> Void
 ) -> AccountRecoveryKeyLoginViewModel
 
 extension InjectedFactory where T == _AccountRecoveryKeyLoginViewModelFactory {
   @MainActor
   public func make(
     accountType: CoreSession.AccountType,
-    generateMasterKey: @MainActor @escaping (_ recoveryKey: String) async throws -> Void
+    generateMasterKey: @MainActor @escaping (_ recoveryKey: String) async -> Void
   ) -> AccountRecoveryKeyLoginViewModel {
     return factory(
       accountType,
@@ -982,30 +1101,6 @@ extension InjectedFactory where T == _AccountVerificationFlowModelFactory {
 
 extension AccountVerificationFlowModel {
   public typealias Factory = InjectedFactory<_AccountVerificationFlowModelFactory>
-}
-
-public typealias _AuthenticatorPushVerificationViewModelFactory = @MainActor (
-  _ login: Login,
-  _ accountVerificationService: AccountVerificationService,
-  _ completion: @escaping (AuthenticatorPushVerificationViewModel.CompletionType) -> Void
-) -> AuthenticatorPushVerificationViewModel
-
-extension InjectedFactory where T == _AuthenticatorPushVerificationViewModelFactory {
-  @MainActor
-  public func make(
-    login: Login, accountVerificationService: AccountVerificationService,
-    completion: @escaping (AuthenticatorPushVerificationViewModel.CompletionType) -> Void
-  ) -> AuthenticatorPushVerificationViewModel {
-    return factory(
-      login,
-      accountVerificationService,
-      completion
-    )
-  }
-}
-
-extension AuthenticatorPushVerificationViewModel {
-  public typealias Factory = InjectedFactory<_AuthenticatorPushVerificationViewModelFactory>
 }
 
 public typealias _BiometryViewModelFactory = @MainActor (
@@ -1078,7 +1173,7 @@ extension DebugAccountListViewModel {
 
 public typealias _DeviceTransferLoginFlowModelFactory = @MainActor (
   _ login: Login?,
-  _ stateMachine: DeviceTransferLoginFlowStateMachine,
+  _ deviceInfo: DeviceInfo,
   _ completion: @MainActor @escaping (Result<DeviceTransferQRCodeFlowModel.Completion, Error>) ->
     Void
 ) -> DeviceTransferLoginFlowModel
@@ -1086,13 +1181,13 @@ public typealias _DeviceTransferLoginFlowModelFactory = @MainActor (
 extension InjectedFactory where T == _DeviceTransferLoginFlowModelFactory {
   @MainActor
   public func make(
-    login: Login?, stateMachine: DeviceTransferLoginFlowStateMachine,
+    login: Login?, deviceInfo: DeviceInfo,
     completion: @MainActor @escaping (Result<DeviceTransferQRCodeFlowModel.Completion, Error>) ->
       Void
   ) -> DeviceTransferLoginFlowModel {
     return factory(
       login,
-      stateMachine,
+      deviceInfo,
       completion
     )
   }
@@ -1526,29 +1621,108 @@ extension LoginViewModel {
   public typealias Factory = InjectedFactory<_LoginViewModelFactory>
 }
 
+public typealias _MasterPasswordFlowRemoteStateMachineFactory = @MainActor (
+  _ state: MasterPasswordFlowRemoteStateMachine.State,
+  _ verificationMethod: VerificationMethod,
+  _ deviceInfo: DeviceInfo,
+  _ login: Login
+) -> MasterPasswordFlowRemoteStateMachine
+
+extension InjectedFactory where T == _MasterPasswordFlowRemoteStateMachineFactory {
+  @MainActor
+  public func make(
+    state: MasterPasswordFlowRemoteStateMachine.State, verificationMethod: VerificationMethod,
+    deviceInfo: DeviceInfo, login: Login
+  ) -> MasterPasswordFlowRemoteStateMachine {
+    return factory(
+      state,
+      verificationMethod,
+      deviceInfo,
+      login
+    )
+  }
+}
+
+extension MasterPasswordFlowRemoteStateMachine {
+  public typealias Factory = InjectedFactory<_MasterPasswordFlowRemoteStateMachineFactory>
+}
+
+public typealias _MasterPasswordInputRemoteViewModelFactory = @MainActor (
+  _ state: MasterPasswordRemoteStateMachine.State,
+  _ login: Login,
+  _ data: DeviceRegistrationData,
+  _ completion: @escaping (RemoteLoginSession) -> Void
+) -> MasterPasswordInputRemoteViewModel
+
+extension InjectedFactory where T == _MasterPasswordInputRemoteViewModelFactory {
+  @MainActor
+  public func make(
+    state: MasterPasswordRemoteStateMachine.State, login: Login, data: DeviceRegistrationData,
+    completion: @escaping (RemoteLoginSession) -> Void
+  ) -> MasterPasswordInputRemoteViewModel {
+    return factory(
+      state,
+      login,
+      data,
+      completion
+    )
+  }
+}
+
+extension MasterPasswordInputRemoteViewModel {
+  public typealias Factory = InjectedFactory<_MasterPasswordInputRemoteViewModelFactory>
+}
+
+public typealias _MasterPasswordLocalLoginStateMachineFactory = @MainActor (
+  _ login: Login,
+  _ unlocker: UnlockSessionHandler,
+  _ resetMasterPasswordService: ResetMasterPasswordServiceProtocol,
+  _ loginType: AccountRecoveryKeyLoginFlowStateMachine.LoginType
+) -> MasterPasswordLocalLoginStateMachine
+
+extension InjectedFactory where T == _MasterPasswordLocalLoginStateMachineFactory {
+  @MainActor
+  public func make(
+    login: Login, unlocker: UnlockSessionHandler,
+    resetMasterPasswordService: ResetMasterPasswordServiceProtocol,
+    loginType: AccountRecoveryKeyLoginFlowStateMachine.LoginType
+  ) -> MasterPasswordLocalLoginStateMachine {
+    return factory(
+      login,
+      unlocker,
+      resetMasterPasswordService,
+      loginType
+    )
+  }
+}
+
+extension MasterPasswordLocalLoginStateMachine {
+  public typealias Factory = InjectedFactory<_MasterPasswordLocalLoginStateMachineFactory>
+}
+
 public typealias _MasterPasswordLocalViewModelFactory = @MainActor (
   _ login: Login,
   _ biometry: Biometry?,
-  _ authTicket: AuthTicket?,
+  _ user: AccountRecoveryKeyLoginFlowStateMachine.User,
   _ unlocker: UnlockSessionHandler,
   _ context: LoginUnlockContext,
   _ resetMasterPasswordService: ResetMasterPasswordServiceProtocol,
   _ userSettings: UserSettings,
-  _ completion: @escaping (MasterPasswordLocalViewModel.CompletionMode?) -> Void
+  _ completion: @escaping (MasterPasswordLocalViewModel.CompletionType) -> Void
 ) -> MasterPasswordLocalViewModel
 
 extension InjectedFactory where T == _MasterPasswordLocalViewModelFactory {
   @MainActor
   public func make(
-    login: Login, biometry: Biometry?, authTicket: AuthTicket?, unlocker: UnlockSessionHandler,
-    context: LoginUnlockContext, resetMasterPasswordService: ResetMasterPasswordServiceProtocol,
-    userSettings: UserSettings,
-    completion: @escaping (MasterPasswordLocalViewModel.CompletionMode?) -> Void
+    login: Login, biometry: Biometry?, user: AccountRecoveryKeyLoginFlowStateMachine.User,
+    unlocker: UnlockSessionHandler, context: LoginUnlockContext,
+    resetMasterPasswordService: ResetMasterPasswordServiceProtocol, userSettings: UserSettings,
+    completion: @escaping (MasterPasswordLocalViewModel.CompletionType) -> Void
   ) -> MasterPasswordLocalViewModel {
     return factory(
       login,
       biometry,
-      authTicket,
+      user,
       unlocker,
       context,
       resetMasterPasswordService,
@@ -1562,37 +1736,58 @@ extension MasterPasswordLocalViewModel {
   public typealias Factory = InjectedFactory<_MasterPasswordLocalViewModelFactory>
 }
 
-public typealias _MasterPasswordRemoteViewModelFactory = @MainActor (
+public typealias _MasterPasswordRemoteLoginFlowModelFactory = @MainActor (
   _ login: Login,
-  _ verificationMode: Definition.VerificationMode,
-  _ isBackupCode: Bool,
-  _ isExtension: Bool,
-  _ validator: RegularRemoteLoginHandler,
-  _ keys: LoginKeys,
-  _ completion: @escaping () -> Void
-) -> MasterPasswordRemoteViewModel
+  _ deviceInfo: DeviceInfo,
+  _ verificationMethod: VerificationMethod,
+  _ tokenPublisher: AnyPublisher<String, Never>,
+  _ completion: @MainActor @escaping (Result<RegularRemoteLoginFlowViewModel.CompletionType, Error>)
+    -> Void
+) -> MasterPasswordRemoteLoginFlowModel
 
-extension InjectedFactory where T == _MasterPasswordRemoteViewModelFactory {
+extension InjectedFactory where T == _MasterPasswordRemoteLoginFlowModelFactory {
   @MainActor
   public func make(
-    login: Login, verificationMode: Definition.VerificationMode, isBackupCode: Bool,
-    isExtension: Bool, validator: RegularRemoteLoginHandler, keys: LoginKeys,
-    completion: @escaping () -> Void
-  ) -> MasterPasswordRemoteViewModel {
+    login: Login, deviceInfo: DeviceInfo, verificationMethod: VerificationMethod,
+    tokenPublisher: AnyPublisher<String, Never>,
+    completion: @MainActor @escaping (Result<RegularRemoteLoginFlowViewModel.CompletionType, Error>)
+      -> Void
+  ) -> MasterPasswordRemoteLoginFlowModel {
     return factory(
       login,
-      verificationMode,
-      isBackupCode,
-      isExtension,
-      validator,
-      keys,
+      deviceInfo,
+      verificationMethod,
+      tokenPublisher,
       completion
     )
   }
 }
 
-extension MasterPasswordRemoteViewModel {
-  public typealias Factory = InjectedFactory<_MasterPasswordRemoteViewModelFactory>
+extension MasterPasswordRemoteLoginFlowModel {
+  public typealias Factory = InjectedFactory<_MasterPasswordRemoteLoginFlowModelFactory>
+}
+
+public typealias _MasterPasswordRemoteStateMachineFactory = @MainActor (
+  _ state: MasterPasswordRemoteStateMachine.State,
+  _ login: Login,
+  _ data: DeviceRegistrationData
+) -> MasterPasswordRemoteStateMachine
+
+extension InjectedFactory where T == _MasterPasswordRemoteStateMachineFactory {
+  @MainActor
+  public func make(
+    state: MasterPasswordRemoteStateMachine.State, login: Login, data: DeviceRegistrationData
+  ) -> MasterPasswordRemoteStateMachine {
+    return factory(
+      state,
+      login,
+      data
+    )
+  }
+}
+
+extension MasterPasswordRemoteStateMachine {
+  public typealias Factory = InjectedFactory<_MasterPasswordRemoteStateMachineFactory>
 }
 
 public typealias _NewMasterPasswordViewModelFactory = (
@@ -1713,9 +1908,9 @@ extension QRCodeScanStateMachine {
 }
 
 public typealias _RegularRemoteLoginFlowViewModelFactory = @MainActor (
-  _ remoteLoginHandler: RegularRemoteLoginHandler,
-  _ email: String,
-  _ sessionActivityReporterProvider: SessionActivityReporterProvider,
+  _ login: Login,
+  _ deviceRegistrationMethod: LoginMethod,
+  _ deviceInfo: DeviceInfo,
   _ tokenPublisher: AnyPublisher<String, Never>,
   _ steps: [RegularRemoteLoginFlowViewModel.Step],
   _ completion: @MainActor @escaping (Result<RegularRemoteLoginFlowViewModel.CompletionType, Error>)
@@ -1725,16 +1920,15 @@ public typealias _RegularRemoteLoginFlowViewModelFactory = @MainActor (
 extension InjectedFactory where T == _RegularRemoteLoginFlowViewModelFactory {
   @MainActor
   public func make(
-    remoteLoginHandler: RegularRemoteLoginHandler, email: String,
-    sessionActivityReporterProvider: SessionActivityReporterProvider,
+    login: Login, deviceRegistrationMethod: LoginMethod, deviceInfo: DeviceInfo,
     tokenPublisher: AnyPublisher<String, Never>, steps: [RegularRemoteLoginFlowViewModel.Step] = [],
     completion: @MainActor @escaping (Result<RegularRemoteLoginFlowViewModel.CompletionType, Error>)
       -> Void
   ) -> RegularRemoteLoginFlowViewModel {
     return factory(
-      remoteLoginHandler,
-      email,
-      sessionActivityReporterProvider,
+      login,
+      deviceRegistrationMethod,
+      deviceInfo,
       tokenPublisher,
       steps,
       completion
@@ -1746,9 +1940,35 @@ extension RegularRemoteLoginFlowViewModel {
   public typealias Factory = InjectedFactory<_RegularRemoteLoginFlowViewModelFactory>
 }
 
+public typealias _RegularRemoteLoginStateMachineFactory = @MainActor (
+  _ login: Login,
+  _ deviceRegistrationMethod: LoginMethod,
+  _ deviceInfo: DeviceInfo,
+  _ ssoInfo: SSOInfo?
+) -> RegularRemoteLoginStateMachine
+
+extension InjectedFactory where T == _RegularRemoteLoginStateMachineFactory {
+  @MainActor
+  public func make(
+    login: Login, deviceRegistrationMethod: LoginMethod, deviceInfo: DeviceInfo,
+    ssoInfo: SSOInfo? = nil
+  ) -> RegularRemoteLoginStateMachine {
+    return factory(
+      login,
+      deviceRegistrationMethod,
+      deviceInfo,
+      ssoInfo
+    )
+  }
+}
+
+extension RegularRemoteLoginStateMachine {
+  public typealias Factory = InjectedFactory<_RegularRemoteLoginStateMachineFactory>
+}
+
 public typealias _RemoteLoginFlowViewModelFactory = @MainActor (
-  _ type: LoginFlowViewModel.RemoteLoginType,
-  _ remoteLoginHandler: RemoteLoginHandler,
+  _ type: RemoteLoginType,
+  _ deviceInfo: DeviceInfo,
   _ purchasePlanFlowProvider: PurchasePlanFlowProvider,
   _ sessionActivityReporterProvider: SessionActivityReporterProvider,
   _ tokenPublisher: AnyPublisher<String, Never>,
@@ -1758,7 +1978,7 @@ public typealias _RemoteLoginFlowViewModelFactory = @MainActor (
 extension InjectedFactory where T == _RemoteLoginFlowViewModelFactory {
   @MainActor
   public func make(
-    type: LoginFlowViewModel.RemoteLoginType, remoteLoginHandler: RemoteLoginHandler,
+    type: RemoteLoginType, deviceInfo: DeviceInfo,
     purchasePlanFlowProvider: PurchasePlanFlowProvider,
     sessionActivityReporterProvider: SessionActivityReporterProvider,
     tokenPublisher: AnyPublisher<String, Never>,
@@ -1766,7 +1986,7 @@ extension InjectedFactory where T == _RemoteLoginFlowViewModelFactory {
   ) -> RemoteLoginFlowViewModel {
     return factory(
       type,
-      remoteLoginHandler,
+      deviceInfo,
       purchasePlanFlowProvider,
       sessionActivityReporterProvider,
       tokenPublisher,
@@ -1777,6 +1997,29 @@ extension InjectedFactory where T == _RemoteLoginFlowViewModelFactory {
 
 extension RemoteLoginFlowViewModel {
   public typealias Factory = InjectedFactory<_RemoteLoginFlowViewModelFactory>
+}
+
+public typealias _RemoteLoginStateMachineFactory = @MainActor (
+  _ type: RemoteLoginType,
+  _ deviceInfo: DeviceInfo,
+  _ ssoInfo: SSOInfo?
+) -> RemoteLoginStateMachine
+
+extension InjectedFactory where T == _RemoteLoginStateMachineFactory {
+  @MainActor
+  public func make(type: RemoteLoginType, deviceInfo: DeviceInfo, ssoInfo: SSOInfo? = nil)
+    -> RemoteLoginStateMachine
+  {
+    return factory(
+      type,
+      deviceInfo,
+      ssoInfo
+    )
+  }
+}
+
+extension RemoteLoginStateMachine {
+  public typealias Factory = InjectedFactory<_RemoteLoginStateMachineFactory>
 }
 
 public typealias _SSOLocalLoginViewModelFactory = @MainActor (
@@ -1952,6 +2195,29 @@ extension InjectedFactory where T == _SecurityChallengeTransferStateMachineFacto
 
 extension SecurityChallengeTransferStateMachine {
   public typealias Factory = InjectedFactory<_SecurityChallengeTransferStateMachineFactory>
+}
+
+public typealias _SelfHostedSSOViewModelFactory = @MainActor (
+  _ login: Login,
+  _ authorisationURL: URL,
+  _ completion: @escaping Completion<SSOCompletion>
+) -> SelfHostedSSOViewModel
+
+extension InjectedFactory where T == _SelfHostedSSOViewModelFactory {
+  @MainActor
+  public func make(
+    login: Login, authorisationURL: URL, completion: @escaping Completion<SSOCompletion>
+  ) -> SelfHostedSSOViewModel {
+    return factory(
+      login,
+      authorisationURL,
+      completion
+    )
+  }
+}
+
+extension SelfHostedSSOViewModel {
+  public typealias Factory = InjectedFactory<_SelfHostedSSOViewModelFactory>
 }
 
 public typealias _TOTPVerificationViewModelFactory = @MainActor (

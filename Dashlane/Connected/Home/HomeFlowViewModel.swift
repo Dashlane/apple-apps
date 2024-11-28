@@ -6,6 +6,7 @@ import CoreSettings
 import Foundation
 import ImportKit
 import NotificationKit
+import PremiumKit
 import SwiftUI
 import UIComponents
 import VaultKit
@@ -52,6 +53,7 @@ final class HomeFlowViewModel: ObservableObject, SessionServicesInjecting,
   private let onboardingService: OnboardingService
   private let featureService: FeatureService
   private let lockService: LockService
+  private let deeplinkService: DeepLinkingServiceProtocol
   private let lastpassImportFlowViewModelFactory: LastpassImportFlowViewModel.Factory
   private let vaultFlowViewModelFactory: VaultFlowViewModel.Factory
   private let onboardingChecklistFlowViewModel: OnboardingChecklistFlowViewModel.Factory
@@ -76,6 +78,7 @@ final class HomeFlowViewModel: ObservableObject, SessionServicesInjecting,
     self.onboardingService = onboardingService
     self.featureService = featureService
     self.lockService = lockService
+    self.deeplinkService = deeplinkService
     self.lastpassImportFlowViewModelFactory = lastpassImportFlowViewModelFactory
     self.vaultFlowViewModelFactory = vaultFlowViewModelFactory
     self.onboardingChecklistFlowViewModel = onboardingChecklistFlowViewModel
@@ -103,11 +106,6 @@ final class HomeFlowViewModel: ObservableObject, SessionServicesInjecting,
       break
     }
 
-    lockService.locker.unlockedPublisher
-      .sinkOnce { [weak self] _ in
-        self?.homeModalAnnouncementsViewModel.trigger.send(.sessionUnlocked)
-      }
-
     onboardingService.$remainingActions
       .receive(on: DispatchQueue.main)
       .map { [onboardingService] actions in
@@ -118,6 +116,21 @@ final class HomeFlowViewModel: ObservableObject, SessionServicesInjecting,
         }
       }
       .assign(to: &$remainingActionsCount)
+
+    sessionServices.vaultStateService.vaultStatePublisher()
+      .receive(on: DispatchQueue.main)
+      .filter { $0 == .frozen }
+      .sinkOnce { [deeplinkService] _ in
+        deeplinkService.handleLink(
+          .premium(.planPurchase(initialView: .paywall(trigger: .frozenAccount))))
+      }
+  }
+
+  func displayAnnouncementIffNeeded() {
+    lockService.locker.unlockedPublisher
+      .sinkOnce { [weak self] _ in
+        self?.homeModalAnnouncementsViewModel.trigger.send(.sessionUnlocked)
+      }
   }
 
   private func setupSettingsSubscription() {
@@ -142,9 +155,9 @@ final class HomeFlowViewModel: ObservableObject, SessionServicesInjecting,
 
 extension HomeFlowViewModel {
   fileprivate func makeVaultFlowViewModel() -> VaultFlowViewModel {
-    vaultFlowViewModelFactory.make(onboardingChecklistViewAction: {
-      self.handleOnboardingChecklistViewAction($0)
-    })
+    vaultFlowViewModelFactory.make { [weak self] in
+      self?.handleOnboardingChecklistViewAction($0)
+    }
   }
 
   fileprivate func makeOnboardingCheckListFlowViewModel() -> OnboardingChecklistFlowViewModel {

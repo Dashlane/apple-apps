@@ -59,7 +59,11 @@ public struct CollectionsListView: View {
         ToolbarItem(placement: .navigationBarTrailing) {
           Button(
             action: {
-              showAddition = true
+              if viewModel.isAdditionRestrictedByFrozenAccount {
+                viewModel.redirectToFrozenPaywall()
+              } else {
+                showAddition = true
+              }
             },
             label: {
               Image.ds.action.add.outlined
@@ -104,6 +108,7 @@ public struct CollectionsListView: View {
           sharingAccessSwipeAction(for: collection)
           sharingSwipeAction(for: collection)
         }
+        .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
     }
     .confirmationDialog(
       L10n.Core.KWVaultItem.Collections.DeleteAlert.title,
@@ -146,7 +151,6 @@ public struct CollectionsListView: View {
       }
     )
     .scrollContentBackground(.hidden)
-    .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
   }
 
   @ViewBuilder
@@ -227,7 +231,13 @@ public struct CollectionsListView: View {
         .multilineTextAlignment(.center)
 
       Button(
-        action: { showAddition = true },
+        action: {
+          if viewModel.vaultState == .frozen {
+            viewModel.redirectToFrozenPaywall()
+          } else {
+            showAddition = true
+          }
+        },
         label: {
           Label(
             L10n.Core.KWVaultItem.Collections.List.EmptyState.button,

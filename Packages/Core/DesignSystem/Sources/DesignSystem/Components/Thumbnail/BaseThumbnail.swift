@@ -15,7 +15,7 @@ struct BaseThumbnail<Content: View>: View {
   var body: some View {
     Rectangle()
       .frame(width: effectiveDimension, height: effectiveDimension)
-      .foregroundStyle(Color.ds.container.agnostic.neutral.standard)
+      .foregroundStyle(.clear)
       .overlay(content)
       .overlay(
         ThumbnailShape()
@@ -40,7 +40,9 @@ struct BaseThumbnail<Content: View>: View {
 extension ControlSize {
   var thumbnailScaleValue: Double {
     switch self {
-    case .mini, .small:
+    case .mini:
+      0.8
+    case .small:
       1
     case .regular:
       1.5
@@ -57,13 +59,21 @@ extension ControlSize {
     BaseThumbnail {
       EmptyView()
     }
+    .foregroundStyle(Color.ds.container.agnostic.neutral.standard)
+    .controlSize(.mini)
+    BaseThumbnail {
+      EmptyView()
+    }
+    .foregroundStyle(Color.ds.container.agnostic.neutral.standard)
     .controlSize(.small)
     BaseThumbnail {
       EmptyView()
     }
+    .foregroundStyle(Color.ds.container.agnostic.neutral.standard)
     BaseThumbnail {
       EmptyView()
     }
+    .foregroundStyle(Color.ds.container.agnostic.neutral.standard)
     .controlSize(.large)
   }
 }

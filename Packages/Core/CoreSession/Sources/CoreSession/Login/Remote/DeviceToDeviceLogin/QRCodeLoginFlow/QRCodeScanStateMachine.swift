@@ -12,7 +12,7 @@ public struct QRCodeScanStateMachine: StateMachine {
     case readyForTransfer(QRCodeTransferInfo)
     case transferring(AppAPIClient.Mpless.StartTransfer.Response)
     case transferCompleted(AccountTransferInfo)
-    case transferError
+    case transferError(StateMachineError)
   }
 
   public enum Event: Hashable {
@@ -91,7 +91,7 @@ public struct QRCodeScanStateMachine: StateMachine {
       logger.logInfo("Transition to \(state) state")
     } catch {
       logger.error("Qrcode qdevice transfer failed", error: error)
-      state = .transferError
+      state = .transferError(StateMachineError(underlyingError: error))
     }
   }
 
@@ -104,7 +104,7 @@ public struct QRCodeScanStateMachine: StateMachine {
       logger.logInfo("Transition to \(state) state")
     } catch {
       logger.error("Qrcode device transfer failed", error: error)
-      state = .transferError
+      state = .transferError(StateMachineError(underlyingError: error))
     }
   }
 
@@ -132,7 +132,7 @@ public struct QRCodeScanStateMachine: StateMachine {
       logger.logInfo("Transition to \(state) state")
     } catch {
       logger.error("Qrcode device transfer failed", error: error)
-      state = .transferError
+      state = .transferError(StateMachineError(underlyingError: error))
     }
   }
 }
@@ -153,11 +153,5 @@ extension AppAPIClient.Mpless.StartTransfer.Response: Hashable {
   public func hash(into hasher: inout Hasher) {
     hasher.combine(encryptedData)
     hasher.combine(publicKey)
-  }
-}
-
-extension Logger {
-  public func logInfo(_ message: String) {
-    info(message)
   }
 }

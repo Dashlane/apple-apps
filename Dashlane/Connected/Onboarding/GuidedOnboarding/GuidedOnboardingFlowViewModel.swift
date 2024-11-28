@@ -13,7 +13,7 @@ class GuidedOnboardingFlowViewModel: ObservableObject, SessionServicesInjecting 
   private let dwmOnboardingService: DWMOnboardingService
   private let interactionController: UIPercentDrivenInteractiveTransition
   private let transitionDelegate: GuidedOnboardingFlowTransitioningDelegate
-  let navigator: DashlaneNavigationController
+  weak var navigator: DashlaneNavigationController?
 
   enum Step {
     case introQuestion
@@ -26,7 +26,7 @@ class GuidedOnboardingFlowViewModel: ObservableObject, SessionServicesInjecting 
   var steps: [Step] = [.introQuestion]
 
   public init(
-    navigator: DashlaneNavigationController? = nil,
+    navigator: DashlaneNavigationController,
     sessionServices: SessionServicesContainer,
     completion: @escaping (() -> Void)
   ) {
@@ -41,10 +41,10 @@ class GuidedOnboardingFlowViewModel: ObservableObject, SessionServicesInjecting 
     self.transitionDelegate = GuidedOnboardingFlowTransitioningDelegate(
       interactionController: interactionController)
 
-    self.navigator = navigator ?? DashlaneNavigationController()
-    self.navigator.view.backgroundColor = .clear
-    self.navigator.modalPresentationStyle = .fullScreen
-    self.navigator.transitioningDelegate = transitionDelegate
+    self.navigator = navigator
+    navigator.view.backgroundColor = .clear
+    navigator.modalPresentationStyle = .fullScreen
+    navigator.transitioningDelegate = transitionDelegate
   }
 
   func introQuestionAnswered(_ choice: AccountCreationSurveyView.Choice) {

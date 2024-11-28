@@ -1,8 +1,10 @@
 import Combine
 import CoreActivityLogs
+import CoreFeature
 import CoreLocalization
 import CorePersonalData
 import CorePremium
+import CoreSession
 import CoreSettings
 import CoreUserTracking
 import DashTypes
@@ -54,17 +56,18 @@ class AddressDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting,
   convenience init(
     item: Address,
     mode: DetailMode = .viewing,
+    session: Session,
     vaultItemDatabase: VaultItemDatabaseProtocol,
     vaultItemsStore: VaultItemsStore,
     vaultCollectionDatabase: VaultCollectionDatabaseProtocol,
     vaultCollectionsStore: VaultCollectionsStore,
+    vaultStateService: VaultStateServiceProtocol,
     sharingService: SharedVaultHandling,
     userSpacesService: UserSpacesService,
     deepLinkService: VaultKit.DeepLinkingServiceProtocol,
     activityReporter: ActivityReporterProtocol,
     iconViewModelProvider: @escaping (VaultItem) -> VaultItemIconViewModel,
     logger: Logger,
-    accessControl: AccessControlProtocol,
     activityLogsService: ActivityLogsServiceProtocol,
     regionInformationService: RegionInformationService,
     userSettings: UserSettings,
@@ -76,9 +79,11 @@ class AddressDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting,
     self.init(
       service: .init(
         item: item,
+        canLock: session.authenticationMethod.supportsLock,
         mode: mode,
         vaultItemDatabase: vaultItemDatabase,
         vaultItemsStore: vaultItemsStore,
+        vaultStateService: vaultStateService,
         vaultCollectionDatabase: vaultCollectionDatabase,
         vaultCollectionsStore: vaultCollectionsStore,
         sharingService: sharingService,
@@ -90,7 +95,6 @@ class AddressDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting,
         iconViewModelProvider: iconViewModelProvider,
         attachmentSectionFactory: attachmentSectionFactory,
         logger: logger,
-        accessControl: accessControl,
         userSettings: userSettings,
         pasteboardService: pasteboardService
       ),
@@ -113,6 +117,7 @@ class AddressDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting,
   private func registerServiceChanges() {
     service
       .objectWillChange
+      .receive(on: DispatchQueue.main)
       .sink { [weak self] in
         self?.objectWillChange.send()
       }

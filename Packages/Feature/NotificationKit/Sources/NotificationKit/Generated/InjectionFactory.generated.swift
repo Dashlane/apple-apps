@@ -171,16 +171,15 @@ extension HomeAnnouncementsServicesContainer {
 extension HomeAnnouncementsServicesContainer {
   @MainActor
   public func makeHomeTopBannerViewModel(
-    autofillBannerViewModel: AutofillBannerViewModel,
-    authenticatorSunsetBannerViewModel: AuthenticatorSunsetBannerViewModel,
-    isLastpassInstalled: Bool, credentialsCount: Int
+    autofillBannerViewModel: AutofillBannerViewModel, isLastpassInstalled: Bool,
+    credentialsCount: Int
   ) -> HomeTopBannerViewModel {
     return HomeTopBannerViewModel(
       autofillBannerViewModel: autofillBannerViewModel,
-      authenticatorSunsetBannerViewModel: authenticatorSunsetBannerViewModel,
       deeplinkingService: deepLinkingService,
       userSettings: userSettings,
       featureService: notificationKitFeatureService,
+      vaultStateService: notificationKitVaultStateService,
       isLastpassInstalled: isLastpassInstalled,
       credentialsCount: credentialsCount,
       premiumFactory: InjectedFactory(makePremiumAnnouncementsViewModel)
@@ -421,7 +420,6 @@ extension HomeModalAnnouncementsViewModel {
 
 public typealias _HomeTopBannerViewModelFactory = @MainActor (
   _ autofillBannerViewModel: AutofillBannerViewModel,
-  _ authenticatorSunsetBannerViewModel: AuthenticatorSunsetBannerViewModel,
   _ isLastpassInstalled: Bool,
   _ credentialsCount: Int
 ) -> HomeTopBannerViewModel
@@ -429,13 +427,11 @@ public typealias _HomeTopBannerViewModelFactory = @MainActor (
 extension InjectedFactory where T == _HomeTopBannerViewModelFactory {
   @MainActor
   public func make(
-    autofillBannerViewModel: AutofillBannerViewModel,
-    authenticatorSunsetBannerViewModel: AuthenticatorSunsetBannerViewModel,
-    isLastpassInstalled: Bool, credentialsCount: Int
+    autofillBannerViewModel: AutofillBannerViewModel, isLastpassInstalled: Bool,
+    credentialsCount: Int
   ) -> HomeTopBannerViewModel {
     return factory(
       autofillBannerViewModel,
-      authenticatorSunsetBannerViewModel,
       isLastpassInstalled,
       credentialsCount
     )

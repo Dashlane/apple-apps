@@ -34,15 +34,13 @@ extension OnboardingService {
         skipped || hasOnePassword
       }
       .receive(on: RunLoop.main)
-      .assign(to: \.hasPassedPasswordOnboarding, on: self)
-      .store(in: &cancellables)
+      .assign(to: &$hasPassedPasswordOnboarding)
 
     autofillService.$activationStatus
       .removeDuplicates()
       .map { $0 == .enabled }
       .receive(on: RunLoop.main)
-      .assign(to: \.isAutofillActivated, on: self)
-      .store(in: &cancellables)
+      .assign(to: &$isAutofillActivated)
 
     setupSettingsUpdatePublisher()
   }

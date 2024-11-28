@@ -12,8 +12,6 @@ struct VaultDetailView: View {
   private let viewModel: VaultDetailViewModel
   private let dismiss: DetailContainerViewSpecificAction?
 
-  @FeatureState(.newSecureNoteDetailView) private var newSecureNoteDetailViewEnabled: Bool
-
   init(
     model: VaultDetailViewModel,
     itemDetailViewType: ItemDetailViewType,
@@ -99,23 +97,12 @@ struct VaultDetailView: View {
       BankAccountDetailView(
         model: viewModel.makeBankAccountDetailViewModel(bankAccount: bankAccount, mode: mode))
     case let .secureNote(secureNote):
-      secureNotesDetailView(for: secureNote, mode: mode)
+      SecureNotesDetailView(
+        model: viewModel.makeSecureNotesDetailViewModel(secureNote: secureNote, mode: mode))
     case let .passkey(passkey):
       PasskeyDetailView(model: viewModel.makePasskeyDetailViewModel(passkey: passkey, mode: mode))
     case let .secret(secret):
       SecretDetailView(model: viewModel.makeSecretDetailViewModel(secret: secret, mode: mode))
-    }
-  }
-
-  @ViewBuilder
-  @MainActor
-  private func secureNotesDetailView(for secureNote: SecureNote, mode: DetailMode) -> some View {
-    if newSecureNoteDetailViewEnabled {
-      SecureNotesDetailView(
-        model: viewModel.makeSecureNotesDetailViewModel(secureNote: secureNote, mode: mode))
-    } else {
-      LegacySecureNoteDetailView(
-        model: viewModel.makeSecureNotesDetailViewModel(secureNote: secureNote, mode: mode))
     }
   }
 }

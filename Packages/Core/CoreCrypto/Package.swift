@@ -23,6 +23,7 @@ let package = Package(
       name: "CoreCrypto",
       dependencies: [
         .product(name: "Sodium", package: "swift-sodium"),
+        .product(name: "SwiftCBOR", package: "SwiftCBOR"),
         .product(name: "CyrilKit", package: "CyrilKit"),
         .product(name: "Argon2", package: "CyrilKit"),
         .product(name: "DashTypes", package: "DashTypes"),
@@ -36,7 +37,6 @@ let package = Package(
         "CoreCrypto",
         .product(name: "Argon2", package: "CyrilKit"),
         .product(name: "CyrilKit", package: "CyrilKit"),
-        .product(name: "SwiftCBOR", package: "SwiftCBOR"),
         .product(name: "DashTypes", package: "DashTypes"),
         .product(name: "DashlaneAPI", package: "DashlaneAPI"),
       ],

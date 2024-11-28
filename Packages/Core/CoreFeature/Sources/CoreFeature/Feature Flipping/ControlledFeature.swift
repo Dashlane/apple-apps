@@ -26,6 +26,7 @@ public enum ControlledFeature: String, CaseIterable, Sendable {
   case removeDuplicates = "techweek_apple_remove_duplicates"
   case vaultSecrets = "ace_ios_secrets_vault"
   case documentStorageSecrets = "ace_ios_secrets_attachments"
+  case freeUsersFrozenState = "b2c_ios_free_users_frozen_state"
 
   case sentryIsEnabled = "platform_apple_killswitch_sentry_enabled"
   case changeMasterPasswordIsAvailable = "platform_ios_killswitch_change_master_password"
@@ -35,7 +36,5 @@ public enum ControlledFeature: String, CaseIterable, Sendable {
   case autoRevokeInvalidSharingSignatureEnabled = "sharing_apple_invalidSignatureAutoRevoke_prod"
   case swiftZXCVBNIdentityDashboardEnabled = "platform_apple_identity_dashboard_swiftzxcvbn2"
   case secureNoteMarkdownEnabled = "apple_platform_secure_notes_markdown"
-  case newSecureNoteDetailView = "vault_ios_secureNote_newdetailview"
-  case secureNoteCollections = "sharingVault_ios_Secure_Notes_in_Collections"
   case postLaunchReceiptVerificationEnabled = "platform_apple_postlaunch_receipt_enabled"
 }

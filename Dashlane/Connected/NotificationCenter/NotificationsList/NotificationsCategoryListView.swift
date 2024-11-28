@@ -16,6 +16,8 @@ class NotificationsCategoryListViewModel {
       SharingRequestNotificationRowViewModel
   private let securityAlertNotificationFactory:
     (DashlaneNotification) -> SecurityAlertNotificationRowViewModel
+  private let frozenAccountNotificationFactory:
+    (DashlaneNotification) -> FrozenAccountNotificationRowViewModel
 
   init(
     section: NotificationDataSection,
@@ -29,7 +31,10 @@ class NotificationsCategoryListViewModel {
     sharingItemNotificationFactory: @escaping (DashlaneNotification) ->
       SharingRequestNotificationRowViewModel,
     securityAlertNotificationFactory: @escaping (DashlaneNotification) ->
-      SecurityAlertNotificationRowViewModel
+      SecurityAlertNotificationRowViewModel,
+    frozenAccountNotificationFactory: @escaping (DashlaneNotification) ->
+      FrozenAccountNotificationRowViewModel
+
   ) {
     self.section = section
     self.notificationCenterService = notificationCenterService
@@ -38,6 +43,7 @@ class NotificationsCategoryListViewModel {
     self.secureLockNotificationFactory = secureLockNotificationFactory
     self.sharingItemNotificationFactory = sharingItemNotificationFactory
     self.securityAlertNotificationFactory = securityAlertNotificationFactory
+    self.frozenAccountNotificationFactory = frozenAccountNotificationFactory
   }
 
   func sectionViewModel() -> NotificationSectionViewModel {
@@ -50,7 +56,8 @@ class NotificationsCategoryListViewModel {
       trialPeriodNotificationFactory: trialPeriodNotificationFactory,
       secureLockNotificationFactory: secureLockNotificationFactory,
       sharingItemNotificationFactory: sharingItemNotificationFactory,
-      securityAlertNotificationFactory: securityAlertNotificationFactory
+      securityAlertNotificationFactory: securityAlertNotificationFactory,
+      frozenAccountNotificationFactory: frozenAccountNotificationFactory
     )
   }
 }
@@ -69,7 +76,7 @@ struct NotificationsCategoryListView: View {
 
       }
     }
-    .listStyle(.insetGrouped)
+    .listAppearance(.insetGrouped)
     .navigationTitle(model.section.category.sectionTitle)
     .navigationBarTitleDisplayMode(.inline)
   }
@@ -135,7 +142,8 @@ struct NotificationsCategoryListView_Previews: PreviewProvider {
         trialPeriodNotificationFactory: { _ in .mock },
         secureLockNotificationFactory: { _ in .mock },
         sharingItemNotificationFactory: { _ in .mock },
-        securityAlertNotificationFactory: { _ in .mock }
+        securityAlertNotificationFactory: { _ in .mock },
+        frozenAccountNotificationFactory: { _ in .mock }
       )
     )
   }

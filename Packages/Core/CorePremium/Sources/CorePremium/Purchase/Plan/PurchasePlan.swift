@@ -100,7 +100,6 @@ extension Collection<PurchasePlan> {
           return nil
         }
         return PlanTier(
-          kind: first.kind,
           plans: plans,
           capabilities: first.capabilities)
       }

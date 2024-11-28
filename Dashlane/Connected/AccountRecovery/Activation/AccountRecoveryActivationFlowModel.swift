@@ -9,6 +9,10 @@ class AccountRecoveryActivationFlowModel: ObservableObject, SessionServicesInjec
   let activityReporter: ActivityReporterProtocol
   let recoveryActivationViewModelFactory: AccountRecoveryActivationEmbeddedFlowModel.Factory
 
+  var canSkip: Bool {
+    context == .onboarding
+  }
+
   init(
     context: AccountRecoveryActivationContext,
     activityReporter: ActivityReporterProtocol,

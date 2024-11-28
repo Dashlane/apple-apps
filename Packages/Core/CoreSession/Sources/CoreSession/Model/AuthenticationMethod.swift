@@ -25,4 +25,10 @@ extension AuthenticationMethod {
     return masterPassword
   }
 
+  public var supportsLock: Bool {
+    guard case .sso = self else {
+      return true
+    }
+    return false
+  }
 }

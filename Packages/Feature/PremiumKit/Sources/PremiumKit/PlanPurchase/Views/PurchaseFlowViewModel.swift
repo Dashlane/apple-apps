@@ -89,7 +89,7 @@
       }
     }
 
-    func handlePurchasePlansListViewAction(_ action: PurchasePlansListView.Action) {
+    func handlePurchasePlansListViewAction(_ action: PlansListView.Action) {
       switch action {
       case .planDetails(let planTier):
         steps.append(.detail(planTier, firstStep: false))
@@ -145,12 +145,15 @@
     func makeListViewModel(planTiers: [PurchasePlan.Kind: PlanTier]) -> PlansListViewModel {
       return PlansListViewModel(
         activityReporter: planPurchaseServices.activityReporter,
-        planTiers: planTiers.values.sorted(by: { $0.kind < $1.kind })
+        vaultStateService: planPurchaseServices.vaultStateService,
+        allPlanTiers: planTiers.values.sorted(by: { $0.kind ?? .free < $1.kind ?? .free })
       )
     }
 
-    func makeDetailViewModel(planTier: PlanTier) -> PlanPurchaseViewModel {
-      return PlanPurchaseViewModel(planTier: planTier)
+    func makeDetailViewModel(planDisplay: PlanPurchaseViewModel.PlanDisplay)
+      -> PlanPurchaseViewModel
+    {
+      return PlanPurchaseViewModel(planDisplay: planDisplay)
     }
 
   }

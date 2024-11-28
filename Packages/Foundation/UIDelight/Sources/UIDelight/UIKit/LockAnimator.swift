@@ -43,8 +43,10 @@
 
       let (topFrame, bottomFrame) = transitionContext.containerView.bounds.divided(
         atDistance: cleftFrame.midY, from: .minYEdge)
-      let frontSnapshotTop = makeFrontSnapshotView(from: frontView, byCroppingWith: topFrame)
-      let frontSnapshotBottom = makeFrontSnapshotView(from: frontView, byCroppingWith: bottomFrame)
+      let frontSnapshotTop = makeFrontSnapshotView(
+        from: frontView, byCroppingWith: topFrame, afterScreenUpdates: !isOpening)
+      let frontSnapshotBottom = makeFrontSnapshotView(
+        from: frontView, byCroppingWith: bottomFrame, afterScreenUpdates: !isOpening)
 
       let shadowViewTop = makeShadowView(withFrame: topFrame)
       shadowViewTop.layer.shadowOffset = CGSize(width: 0, height: 3)
@@ -151,11 +153,13 @@
       return shadowView
     }
 
-    private func makeFrontSnapshotView(from sourceView: UIView, byCroppingWith frame: CGRect)
-      -> UIView
-    {
+    private func makeFrontSnapshotView(
+      from sourceView: UIView,
+      byCroppingWith frame: CGRect,
+      afterScreenUpdates: Bool
+    ) -> UIView {
       let frontSnapshotContainer = UIView(frame: frame)
-      if let frontSnapshot = sourceView.snapshotView(afterScreenUpdates: true) {
+      if let frontSnapshot = sourceView.snapshotView(afterScreenUpdates: afterScreenUpdates) {
         frontSnapshotContainer.addSubview(frontSnapshot)
       }
       frontSnapshotContainer.clipsToBounds = true

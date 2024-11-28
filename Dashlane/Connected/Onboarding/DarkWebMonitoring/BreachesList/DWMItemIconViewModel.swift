@@ -7,7 +7,7 @@ import VaultKit
 
 protocol DWMItemIconViewModelProtocol {
   var url: PersonalDataURL { get }
-  func makeDomainIconViewModel(size: IconSizeType) -> DomainIconViewModel
+  func makeDomainIconViewModel() -> DomainIconViewModel
 }
 
 class DWMItemIconViewModel: DWMItemIconViewModelProtocol, SessionServicesInjecting {
@@ -19,15 +19,15 @@ class DWMItemIconViewModel: DWMItemIconViewModelProtocol, SessionServicesInjecti
     self.iconService = iconService
   }
 
-  func makeDomainIconViewModel(size: IconSizeType) -> DomainIconViewModel {
-    return DomainIconViewModel(personalDataURL: url, size: size, iconService: iconService)
+  func makeDomainIconViewModel() -> DomainIconViewModel {
+    return DomainIconViewModel(personalDataURL: url, iconService: iconService)
   }
 }
 
 struct FakeDWMItemIconViewModel: DWMItemIconViewModelProtocol {
   let url: PersonalDataURL
 
-  func makeDomainIconViewModel(size: IconSizeType) -> DomainIconViewModel {
-    return DomainIconViewModel(personalDataURL: url, size: size, iconService: IconServiceMock())
+  func makeDomainIconViewModel() -> DomainIconViewModel {
+    return DomainIconViewModel(personalDataURL: url, iconService: IconServiceMock())
   }
 }

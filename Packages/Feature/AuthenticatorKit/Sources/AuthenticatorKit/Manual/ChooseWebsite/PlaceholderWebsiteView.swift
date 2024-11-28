@@ -22,9 +22,7 @@ public struct PlaceholderWebsiteView: View {
 
   @ViewBuilder
   var icon: some View {
-    DomainIconView(
-      model: model.makeDomainIconViewModel(size: .small),
-      placeholderTitle: model.title)
+    DomainIconView(model: model.makeDomainIconViewModel())
   }
 }
 
@@ -44,11 +42,11 @@ public struct PlaceholderWebsiteViewModel: AuthenticatorServicesInjecting,
     self.domainIconLibrary = domainIconLibrary
   }
 
-  public func makeDomainIconViewModel(size: IconSizeType) -> DomainIconViewModel {
+  public func makeDomainIconViewModel() -> DomainIconViewModel {
     return DomainIconViewModel(
       domain: Domain(name: website, publicSuffix: nil),
-      size: size,
-      iconLibrary: domainIconLibrary)
+      iconLibrary: domainIconLibrary
+    )
   }
 
 }

@@ -9,6 +9,7 @@ struct DesignSystemDemoApp: App {
     case infobox
     case linkButtons
     case listItems
+    case obfuscatedDisplayFields
     case tags
     case textAreas
     case textFields
@@ -38,6 +39,8 @@ struct DesignSystemDemoApp: App {
           LinkButtonsView()
         case .listItems:
           ListItemsView()
+        case .obfuscatedDisplayFields:
+          ObfuscatedDisplayFieldsView()
         case .tags:
           TagsView()
         case .textAreas:

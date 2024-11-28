@@ -1,5 +1,6 @@
 import Combine
 import CoreActivityLogs
+import CoreFeature
 import CorePersonalData
 import CorePremium
 import CoreSettings
@@ -15,17 +16,16 @@ class QuickActionsMenuViewModel: SessionServicesInjecting, MockVaultConnectedInj
   ObservableObject
 {
   let item: VaultItem
-  let copyResultPublisher = PassthroughSubject<ActionableVaultItemRowViewModel.CopyResult, Never>()
   let sharingService: SharedVaultHandling
   let vaultItemDatabase: VaultItemDatabaseProtocol
   let vaultCollectionEditionService: VaultCollectionAndItemEditionService
   let activityReporter: ActivityReporterProtocol
-  let itemPasteboard: ItemPasteboardProtocol
+  let pasteboardService: PasteboardServiceProtocol
   let origin: ActionableVaultItemRowViewModel.Origin
   let isSuggestedItem: Bool
   let shareFlowViewModelFactory: ShareFlowViewModel.Factory
   let sharingDeactivationReason: SharingDeactivationReason?
-  let accessControl: AccessControlProtocol
+  let accessControl: AccessControlHandler
 
   @Published
   var allVaultCollections: [VaultCollection]
@@ -33,16 +33,19 @@ class QuickActionsMenuViewModel: SessionServicesInjecting, MockVaultConnectedInj
   var unusedCollections: [VaultCollection]
   @Published
   var itemCollections: [VaultCollection]
+  @Published
+  var isVaultFrozen: Bool = false
 
   private var subscriptions = Set<AnyCancellable>()
 
   init(
     item: VaultItem,
     sharingService: SharedVaultHandling,
-    accessControl: AccessControlProtocol,
+    accessControl: AccessControlHandler,
     vaultItemDatabase: VaultItemDatabaseProtocol,
     vaultCollectionDatabase: VaultCollectionDatabaseProtocol,
     vaultCollectionsStore: VaultCollectionsStore,
+    vaultStateService: VaultStateServiceProtocol,
     userSpacesService: UserSpacesService,
     activityReporter: ActivityReporterProtocol,
     activityLogsService: ActivityLogsServiceProtocol,
@@ -61,8 +64,7 @@ class QuickActionsMenuViewModel: SessionServicesInjecting, MockVaultConnectedInj
     self.activityReporter = activityReporter
     self.origin = origin
     self.isSuggestedItem = isSuggestedItem
-    self.itemPasteboard = ItemPasteboard(
-      accessControl: accessControl, pasteboardService: pasteboardService)
+    self.pasteboardService = pasteboardService
     self.allVaultCollections = []
     self.itemCollections = []
     self.unusedCollections = []
@@ -97,6 +99,12 @@ class QuickActionsMenuViewModel: SessionServicesInjecting, MockVaultConnectedInj
           }
       }
       .store(in: &subscriptions)
+
+    vaultStateService
+      .vaultStatePublisher()
+      .map { $0 == .frozen }
+      .receive(on: DispatchQueue.main)
+      .assign(to: &$isVaultFrozen)
   }
 }
 
@@ -112,15 +120,10 @@ extension QuickActionsMenuViewModel {
 
   func copy(fieldType: Definition.Field, valueToCopy: String) {
     guard sharingService.canCopyProperties(in: item) else {
-      copyResultPublisher.send(.limitedRights)
       return
     }
 
-    guard let securableItem = item as? SecureItem, securableItem.secured else {
-      copy(value: valueToCopy, for: fieldType)
-      return
-    }
-    accessControl.requestAccess { [weak self] success in
+    accessControl.requestAccess(to: item) { [weak self] (success: Bool) in
       guard let self, success else { return }
       self.copy(value: valueToCopy, for: fieldType)
     }
@@ -134,16 +137,9 @@ extension QuickActionsMenuViewModel {
     }
 
     vaultItemDatabase.updateLastUseDate(of: [item], origin: lastUpdateOrigin)
-
+    pasteboardService.copy(value)
     sendCopyUsageLog(fieldType: field)
-
-    itemPasteboard
-      .copy(item, valueToCopy: value)
-      .map { $0 ? .success(fieldType: field) : .authenticationDenied }
-      .sink(receiveValue: copyResultPublisher.send)
-      .store(in: &subscriptions)
   }
-
 }
 
 extension QuickActionsMenuViewModel {
@@ -261,10 +257,11 @@ extension QuickActionsMenuViewModel {
     QuickActionsMenuViewModel(
       item: item,
       sharingService: SharedVaultHandlerMock(),
-      accessControl: FakeAccessControl(accept: true),
+      accessControl: .mock(),
       vaultItemDatabase: MockVaultKitServicesContainer().vaultItemDatabase,
       vaultCollectionDatabase: MockVaultKitServicesContainer().vaultCollectionDatabase,
       vaultCollectionsStore: MockVaultConnectedContainer().vaultCollectionsStore,
+      vaultStateService: .mock,
       userSpacesService: .mock(),
       activityReporter: .mock,
       activityLogsService: .mock(),

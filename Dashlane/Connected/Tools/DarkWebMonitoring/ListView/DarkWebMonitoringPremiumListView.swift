@@ -54,8 +54,8 @@ struct DarkWebMonitoringPremiumListView: View {
           .padding(.bottom, 12)
       }
       .padding(.horizontal, 24)
-      .background(Color(UIColor.systemBackground))
     }
+    .scrollContentBackgroundStyle(.alternate)
   }
 
   @ViewBuilder

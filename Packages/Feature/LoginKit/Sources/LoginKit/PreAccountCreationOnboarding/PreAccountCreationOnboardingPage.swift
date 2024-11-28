@@ -100,7 +100,6 @@
   enum PreAccountCreationOnboardingStep: String, Identifiable {
     var id: String { rawValue }
 
-    case authenticator
     case trust
     case vault
     case autofill
@@ -120,11 +119,6 @@
 
     var content: Content {
       switch self {
-      case .authenticator:
-        return Content(
-          scene: .regular(lottie: .preOnboardingAuthenticatorLoop),
-          title: L10n.Core.onboardingV3AuthenticatorScreenTitle,
-          description: L10n.Core.onboardingV3AuthenticatorScreenDescription)
       case .trust:
         return Content(
           scene: .stacked(
@@ -158,7 +152,7 @@
 
   struct PreAccountCreationOnboardingStep_Previews: PreviewProvider {
     static var previews: some View {
-      PreAccountCreationOnboardingPage(step: .authenticator)
+      PreAccountCreationOnboardingPage(step: .trust)
     }
   }
 

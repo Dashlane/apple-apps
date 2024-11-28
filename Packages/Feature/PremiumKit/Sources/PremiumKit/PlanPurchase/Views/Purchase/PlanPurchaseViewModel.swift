@@ -5,6 +5,7 @@
   import StoreKit
   import Combine
   import CoreUserTracking
+  import CoreLocalization
   import DashlaneAPI
 
   struct PlanPurchaseCTA {
@@ -16,13 +17,39 @@
 
   struct PlanPurchaseViewModel {
 
-    let planTier: PlanTier
+    enum PlanDisplay {
+      case free
+      case tier(PlanTier)
+    }
 
-    init(planTier: PlanTier) {
-      self.planTier = planTier
+    private let planDisplay: PlanDisplay
+
+    init(planDisplay: PlanDisplay) {
+      self.planDisplay = planDisplay
+    }
+
+    var kind: PurchasePlan.Kind? {
+      switch planDisplay {
+      case .free:
+        .free
+      case .tier(let planTier):
+        planTier.kind
+      }
+    }
+
+    var title: String {
+      switch planDisplay {
+      case .free:
+        L10n.Core.plansFreeDescription
+      case .tier(let planTier):
+        planTier.localizedTitle
+      }
     }
 
     var page: Page {
+      guard case .tier(let planTier) = planDisplay else {
+        return .availablePlans
+      }
       switch planTier.kind {
       case .essentials, .advanced:
         return .availablePlansEssentialsDetails
@@ -35,8 +62,23 @@
       }
     }
 
+    var capabilities: PaymentsAccessibleStoreOffersCapabilities? {
+      switch planDisplay {
+      case .free:
+        PaymentsAccessibleStoreOffersCapabilities(
+          devicesLimit: CapabilitySchema(enabled: true, info: .init(limit: 1)),
+          passwordsLimit: CapabilitySchema(enabled: true, info: .init(limit: 25)))
+      case .tier(let planTier):
+        planTier.capabilities
+      }
+    }
+
     var ctas: [PlanPurchaseCTA] {
-      planTier.plans.sorted { planA, _ in
+      guard case .tier(let planTier) = planDisplay else {
+        return []
+      }
+
+      return planTier.plans.sorted { planA, _ in
         return planA.offer.duration == .monthly
       }.map { plan in
         let isYearly = plan.offer.duration == .yearly
@@ -62,6 +104,22 @@
       guard !plan.isPeriodIdenticalToIntroductoryOfferPeriod else { return nil }
 
       return plan.renewalPriceDescription
+    }
+
+    func plan(for duration: PaymentsAccessibleStoreOffersDuration) -> PurchasePlan? {
+      switch planDisplay {
+      case .free:
+        nil
+      case .tier(let planTier):
+        planTier.plans.first(where: { $0.offer.duration == duration })
+      }
+    }
+
+    var displayFrozenMessage: Bool {
+      switch planDisplay {
+      case .free: return true
+      case .tier: return false
+      }
     }
   }
 #endif

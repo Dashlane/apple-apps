@@ -8,11 +8,10 @@ extension SessionServicesContainer {
     if reason == .userLogsOut {
       notificationService.unload()
     }
-    authenticatorAppCommunicator.unload()
     todayExtensionCommunicator.unload()
     watchAppCommunicator.unload()
     documentStorageService.unload()
-    activityReporter.unload(reason: reason)
+    sessionReporterService.unload(reason: reason)
     await syncService.unload()
     vaultServicesSuit.unload(reason: reason)
     appServices.deepLinkingService.unload()

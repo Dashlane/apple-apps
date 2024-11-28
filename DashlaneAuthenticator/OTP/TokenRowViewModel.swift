@@ -45,7 +45,7 @@ struct TokenRowViewModel {
   }
 
   func makeDomainIconViewModel() -> DomainIconViewModel {
-    return DomainIconViewModel(domain: domain, size: .small, iconLibrary: domainIconLibrary)
+    return DomainIconViewModel(domain: domain, iconLibrary: domainIconLibrary)
   }
 
   func makeGeneratedOTPCodeRowViewModel() -> GeneratedOTPCodeRowViewModel {

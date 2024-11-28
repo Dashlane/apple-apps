@@ -1,3 +1,4 @@
+import AuthenticationServices
 import AutofillKit
 import CoreCategorizer
 import CoreFeature
@@ -30,17 +31,20 @@ class AppServicesContainer: DependenciesContainer {
   let loginMetricsReporter: LoginMetricsReporter
   let passwordEvaluator: PasswordEvaluatorProtocol = PasswordEvaluator()
   let activityReporter: UserTrackingAppActivityReporter
+  let deeplinkingService: VaultKit.DeepLinkingServiceProtocol
   lazy var domainParser: DomainParserProtocol = try! DomainParser(quickParsing: true)
   lazy var categorizer = try! Categorizer()
   let unauthenticatedABTestingService: UnauthenticatedABTestingService
   let sessionsContainer: SessionsContainerProtocol
   static let crashReporterService = CrashReporterService(target: .tachyon)
   public static let sharedInstance = AppServicesContainer(
-    appLaunchTimeStamp: Date().timeIntervalSince1970)
+    appLaunchTimeStamp: Date().timeIntervalSince1970,
+    context: ASCredentialProviderExtensionContext())
   let keychainService: AuthenticationKeychainService
-  let nitroClient: NitroAPIClient
+  let nitroClient: NitroSSOAPIClient
   let sessionCryptoEngineProvider: SessionCryptoEngineProvider
-  init(appLaunchTimeStamp: TimeInterval) {
+
+  init(appLaunchTimeStamp: TimeInterval, context: ASCredentialProviderExtensionContext) {
     loginMetricsReporter = LoginMetricsReporter(appLaunchTimeStamp: appLaunchTimeStamp)
     loginMetricsReporter.markAsLoadingSessionFromSavedLogin()
     _ = AppServicesContainer.crashReporterService
@@ -70,7 +74,7 @@ class AppServicesContainer: DependenciesContainer {
       appAPIClient: appAPIClient,
       platform: .current
     )
-    self.nitroClient = try! NitroAPIClient()
+    self.nitroClient = try! NitroSSOAPIClient()
     unauthenticatedABTestingService = UnauthenticatedABTestingService(
       logger: rootLogger[.abTesting],
       apiClient: appAPIClient,
@@ -81,6 +85,9 @@ class AppServicesContainer: DependenciesContainer {
       cryptoEngineProvider: sessionCryptoEngineProvider,
       keychainSettingsDataProvider: settingsManager,
       accessGroup: ApplicationGroup.keychainAccessGroup)
+
+    deeplinkingService = TachyonDeeplinkingService(context: context)
+
     updateDefaultReportAction()
   }
 
@@ -89,7 +96,6 @@ class AppServicesContainer: DependenciesContainer {
     ReportActionKey.defaultValue = ReportAction(reporter: activityReporter)
   }
 }
-
 extension AppServicesContainer {
   var personalDataURLDecoder: PersonalDataURLDecoder {
     PersonalDataURLDecoder(domainParser: domainParser)

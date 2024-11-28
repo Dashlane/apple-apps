@@ -20,6 +20,8 @@ struct ConnectedRootView: View {
       }
     }
     .modifier(
-      ConnectedEnvironmentViewModifier(model: model.connectedEnvironmentModelFactory.make()))
+      ConnectedEnvironmentViewModifier(model: model.connectedEnvironmentModelFactory.make())
+    )
+    .modifier(AccessControlRequestViewModifier(model: model.accessControlModelFactory.make()))
   }
 }

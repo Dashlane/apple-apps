@@ -44,16 +44,13 @@ struct QuickActionsMenuView: View {
   @State
   private var showCollectionRemoval: Bool = false
 
-  @FeatureState(.secureNoteCollections)
-  var areSecureNoteCollectionsEnabled
-
   init(model: @autoclosure @escaping () -> QuickActionsMenuViewModel) {
     self._model = .init(wrappedValue: model())
   }
 
   var body: some View {
     DS.FieldAction.Menu(CoreLocalization.L10n.Core.kwActions, image: .ds.action.more.outlined) {
-      VaultItemMenuContent(item: model.item, copy: { model.copy(fieldType: $0, valueToCopy: $1) })
+      copyButton
       editButton
       shareButton
       collectionActionsButtons
@@ -116,8 +113,17 @@ struct QuickActionsMenuView: View {
 
 extension QuickActionsMenuView {
   @ViewBuilder
+  var copyButton: some View {
+    if !model.isVaultFrozen {
+      VaultItemMenuContent(item: model.item, copy: { model.copy(fieldType: $0, valueToCopy: $1) })
+    }
+  }
+}
+
+extension QuickActionsMenuView {
+  @ViewBuilder
   var shareButton: some View {
-    if !model.item.hasAttachments && model.item.metadata.isShareable {
+    if !model.item.hasAttachments && model.item.metadata.isShareable && !model.isVaultFrozen {
       Button {
         if model.sharingDeactivationReason != nil {
           showSharingDisabledAlert = true
@@ -154,9 +160,7 @@ extension QuickActionsMenuView {
 extension QuickActionsMenuView {
   @ViewBuilder
   fileprivate var collectionActionsButtons: some View {
-    if model.item.metadata.contentType.canBeEmbeddedInCollection
-      && (model.item.metadata.contentType != .secureNote || areSecureNoteCollectionsEnabled)
-    {
+    if model.item.metadata.contentType.canBeEmbeddedInCollection && !model.isVaultFrozen {
       ForEach(collectionActions, id: \.id) { collectionAction in
         collectionActionButton(for: collectionAction)
       }

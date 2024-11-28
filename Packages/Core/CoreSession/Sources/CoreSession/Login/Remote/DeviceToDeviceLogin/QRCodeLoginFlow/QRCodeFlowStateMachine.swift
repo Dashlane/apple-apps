@@ -11,7 +11,7 @@ public struct QRCodeFlowStateMachine: StateMachine {
     case verifyLogin(AccountTransferInfo)
     case completed(AccountTransferInfo)
     case cancelled
-    case failed
+    case failed(StateMachineError)
   }
 
   public enum Event {
@@ -48,7 +48,8 @@ public struct QRCodeFlowStateMachine: StateMachine {
     case (_, .abortEvent):
       state = .cancelled
     default:
-      state = .failed
+      state = .failed(
+        StateMachineError(underlyingError: StateMachineError.ErrorType.invalidTransition))
       let errorMessage = "Unexpected \(event) event for the state \(state)"
       logger.error(errorMessage)
     }

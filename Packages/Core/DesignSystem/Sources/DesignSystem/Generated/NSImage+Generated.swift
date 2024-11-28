@@ -93,6 +93,12 @@
       public enum attachment {
         public static let outlined = Bundle.module.image(forResource: "attachment/outlined")
       }
+      public enum business {
+        public static let outlined = Bundle.module.image(forResource: "business/outlined")
+      }
+      public enum calendar {
+        public static let outlined = Bundle.module.image(forResource: "calendar/outlined")
+      }
       public enum caretDoubleLeft {
         public static let outlined = Bundle.module.image(forResource: "caret-double-left/outlined")
       }
@@ -110,6 +116,9 @@
       }
       public enum caretUp {
         public static let outlined = Bundle.module.image(forResource: "caret-up/outlined")
+      }
+      public enum chat {
+        public static let outlined = Bundle.module.image(forResource: "chat/outlined")
       }
       public enum checkmark {
         public static let outlined = Bundle.module.image(forResource: "checkmark/outlined")
@@ -145,6 +154,10 @@
         }
         public enum autofill {
           public static let outlined = Bundle.module.image(forResource: "feature/autofill/outlined")
+        }
+        public enum automations {
+          public static let outlined = Bundle.module.image(
+            forResource: "feature/automations/outlined")
         }
         public enum darkWebMonitoring {
           public static let outlined = Bundle.module.image(
@@ -221,6 +234,9 @@
           public static let outlined = Bundle.module.image(
             forResource: "formatting/italic/outlined")
         }
+      }
+      public enum geolocation {
+        public static let outlined = Bundle.module.image(forResource: "geolocation/outlined")
       }
       public enum googleChrome {
         public static let outlined = Bundle.module.image(forResource: "google-chrome/outlined")
@@ -352,6 +368,12 @@
         public static let filled = Bundle.module.image(forResource: "passkey/filled")
         public static let outlined = Bundle.module.image(forResource: "passkey/outlined")
       }
+      public enum phishingAlert {
+        public static let outlined = Bundle.module.image(forResource: "phishing-alert/outlined")
+      }
+      public enum pinCode {
+        public static let outlined = Bundle.module.image(forResource: "pin-code/outlined")
+      }
       public enum premium {
         public static let outlined = Bundle.module.image(forResource: "premium/outlined")
       }
@@ -361,6 +383,9 @@
       }
       public enum recoveryKey {
         public static let outlined = Bundle.module.image(forResource: "recovery-key/outlined")
+      }
+      public enum riskDetection {
+        public static let outlined = Bundle.module.image(forResource: "risk-detection/outlined")
       }
       public enum settings {
         public static let filled = Bundle.module.image(forResource: "settings/filled")
@@ -409,6 +434,9 @@
         public enum all {
           public static let outlined = Bundle.module.image(forResource: "spaces/all/outlined")
         }
+      }
+      public enum sso {
+        public static let outlined = Bundle.module.image(forResource: "sso/outlined")
       }
       public enum time {
         public static let outlined = Bundle.module.image(forResource: "time/outlined")

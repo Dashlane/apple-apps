@@ -401,6 +401,8 @@ extension APIError {
 
 extension APIErrorCodes {
   public enum Payments: String, Sendable, Equatable, CaseIterable, Codable {
+    case doubleReceiptForTransactionList = "double_receipt_for_transaction_list"
+
     case invalidReceipt = "invalid_receipt"
 
     case noReceiptItem = "no_receipt_item"

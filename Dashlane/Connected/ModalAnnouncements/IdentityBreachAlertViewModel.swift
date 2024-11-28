@@ -43,14 +43,13 @@ class IdentityBreachAlertViewModel: SessionServicesInjecting {
     case .upgrade:
       deepLinkingService.handleLink(.premium(.getPremium))
     case .viewDetails:
-      let origin = PasswordHealthFlowViewModel.Origin.popupAlert.rawValue
       updateBreachesStatus(for: [popup], to: .viewed)
       Task { @MainActor in
         let alerts = await identityDashboardService.trayAlerts()
         guard let alert = alerts.first(where: { $0.breach == popup.breach }) else {
           return
         }
-        deepLinkingService.handleLink(.tool(.unresolvedAlert(alert), origin: origin))
+        deepLinkingService.handleLink(.unresolvedAlert(alert))
       }
 
     }

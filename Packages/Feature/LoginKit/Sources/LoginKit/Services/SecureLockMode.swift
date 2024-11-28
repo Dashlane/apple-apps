@@ -1,4 +1,5 @@
 import CoreKeychain
+import DashTypes
 import Foundation
 import SwiftTreats
 
@@ -6,7 +7,7 @@ public enum SecureLockMode: Equatable {
   public struct PinCodeLock: Equatable {
     public let code: String
     public let attempts: PinCodeAttempts
-    public let masterKey: CoreKeychain.MasterKey
+    public let masterKey: DashTypes.MasterKey
 
     public init(code: String, attempts: PinCodeAttempts, masterKey: MasterKey) {
       self.code = code

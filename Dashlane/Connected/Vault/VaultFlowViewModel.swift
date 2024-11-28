@@ -3,6 +3,7 @@ import CoreFeature
 import CorePersonalData
 import CorePremium
 import CoreUserTracking
+import DashTypes
 import Foundation
 import NotificationKit
 import SwiftTreats
@@ -15,7 +16,6 @@ import VaultKit
 final class VaultFlowViewModel: ObservableObject, SessionServicesInjecting, AutoFillDemoHandler {
   enum Action {
     case showAutofillDemo
-    case showAuthenticatorSunsetPage
     case showChecklist
     case addItemOfCategory(_ category: ItemCategory)
     case didSelectItem(
@@ -46,8 +46,6 @@ final class VaultFlowViewModel: ObservableObject, SessionServicesInjecting, Auto
     case vaultDetail(VaultItem, ItemDetailViewType)
 
     case autofillDemoDummyFields(Credential)
-
-    case authenticatorSunset
   }
 
   @Published
@@ -70,6 +68,9 @@ final class VaultFlowViewModel: ObservableObject, SessionServicesInjecting, Auto
 
   @Published
   var activeFilter: ItemCategory?
+
+  @Published
+  var vaultState: VaultState = .default
 
   lazy var viewController: UIViewController = {
     UIHostingController(
@@ -99,12 +100,13 @@ final class VaultFlowViewModel: ObservableObject, SessionServicesInjecting, Auto
 
   var addItemFlowDisplayMode: AddItemFlowViewModel.DisplayMode = .prefilledPassword(.init())
 
-  private let accessControl: AccessControlProtocol
+  private let accessControl: AccessControlHandler
   private let userSpacesService: UserSpacesService
   private let activityReporter: ActivityReporterProtocol
   let vaultItemsStore: VaultItemsStore
   let vaultItemDatabase: VaultItemDatabaseProtocol
   let vaultItemsLimitService: VaultItemsLimitServiceProtocol
+  let vaultStateService: VaultStateServiceProtocol
   let deepLinkingService: DeepLinkingServiceProtocol
 
   private let categoryCountQueue = DispatchQueue(label: "vaultCategoryCount", qos: .utility)
@@ -118,7 +120,8 @@ final class VaultFlowViewModel: ObservableObject, SessionServicesInjecting, Auto
     vaultItemsStore: VaultItemsStore,
     vaultItemDatabase: VaultItemDatabaseProtocol,
     vaultItemsLimitService: VaultItemsLimitServiceProtocol,
-    accessControl: AccessControlProtocol,
+    vaultStateService: VaultStateServiceProtocol,
+    accessControl: AccessControlHandler,
     userSpacesService: UserSpacesService,
     activityReporter: ActivityReporterProtocol,
     detailViewModelFactory: VaultDetailViewModel.Factory,
@@ -142,6 +145,7 @@ final class VaultFlowViewModel: ObservableObject, SessionServicesInjecting, Auto
     self.vaultItemsStore = vaultItemsStore
     self.vaultItemDatabase = vaultItemDatabase
     self.vaultItemsLimitService = vaultItemsLimitService
+    self.vaultStateService = vaultStateService
     self.deeplinkPublisher = deepLinkingService.vaultDeeplinkPublisher()
     self.deepLinkingService = deepLinkingService
 
@@ -197,6 +201,10 @@ final class VaultFlowViewModel: ObservableObject, SessionServicesInjecting, Auto
         .receive(on: DispatchQueue.main)
         .assign(to: &$categoryItemsCount)
     }
+
+    vaultStateService
+      .vaultStatePublisher()
+      .assign(to: &$vaultState)
   }
 }
 
@@ -205,8 +213,6 @@ extension VaultFlowViewModel {
     switch action {
     case .showAutofillDemo:
       showAutofillDemo()
-    case .showAuthenticatorSunsetPage:
-      showAuthenticatorSunsetPage()
     case .showChecklist:
       showChecklist()
     case let .didSelectItem(item, selectVaultItem, isEditing):
@@ -247,22 +253,12 @@ extension VaultFlowViewModel {
     isEditing: Bool = false,
     origin: ItemDetailOrigin = .unknown
   ) {
-    if let secureItem = item as? SecureItem, secureItem.secured {
-      accessControl
-        .requestAccess()
-        .sink { [weak self] success in
-          if success {
-            self?.showItemDetail(
-              for: item,
-              selectVaultItem: selectVaultItem,
-              isEditing: isEditing,
-              origin: origin
-            )
-          }
-        }
-        .store(in: &cancellables)
-    } else {
-      showItemDetail(
+    accessControl.requestAccess(to: item) { [weak self] success in
+      guard success else {
+        return
+      }
+
+      self?.showItemDetail(
         for: item,
         selectVaultItem: selectVaultItem,
         isEditing: isEditing,
@@ -293,10 +289,6 @@ extension VaultFlowViewModel {
 
   func showAutofillDemo() {
     showAutofillFlow = true
-  }
-
-  func showAuthenticatorSunsetPage() {
-    steps.append(.authenticatorSunset)
   }
 
   func showChecklist() {

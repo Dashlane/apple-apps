@@ -66,7 +66,12 @@ extension PersonalDataEncoderImpl {
   }
 
   func wrap(_ date: Date) {
-    wrap(String(Int(date.timeIntervalSince1970)))
+    let timeInterval = date.timeIntervalSince1970
+    guard timeInterval.isFinite else {
+      return
+    }
+
+    wrap(String(Int(timeInterval)))
   }
 
   func wrap(_ url: URL) {

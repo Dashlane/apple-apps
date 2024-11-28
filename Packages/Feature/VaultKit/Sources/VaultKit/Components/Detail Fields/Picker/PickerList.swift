@@ -39,6 +39,7 @@ struct DetailPickerList<Content: Equatable & Hashable & Identifiable, ContentVie
     }
     .navigationTitle(title)
     .toolbarBackground(.hidden, for: .navigationBar)
+    .listAppearance(.insetGrouped)
   }
 
   func row(for item: Content?) -> some View {
@@ -57,7 +58,9 @@ struct DetailPickerList<Content: Equatable & Hashable & Identifiable, ContentVie
               .foregroundColor(.ds.text.brand.quiet)
           }
         }
-      })
+      }
+    )
+    .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
   }
 }
 

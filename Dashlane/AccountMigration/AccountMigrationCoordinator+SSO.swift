@@ -166,6 +166,7 @@ extension AccountMigrationCoordinator {
   ) {
     let model = SSOViewModel(
       ssoAuthenticationInfo: ssoAuthenticationInfo,
+      selfHostedSSOViewModelFactory: InjectedFactory(loginKitServices.makeSelfHostedSSOViewModel),
       confidentialSSOViewModelFactory: InjectedFactory(
         loginKitServices.makeConfidentialSSOViewModel)
     ) { result in

@@ -100,6 +100,7 @@ struct CredentialListView: View {
           }
         )
         .foregroundColor(.ds.text.brand.standard)
+        .accessibilityLabel(L10n.Localizable.addNewPassword)
       }
     }
   }

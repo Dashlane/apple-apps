@@ -1,5 +1,6 @@
 import Combine
 import CorePersonalData
+import DashTypes
 import Foundation
 import SwiftUI
 import VaultKit
@@ -15,13 +16,12 @@ class SharingToolsFlowViewModel: ObservableObject, SessionServicesInjecting {
   @Published
   var steps: [Step] = [.root]
 
-  let accessControl: AccessControlProtocol
+  let accessControl: AccessControlHandler
   let detailViewModelFactory: VaultDetailViewModel.Factory
   let sharingToolViewModelFactory: SharingToolViewModel.Factory
-  var cancellables = Set<AnyCancellable>()
 
   init(
-    accessControl: AccessControlProtocol,
+    accessControl: AccessControlHandler,
     detailViewModelFactory: VaultDetailViewModel.Factory,
     sharingToolViewModelFactory: SharingToolViewModel.Factory
   ) {
@@ -37,14 +37,12 @@ class SharingToolsFlowViewModel: ObservableObject, SessionServicesInjecting {
   }
 
   func showDetail(for item: VaultItem) {
-    if let secureItem = item as? SecureItem, secureItem.secured {
-      accessControl.requestAccess().sink { [weak self] success in
-        if success {
-          self?.steps.append(.credentialDetails(item))
-        }
-      }.store(in: &cancellables)
-    } else {
-      self.steps.append(.credentialDetails(item))
+    accessControl.requestAccess(to: item) { [weak self] success in
+      guard success else {
+        return
+      }
+
+      self?.steps.append(.credentialDetails(item))
     }
   }
 }
@@ -58,7 +56,7 @@ extension SharingToolsFlowViewModel {
 extension SharingToolsFlowViewModel {
   static var mock: SharingToolsFlowViewModel {
     .init(
-      accessControl: FakeAccessControl(accept: true),
+      accessControl: .mock(),
       detailViewModelFactory: .init({ .mock() }),
       sharingToolViewModelFactory: .init({
         .mock(

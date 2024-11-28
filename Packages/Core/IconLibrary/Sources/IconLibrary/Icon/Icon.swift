@@ -12,16 +12,16 @@ extension UIImage {
 
 public struct Icon: Sendable {
   public let image: UIImage?
-  public let colors: IconColorSet?
+  public let color: UIColor?
 
-  public init(image: UIImage?, colors: IconColorSet? = nil) {
+  public init(image: UIImage?, color: UIColor? = nil) {
     self.image = image
-    self.colors = colors
+    self.color = color
   }
 }
 extension Icon: Equatable {
   public static func == (lhs: Icon, rhs: Icon) -> Bool {
-    return lhs.colors == rhs.colors && lhs.image === rhs.image
+    return lhs.color == rhs.color && lhs.image === rhs.image
   }
 }
 

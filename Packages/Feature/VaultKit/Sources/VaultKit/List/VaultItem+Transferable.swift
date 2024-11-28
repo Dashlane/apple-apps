@@ -27,9 +27,6 @@ private struct DraggableView: View {
           .resizable()
           .aspectRatio(contentMode: .fit)
           .frame(width: 24, height: 24)
-          .modifier(IconStyle(sizeType: .small))
-          .modifier(BorderedIcon(sizeType: .small))
-          .modifier(RoundedIcon(sizeType: .small))
           .compositingGroup()
 
         Text(item.localizedTitle)

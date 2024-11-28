@@ -140,7 +140,7 @@ internal struct UnlockAndLoadLocalSession: UnlockSessionHandler {
   func unlock(
     with masterKey: MasterKey,
     isRecoveryLogin: Bool
-  ) async throws {
+  ) async throws -> Session? {
     var masterKey = masterKey
     if case let UnlockType.mpOtp2Validation(_, serverKey) = type {
       masterKey = masterKey.masterKey(withServerKey: serverKey)
@@ -164,8 +164,13 @@ internal struct UnlockAndLoadLocalSession: UnlockSessionHandler {
           self.localLoginHandler.step = step
         }
       } else {
-        throw LocalLoginHandler.Error.wrongMasterKey
+        throw MasterPasswordLocalLoginStateMachine.Error.wrongMasterKey
       }
+    }
+    if case let .completed(session, _) = await self.localLoginHandler.step {
+      return session
+    } else {
+      return nil
     }
   }
 }

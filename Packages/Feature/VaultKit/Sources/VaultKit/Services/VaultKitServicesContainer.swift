@@ -18,12 +18,13 @@ public protocol VaultKitServicesContainer: DependenciesContainer {
   var vaultServicesSuit: VaultServicesSuit { get }
   var vaultKitDeepLinkingService: DeepLinkingServiceProtocol { get }
   var vaultKitFeatureService: FeatureServiceProtocol { get }
+  var vaultKitVaultStateService: VaultStateServiceProtocol { get }
   var capabilityService: CapabilityServiceProtocol { get }
   var activityLogsService: ActivityLogsServiceProtocol { get }
   var domainIconLibrary: DomainIconLibraryProtocol { get }
   var vaultKitSharingServiceHandler: SharedVaultHandling { get }
   var vaultKitSharingService: SharingServiceProtocol { get }
-  var vaultKitAccessControl: AccessControlProtocol { get }
+  var vaultKitAccessControl: AccessControlHandler { get }
   var vaultKitPasteboardService: PasteboardServiceProtocol { get }
   var vaultKitUserSettings: UserSettings { get }
   var premiumStatusProvider: PremiumStatusProvider { get }

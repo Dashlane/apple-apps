@@ -9,8 +9,6 @@ import DashlaneAPI
 import Foundation
 import Logger
 
-public typealias ServerKey = String
-
 @MainActor
 public class LocalLoginFlowViewModel: ObservableObject, LoginKitServicesInjecting {
 
@@ -50,7 +48,7 @@ public class LocalLoginFlowViewModel: ObservableObject, LoginKitServicesInjectin
   let sessionContainer: SessionsContainerProtocol
   let completion: @MainActor (Result<Completion, Error>) -> Void
   let context: LocalLoginFlowContext
-  let nitroClient: NitroAPIClient
+  let nitroClient: NitroSSOAPIClient
   let accountVerificationFlowModelFactory: AccountVerificationFlowModel.Factory
   let recoveryLoginFlowModelFactory: AccountRecoveryKeyLoginFlowModel.Factory
   let localLoginUnlockViewModelFactory: LocalLoginUnlockViewModel.Factory
@@ -74,7 +72,7 @@ public class LocalLoginFlowViewModel: ObservableObject, LoginKitServicesInjectin
     keychainService: AuthenticationKeychainServiceProtocol,
     email: String,
     context: LocalLoginFlowContext,
-    nitroClient: NitroAPIClient,
+    nitroClient: NitroSSOAPIClient,
     accountVerificationFlowModelFactory: AccountVerificationFlowModel.Factory,
     recoveryLoginFlowModelFactory: AccountRecoveryKeyLoginFlowModel.Factory,
     localLoginUnlockViewModelFactory: LocalLoginUnlockViewModel.Factory,
@@ -124,28 +122,36 @@ public class LocalLoginFlowViewModel: ObservableObject, LoginKitServicesInjectin
         await unlock(with: handler, type: unlockType)
       }
     case let .completed(session, isRecoveryLogin):
-      var shouldResetMP = false
-      if case .resetMasterPassword = authenticationMode {
-        shouldResetMP = true
-      }
-      var newMasterPassword: String?
-      if case let .accountRecovered(password) = authenticationMode {
-        newMasterPassword = password
-      }
-      let logInfo = LoginFlowLogInfo(
-        loginMode: lastSuccessfulAuthenticationMode ?? .masterPassword,
-        verificationMode: verificationMode,
-        isBackupCode: isBackupCode)
-      completion(
-        .success(
-          .completed(
-            session: session,
-            shouldResetMP: shouldResetMP,
-            shouldRefreshKeychainMasterKey: shouldRefreshKeychainMasterKey(for: authenticationMode),
-            loginFlowLogInfo: logInfo,
-            isRecoveryLogin: isRecoveryLogin,
-            newMasterPassword: newMasterPassword)))
+      completed(
+        with: session, isRecoveryLogin: isRecoveryLogin, authenticationMode: authenticationMode)
     }
+  }
+
+  func completed(
+    with session: Session, isRecoveryLogin: Bool,
+    authenticationMode: LocalLoginUnlockViewModel.Completion.AuthenticationMode?
+  ) {
+    var shouldResetMP = false
+    if case .resetMasterPassword = authenticationMode {
+      shouldResetMP = true
+    }
+    var newMasterPassword: String?
+    if case let .accountRecovered(password) = authenticationMode {
+      newMasterPassword = password
+    }
+    let logInfo = LoginFlowLogInfo(
+      loginMode: lastSuccessfulAuthenticationMode ?? .masterPassword,
+      verificationMode: verificationMode,
+      isBackupCode: isBackupCode)
+    completion(
+      .success(
+        .completed(
+          session: session,
+          shouldResetMP: shouldResetMP,
+          shouldRefreshKeychainMasterKey: shouldRefreshKeychainMasterKey(for: authenticationMode),
+          loginFlowLogInfo: logInfo,
+          isRecoveryLogin: isRecoveryLogin,
+          newMasterPassword: newMasterPassword)))
   }
 
   private func shouldRefreshKeychainMasterKey(

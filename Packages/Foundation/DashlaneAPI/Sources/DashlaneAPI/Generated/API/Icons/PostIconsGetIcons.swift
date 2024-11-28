@@ -52,6 +52,7 @@ extension UserDeviceAPIClient.Icons.GetIcons {
       public enum CodingKeys: String, CodingKey {
         case hash = "hash"
         case validity = "validity"
+        case backgroundColor = "backgroundColor"
         case url = "url"
       }
 
@@ -70,11 +71,15 @@ extension UserDeviceAPIClient.Icons.GetIcons {
 
       public let hash: String
       public let validity: Validity
+      public let backgroundColor: String?
       public let url: String?
 
-      public init(hash: String, validity: Validity, url: String? = nil) {
+      public init(
+        hash: String, validity: Validity, backgroundColor: String? = nil, url: String? = nil
+      ) {
         self.hash = hash
         self.validity = validity
+        self.backgroundColor = backgroundColor
         self.url = url
       }
 
@@ -82,6 +87,7 @@ extension UserDeviceAPIClient.Icons.GetIcons {
         var container = encoder.container(keyedBy: CodingKeys.self)
         try container.encode(hash, forKey: .hash)
         try container.encode(validity, forKey: .validity)
+        try container.encodeIfPresent(backgroundColor, forKey: .backgroundColor)
         try container.encodeIfPresent(url, forKey: .url)
       }
     }

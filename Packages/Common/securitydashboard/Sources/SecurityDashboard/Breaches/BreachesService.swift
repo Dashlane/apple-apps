@@ -66,8 +66,8 @@ public actor BreachesService: Cancelable {
   private func setupPublisher() {
     breachesStore
       .breachesPublisher()
-      .sink(receiveValue: { value in
-        self.cachedBreaches.send(value)
+      .sink(receiveValue: { [weak self] value in
+        self?.cachedBreaches.send(value)
       })
       .store(in: &subscriptions)
 

@@ -34,10 +34,8 @@
 
     public var body: some View {
       ZStack {
-        if model.showAccountRecoveryFlow {
-          AccountRecoveryKeyLoginFlow(model: model.makeAccountRecoveryFlowModel())
-            .navigationTitle(L10n.Core.accountRecoveryNavigationTitle)
-        } else {
+        switch model.viewState {
+        case .masterPassword:
           passwordView
             .toolbar {
               ToolbarItem(placement: .navigationBarTrailing) {
@@ -50,9 +48,14 @@
                 }
               }
             }
+        case .accountRecovery(let state, let loginType):
+          AccountRecoveryKeyLoginFlow(
+            model: model.makeAccountRecoveryFlowModel(state: state, loginType: loginType)
+          )
+          .navigationTitle(L10n.Core.accountRecoveryNavigationTitle)
         }
       }
-      .animation(.default, value: model.showAccountRecoveryFlow)
+      .animation(.default, value: model.viewState)
       .onAppear(perform: model.onViewAppear)
       .loading(
         isLoading: model.inProgress && showProgressIndicator,
@@ -83,7 +86,9 @@
               Button(L10n.Core.cancel, role: .cancel) {}
 
               Button(L10n.Core.kwSignOut, role: .destructive) {
-                self.model.logout()
+                Task {
+                  await self.model.perform(.logout)
+                }
               }
             },
             message: {
@@ -194,7 +199,9 @@
 
     private func validate() async {
       UIApplication.shared.endEditing()
-      await model.validate()
+      Task {
+        try await model.validate()
+      }
     }
   }
 

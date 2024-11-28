@@ -63,8 +63,8 @@ struct PairedServicesContainer: DependenciesContainer {
     )
     self.enabledFeatures = featureService.enabledFeatures()
 
-    domainIconLibrary = DomainIconLibrary(
-      appAPIClient: appServices.appAPIClient,
+    domainIconLibrary = await DomainIconLibrary(
+      userDeviceAPIClient: userAPIClient,
       session: session,
       logger: appServices.rootLogger[.iconLibrary]
     )

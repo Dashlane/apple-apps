@@ -145,7 +145,7 @@ extension BiometryViewModel {
     BiometryViewModel(
       login: Login(""),
       biometryType: type,
-      unlocker: .mock,
+      unlocker: .mock(),
       context: LoginUnlockContext(
         verificationMode: .emailToken, isBackupCode: nil, origin: .login,
         localLoginContext: .passwordApp),

@@ -24,6 +24,7 @@ struct VPNMainView: View {
       }
     }
     .navigationTitle(L10n.Localizable.mobileVpnTitle)
+    .backgroundColorIgnoringSafeArea(.ds.background.alternate)
   }
 
   private var activationView: some View {
@@ -105,8 +106,7 @@ struct VPNMainView: View {
         SecureDetailField(
           title: CoreLocalization.L10n.Core.KWAuthentifiantIOS.password,
           text: Binding.constant(credential.password),
-          shouldReveal: $model.shouldReveal,
-          onRevealAction: { _ in model.shouldReveal.toggle() },
+          onRevealAction: { _ in },
           isColored: true,
           actions: [.copy(copy)]
         )

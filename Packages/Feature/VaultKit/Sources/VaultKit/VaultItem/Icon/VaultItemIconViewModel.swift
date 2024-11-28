@@ -12,20 +12,12 @@ public struct VaultItemIconViewModel: VaultKitServicesInjecting {
     self.iconLibrary = domainIconLibrary
   }
 
-  public func makeDomainIconViewModel(credential: Credential, size: IconSizeType)
-    -> DomainIconViewModel
-  {
-    return DomainIconViewModel(
-      domain: credential.url?.domain,
-      size: size,
-      iconLibrary: iconLibrary)
+  public func makeDomainIconViewModel(credential: Credential) -> DomainIconViewModel {
+    return DomainIconViewModel(domain: credential.url?.domain, iconLibrary: iconLibrary)
   }
 
-  public func makeDomainIconViewModel(passkey: Passkey, size: IconSizeType) -> DomainIconViewModel {
-    return DomainIconViewModel(
-      domain: passkey.relyingPartyId.domain,
-      size: size,
-      iconLibrary: iconLibrary)
+  public func makeDomainIconViewModel(passkey: Passkey) -> DomainIconViewModel {
+    return DomainIconViewModel(domain: passkey.relyingPartyId.domain, iconLibrary: iconLibrary)
   }
 }
 

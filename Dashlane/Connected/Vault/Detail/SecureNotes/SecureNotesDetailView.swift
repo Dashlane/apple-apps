@@ -37,21 +37,23 @@ struct SecureNotesDetailView: View {
         title: CoreLocalization.L10n.Core.KWSecureNoteIOS.title,
         text: $model.item.title
       )
-      .limitedRights(hasInfoButton: false, item: model.item)
+      .limitedRights(model: .init(item: model.item, isFrozen: model.isFrozen, hasInfoButton: false))
 
       if secureNoteMarkdownEnabled && !model.mode.isEditing {
         MarkdownDetailField(model.item.content)
           .actions([.copy(model.copy)], hasAccessory: false)
           .lineLimit(nil)
           .labeled(CoreLocalization.L10n.Core.KWSecureNoteIOS.content)
-          .limitedRights(hasInfoButton: false, item: model.item)
+          .limitedRights(
+            model: .init(item: model.item, isFrozen: model.isFrozen, hasInfoButton: false))
       } else {
         NotesDetailField(
           title: CoreLocalization.L10n.Core.KWSecureNoteIOS.content,
           text: $model.item.content
         )
         .actions([.copy(model.copy)], hasAccessory: false)
-        .limitedRights(hasInfoButton: false, item: model.item)
+        .limitedRights(
+          model: .init(item: model.item, isFrozen: model.isFrozen, hasInfoButton: false))
       }
     }
   }
@@ -59,7 +61,8 @@ struct SecureNotesDetailView: View {
   private var sharingSection: some View {
     SharingDetailSection(
       model: model.sharingDetailSectionModelFactory.make(item: model.item),
-      ctaLabel: L10n.Localizable.kwShareSecurenote
+      ctaLabel: L10n.Localizable.kwShareSecurenote,
+      canShare: !model.service.isFrozen
     )
   }
 

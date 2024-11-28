@@ -32,11 +32,24 @@ struct ShareButton<Label: View>: View {
         Button(CoreLocalization.L10n.Core.kwButtonOk) {}
       },
       message: {
-        Text(L10n.Localizable.teamSpacesSharingDisabledMessageBody)
+        if let message = model.deactivationReason?.message {
+          Text(message)
+        }
       }
     )
     .sheet(isPresented: $showFlow) {
       ShareFlowView(model: model.makeShareFlowViewModel())
+    }
+  }
+}
+
+extension SharingDeactivationReason {
+  var message: String {
+    switch self {
+    case .b2bSharingDisabled:
+      return L10n.Localizable.teamSpacesSharingDisabledMessageBody
+    case .frozenAccount:
+      return CoreLocalization.L10n.Core.notificationFrozenAccountTitle
     }
   }
 }

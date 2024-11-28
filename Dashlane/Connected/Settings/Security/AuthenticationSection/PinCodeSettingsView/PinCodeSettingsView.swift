@@ -6,6 +6,9 @@ import SwiftUI
 
 struct PinCodeSettingsView: View {
 
+  @Environment(\.accessControl)
+  var accessControl
+
   @ObservedObject
   var viewModel: PinCodeSettingsViewModel
 
@@ -40,7 +43,11 @@ struct PinCodeSettingsView: View {
     if viewModel.canChangePinCode {
       Button(
         action: {
-          viewModel.displayPinCodeSelection = true
+          accessControl.requestAccess(for: .changePincode) { success in
+            if success {
+              viewModel.displayPinCodeSelection = true
+            }
+          }
         },
         label: {
           Text(CoreLocalization.L10n.Core.kwChangePinCode)

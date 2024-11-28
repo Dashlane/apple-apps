@@ -75,26 +75,6 @@ public class AccountVerificationFlowModel: ObservableObject, LoginKitServicesInj
       }
     }
   }
-
-  func makeAuthenticatorPushViewModel() -> AuthenticatorPushVerificationViewModel {
-    AuthenticatorPushVerificationViewModel(
-      login: Login(accountVerificationService.login),
-      accountVerificationService: accountVerificationService
-    ) { [weak self] result in
-      guard let self = self else {
-        return
-      }
-      switch result {
-      case let .success(authTicket):
-        self.completion(.success((authTicket, false)))
-      case .error(let error):
-        self.completion(.failure(error))
-      case .token:
-        self.verificationMethod = .emailToken
-      }
-    }
-  }
-
 }
 
 extension AccountVerificationFlowModel {

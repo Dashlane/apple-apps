@@ -7,16 +7,17 @@ public enum PlanDuration: String, Decodable {
 }
 
 public struct PlanTier {
-  public let kind: PurchasePlan.Kind
   public let plans: [PurchasePlan]
   public let capabilities: PaymentsAccessibleStoreOffersCapabilities
 
+  public var kind: PurchasePlan.Kind? {
+    return plans.first?.kind
+  }
+
   public init(
-    kind: PurchasePlan.Kind,
     plans: [PurchasePlan],
     capabilities: PaymentsAccessibleStoreOffersCapabilities
   ) {
-    self.kind = kind
     self.plans = plans
     self.capabilities = capabilities
   }
@@ -41,12 +42,6 @@ extension PlanTier {
     let monthlyPrice = monthlyPlan.price
     let yearlyPrice = yearlyPlan.price
     return (12 * monthlyPrice) - yearlyPrice
-  }
-}
-
-extension PlanTier: Identifiable {
-  public var id: PurchasePlan.Kind {
-    return kind
   }
 }
 

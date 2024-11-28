@@ -187,8 +187,7 @@ public class LoginViewModel: ObservableObject, LoginKitServicesInjecting {
   }
 
   public func deviceToDeviceLogin() {
-    completion(
-      .deviceToDeviceRemoteLogin(nil, loginHandler.makeDeviceTransferLoginFlowStateMachine()))
+    completion(.deviceToDeviceRemoteLogin(nil, loginHandler.deviceInfo))
   }
 }
 

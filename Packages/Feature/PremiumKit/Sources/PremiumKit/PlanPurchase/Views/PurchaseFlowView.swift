@@ -61,7 +61,8 @@
         }
       case let .detail(planTier, firstStep):
         PlanPurchaseView(
-          model: model.makeDetailViewModel(planTier: planTier), firstStep: firstStep,
+          model: model.makeDetailViewModel(
+            planDisplay: planTier.kind == .free ? .free : .tier(planTier)), firstStep: firstStep,
           action: model.handlePlanPurchaseViewAction)
       }
     }
@@ -92,9 +93,15 @@
       case .list:
         purchasePlansListView(with: planTiers)
       case let .plan(kind):
-        if let targetedPlanTier = planTiers.values.first(where: { $0.kind == kind }) {
+        if kind == .free {
           PlanPurchaseView(
-            model: model.makeDetailViewModel(planTier: targetedPlanTier),
+            model: model.makeDetailViewModel(planDisplay: .free),
+            firstStep: true,
+            action: model.handlePlanPurchaseViewAction
+          )
+        } else if let targetedPlanTier = planTiers.values.first(where: { $0.kind == kind }) {
+          PlanPurchaseView(
+            model: model.makeDetailViewModel(planDisplay: .tier(targetedPlanTier)),
             firstStep: true,
             action: model.handlePlanPurchaseViewAction
           )
@@ -105,7 +112,7 @@
     }
 
     private func purchasePlansListView(with planTiers: [PurchasePlan.Kind: PlanTier]) -> some View {
-      PurchasePlansListView(
+      PlansListView(
         model: model.makeListViewModel(planTiers: planTiers),
         firstStep: model.startByList,
         action: model.handlePurchasePlansListViewAction

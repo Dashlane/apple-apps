@@ -40,7 +40,6 @@ public enum UserSettingsKey: String, CaseIterable, LocalSettingsKey {
   case planRecommandationHasBeenShown
   case hasCreatedAtLeastOneItem
   case hasDismissedNewVPNProviderMessage
-  case hasDismissedAuthenticatorSunsetBanner
   case ssoAuthenticationRequested
   case lastAggregatedLogsUploadDate
   case premiumExpirationSentNotifications
@@ -71,7 +70,6 @@ public enum UserSettingsKey: String, CaseIterable, LocalSettingsKey {
       .planRecommandationHasBeenShown,
       .hasCreatedAtLeastOneItem,
       .hasDismissedNewVPNProviderMessage,
-      .hasDismissedAuthenticatorSunsetBanner,
       .ssoAuthenticationRequested:
       return Bool.self
     case .deviceTokenForRemoteNotifications,

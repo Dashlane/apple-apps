@@ -12,6 +12,9 @@ struct SharingItemsUserDetailView: View {
   @Environment(\.dismiss)
   var dismiss
 
+  @Environment(\.accessControl)
+  var accessControl
+
   @State
   var showActionDialog: Bool = true
 
@@ -75,7 +78,10 @@ struct SharingItemsUserDetailView: View {
     Section {
       ForEach(model.items) { item in
         SharedItemInfoRow(model: model.makeRowViewModel(item: item)) {
-          model.requestShowDetail(for: item.vaultItem) {
+          accessControl.requestAccess(to: item.vaultItem) { success in
+            guard success else {
+              return
+            }
             selectedItem = item.vaultItem
           }
         } menuActions: {

@@ -1,8 +1,11 @@
 import Combine
+import CoreFeature
 import CoreLocalization
 import CorePersonalData
+import CorePremium
 import DesignSystem
 import Foundation
+import PremiumKit
 import VaultKit
 
 @MainActor
@@ -26,6 +29,9 @@ public class CollectionsFlowViewModel: ObservableObject, SessionServicesInjectin
   @Published
   var collectionAccessToChange: VaultCollection?
 
+  @Published
+  var vaultState: VaultState = .default
+
   let detailViewModelFactory: VaultDetailViewModel.Factory
   let collectionsListViewModelFactory: CollectionsListViewModel.Factory
   let collectionDetailViewModelFactory: CollectionDetailViewModel.Factory
@@ -34,6 +40,8 @@ public class CollectionsFlowViewModel: ObservableObject, SessionServicesInjectin
 
   private let vaultCollectionsStore: VaultCollectionsStore
   private let database: ApplicationDatabase
+  private let vaultStateService: VaultStateServiceProtocol
+  private let deeplinkingService: DeepLinkingServiceProtocol
 
   private var cancellables: Set<AnyCancellable> = []
 
@@ -41,6 +49,8 @@ public class CollectionsFlowViewModel: ObservableObject, SessionServicesInjectin
     initialStep: CollectionsFlowViewModel.Step = .list,
     vaultCollectionsStore: VaultCollectionsStore,
     database: ApplicationDatabase,
+    vaultStateService: VaultStateServiceProtocol,
+    deeplinkingService: DeepLinkingServiceProtocol,
     detailViewModelFactory: VaultDetailViewModel.Factory,
     collectionsListViewModelFactory: CollectionsListViewModel.Factory,
     collectionDetailViewModelFactory: CollectionDetailViewModel.Factory,
@@ -55,6 +65,8 @@ public class CollectionsFlowViewModel: ObservableObject, SessionServicesInjectin
     self.sharingCollectionMembersViewModelFactory = sharingCollectionMembersViewModelFactory
     self.steps = [initialStep]
     self.database = database
+    self.vaultStateService = vaultStateService
+    self.deeplinkingService = deeplinkingService
     self.registerPublishers()
   }
 
@@ -66,6 +78,10 @@ public class CollectionsFlowViewModel: ObservableObject, SessionServicesInjectin
         self?.handleUpdate(on: collections)
       }
       .store(in: &cancellables)
+
+    vaultStateService
+      .vaultStatePublisher()
+      .assign(to: &$vaultState)
   }
 
   func handleCollectionsListAction(_ action: CollectionsListView.Action) {
@@ -73,6 +89,11 @@ public class CollectionsFlowViewModel: ObservableObject, SessionServicesInjectin
     case .selected(let collection):
       steps.append(.collectionDetail(collection))
     case .share(let collection):
+      guard vaultState != .frozen else {
+        deeplinkingService.handleLink(
+          .premium(.planPurchase(initialView: .paywall(trigger: .frozenAccount))))
+        return
+      }
       do {
         try database.checkShareability(of: Array(collection.itemIds))
         collectionToShare = collection
@@ -145,6 +166,8 @@ extension CollectionsFlowViewModel {
     .init(
       vaultCollectionsStore: MockVaultConnectedContainer().vaultCollectionsStore,
       database: MockVaultConnectedContainer().database,
+      vaultStateService: .mock,
+      deeplinkingService: DeepLinkingService.fakeService,
       detailViewModelFactory: .init { .mock() },
       collectionsListViewModelFactory: .init { .mock },
       collectionDetailViewModelFactory: .init { collection in .mock(for: collection) },

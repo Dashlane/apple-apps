@@ -19,6 +19,7 @@ extension NotificationCenterService {
       case secureLock
       case trialPeriod
       case resetMasterPassword
+      case frozenAccount
     }
 
     public enum Dynamic {

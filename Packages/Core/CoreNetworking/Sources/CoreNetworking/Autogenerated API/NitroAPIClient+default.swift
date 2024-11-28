@@ -3,7 +3,7 @@ import DashlaneAPI
 import Foundation
 import SwiftTreats
 
-extension NitroAPIClient {
+extension NitroSSOAPIClient {
   public init(info: ClientInfo = .init()) throws {
     try self.init(configuration: .init(info: info, environment: .default))
   }

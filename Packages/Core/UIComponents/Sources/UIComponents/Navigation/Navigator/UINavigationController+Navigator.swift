@@ -63,12 +63,8 @@
     private func makeContentViewController<Content: View>(
       for view: Content, using barStyle: NavigationBarStyle
     ) -> UIViewController {
-      let injectedView =
-        view
-        .environment(\.navigator, { [weak self] in return self })
 
-      return NavigationContentHostingController(
-        rootView: injectedView, navigationBarStyle: barStyle)
+      return NavigationContentHostingController(rootView: view, navigationBarStyle: barStyle)
     }
 
     @discardableResult

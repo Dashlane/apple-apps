@@ -8,7 +8,7 @@ enum FileDownloadResponse: Equatable {
   case data(Data, etag: String?)
 }
 
-protocol FileDownloaderProtocol {
+protocol FileDownloaderProtocol: Sendable {
   func download(at url: URL, etag: String?) async throws -> FileDownloadResponse
 }
 

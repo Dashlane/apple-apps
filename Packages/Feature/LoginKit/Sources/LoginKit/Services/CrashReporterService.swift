@@ -42,12 +42,7 @@ public class CrashReporterService: NSObject {
     }
 
     let key: String
-    switch target {
-    case .app, .tachyon:
-      key = ApplicationSecrets.Sentry.passwordManagerKey
-    case .authenticator:
-      key = ApplicationSecrets.Sentry.authenticatorKey
-    }
+    key = ApplicationSecrets.Sentry.passwordManagerKey
 
     startSentry(key: key)
   }
@@ -75,8 +70,9 @@ public class CrashReporterService: NSObject {
     }
   }
 
+  @MainActor
   public func associate(to login: Login?) {
-    SentrySDK.configureScope { scope in
+    SentrySDK.configureScope { @MainActor scope in
       scope.setUser(.init(login: login))
     }
   }

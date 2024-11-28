@@ -5,6 +5,22 @@ import DesignSystem
 import SwiftUI
 import UIComponents
 
+public struct LimitedRightsModifierViewModel {
+  let hasInfoButton: Bool
+  let item: PersonalDataCodable
+  let isFrozen: Bool
+
+  var shouldLimit: Bool {
+    return (item.isShared && item.metadata.sharingPermission == .limited) || isFrozen
+  }
+
+  public init(item: PersonalDataCodable, isFrozen: Bool, hasInfoButton: Bool = true) {
+    self.hasInfoButton = hasInfoButton
+    self.item = item
+    self.isFrozen = isFrozen
+  }
+}
+
 extension View {
   @ViewBuilder
   public func limitedRights(
@@ -16,6 +32,16 @@ extension View {
     {
       self.modifier(
         SharingAlertFieldModifier(sharingType: sharingType, hasInfoButton: hasInfoButton))
+    } else {
+      self
+    }
+  }
+
+  @ViewBuilder
+  public func limitedRights(model: LimitedRightsModifierViewModel) -> some View {
+    if model.shouldLimit, let sharingType = model.item.metadata.contentType.sharingType {
+      self.modifier(
+        SharingAlertFieldModifier(sharingType: sharingType, hasInfoButton: model.hasInfoButton))
     } else {
       self
     }

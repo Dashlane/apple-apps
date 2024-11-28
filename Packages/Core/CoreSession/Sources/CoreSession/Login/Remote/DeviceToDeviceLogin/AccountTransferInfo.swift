@@ -11,6 +11,7 @@ public struct AccountTransferInfo: Hashable, Equatable, Sendable {
   public let masterKey: MasterKey
   public let accountType: AccountType
   public let authTicket: AuthTicket?
+  public let verificationMethod: VerificationMethod
 
   var ssoKey: String? {
     switch masterKey {
@@ -38,14 +39,21 @@ public struct AccountTransferInfo: Hashable, Equatable, Sendable {
 
     self.init(
       login: Login(receivedData.login), masterKey: masterKey,
-      accountType: receivedData.key.accountType, authTicket: authTicket)
+      accountType: receivedData.key.accountType, verificationMethod: .emailToken,
+      authTicket: authTicket)
   }
 
-  public init(login: Login, masterKey: MasterKey, accountType: AccountType, authTicket: AuthTicket?)
-  {
+  public init(
+    login: Login,
+    masterKey: MasterKey,
+    accountType: AccountType,
+    verificationMethod: VerificationMethod,
+    authTicket: AuthTicket?
+  ) {
     self.login = login
     self.masterKey = masterKey
     self.accountType = accountType
+    self.verificationMethod = .emailToken
     self.authTicket = authTicket
   }
 }

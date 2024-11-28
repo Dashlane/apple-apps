@@ -41,9 +41,7 @@ struct ConnectedIpadMacRootView: View {
       model.select(selection)
 
     case .tool(let toolDeeplink, _):
-      if case .unresolvedAlert = toolDeeplink {
-        model.select(.notifications)
-      } else if let tool = ToolsItem(deepLink: toolDeeplink) {
+      if let tool = ToolsItem(deepLink: toolDeeplink) {
         model.select(.tools(tool))
       }
     case .settings, .mplessLogin:
@@ -54,6 +52,9 @@ struct ConnectedIpadMacRootView: View {
 
     case .other(.contacts, _), .other(.sharing, _):
       model.select(.tools(.contacts))
+
+    case .unresolvedAlert:
+      model.select(.notifications)
 
     default: break
 
@@ -83,7 +84,9 @@ struct ConnectedIpadMacRootView: View {
     case .collection(let collectionNavigation):
       CollectionsFlow(
         viewModel: model.collectionFlowViewModelFactory.make(
-          initialStep: .collectionDetail(collectionNavigation.collection)))
+          initialStep: .collectionDetail(collectionNavigation.collection))
+      )
+      .id(collectionNavigation.collection.id)
 
     case .settings:
       EmptyView()
@@ -116,8 +119,6 @@ extension ToolsItem {
       self = .passwordGenerator
 
     case .otherTool(.tools):
-      return nil
-    case .unresolvedAlert:
       return nil
     }
 

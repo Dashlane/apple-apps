@@ -14,6 +14,7 @@ class CredentialDomainsViewModel {
   let canAddDomain: Bool
   let isAdditionMode: Bool
   let initialMode: DetailMode
+
   private let vaultItemsStore: VaultItemsStore
   private let activityReporter: ActivityReporterProtocol
   private let updatePublisher:
@@ -23,6 +24,7 @@ class CredentialDomainsViewModel {
     item: Credential,
     isAdditionMode: Bool,
     initialMode: DetailMode,
+    isFrozen: Bool,
     vaultItemsStore: VaultItemsStore,
     activityReporter: ActivityReporterProtocol,
     updatePublisher: PassthroughSubject<CredentialDetailViewModel.LinkedServicesUpdate, Never>
@@ -30,7 +32,7 @@ class CredentialDomainsViewModel {
     self.item = item
     self.isAdditionMode = isAdditionMode
     self.initialMode = initialMode
-    self.canAddDomain = item.canAddDomain
+    self.canAddDomain = item.canAddDomain && !isFrozen
     self.vaultItemsStore = vaultItemsStore
     self.activityReporter = activityReporter
     self.updatePublisher = updatePublisher
@@ -74,6 +76,7 @@ extension CredentialDomainsViewModel {
       item: PersonalDataMock.Credentials.amazon,
       isAdditionMode: false,
       initialMode: .viewing,
+      isFrozen: false,
       vaultItemsStore: MockVaultKitServicesContainer().vaultItemsStore,
       activityReporter: .mock,
       updatePublisher: PassthroughSubject<CredentialDetailViewModel.LinkedServicesUpdate, Never>())

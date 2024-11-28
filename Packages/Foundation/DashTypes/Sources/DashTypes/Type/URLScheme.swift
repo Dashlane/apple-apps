@@ -2,7 +2,6 @@ import Foundation
 
 public enum URLScheme: String {
   case dashlane = "dashlane:///"
-  case authenticator = "dashlane-authenticator:///"
 }
 
 extension URLScheme {

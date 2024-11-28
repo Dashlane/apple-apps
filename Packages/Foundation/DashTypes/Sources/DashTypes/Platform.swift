@@ -8,7 +8,6 @@ public enum Platform: String, Encodable {
   case passwordManagerIphone = "server_iphone"
   case passwordManagerIpad = "server_ipad"
   case passwordManagerMac = "server_catalyst"
-  case authenticatorIOS = "authenticator_ios"
 
   public static var passwordManager: Platform {
     #if targetEnvironment(macCatalyst)
@@ -17,9 +16,5 @@ public enum Platform: String, Encodable {
       let isIpad = UIDevice.current.userInterfaceIdiom == .pad
       return isIpad ? .passwordManagerIpad : .passwordManagerIphone
     #endif
-  }
-
-  public static var authenticator: Platform {
-    return .authenticatorIOS
   }
 }

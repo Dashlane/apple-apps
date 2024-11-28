@@ -26,6 +26,7 @@ struct AccountSummaryView: View {
         .editionDisabled(appearance: .discrete)
         .fieldAppearance(.grouped)
       }
+      .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
 
       Section(
         header: Text(L10n.Localizable.accountSummaryAccountVerification).textStyle(
@@ -48,6 +49,7 @@ struct AccountSummaryView: View {
         .editionDisabled(appearance: .discrete)
         .fieldAppearance(.grouped)
       }
+      .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
     }
     .listAppearance(.insetGrouped)
     .navigationBarTitleDisplayMode(.inline)

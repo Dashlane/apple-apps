@@ -22,7 +22,7 @@ extension Report {
     public let date: Date
     public let dateOrigin: Definition.DateOrigin
     public let id: LowercasedUUID
-    public let schemaVersion = "1.23.7"
+    public let schemaVersion = "1.23.8"
     public let session: Definition.Session?
     public let properties: Event
   }

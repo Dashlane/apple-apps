@@ -17,6 +17,7 @@ extension Definition {
     case `essentialOffer` = "essential_offer"
     case `extendTrial` = "extend_trial"
     case `familyOffer` = "family_offer"
+    case `freeOffer` = "free_offer"
     case `installExtension` = "install_extension"
     case `linkWebsite` = "link_website"
     case `notNow` = "not_now"

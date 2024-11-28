@@ -212,7 +212,7 @@ public class LockPinCodeAndBiometryViewModel: ObservableObject, LoginKitServices
         context: LoginUnlockContext(
           verificationMode: .emailToken, isBackupCode: nil, origin: .login,
           localLoginContext: .passwordApp),
-        unlocker: .mock,
+        unlocker: .mock(),
         loginMetricsReporter: .fake,
         activityReporter: .mock
       ) { _ in

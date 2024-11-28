@@ -8,14 +8,19 @@ public struct RegistrationData: Hashable {
   public var shouldEnableBiometry: Bool
   public var newMasterPassword: String?
   public let transferMethod: TransferMethod
+  public let isBackupCode: Bool
+  public let verificationMethod: VerificationMethod
 
   public init(
     transferData: AccountTransferInfo,
-    pin: String? = nil, authTicket: AuthTicket,
+    pin: String? = nil,
+    authTicket: AuthTicket,
     isRecoveryLogin: Bool = false,
     shouldEnableBiometry: Bool = false,
     newMasterPassword: String? = nil,
-    transferMethod: TransferMethod
+    isBackupCode: Bool = false,
+    transferMethod: TransferMethod,
+    verificationMethod: VerificationMethod = .emailToken
   ) {
     self.transferData = transferData
     self.pin = pin
@@ -24,5 +29,7 @@ public struct RegistrationData: Hashable {
     self.shouldEnableBiometry = shouldEnableBiometry
     self.newMasterPassword = newMasterPassword
     self.transferMethod = transferMethod
+    self.isBackupCode = isBackupCode
+    self.verificationMethod = verificationMethod
   }
 }

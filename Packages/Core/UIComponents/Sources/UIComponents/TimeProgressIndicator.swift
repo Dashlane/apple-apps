@@ -18,8 +18,8 @@ public struct TimeProgressIndicator: View {
       .background(Circle().stroke(Color.ds.container.agnostic.neutral.standard, lineWidth: 2))
       .rotationEffect(.degrees(180), anchor: .center)
       .rotation3DEffect(.degrees(180), axis: (x: 1, y: 0, z: 0))
-      .frame(width: 20, height: 20)
       .animation(.linear(duration: 1), value: progress)
       .transition(.identity)
+      .aspectRatio(contentMode: .fit)
   }
 }

@@ -50,8 +50,8 @@ public struct SelectionListView<Value, Content>: View where Value: Identifiable,
         }
       )
       .fiberAccessibilityAddTraits(selection.id == item.id ? .isSelected : [])
+      .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
     }
-    .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
     .toolbarBackground(Color.ds.container.agnostic.neutral.standard, for: .navigationBar)
   }
 }

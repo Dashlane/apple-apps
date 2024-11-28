@@ -9,7 +9,7 @@ import SwiftTreats
 public class SSORemoteLoginViewModel: StateMachineBasedObservableObject, LoginKitServicesInjecting {
 
   public enum CompletionType {
-    case completed(SSOKeys, DeviceRegistrationData)
+    case completed(RemoteLoginSession)
     case cancel
   }
 
@@ -39,10 +39,10 @@ public class SSORemoteLoginViewModel: StateMachineBasedObservableObject, LoginKi
   ) async {
     switch (newState, event) {
     case (.waitingForUserInput, _): break
-    case (let .receivedSSOKeys(ssoKeys, deviceRegistrationData), _):
-      self.completion(.success(.completed(ssoKeys, deviceRegistrationData)))
-    case (.failed, _):
-      self.completion(.failure(SSOAccountError.invalidServiceProviderKey))
+    case (let .completed(remoteLoginSession), _):
+      self.completion(.success(.completed(remoteLoginSession)))
+    case (let .failed(error), _):
+      self.completion(.failure(error.underlyingError))
     case (.cancelled, _):
       self.completion(.success(.cancel))
     }

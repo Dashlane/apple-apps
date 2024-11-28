@@ -16,10 +16,9 @@ enum ToolDeepLinkComponent {
   }
 
   case identityDashboard
-  case authenticator
+  case authenticator(URL? = nil)
   case darkWebMonitoring
   case otherTool(OtherToolDeepLinkComponent)
-  case unresolvedAlert(TrayAlertProtocol)
 
   init?(components: [String]) {
     if components[0] == Self.identityDashboard.rawDeeplink || components[0] == "password-health" {
@@ -28,8 +27,8 @@ enum ToolDeepLinkComponent {
       self = .otherTool(otherToolDeeplinkComponent)
     } else if components[0] == Self.darkWebMonitoring.rawDeeplink {
       self = .darkWebMonitoring
-    } else if components[0] == Self.authenticator.rawDeeplink {
-      self = .authenticator
+    } else if components[0] == Self.authenticator().rawDeeplink {
+      self = .authenticator()
     } else {
       return nil
     }
@@ -43,8 +42,6 @@ extension ToolDeepLinkComponent {
       return "security-dashboard"
     case let .otherTool(component):
       return component.rawDeeplink
-    case .unresolvedAlert:
-      return "unresolved-alert"
     case .darkWebMonitoring:
       return "dark-web-monitoring"
     case .authenticator: return "authenticator"

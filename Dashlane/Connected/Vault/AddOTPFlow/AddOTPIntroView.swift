@@ -115,6 +115,7 @@ struct AddOTPIntroView: View {
         .multilineTextAlignment(.leading)
     }
     .accessibilityAddTraits(.isLink)
+    .accessibilityRemoveTraits(.isButton)
   }
 
 }

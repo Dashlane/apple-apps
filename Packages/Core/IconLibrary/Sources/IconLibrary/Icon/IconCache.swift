@@ -2,7 +2,7 @@ import Combine
 import DashTypes
 import Foundation
 
-public struct IconCache {
+public struct IconCache: Sendable {
   public var icon: Icon?
   var modificationDate: Date?
 

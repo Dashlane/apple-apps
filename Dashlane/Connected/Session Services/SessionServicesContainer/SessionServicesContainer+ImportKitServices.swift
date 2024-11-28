@@ -6,7 +6,7 @@ import ImportKit
 
 extension SessionServicesContainer: ImportKitServicesContainer {
   var reporter: CoreUserTracking.ActivityReporterProtocol {
-    activityReporter.activityReporter
+    sessionReporterService.activityReporter
   }
 
   var userSpacesServiceProcotol: CorePremium.UserSpacesService {

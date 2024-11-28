@@ -110,21 +110,4 @@
       self.present(viewController, animated: animated, completion: completion)
     }
   }
-
-  public typealias NavigatorProvider = () -> Navigator?
-
-  struct NavigatorEnvironmentKey: EnvironmentKey {
-    static let defaultValue: NavigatorProvider? = nil
-  }
-
-  extension EnvironmentValues {
-    public var navigator: NavigatorProvider {
-      get {
-        return self[NavigatorEnvironmentKey.self] ?? { return nil }
-      }
-      set {
-        self[NavigatorEnvironmentKey.self] = newValue
-      }
-    }
-  }
 #endif

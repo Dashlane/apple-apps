@@ -26,9 +26,9 @@ public struct DetailList<Content: View>: View {
           .accessibilityHidden(true)
 
         content
+          .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
       }
-      .detailListStyle()
-      .background(Color.ds.background.alternate)
+      .listAppearance(.insetGrouped)
       .scrollContentBackground(.hidden)
       .scrollDismissesKeyboard(.interactively)
     }
@@ -61,7 +61,7 @@ public struct DetailList<Content: View>: View {
 }
 
 public struct DetailDimension {
-  public static let placeholderHeight: CGFloat = 80
+  public static let placeholderHeight: CGFloat = 106
   public static let sectionMargin: CGFloat = 25
   public static let defaultNavigationBarHeight: CGFloat =
     placeholderHeight + navigationBarMinHeight + sectionMargin

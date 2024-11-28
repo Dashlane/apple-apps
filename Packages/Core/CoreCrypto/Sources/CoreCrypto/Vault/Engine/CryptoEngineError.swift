@@ -24,7 +24,7 @@ public enum CryptoEngineError: Error, LocalizedError {
     case .insufficientData:
       return "Data provided is too small"
     case .invalidHMAC:
-      return "Invalid HMAC"
+      return "The key or password is incorrect, or the data may be corrupted (Invalid HMAC)"
     case .configCannotCreateDerivationSalt:
       return "Cannot create a salt with the configuration since there is no key derivation"
     case let .unsupportedCryptoVersion(version):

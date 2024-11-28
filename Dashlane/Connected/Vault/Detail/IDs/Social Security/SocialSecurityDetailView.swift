@@ -70,14 +70,14 @@ struct SocialSecurityDetailView: View {
         SecureDetailField(
           title: CoreLocalization.L10n.Core.KWSocialSecurityStatementIOS.socialSecurityNumber,
           text: $model.item.number,
-          shouldReveal: $model.shouldReveal,
-          onRevealAction: model.reveal,
+          onRevealAction: model.sendUsageLog,
           actions: [.copy(model.copy)]
         )
-        .actions([.copy(model.copy), .largeDisplay], accessHandler: model.requestAccess)
+        .actions([.copy(model.copy), .largeDisplay])
         .fiberFieldType(.socialSecurityNumber)
       }
-    }.makeShortcuts(model: model)
+    }
+    .makeShortcuts(model: model)
   }
 }
 

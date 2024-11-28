@@ -31,8 +31,8 @@ public struct SecureDetailField<FeedbackContent: View>: DetailField {
   @Binding
   var text: String
 
-  @Binding
-  var shouldReveal: Bool
+  @State
+  var shouldReveal: Bool = false
 
   @FocusState
   var isFocused
@@ -74,7 +74,6 @@ public struct SecureDetailField<FeedbackContent: View>: DetailField {
   public init(
     title: String,
     text: Binding<String>,
-    shouldReveal: Binding<Bool>,
     onRevealAction: OnRevealAction? = nil,
     hasDisplayEmptyIndicator: Bool = true,
     formatter: Formatter? = nil,
@@ -85,7 +84,6 @@ public struct SecureDetailField<FeedbackContent: View>: DetailField {
   ) {
     self.title = title
     self._text = text
-    self._shouldReveal = shouldReveal
     self.onRevealAction = onRevealAction
     self.hasDisplayEmptyIndicator = hasDisplayEmptyIndicator
     self.formatter = formatter
@@ -98,7 +96,6 @@ public struct SecureDetailField<FeedbackContent: View>: DetailField {
   public init(
     title: String,
     text: Binding<String>,
-    shouldReveal: Binding<Bool>,
     onRevealAction: OnRevealAction? = nil,
     hasDisplayEmptyIndicator: Bool = true,
     formatter: Formatter? = nil,
@@ -109,7 +106,6 @@ public struct SecureDetailField<FeedbackContent: View>: DetailField {
     self.init(
       title: title,
       text: text,
-      shouldReveal: shouldReveal,
       onRevealAction: onRevealAction,
       hasDisplayEmptyIndicator: hasDisplayEmptyIndicator,
       formatter: formatter,
@@ -139,7 +135,13 @@ public struct SecureDetailField<FeedbackContent: View>: DetailField {
         Toggle(isOn: $shouldReveal) {
           EmptyView()
         }
-        .toggleStyle(RevealToggleStyle(fieldType: fiberFieldType, action: { onRevealAction?($0) }))
+        .toggleStyle(
+          RevealToggleStyle(
+            fieldType: fiberFieldType,
+            action: {
+              shouldReveal.toggle()
+              onRevealAction?($0)
+            }))
 
         ForEach(actions) { action in
           if case .copy(let action) = action {
@@ -157,6 +159,11 @@ public struct SecureDetailField<FeedbackContent: View>: DetailField {
             .accessibilityLabel(Text(L10n.Core.kwCopy))
           }
         }
+      }
+    }
+    .onAppear {
+      if detailMode.isAdding {
+        shouldReveal = true
       }
     }
     .animation(Device.isMac ? .none : .default, value: shouldReveal)
@@ -330,10 +337,10 @@ struct SecureDetailField_Previews: PreviewProvider {
   static var previews: some View {
     MultiContextPreview {
       Group {
-        SecureDetailField(title: "Title", text: .constant("test"), shouldReveal: .constant(false))
-        SecureDetailField(title: "Title", text: .constant("test"), shouldReveal: .constant(true))
-          .environment(\.detailMode, .updating)
-        SecureDetailField(title: "Title", text: .constant(""), shouldReveal: .constant(false))
+        SecureDetailField(title: "Title", text: .constant("test"))
+        SecureDetailField(title: "Title", text: .constant("test")).environment(
+          \.detailMode, .updating)
+        SecureDetailField(title: "Title", text: .constant(""))
       }
       .background(Color.ds.background.default)
     }

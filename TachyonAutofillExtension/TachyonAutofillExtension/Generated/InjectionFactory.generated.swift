@@ -122,6 +122,8 @@ extension SessionServicesContainer {
       pasteboardService: pasteboardService,
       passwordEvaluator: appServices.passwordEvaluator,
       activityReporter: activityReporter,
+      vaultStateService: vaultStateService,
+      deeplinkingService: appServices.deeplinkingService,
       domainLibrary: domainIconLibrary,
       visitedWebsite: visitedWebsite,
       userSettings: userSettings,
@@ -222,6 +224,7 @@ extension SessionServicesContainer {
     return HomeFlowViewModel(
       credentialListViewModelFactory: InjectedFactory(makeCredentialListViewModel),
       sessionActivityReporter: activityReporter,
+      vaultStateService: vaultStateService,
       domainParser: appServices.domainParser,
       request: request,
       environmentModelFactory: InjectedFactory(makeAutofillConnectedEnvironmentModel),

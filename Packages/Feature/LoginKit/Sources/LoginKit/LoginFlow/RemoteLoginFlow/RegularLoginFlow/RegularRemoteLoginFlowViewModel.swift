@@ -7,9 +7,12 @@ import CoreUserTracking
 import DashTypes
 import DashlaneAPI
 import Foundation
+import StateMachine
 
 @MainActor
-public class RegularRemoteLoginFlowViewModel: ObservableObject, LoginKitServicesInjecting {
+public class RegularRemoteLoginFlowViewModel: StateMachineBasedObservableObject,
+  LoginKitServicesInjecting
+{
 
   public enum CompletionType {
     case completed(RemoteLoginSession, LoginFlowLogInfo)
@@ -17,29 +20,22 @@ public class RegularRemoteLoginFlowViewModel: ObservableObject, LoginKitServices
   }
 
   public enum Step {
-    case verification(VerificationMethod)
-    case masterPassword(_ loginKeys: LoginKeys)
-    case sso(SSOAuthenticationInfo)
+    case masterPassword(MasterPasswordFlowRemoteStateMachine.State, VerificationMethod, DeviceInfo)
+    case sso(SSOAuthenticationInfo, DeviceInfo)
   }
 
   @Published
   var steps: [Step]
 
-  let remoteLoginHandler: RegularRemoteLoginHandler
+  let login: Login
   let tokenPublisher: AnyPublisher<String, Never>
-  let masterPasswordFactory: MasterPasswordRemoteViewModel.Factory
   let completion: @MainActor (Result<RegularRemoteLoginFlowViewModel.CompletionType, Error>) -> Void
-  private let email: String
   private let settingsManager: LocalSettingsFactory
-  private let keychainService: AuthenticationKeychainServiceProtocol
   private let activityReporter: ActivityReporterProtocol
-  let sessionCryptoEngineProvider: CryptoEngineProvider
   private let deviceUnlinkingFactory: DeviceUnlinkingFlowViewModel.Factory
-  private let appAPIClient: AppAPIClient
-  private let sessionActivityReporterProvider: SessionActivityReporterProvider
-  private let nitroClient: NitroAPIClient
   private let accountVerificationFlowModelFactory: AccountVerificationFlowModel.Factory
   private let ssoRemoteLoginViewModelFactory: SSORemoteLoginViewModel.Factory
+  private let masterPasswordRemoteLoginFlowModelFactory: MasterPasswordRemoteLoginFlowModel.Factory
 
   private var lastSuccessfulAuthenticationMode: Definition.Mode?
   var verificationMode: Definition.VerificationMode = .none
@@ -54,100 +50,68 @@ public class RegularRemoteLoginFlowViewModel: ObservableObject, LoginKitServices
       isBackupCode: isBackupCode)
   }
 
+  public var stateMachine: RegularRemoteLoginStateMachine
+
   public init(
-    remoteLoginHandler: RegularRemoteLoginHandler,
+    login: Login,
+    deviceRegistrationMethod: LoginMethod,
+    deviceInfo: DeviceInfo,
     settingsManager: LocalSettingsFactory,
-    sessionCryptoEngineProvider: CryptoEngineProvider,
     activityReporter: ActivityReporterProtocol,
     logger: Logger,
-    appAPIClient: AppAPIClient,
-    keychainService: AuthenticationKeychainServiceProtocol,
-    email: String,
-    sessionActivityReporterProvider: SessionActivityReporterProvider,
     tokenPublisher: AnyPublisher<String, Never>,
     deviceUnlinkingFactory: DeviceUnlinkingFlowViewModel.Factory,
-    masterPasswordFactory: MasterPasswordRemoteViewModel.Factory,
-    nitroClient: NitroAPIClient,
     accountVerificationFlowModelFactory: AccountVerificationFlowModel.Factory,
     steps: [RegularRemoteLoginFlowViewModel.Step] = [],
+    regularRemoteLoginStateMachineFactory: RegularRemoteLoginStateMachine.Factory,
     ssoRemoteLoginViewModelFactory: SSORemoteLoginViewModel.Factory,
+    masterPasswordRemoteLoginFlowModelFactory: MasterPasswordRemoteLoginFlowModel.Factory,
     completion: @escaping @MainActor (Result<RegularRemoteLoginFlowViewModel.CompletionType, Error>)
       -> Void
   ) {
-    self.remoteLoginHandler = remoteLoginHandler
-    self.email = email
-    self.appAPIClient = appAPIClient
-    self.sessionCryptoEngineProvider = sessionCryptoEngineProvider
+    self.login = login
+    self.stateMachine = regularRemoteLoginStateMachineFactory.make(
+      login: login, deviceRegistrationMethod: deviceRegistrationMethod, deviceInfo: deviceInfo)
     self.deviceUnlinkingFactory = deviceUnlinkingFactory
-    self.sessionActivityReporterProvider = sessionActivityReporterProvider
-    self.masterPasswordFactory = masterPasswordFactory
-    self.nitroClient = nitroClient
     self.activityReporter = activityReporter
     self.logger = logger[.session]
     self.completion = completion
-    self.keychainService = keychainService
     self.settingsManager = settingsManager
     self.tokenPublisher = tokenPublisher
     self.steps = steps
     self.accountVerificationFlowModelFactory = accountVerificationFlowModelFactory
     self.ssoRemoteLoginViewModelFactory = ssoRemoteLoginViewModelFactory
-    updateStep()
-  }
-
-  internal func updateStep() {
-    switch remoteLoginHandler.step {
-    case .validateByDeviceRegistrationMethod(let deviceRegistrationValidator):
-      switch deviceRegistrationValidator {
-      case .tokenByEmail:
-        self.steps.append(.verification(.emailToken))
-      case .thirdPartyOTP(let option):
-        self.steps.append(.verification(.totp(option.pushType)))
-      case .loginViaSSO(let validator):
-        self.steps.append(.sso(validator))
-      case .authenticator:
-        self.steps.append(.verification(.authenticatorPush))
-      }
-    case .validateMasterPassword(let deviceRegistrationData):
-      self.steps.append(
-        .masterPassword(
-          LoginKeys(
-            remoteKey: deviceRegistrationData.masterPasswordRemoteKey,
-            authTicket: deviceRegistrationData.authTicket)))
-    case let .completed(remoteLoginSession):
-      self.completion(.success(.completed(remoteLoginSession, logInfo)))
+    self.masterPasswordRemoteLoginFlowModelFactory = masterPasswordRemoteLoginFlowModelFactory
+    Task {
+      await self.perform(.initialize)
     }
   }
 
-  func makeAccountVerificationFlowViewModel(method: VerificationMethod)
-    -> AccountVerificationFlowModel
-  {
-    accountVerificationFlowModelFactory.make(
-      login: Login(email), mode: .masterPassword, verificationMethod: method,
-      deviceInfo: remoteLoginHandler.deviceInfo, debugTokenPublisher: tokenPublisher,
-      completion: { [weak self] completion in
-
-        guard let self = self else {
-          return
-        }
-        Task {
-          do {
-            let (authTicket, isBackupCode) = try completion.get()
-            try await self.remoteLoginHandler.registerDevice(withAuthTicket: authTicket)
-            self.verificationMode = method.verificationMode
-            self.isBackupCode = isBackupCode
-            self.updateStep()
-          } catch {
-            self.completion(.failure(error))
-          }
-        }
-      })
+  public func update(
+    for event: RegularRemoteLoginStateMachine.Event,
+    from oldState: RegularRemoteLoginStateMachine.State,
+    to newState: RegularRemoteLoginStateMachine.State
+  ) async {
+    switch newState {
+    case let .masterPasswordFlow(state, verificationMethod, deviceInfo):
+      self.steps.append(.masterPassword(state, verificationMethod, deviceInfo))
+    case let .completed(remoteLoginSession):
+      self.completion(.success(.completed(remoteLoginSession, logInfo)))
+    case let .ssoLoginFlow(initialStep, info, deviceInfo):
+      self.steps.append(.sso(info, deviceInfo))
+    case .initializing: break
+    case .failed:
+      self.completion(.failure(AccountError.unknown))
+    case .cancelled:
+      self.completion(.success(.cancel))
+    }
   }
 
-  func makeSSOLoginViewModel(ssoAuthenticationInfo: SSOAuthenticationInfo)
+  func makeSSOLoginViewModel(ssoAuthenticationInfo: SSOAuthenticationInfo, deviceInfo: DeviceInfo)
     -> SSORemoteLoginViewModel
   {
     return ssoRemoteLoginViewModelFactory.make(
-      ssoAuthenticationInfo: ssoAuthenticationInfo, deviceInfo: remoteLoginHandler.deviceInfo
+      ssoAuthenticationInfo: ssoAuthenticationInfo, deviceInfo: deviceInfo
     ) { result in
       Task { @MainActor in
         await self.handleSSOResult(result)
@@ -163,9 +127,7 @@ public class RegularRemoteLoginFlowViewModel: ObservableObject, LoginKitServices
     do {
       let result = try result.get()
       switch result {
-      case let .completed(ssoKeys, data):
-        let remoteLoginSession = try await self.validateRemoteKey(
-          ssoKeys, data: data, isRecoveryLogin: false)
+      case let .completed(remoteLoginSession):
         self.lastSuccessfulAuthenticationMode = .sso
         self.verificationMode = Definition.VerificationMode.none
         self.completion(.success(.completed(remoteLoginSession, logInfo)))
@@ -181,32 +143,38 @@ public class RegularRemoteLoginFlowViewModel: ObservableObject, LoginKitServices
       self.completion(.failure(error))
     }
   }
+
+  func makeMasterPasswordRemoteLoginFlowModel(
+    verificationMethod: VerificationMethod, deviceInfo: DeviceInfo
+  ) -> MasterPasswordRemoteLoginFlowModel {
+    masterPasswordRemoteLoginFlowModelFactory.make(
+      login: login, deviceInfo: deviceInfo, verificationMethod: verificationMethod,
+      tokenPublisher: tokenPublisher
+    ) { result in
+      do {
+        let result = try result.get()
+        switch result {
+        case let .completed(remoteLoginSession, logInfo):
+          self.completion(.success(.completed(remoteLoginSession, logInfo)))
+        case .cancel:
+          self.completion(.success(.cancel))
+        }
+      } catch {
+
+      }
+    }
+  }
 }
 
 extension RegularRemoteLoginFlowViewModel {
-  private func validateRemoteKey(
-    _ ssoKeys: SSOKeys, data: DeviceRegistrationData, isRecoveryLogin: Bool
-  ) async throws -> RemoteLoginSession {
-    return try await remoteLoginHandler.validateMasterKey(
-      .ssoKey(ssoKeys.ssoKey),
-      login: Login(email),
-      authTicket: ssoKeys.authTicket,
-      remoteKey: ssoKeys.remoteKey,
-      data: data,
-      isRecoveryLogin: isRecoveryLogin)
-  }
-
   static func mock() -> RegularRemoteLoginFlowViewModel {
     return RegularRemoteLoginFlowViewModel(
-      remoteLoginHandler: RegularRemoteLoginHandler.mock,
+      login: Login("_"),
+      deviceRegistrationMethod: .tokenByEmail([]),
+      deviceInfo: .mock,
       settingsManager: LocalSettingsFactoryMock.mock,
-      sessionCryptoEngineProvider: SessionCryptoEngineProvider(logger: LoggerMock()),
       activityReporter: .mock,
       logger: LoggerMock(),
-      appAPIClient: .fake,
-      keychainService: FakeAuthenticationKeychainService.mock,
-      email: "",
-      sessionActivityReporterProvider: .mock,
       tokenPublisher: PassthroughSubject().eraseToAnyPublisher(),
       deviceUnlinkingFactory: InjectedFactory {
         deviceUnlinker, login, _, purchasePlanFlowProvider, _, completion in
@@ -220,15 +188,17 @@ extension RegularRemoteLoginFlowViewModel {
           completion: completion
         )
       },
-      masterPasswordFactory: InjectedFactory { _, _, _, _, _, _, _ in
-        return .mock
-      },
-      nitroClient: .fake,
       accountVerificationFlowModelFactory: .init { _, _, _, _, _, _ in
         AccountVerificationFlowModel.mock(verificationMethod: .emailToken)
       },
-      steps: [.verification(.authenticatorPush)],
+      steps: [.masterPassword(.accountVerification(.emailToken, .mock), .emailToken, .mock)],
+      regularRemoteLoginStateMachineFactory: .init({ _, _, _, _ in
+        .mock
+      }),
       ssoRemoteLoginViewModelFactory: .init({ _, _, _ in
+        .mock
+      }),
+      masterPasswordRemoteLoginFlowModelFactory: .init({ _, _, _, _, _ in
         .mock
       })
     ) { _ in }
@@ -236,10 +206,8 @@ extension RegularRemoteLoginFlowViewModel {
 }
 
 extension VerificationMethod {
-  fileprivate var verificationMode: Definition.VerificationMode {
+  var verificationMode: Definition.VerificationMode {
     switch self {
-    case .authenticatorPush:
-      return .authenticatorApp
     case .emailToken:
       return .emailToken
     case .totp:

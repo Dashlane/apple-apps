@@ -10,54 +10,6 @@ import LoginKit
 import PremiumKit
 import SwiftUI
 
-extension LoginCoordinator {
-
-  func loadSession(
-    using remoteLoginSession: RemoteLoginSession,
-    loadActionPublisher: PassthroughSubject<DeviceUnlinkLoadingAction, Never>,
-    logInfo: LoginFlowLogInfo,
-    remoteLoginHandler: RemoteLoginHandler
-  ) {
-    Task {
-      do {
-        let session = try await remoteLoginHandler.load(remoteLoginSession)
-        self.appServices.loginMetricsReporter.refreshTimer(.login)
-        sessionServicesSubscription =
-          SessionServicesContainer
-          .buildSessionServices(
-            from: session,
-            appServices: appServices,
-            logger: sessionLogger,
-            loadingContext: .remoteLogin(remoteLoginSession.isRecoveryLogin)
-          ) { [weak self] result in
-            guard let self = self else { return }
-            loadActionPublisher.send(
-              .finish {
-                switch result {
-                case let .success(sessionServices):
-                  if remoteLoginSession.isRecoveryLogin,
-                    let newMasterPassword = remoteLoginSession.newMasterPassword
-                  {
-                    self.changeMasterPassword(
-                      sessionServices: sessionServices, newMasterPassword: newMasterPassword)
-                  } else {
-                    sessionServices.activityReporter.logSuccessfulLogin(
-                      logInfo: logInfo,
-                      isFirstLogin: true)
-                    self.completion(.servicesLoaded(sessionServices))
-                  }
-                case let .failure(error):
-                  self.handle(error: error)
-                }
-              })
-          }
-      } catch {
-        self.handle(error: error)
-      }
-    }
-  }
-}
-
 class PurchasePlanFlowProvider: LoginKit.PurchasePlanFlowProvider {
   let appServices: AppServicesContainer
 
@@ -108,6 +60,7 @@ class PurchasePlanFlowProvider: LoginKit.PurchasePlanFlowProvider {
       userDeviceAPIClient: userDeviceAPIClient,
       logger: appServices.rootLogger[.session],
       screenLocker: nil,
-      activityReporter: appServices.activityReporter)
+      activityReporter: appServices.activityReporter,
+      vaultStateService: nil)
   }
 }

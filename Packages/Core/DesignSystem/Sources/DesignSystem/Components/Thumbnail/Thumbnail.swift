@@ -10,6 +10,7 @@ public enum Thumbnail: View {
       BaseThumbnail {
         IconThumbnailContentView(icon)
       }
+      .foregroundStyle(Color.ds.container.agnostic.neutral.standard)
     }
   }
 }
