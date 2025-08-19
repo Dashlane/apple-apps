@@ -1,20 +1,12 @@
-import DashTypes
+import CoreTypes
 import Foundation
 
-public protocol LocalSettingsStore {
+public protocol LocalSettingsStore: Sendable {
   typealias Identifier = String
   func set<T: DataConvertible>(value: T?, forIdentifier: Identifier)
   func value<T: DataConvertible>(for: Identifier) -> T?
   func delete(_ identifier: Identifier)
   func registerIfneeded(_ settingRegistrations: [SettingRegistration])
-}
-
-extension Settings: LocalSettingsStore {
-  public func registerIfneeded(_ settingRegistrations: [SettingRegistration]) {
-    settingRegistrations.forEach {
-      try? register.append($0)
-    }
-  }
 }
 
 extension SettingRegistration {
@@ -49,7 +41,7 @@ extension DataConvertible where Self: RawRepresentable, Self.RawValue == Int {
   }
 }
 
-public class LocalSettingsStoreMock: LocalSettingsStore {
+public final class LocalSettingsStoreMock: LocalSettingsStore {
 
   var data: [String: Any]
 

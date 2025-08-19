@@ -1,5 +1,6 @@
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 
 public protocol SecureStoreCryptoProvider {
   func encrypt(_ data: Data, key: Data) throws -> Data
@@ -25,6 +26,7 @@ extension RawRepresentable where Self: SecureStoreKey, RawValue == String {
   public var keyString: String { return rawValue }
 }
 
+@Loggable
 public enum SecureStoreError: Error {
   case invalidCipherText
   case encryptionError

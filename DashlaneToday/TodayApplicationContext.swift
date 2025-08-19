@@ -1,6 +1,6 @@
 import CoreCrypto
 import CoreKeychain
-import DashTypes
+import CoreTypes
 import Foundation
 import LoginKit
 import SwiftTreats
@@ -71,7 +71,7 @@ final public class TodayApplicationContext: Codable, Equatable {
   }
 }
 
-struct TodayCryptoEngine: DashTypes.CryptoEngine {
+struct TodayCryptoEngine: CoreTypes.CryptoEngine {
   @KeychainItemAccessor
   private var communicationCryptoKey: Data?
 

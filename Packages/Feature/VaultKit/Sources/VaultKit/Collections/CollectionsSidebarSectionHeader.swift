@@ -19,7 +19,7 @@ public struct CollectionsSidebarSectionHeader: View {
 
   public var body: some View {
     HStack {
-      Text(L10n.Core.KWVaultItem.Collections.toolsTitle)
+      Text(CoreL10n.KWVaultItem.Collections.toolsTitle)
         .frame(maxWidth: .infinity, alignment: .leading)
 
       Button(

@@ -20,27 +20,6 @@ public enum ToolsItem: String, CaseIterable, Hashable, Identifiable {
     return rawValue
   }
 
-  var image: UIImage {
-    switch self {
-    case .passwordGenerator:
-      return .ds.feature.passwordGenerator.outlined
-    case .multiDevices:
-      return .ds.laptopCheckmark.outlined
-    case .identityDashboard:
-      return .ds.feature.passwordHealth.outlined
-    case .secureWifi:
-      return .ds.feature.vpn.outlined
-    case .darkWebMonitoring:
-      return .ds.feature.darkWebMonitoring.outlined
-    case .contacts:
-      return .ds.shared.outlined
-    case .authenticator:
-      return .ds.feature.authenticator.outlined
-    case .collections:
-      return .ds.folder.outlined
-    }
-  }
-
   public var icon: SwiftUI.Image {
     switch self {
     case .passwordGenerator:
@@ -86,7 +65,7 @@ public enum ToolsItem: String, CaseIterable, Hashable, Identifiable {
   var title: String {
     switch self {
     case .passwordGenerator:
-      return CoreLocalization.L10n.Core.mainMenuPasswordGenerator
+      return CoreL10n.mainMenuPasswordGenerator
     case .multiDevices:
       return L10n.Localizable.kwMultiDevices
     case .identityDashboard:
@@ -100,7 +79,7 @@ public enum ToolsItem: String, CaseIterable, Hashable, Identifiable {
     case .authenticator:
       return L10n.Localizable.otpToolName
     case .collections:
-      return CoreLocalization.L10n.Core.KWVaultItem.Collections.toolsTitle
+      return CoreL10n.KWVaultItem.Collections.toolsTitle
     }
   }
 }

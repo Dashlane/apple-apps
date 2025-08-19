@@ -1,6 +1,6 @@
 import Foundation
 
-public struct AccountCreateUserConsents: Codable, Equatable, Sendable {
+public struct AccountCreateUserConsents: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case consentType = "consentType"
     case status = "status"

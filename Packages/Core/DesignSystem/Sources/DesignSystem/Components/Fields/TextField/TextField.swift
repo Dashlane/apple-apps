@@ -4,9 +4,9 @@ import SwiftUI
 public struct DesignSystemTextField<ActionsContent: View, FeedbackAccessory: View>: View {
   public typealias Action = FieldAction
 
-  @Environment(\.fieldAppearance) private var appearance
-  @Environment(\.editionDisabled) private var editionDisabled
-  @Environment(\.textInputDisabledEditionAppearance) private var disabledEditionAppearance
+  @Environment(\.container) private var container
+  @Environment(\.fieldEditionDisabled) private var editionDisabled
+  @Environment(\.fieldRequired) private var isRequired
 
   private let label: String
   private let placeholder: String?
@@ -34,7 +34,7 @@ public struct DesignSystemTextField<ActionsContent: View, FeedbackAccessory: Vie
     } feedback: {
       feedbackAccessory
     }
-    .actionlessField(ActionsContent.self == EmptyView.self)
+    .defaultFieldActionsHidden(ActionsContent.self == EmptyView.self)
   }
 }
 
@@ -95,11 +95,11 @@ extension DesignSystemTextField {
 #Preview("Standalone") {
   TextFieldPreview()
     .ignoresSafeArea([.keyboard], edges: .bottom)
-    .backgroundColorIgnoringSafeArea(.ds.background.alternate)
+    .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
 }
 
 #Preview("Grouped") {
   GroupedTextFieldPreview()
     .ignoresSafeArea([.keyboard], edges: .bottom)
-    .backgroundColorIgnoringSafeArea(.ds.background.alternate)
+    .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
 }

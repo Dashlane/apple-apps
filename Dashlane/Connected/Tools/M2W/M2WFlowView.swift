@@ -1,7 +1,7 @@
-import CoreUserTracking
 import DesignSystem
 import SwiftUI
 import UIDelight
+import UserTrackingFoundation
 
 struct M2WFlowView: View {
 

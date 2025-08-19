@@ -28,6 +28,12 @@ import UIDelight
         self = .caption1
       case .caption2:
         self = .caption2
+      case .extraLargeTitle:
+        self = .extraLargeTitle
+      case .extraLargeTitle2:
+        self = .extraLargeTitle2
+      @unknown default:
+        self = .body
       }
     }
   }

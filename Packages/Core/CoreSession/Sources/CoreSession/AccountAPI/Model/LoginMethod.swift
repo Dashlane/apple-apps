@@ -17,7 +17,7 @@ extension ThirdPartyOTPOption {
   }
 }
 
-public enum LoginMethod: Hashable {
+public enum LoginMethod: Hashable, Sendable {
   case tokenByEmail(_ u2fChallenges: [U2FChallenge] = [])
   case thirdPartyOTP(ThirdPartyOTPOption, u2fChallenges: [U2FChallenge] = [])
   case loginViaSSO(SSOAuthenticationInfo)

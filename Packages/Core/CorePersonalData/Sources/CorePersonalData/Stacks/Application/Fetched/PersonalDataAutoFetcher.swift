@@ -1,7 +1,8 @@
 import Combine
-import DashTypes
+import CoreTypes
 import Foundation
 import GRDB
+import LogFoundation
 
 private let fetcherQueue = DispatchQueue(
   label: "com.dashlane.PersonalDataFetcher",

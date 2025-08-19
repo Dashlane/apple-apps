@@ -1,6 +1,6 @@
 import Foundation
 
-public enum ProvisioningMethod: String, Sendable, Equatable, CaseIterable, Codable {
+public enum ProvisioningMethod: String, Sendable, Hashable, Codable, CaseIterable {
   case user = "USER"
   case tac = "TAC"
   case ad = "AD"

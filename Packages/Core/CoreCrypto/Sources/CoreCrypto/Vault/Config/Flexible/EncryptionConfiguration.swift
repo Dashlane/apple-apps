@@ -1,16 +1,20 @@
 import CyrilKit
 import Foundation
+import LogFoundation
 
 import struct CryptoKit.SHA512
 import struct CryptoKit.SymmetricKey
 
+@Loggable
 public struct EncryptionConfiguration: Hashable, Sendable {
+  @Loggable
   public enum AESMode: String, Sendable {
     case cbchmac
 
     case cbchmac64
   }
 
+  @Loggable
   public enum EncryptionAlgorithm: String, Sendable {
     case aes256
   }

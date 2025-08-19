@@ -3,15 +3,18 @@ import CoreNetworking
 import CorePersonalData
 import CoreSession
 import CoreSync
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import SwiftTreats
+import UserTrackingFoundation
 
 public protocol SyncServiceProtocol {
-  var lastSync: Timestamp { get set }
+  var lastSync: Timestamp { get nonmutating set }
   var syncStatus: SyncService.SyncStatus { get set }
+  var syncStatusPublisher: AnyPublisher<SyncService.SyncStatus, Never> { get }
+
   var lastTimeSyncTriggered: Date { get set }
 
   func hasAlreadySync() -> Bool
@@ -60,6 +63,7 @@ public class SyncService: SyncServiceProtocol {
     case error(Error)
   }
 
+  @Loggable
   enum SyncServiceError: Error {
     case disabled
   }
@@ -80,7 +84,6 @@ public class SyncService: SyncServiceProtocol {
   }
 
   let database: SyncDBStack
-  let activityReporter: ActivityReporterProtocol
   let store: BasicKeyedStore<SyncStoreKey>
   let syncLogger: Logger
   let target: BuildTarget
@@ -94,6 +97,10 @@ public class SyncService: SyncServiceProtocol {
         lastTimeSyncTriggered = Date()
       }
     }
+  }
+
+  public var syncStatusPublisher: AnyPublisher<SyncStatus, Never> {
+    return $syncStatus.eraseToAnyPublisher()
   }
 
   @Published
@@ -133,7 +140,6 @@ public class SyncService: SyncServiceProtocol {
     sharingKeysStore: SharingKeysStore,
     remoteCryptoEngine: CryptoEngine,
     sharingHandler: SharingSyncHandler,
-    activityReporter: ActivityReporterProtocol,
     session: Session,
     loadingContext: SessionLoadingContext,
     logger: Logger,
@@ -141,7 +147,6 @@ public class SyncService: SyncServiceProtocol {
   ) throws {
     self.syncLogger = logger
     self.sharingHandler = sharingHandler
-    self.activityReporter = activityReporter
     self.sharingKeysStore = sharingKeysStore
     self.loadingContext = loadingContext
     self.latestTrigger =
@@ -243,8 +248,6 @@ public class SyncService: SyncServiceProtocol {
       self.lastSync = syncOutput.timestamp
       try? await self.sharingHandler.sync(using: summary)
 
-      self.activityReporter.reportSuccessfulSync(syncOutput.syncReport, trigger: latestTrigger)
-
     } catch {
       try? await self.sharingHandler.sync(using: summary)
 
@@ -296,7 +299,6 @@ extension SyncService {
 
   public convenience init(
     apiClient: UserDeviceAPIClient,
-    activityReporter: ActivityReporterProtocol,
     sharingKeysStore: SharingKeysStore,
     databaseDriver: DatabaseDriver,
     sharingHandler: SharingSyncHandler,
@@ -311,7 +313,6 @@ extension SyncService {
       sharingKeysStore: sharingKeysStore,
       remoteCryptoEngine: session.remoteCryptoEngine,
       sharingHandler: sharingHandler,
-      activityReporter: activityReporter,
       session: session,
       loadingContext: loadingContext,
       logger: syncLogger,

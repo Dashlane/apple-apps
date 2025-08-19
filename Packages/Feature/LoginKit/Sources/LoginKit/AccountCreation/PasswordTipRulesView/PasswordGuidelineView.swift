@@ -16,13 +16,14 @@ public struct PasswordGuidelineView: View {
     if Locale.current.isLatinBased {
       VStack(alignment: HorizontalAlignment.leading, spacing: 8) {
         Text(viewModel.title)
-          .font(DashlaneFont.custom(17, .medium).font)
-          .foregroundColor(.ds.text.neutral.quiet)
+          .textStyle(.title.block.medium)
+          .foregroundStyle(Color.ds.text.neutral.quiet)
           .fixedSize(horizontal: false, vertical: true)
 
         MarkdownText(viewModel.list)
           .fixedSize(horizontal: false, vertical: true)
-          .foregroundColor(.ds.text.neutral.standard)
+          .foregroundStyle(Color.ds.text.neutral.standard)
+          .textStyle(.body.standard.regular)
 
         story
       }
@@ -34,7 +35,7 @@ public struct PasswordGuidelineView: View {
     viewModel.story.map {
       Text($0)
         .font(.subheadline)
-        .foregroundColor(.ds.text.neutral.catchy)
+        .foregroundStyle(Color.ds.text.neutral.catchy)
         .multilineTextAlignment(.center)
         .frame(maxWidth: .infinity)
         .padding(8)
@@ -49,10 +50,10 @@ struct PasswordGuidelineView_Previews: PreviewProvider {
 
   static private var generalRulesBulletPointList: String {
     return [
-      L10n.Core.zxcvbnSuggestionDefaultCommonPhrases,
-      L10n.Core.zxcvbnSuggestionDefaultPersonalInfo,
-      L10n.Core.zxcvbnSuggestionDefaultPasswordLength,
-      L10n.Core.zxcvbnSuggestionDefaultObviousSubstitutions,
+      CoreL10n.zxcvbnSuggestionDefaultCommonPhrases,
+      CoreL10n.zxcvbnSuggestionDefaultPersonalInfo,
+      CoreL10n.zxcvbnSuggestionDefaultPasswordLength,
+      CoreL10n.zxcvbnSuggestionDefaultObviousSubstitutions,
     ].map({ "• \($0)" }).joined(separator: "\n")
   }
 

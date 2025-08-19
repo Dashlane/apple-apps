@@ -2,9 +2,10 @@ import Combine
 import CoreFeature
 import CoreSession
 import CoreSettings
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 
 extension AuthenticatedABTestingService {
 

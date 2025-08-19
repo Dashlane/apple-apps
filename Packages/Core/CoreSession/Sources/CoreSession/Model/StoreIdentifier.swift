@@ -1,18 +1,18 @@
-import DashTypes
+import CoreTypes
 import Foundation
 
 public enum StoreIdentifier: String, CaseIterable {
-  case personalData
   case galactica
   case usageLogs
   case icons
   case sharing
+  case teamAuditLogs
   case localSettings
   case premiumStatus
 
   public var sharedAcrossTargets: Bool {
     switch self {
-    case .personalData, .sharing:
+    case .sharing, .teamAuditLogs:
       return false
     default:
       return true

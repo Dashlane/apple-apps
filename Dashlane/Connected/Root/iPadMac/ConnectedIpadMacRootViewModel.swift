@@ -1,5 +1,5 @@
 import Combine
-import DashTypes
+import CoreTypes
 import SwiftUI
 import VaultKit
 

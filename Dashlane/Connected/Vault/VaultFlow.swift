@@ -23,12 +23,9 @@ struct VaultFlow: View {
       case .home(let action):
         HomeView(
           model: viewModel.makeHomeViewModel(onboardingChecklistViewAction: action),
-          activeFilter: $viewModel.activeFilter
-        )
-        .toolbar(.visible, for: .tabBar)
+          activeFilter: $viewModel.activeFilter)
       case .vaultList(let category):
         VaultListView(model: viewModel.makeVaultListViewModel(category: category))
-          .toolbar(.visible, for: .tabBar)
 
       case let .vaultDetail(item, type):
         detailView(for: item, viewType: type)
@@ -45,7 +42,9 @@ struct VaultFlow: View {
       }
     }
     .onReceive(viewModel.deeplinkPublisher) { deeplink in
-      guard Device.isIpadOrMac, self.viewModel.canHandle(deepLink: deeplink) else { return }
+      guard Device.is(.pad, .mac, .vision), self.viewModel.canHandle(deepLink: deeplink) else {
+        return
+      }
       self.viewModel.handle(deeplink)
     }
     .sheet(isPresented: $viewModel.showAutofillFlow) {
@@ -70,22 +69,6 @@ struct VaultFlow: View {
   @ViewBuilder
   private func detailView(for item: VaultItem, viewType: ItemDetailViewType) -> some View {
     VaultDetailView(model: viewModel.makeDetailViewModel(), itemDetailViewType: viewType)
-      .navigationBarHidden(true)
-  }
-}
-
-extension View {
-
-  @ViewBuilder
-  fileprivate func fullScreenCoverOrSheet<Content: View>(
-    isPresented: Binding<Bool>,
-    @ViewBuilder content: @escaping () -> Content
-  ) -> some View {
-    if Device.isIpadOrMac {
-      sheet(isPresented: isPresented, content: content)
-    } else {
-      fullScreenCover(isPresented: isPresented, content: content)
-    }
   }
 }
 

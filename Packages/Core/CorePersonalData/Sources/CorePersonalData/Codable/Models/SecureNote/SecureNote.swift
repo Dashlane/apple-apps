@@ -1,7 +1,9 @@
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 import SwiftTreats
 
+@Loggable
 @PersonalData
 public struct SecureNote: Equatable, Identifiable, DatedPersonalData {
   public typealias CategoryType = SecureNoteCategory

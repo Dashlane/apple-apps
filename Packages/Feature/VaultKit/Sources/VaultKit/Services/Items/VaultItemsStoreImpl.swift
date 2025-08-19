@@ -4,17 +4,17 @@ import CorePersonalData
 import CorePremium
 import CoreSession
 
-final class VaultItemsStoreImpl:
+public final class VaultItemsStoreImpl:
   VaultItemsPublishersStore,
   VaultItemsStore
 {
 
-  let userSpacesService: UserSpacesService
-  let featureService: FeatureServiceProtocol
-  let capabilityService: CapabilityServiceProtocol
-  let vaultItemDatabase: VaultItemDatabaseProtocol
+  public let userSpacesService: UserSpacesService
+  public let featureService: FeatureServiceProtocol
+  public let capabilityService: CapabilityServiceProtocol
+  public let vaultItemDatabase: VaultItemDatabaseProtocol
 
-  fileprivate init(
+  public init(
     userSpacesService: UserSpacesService,
     featureService: FeatureServiceProtocol,
     capabilityService: CapabilityServiceProtocol,
@@ -132,6 +132,12 @@ final class VaultItemsStoreImpl:
       .shareReplayLatest()
     drivingLicenses.assign(to: &$drivingLicenses)
 
+    let wifis =
+      vaultItemDatabase
+      .itemsPublisher(for: WiFi.self)
+      .shareReplayLatest()
+    wifis.assign(to: &$wifis)
+
     Publishers.MergeMany(
       [
         credentials.first().map { _ in true }.eraseToAnyPublisher(),
@@ -151,6 +157,7 @@ final class VaultItemsStoreImpl:
         fiscalInformation.first().map { _ in true }.eraseToAnyPublisher(),
         socialSecurityInformation.first().map { _ in true }.eraseToAnyPublisher(),
         drivingLicenses.first().map { _ in true }.eraseToAnyPublisher(),
+        wifis.first().map { _ in true }.eraseToAnyPublisher(),
       ]
     )
     .collect()
@@ -180,13 +187,29 @@ extension VaultItemsStoreImpl {
   }
 }
 
-extension VaultItemsStore where Self == VaultItemsStoreImpl {
-  static func mock(database: VaultItemDatabaseProtocol = .mock()) -> VaultItemsStore {
-    VaultItemsStoreImpl(
-      userSpacesService: .mock(),
-      featureService: MockFeatureService(),
-      capabilityService: .mock(),
-      vaultItemDatabase: database
-    )
+public class VaultItemsStoreMock: VaultItemsPublishersStore, VaultItemsStore {
+  public var userSpacesService: CorePremium.UserSpacesService = .mock()
+
+  public var featureService: any CoreFeature.FeatureServiceProtocol = .mock()
+
+  public var capabilityService: any CorePremium.CapabilityServiceProtocol = .mock()
+
+  public func dataSectionsPublisher(for category: ItemCategory?) -> AnyPublisher<
+    [DataSection], Never
+  > {
+    Just([]).eraseToAnyPublisher()
+  }
+
+  init(credentials: [Credential]) {
+    super.init()
+    self.credentials = credentials
+  }
+}
+
+extension VaultItemsStore where Self == VaultItemsStoreMock {
+  public static func mock(
+    database: VaultItemDatabaseProtocol = .mock(), credentials: [Credential] = []
+  ) -> VaultItemsStore {
+    VaultItemsStoreMock(credentials: credentials)
   }
 }

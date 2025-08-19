@@ -72,53 +72,57 @@ public struct VaultItemRow: View {
         (value[..<range.lowerBound].count + highlightedValue.count) > 30
       {
         return "..." + value[range.lowerBound...]
+      } else {
+        return sanitizedString
       }
-      return sanitizedString
+
+    } else {
+      return item.localizedSubtitle
     }
-    return item.localizedSubtitle
-  }
-}
-extension VaultItemRow {
-  fileprivate init(item: VaultItem, space: UserSpace? = nil) {
-    self.item = item
-    self.space = space
-    self.vaultIconViewModelFactory = .init({ VaultItemIconViewModel.mock(item: $0) })
   }
 }
 
-extension VaultItemRow {
-  public static func mock(item: VaultItem, space: UserSpace? = nil) -> VaultItemRow {
-    return VaultItemRow(item: item, space: space)
-  }
-}
+#if DEBUG
+  extension VaultItemRow {
+    fileprivate init(item: VaultItem, space: UserSpace? = nil) {
+      self.item = item
+      self.space = space
+      self.vaultIconViewModelFactory = .init({ VaultItemIconViewModel.mock(item: $0) })
+    }
 
-#Preview("Credentials") {
-  List {
-    VaultItemRow(item: PersonalDataMock.Credentials.instagram)
-    VaultItemRow(item: PersonalDataMock.Addresses.home)
-    VaultItemRow(item: PersonalDataMock.SecureNotes.thinkDifferent)
-    VaultItemRow(item: PersonalDataMock.Identities.personal)
-    VaultItemRow(item: PersonalDataMock.Phones.personal)
-    VaultItemRow(item: PersonalDataMock.Companies.dashlane)
-    VaultItemRow(item: PersonalDataMock.PersonalWebsites.blog)
-    VaultItemRow(item: PersonalDataMock.DrivingLicences.personal)
-    VaultItemRow(item: PersonalDataMock.SocialSecurityInformations.us)
-    VaultItemRow(item: PersonalDataMock.SocialSecurityInformations.gb)
-    VaultItemRow(item: PersonalDataMock.SocialSecurityInformations.ru)
-    VaultItemRow(item: PersonalDataMock.IDCards.personal)
-    VaultItemRow(item: PersonalDataMock.Passports.personal)
-    VaultItemRow(item: PersonalDataMock.BankAccounts.personal)
+    static func mock(item: VaultItem, space: UserSpace? = nil) -> VaultItemRow {
+      return VaultItemRow(item: item, space: space)
+    }
   }
-}
 
-#Preview("Passkey") {
-  List {
-    VaultItemRow(item: Passkey.github)
+  #Preview("Credentials") {
+    List {
+      VaultItemRow(item: PersonalDataMock.Credentials.instagram)
+      VaultItemRow(item: PersonalDataMock.Addresses.home)
+      VaultItemRow(item: PersonalDataMock.SecureNotes.thinkDifferent)
+      VaultItemRow(item: PersonalDataMock.Identities.personal)
+      VaultItemRow(item: PersonalDataMock.Phones.personal)
+      VaultItemRow(item: PersonalDataMock.Companies.dashlane)
+      VaultItemRow(item: PersonalDataMock.PersonalWebsites.blog)
+      VaultItemRow(item: PersonalDataMock.DrivingLicences.personal)
+      VaultItemRow(item: PersonalDataMock.SocialSecurityInformations.us)
+      VaultItemRow(item: PersonalDataMock.SocialSecurityInformations.gb)
+      VaultItemRow(item: PersonalDataMock.SocialSecurityInformations.ru)
+      VaultItemRow(item: PersonalDataMock.IDCards.personal)
+      VaultItemRow(item: PersonalDataMock.Passports.personal)
+      VaultItemRow(item: PersonalDataMock.BankAccounts.personal)
+    }
   }
-}
 
-#Preview("Credit Cards") {
-  List(CreditCardColor.allCases, id: \.self) { color in
-    VaultItemRow(item: PersonalDataMock.CreditCards.creditCard(withColor: color))
+  #Preview("Passkey") {
+    List {
+      VaultItemRow(item: Passkey.github)
+    }
   }
-}
+
+  #Preview("Credit Cards") {
+    List(CreditCardColor.allCases, id: \.self) { color in
+      VaultItemRow(item: PersonalDataMock.CreditCards.creditCard(withColor: color))
+    }
+  }
+#endif

@@ -4,17 +4,18 @@ import CoreNetworking
 import CorePremium
 import CoreSession
 import CoreSettings
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import LoginKit
 import NotificationKit
+import SwiftTreats
 import SwiftUI
 import UIDelight
 
 @MainActor
 final class MainSettingsViewModel: ObservableObject, SessionServicesInjecting {
-
   let session: Session
 
   let settingsStatusSectionViewModelFactory: SettingsStatusSectionViewModel.Factory
@@ -63,6 +64,10 @@ final class MainSettingsViewModel: ObservableObject, SessionServicesInjecting {
     session.login
   }
 
+  var canShowNewDevice: Bool {
+    return session.authenticationMethod.isInvisibleMasterPassword || !Device.is(.mac)
+  }
+
   func inviteFriends() {
     Task {
       let userKey = try await userDeviceAPIClient.premium.getSubscriptionCode().subscriptionCode
@@ -73,10 +78,6 @@ final class MainSettingsViewModel: ObservableObject, SessionServicesInjecting {
     }
   }
 
-  var shouldDisplayLabs: Bool {
-    featureService.isLabsAvailable
-  }
-
   func makeAddNewDeviceViewModel() -> AddNewDeviceViewModel {
     return addNewDeviceFactory.make()
   }
@@ -84,7 +85,7 @@ final class MainSettingsViewModel: ObservableObject, SessionServicesInjecting {
   static func mock() -> MainSettingsViewModel {
     return MainSettingsViewModel(
       session: Session.mock,
-      sessionCryptoEngineProvider: SessionCryptoEngineProvider(logger: LoggerMock()),
+      sessionCryptoEngineProvider: SessionCryptoEngineProvider(logger: .mock),
       lockService: LockServiceMock(),
       userSettings: UserSettings(internalStore: .mock()),
       featureService: .mock(),

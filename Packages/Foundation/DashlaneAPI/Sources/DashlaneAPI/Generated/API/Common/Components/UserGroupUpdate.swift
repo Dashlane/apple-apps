@@ -1,6 +1,6 @@
 import Foundation
 
-public struct UserGroupUpdate: Codable, Equatable, Sendable {
+public struct UserGroupUpdate: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case groupId = "groupId"
     case permission = "permission"

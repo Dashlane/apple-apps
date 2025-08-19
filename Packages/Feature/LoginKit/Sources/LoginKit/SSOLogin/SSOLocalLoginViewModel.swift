@@ -1,13 +1,13 @@
 import CoreSession
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 import StateMachine
 import SwiftTreats
+import UserTrackingFoundation
 
 @MainActor
 public class SSOLocalLoginViewModel: StateMachineBasedObservableObject, LoginKitServicesInjecting {
-
   public enum CompletionType {
     case completed(SSOKeys)
     case cancel
@@ -17,19 +17,18 @@ public class SSOLocalLoginViewModel: StateMachineBasedObservableObject, LoginKit
   let ssoViewModelFactory: SSOViewModel.Factory
   let completion: Completion<SSOLocalLoginViewModel.CompletionType>
 
-  public var stateMachine: SSOLocalStateMachine
+  @Published public var stateMachine: SSOLocalStateMachine
+  @Published public var isPerformingEvent: Bool = false
 
   public init(
-    deviceAccessKey: String,
+    stateMachine: SSOLocalStateMachine,
     ssoAuthenticationInfo: SSOAuthenticationInfo,
     ssoViewModelFactory: SSOViewModel.Factory,
-    ssoLocalStateMachineFactory: SSOLocalStateMachine.Factory,
     completion: @escaping Completion<SSOLocalLoginViewModel.CompletionType>
   ) {
     self.ssoAuthenticationInfo = ssoAuthenticationInfo
     self.ssoViewModelFactory = ssoViewModelFactory
-    stateMachine = ssoLocalStateMachineFactory.make(
-      ssoAuthenticationInfo: ssoAuthenticationInfo, deviceAccessKey: deviceAccessKey)
+    self.stateMachine = stateMachine
     self.completion = completion
   }
 
@@ -58,21 +57,16 @@ public class SSOLocalLoginViewModel: StateMachineBasedObservableObject, LoginKit
       self.completion(.success(.cancel))
     }
   }
+
 }
 
 extension SSOLocalLoginViewModel {
   static var mock: SSOLocalLoginViewModel {
     SSOLocalLoginViewModel(
-      deviceAccessKey: "",
+      stateMachine: .mock,
       ssoAuthenticationInfo: .mock(),
       ssoViewModelFactory: .init({ _, _ in
         .mock
-      }),
-      ssoLocalStateMachineFactory: .init({ _, deviceAccessKey in
-        .init(
-          ssoAuthenticationInfo: .mock(), deviceAccessKey: deviceAccessKey, apiClient: .fake,
-          cryptoEngineProvider: SessionCryptoEngineProvider(logger: LoggerMock()),
-          logger: LoggerMock())
       }),
       completion: { _ in })
   }

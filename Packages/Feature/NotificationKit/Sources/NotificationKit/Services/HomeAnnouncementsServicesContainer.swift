@@ -3,10 +3,11 @@ import CorePersonalData
 import CorePremium
 import CoreSession
 import CoreSettings
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
+import UserTrackingFoundation
 
 public protocol HomeAnnouncementsServicesContainer: DependenciesContainer {
   var login: Login { get }

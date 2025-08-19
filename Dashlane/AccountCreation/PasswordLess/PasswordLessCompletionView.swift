@@ -1,5 +1,5 @@
 import SwiftUI
-import UIComponents
+import SwiftUILottie
 import UIDelight
 
 struct PasswordLessCompletionView: View {
@@ -27,8 +27,7 @@ struct PasswordLessCompletionView: View {
         AccountRecoveryActivationEmbeddedFlow(
           model: model.makeAccountRecoveryActivationFlowModel(), canSkip: false
         )
-        .navigationBarHidden(false)
-
+        .navigationBarVisible()
       }
     }
   }
@@ -40,7 +39,7 @@ struct PasswordLessCompletionView: View {
 
       Text(L10n.Localizable.PasswordlessAccountCreation.Complete.title)
         .textStyle(.title.section.large)
-        .foregroundColor(.ds.text.neutral.catchy)
+        .foregroundStyle(Color.ds.text.neutral.catchy)
         .multilineTextAlignment(.center)
         .padding(.horizontal)
     }

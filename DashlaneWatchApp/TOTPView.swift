@@ -5,7 +5,6 @@ import TOTPGenerator
 public struct TOTPView: View {
   @Binding var code: String
   @State var progress: CGFloat = 0.0
-  @State var remainingTime: Int = 0
 
   let period: TimeInterval
   let token: OTPConfiguration
@@ -20,7 +19,6 @@ public struct TOTPView: View {
     self.token = token
     self.period = period
     self.progress = progress
-    self.remainingTime = remainingTime
   }
 
   public var body: some View {
@@ -60,9 +58,7 @@ public struct TOTPView: View {
   }
 
   func update() {
-    let remainingTime = TOTPGenerator.timeRemaining(in: period)
-    self.remainingTime = Int(remainingTime)
-    self.progress = CGFloat((period - remainingTime) / period)
+    self.progress = TOTPGenerator.progress(in: period)
     self.code =
       TOTPGenerator.generate(
         with: token.type,

@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppAPIClient.Iconcrawler {
-  public struct GetIcons: APIRequest {
+  public struct GetIcons: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/iconcrawler/GetIcons"
 
     public let api: AppAPIClient
@@ -24,12 +24,12 @@ extension AppAPIClient.Iconcrawler {
 }
 
 extension AppAPIClient.Iconcrawler.GetIcons {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case domainsInfo = "domainsInfo"
     }
 
-    public struct DomainsInfoElement: Codable, Equatable, Sendable {
+    public struct DomainsInfoElement: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case domain = "domain"
         case type = "type"
@@ -64,12 +64,12 @@ extension AppAPIClient.Iconcrawler.GetIcons {
 }
 
 extension AppAPIClient.Iconcrawler.GetIcons {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case icons = "icons"
     }
 
-    public struct IconsElement: Codable, Equatable, Sendable {
+    public struct IconsElement: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case backgroundColor = "backgroundColor"
         case mainColor = "mainColor"

@@ -26,6 +26,9 @@ extension SharingUpdater {
           "Invalid local state, was not able to update local state after \(maxIteration) iterations."
         )
         throw SharingUpdaterError.maximumLoopExecutionReached
+      } catch let error as URLError {
+        logger.error("Cannot execute operation", error: error)
+        throw error
       } catch {
         logger.fatal("Cannot execute operation", error: error)
         throw error

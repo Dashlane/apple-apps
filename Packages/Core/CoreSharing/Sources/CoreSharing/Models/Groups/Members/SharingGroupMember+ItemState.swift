@@ -1,4 +1,4 @@
-import DashTypes
+import CoreTypes
 import Foundation
 
 extension Collection where Element == any SharingGroupMember {

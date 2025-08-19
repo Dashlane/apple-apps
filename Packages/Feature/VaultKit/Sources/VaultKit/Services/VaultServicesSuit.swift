@@ -1,12 +1,14 @@
-import CoreActivityLogs
 import CoreCategorizer
 import CoreFeature
 import CorePersonalData
 import CorePremium
 import CoreSession
 import CoreSettings
-import CoreUserTracking
-import DashTypes
+import CoreTeamAuditLogs
+import CoreTypes
+import DashlaneAPI
+import LogFoundation
+import UserTrackingFoundation
 
 public struct VaultServicesSuit: DependenciesContainer {
   public let vaultItemDatabase: VaultItemDatabaseProtocol
@@ -17,13 +19,13 @@ public struct VaultServicesSuit: DependenciesContainer {
 
   public let vaultItemsLimitService: VaultItemsLimitService
   public let prefilledCredentialsProvider: PrefilledCredentialsProviderProtocol
+  public let defaultVaultItemsService: DefaultVaultItemsServiceProtocol
 
   let vaultItemsSpotlightService: VaultItemsSpotlightService
 
   public init(
     logger: Logger,
     login: Login,
-    context: SessionLoadingContext,
     spotlightIndexer: SpotlightIndexer?,
     userSettings: UserSettings,
     categorizer: Categorizer,
@@ -34,7 +36,8 @@ public struct VaultServicesSuit: DependenciesContainer {
     userSpacesService: UserSpacesService,
     featureService: FeatureServiceProtocol,
     capabilityService: CapabilityServiceProtocol,
-    activityLogsService: ActivityLogsServiceProtocol,
+    teamAuditLogsService: TeamAuditLogsServiceProtocol,
+    cloudPasskeyService: UserSecureNitroEncryptionAPIClient.Passkeys,
     activityReporter: ActivityReporterProtocol
   ) async {
     self.vaultItemDatabase = VaultItemDatabase(
@@ -43,7 +46,8 @@ public struct VaultServicesSuit: DependenciesContainer {
       sharingService: sharingHandling,
       featureService: featureService,
       userSpacesService: userSpacesService,
-      activityLogsService: activityLogsService
+      teamAuditLogsService: teamAuditLogsService,
+      cloudPasskeyService: cloudPasskeyService
     )
 
     self.vaultItemsStore = await VaultItemsStoreImpl(
@@ -59,7 +63,7 @@ public struct VaultServicesSuit: DependenciesContainer {
       sharingService: sharingService,
       userSpacesService: userSpacesService,
       activityReporter: activityReporter,
-      activityLogsService: activityLogsService
+      teamAuditLogsService: teamAuditLogsService
     )
 
     self.vaultCollectionsStore = VaultCollectionsStoreImpl(
@@ -83,16 +87,13 @@ public struct VaultServicesSuit: DependenciesContainer {
       spotlightIndexer: spotlightIndexer
     )
 
-    if case .accountCreation = context {
-      let defaultVaultItemsService = DefaultVaultItemsService(
-        login: login,
-        logger: logger,
-        database: database,
-        userSpacesService: userSpacesService,
-        categorizer: categorizer
-      )
-      defaultVaultItemsService.createDefaultItems()
-    }
+    self.defaultVaultItemsService = DefaultVaultItemsService(
+      login: login,
+      logger: logger,
+      database: database,
+      userSpacesService: userSpacesService,
+      categorizer: categorizer
+    )
   }
 
   public func unload(reason: SessionServicesUnloadReason) {

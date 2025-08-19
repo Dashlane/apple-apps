@@ -1,5 +1,5 @@
-import MacrosKit
 import SwiftUI
+import UIDelight
 
 @ViewInit
 struct ConnectedIpadMacRootView: View {
@@ -15,9 +15,11 @@ struct ConnectedIpadMacRootView: View {
         #if targetEnvironment(macCatalyst)
           .navigationSplitViewColumnWidth(min: 280, ideal: 300, max: 500)
         #endif
-        .onSizeChange { size in
-          sidebarWidth = size.width
-        }
+        .onGeometryChange(
+          for: CGFloat.self,
+          of: { $0.size.width },
+          action: { sidebarWidth = $0 }
+        )
       detail(for: model.selection)
     }
     .navigationSplitViewStyle(.prominentDetail)

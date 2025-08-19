@@ -1,8 +1,7 @@
-import CoreActivityLogs
 import CorePersonalData
-import DashTypes
+import CoreTeamAuditLogs
+import CoreTypes
 import Foundation
-import VaultKit
 
 class DashImportService: ImportServiceProtocol {
 
@@ -15,19 +14,19 @@ class DashImportService: ImportServiceProtocol {
 
   let applicationDatabase: ApplicationDatabase
   let databaseDriver: DatabaseDriver
-  private let activityLogsService: ActivityLogsServiceProtocol
+  private let teamAuditLogsService: TeamAuditLogsServiceProtocol
 
   var step: Step
   private let dataDecoder: PersonalDataDecoder = .init()
 
   init(
     secureArchiveData: Data, applicationDatabase: ApplicationDatabase,
-    databaseDriver: DatabaseDriver, activityLogsService: ActivityLogsServiceProtocol
+    databaseDriver: DatabaseDriver, teamAuditLogsService: TeamAuditLogsServiceProtocol
   ) {
     self.step = .locked(secureArchive: secureArchiveData)
     self.applicationDatabase = applicationDatabase
     self.databaseDriver = databaseDriver
-    self.activityLogsService = activityLogsService
+    self.teamAuditLogsService = teamAuditLogsService
   }
 
   private func decode(from records: [PersonalDataRecord]) throws -> [ImportItem] {
@@ -162,7 +161,7 @@ class DashImportService: ImportServiceProtocol {
     let collections = collections.intersection(personalDataRecords)
 
     if !collections.isEmpty {
-      activityLogsService.logImport(collections)
+      teamAuditLogsService.logImport(collections)
     }
 
     return itemRecords.generateNewItems(for: collections)
@@ -187,7 +186,7 @@ extension DashImportService {
       secureArchiveData: Data(),
       applicationDatabase: ApplicationDBStack.mock(),
       databaseDriver: InMemoryDatabaseDriver(),
-      activityLogsService: .mock())
+      teamAuditLogsService: .mock())
   }
 }
 

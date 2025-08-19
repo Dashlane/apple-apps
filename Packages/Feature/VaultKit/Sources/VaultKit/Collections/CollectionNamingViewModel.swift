@@ -1,11 +1,12 @@
 import CoreLocalization
 import CorePersonalData
 import CorePremium
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DesignSystem
 import Foundation
+import LogFoundation
 import Logger
+import UserTrackingFoundation
 
 @MainActor
 public class CollectionNamingViewModel: ObservableObject, VaultKitServicesInjecting {
@@ -140,13 +141,13 @@ extension CollectionNamingViewModel {
             named: formattedCollectionName
           )
           toast(
-            L10n.Core.KWVaultItem.Collections.created(formattedCollectionName),
+            CoreL10n.KWVaultItem.Collections.created(formattedCollectionName),
             image: .ds.feedback.success.outlined)
         case .edition(let collection):
           let vaultCollectionEditionService = vaultCollectionEditionServiceFactory.make(
             collection: collection)
           try await vaultCollectionEditionService.rename(to: formattedCollectionName)
-          toast(L10n.Core.KWVaultItem.Changes.saved, image: .ds.feedback.success.outlined)
+          toast(CoreL10n.KWVaultItem.Changes.saved, image: .ds.feedback.success.outlined)
         }
         reportCreationOrSaving()
         completion(.done(collection))
@@ -181,7 +182,7 @@ extension CollectionNamingViewModel {
   public static func mock(mode: Mode) -> CollectionNamingViewModel {
     .init(
       mode: mode,
-      logger: LoggerMock(),
+      logger: .mock,
       activityReporter: .mock,
       vaultCollectionDatabase: MockVaultKitServicesContainer().vaultCollectionDatabase,
       vaultCollectionsStore: MockVaultKitServicesContainer().vaultCollectionsStore,

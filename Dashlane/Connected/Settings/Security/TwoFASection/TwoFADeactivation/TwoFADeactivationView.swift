@@ -2,8 +2,9 @@ import Combine
 import CoreLocalization
 import CoreNetworking
 import CoreSession
-import DashTypes
+import CoreTypes
 import DesignSystem
+import DesignSystemExtra
 import LoginKit
 import SwiftUI
 import UIComponents
@@ -41,7 +42,7 @@ struct TwoFADeactivationView: View {
       case .otpInput:
         mainView
       case .inProgress:
-        ProgressionView(state: $model.progressState)
+        LottieProgressionFeedbacksView(state: model.progressState)
       case .failure:
         errorView
       case .twoFAEnforced:
@@ -59,15 +60,8 @@ struct TwoFADeactivationView: View {
   var mainView: some View {
     VStack(alignment: .leading, spacing: 32) {
       Text(L10n.Localizable.twofaDeactivationTitle)
-        .font(
-          .custom(
-            GTWalsheimPro.regular.name,
-            size: 28,
-            relativeTo: .title
-          )
-          .weight(.medium)
-        )
-        .foregroundColor(.ds.text.neutral.catchy)
+        .textStyle(.title.section.medium)
+        .foregroundStyle(Color.ds.text.neutral.catchy)
       otpField
 
       Button(
@@ -76,9 +70,9 @@ struct TwoFADeactivationView: View {
         },
         label: {
           Text(L10n.Localizable.twofaDeactivationHelpTitle)
-            .foregroundColor(.ds.text.neutral.quiet) + Text(" ")
+            .foregroundStyle(Color.ds.text.neutral.quiet) + Text(" ")
             + Text(L10n.Localizable.twofaDeactivationHelpCta)
-            .foregroundColor(.ds.text.brand.standard)
+            .foregroundStyle(Color.ds.text.brand.standard)
             .underline()
         })
 
@@ -89,18 +83,17 @@ struct TwoFADeactivationView: View {
     .navigationTitle(Text(L10n.Localizable.twofaStepsNavigationTitle))
     .toolbar {
       ToolbarItem(placement: .navigationBarLeading) {
-        NavigationBarButton(
-          action: dismiss.callAsFunction, title: CoreLocalization.L10n.Core.cancel)
+        Button(CoreL10n.cancel, action: dismiss.callAsFunction)
       }
       ToolbarItem(placement: .navigationBarTrailing) {
-        NavigationBarButton(
+        Button(
           action: {
             Task {
               await model.disable(model.otpValue)
             }
           },
           label: {
-            Text(CoreLocalization.L10n.Core.kwNext)
+            Text(CoreL10n.kwNext)
               .opacity(model.canValidate ? 1 : 0.5)
           }
         )
@@ -123,13 +116,13 @@ struct TwoFADeactivationView: View {
 
   var otpField: some View {
     VStack(alignment: .leading, spacing: 4) {
-      OTPField(otp: $model.otpValue)
-        .otpFieldStyle(strokeColor: model.isTokenError ? .ds.border.danger.standard.idle : .clear)
+      OTPInputField(otp: $model.otpValue)
+        .style(mood: model.isTokenError ? .danger : nil)
       if model.isTokenError {
         Text(L10n.Localizable.twofaDeactivationIncorrectTokenErrorMessage)
           .multilineTextAlignment(.leading)
           .font(.callout)
-          .foregroundColor(.ds.text.danger.quiet)
+          .foregroundStyle(Color.ds.text.danger.quiet)
       }
     }
   }
@@ -140,7 +133,7 @@ struct TwoFADeactivationView: View {
       message: L10n.Localizable.twofaDisableMessage1,
       kind: .twoFA,
       primaryButton: (L10n.Localizable.twofaDisableCta, { model.state = .otpInput }),
-      secondaryButton: (CoreLocalization.L10n.Core.cancel, { dismiss() }),
+      secondaryButton: (CoreL10n.cancel, { dismiss() }),
       accessory: {
         Text(L10n.Localizable.twofaDisableMessage2)
       })

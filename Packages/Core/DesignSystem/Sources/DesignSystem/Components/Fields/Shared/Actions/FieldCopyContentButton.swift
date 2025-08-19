@@ -9,7 +9,7 @@ public struct FieldCopyContentButton: View {
   }
 
   public var body: some View {
-    DS.FieldAction.Button(L10n.Core.kwCopy, image: .ds.action.copy.outlined, action: action)
+    DS.FieldAction.Button(CoreL10n.kwCopy, image: .ds.action.copy.outlined, action: action)
   }
 }
 

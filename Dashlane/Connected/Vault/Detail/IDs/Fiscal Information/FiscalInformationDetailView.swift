@@ -1,5 +1,6 @@
 import CoreLocalization
 import CorePersonalData
+import DesignSystem
 import SwiftUI
 import UIDelight
 import VaultKit
@@ -16,28 +17,30 @@ struct FiscalInformationDetailView: View {
       Section {
         if model.mode.isEditing {
           PickerDetailField(
-            title: CoreLocalization.L10n.Core.KWFiscalStatementIOS.localeFormat,
+            title: CoreL10n.KWFiscalStatementIOS.localeFormat,
             selection: $model.item.country,
             elements: CountryCodeNamePair.countries,
             content: { country in
               Text(country != nil ? country!.name : CountryCodeNamePair.defaultCountry.name)
             })
         } else {
-          Text(model.item.country?.name ?? CountryCodeNamePair.defaultCountry.name)
-            .labeled(CoreLocalization.L10n.Core.KWFiscalStatementIOS.localeFormat)
+          DisplayField(
+            CoreL10n.KWFiscalStatementIOS.localeFormat,
+            text: model.item.country?.name ?? CountryCodeNamePair.defaultCountry.name)
         }
 
         TextDetailField(
-          title: CoreLocalization.L10n.Core.KWFiscalStatementIOS.fiscalNumber,
+          title: CoreL10n.KWFiscalStatementIOS.fiscalNumber,
           text: $model.item.fiscalNumber,
           actions: [.copy(model.copy)]
         )
         .actions([.copy(model.copy)])
         .fiberFieldType(.fiscalNumber)
+        .fieldRequired()
 
         if model.item.mode == .franceAndBelgium {
           TextDetailField(
-            title: CoreLocalization.L10n.Core.KWFiscalStatementIOS.teledeclarantNumber,
+            title: CoreL10n.KWFiscalStatementIOS.teledeclarantNumber,
             text: $model.item.teledeclarationNumber)
         }
       }.makeShortcuts(model: model)

@@ -2,10 +2,10 @@ import Combine
 import CorePersonalData
 import CorePremium
 import CoreSettings
-import CoreUserTracking
 import DashlaneAPI
 import Foundation
 import SecurityDashboard
+import UserTrackingFoundation
 import VaultKit
 
 struct VaultReportService {
@@ -17,22 +17,29 @@ struct VaultReportService {
     let itemsPerCollectionAverageCount: Int
   }
 
-  let identityDashboardService: IdentityDashboardService
+  enum Error: Swift.Error {
+    case uvvsNotEnabled
+    case nothingToUpload
+  }
+
+  let identityDashboardService: IdentityDashboardServiceProtocol
   let userSettings: UserSettings
   let vaultItemsStore: VaultItemsStore
   let vaultCollectionsStore: VaultCollectionsStore
   let userSpacesService: UserSpacesService
   let activityReporter: ActivityReporterProtocol
   let apiClient: UserDeviceAPIClient.Useractivity
+  let encryptedAPIClient: UserSecureNitroEncryptionAPIClient
 
   init(
-    identityDashboardService: IdentityDashboardService,
+    identityDashboardService: IdentityDashboardServiceProtocol,
     userSettings: UserSettings,
     vaultItemsStore: VaultItemsStore,
     vaultCollectionsStore: VaultCollectionsStore,
-    apiClient: UserDeviceAPIClient.Useractivity,
+    apiClient: UserDeviceAPIClient,
     userSpacesService: UserSpacesService,
-    activityReporter: ActivityReporterProtocol
+    activityReporter: ActivityReporterProtocol,
+    encryptedAPIClient: UserSecureNitroEncryptionAPIClient
   ) {
     self.identityDashboardService = identityDashboardService
     self.userSettings = userSettings
@@ -40,11 +47,12 @@ struct VaultReportService {
     self.vaultCollectionsStore = vaultCollectionsStore
     self.userSpacesService = userSpacesService
     self.activityReporter = activityReporter
-    self.apiClient = apiClient
+    self.apiClient = apiClient.useractivity
+    self.encryptedAPIClient = encryptedAPIClient
   }
 
   func report() {
-    identityDashboardService.notificationManager
+    identityDashboardService
       .publisher(for: .securityDashboardDidRefresh)
       .debounce(for: .seconds(1), scheduler: DispatchQueue.main)
       .sinkOnce { _ in
@@ -54,6 +62,7 @@ struct VaultReportService {
 
   private func uploadReport() {
     Task.detached(priority: .background) {
+      try await reportUserVaultSnapshot()
       await reportVaultState(within: .personal)
 
       await reportVaultState(within: .global)
@@ -65,6 +74,19 @@ struct VaultReportService {
 
       try await uploadUserActivityLogs()
     }
+  }
+
+  func reportUserVaultSnapshot() async throws {
+    guard let team = userSpacesService.configuration.currentTeam, team.isUVVSReportEnabled else {
+      throw Error.uvvsNotEnabled
+    }
+    let credentials = vaultItemsStore.credentials
+      .filter(bySpaceId: team.personalDataId)
+    let vaultSnapshot = await identityDashboardService.vaultSnapshot(for: credentials)
+    guard !vaultSnapshot.isEmpty else {
+      throw Error.nothingToUpload
+    }
+    try await encryptedAPIClient.uvvs.uploadUserSnapshot(uvvs: vaultSnapshot)
   }
 
   private func uploadUserActivityLogs() async throws {

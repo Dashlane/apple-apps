@@ -1,6 +1,6 @@
 import Foundation
 
-public struct AuthenticationPerformVerificationResponse: Codable, Equatable, Sendable {
+public struct AuthenticationPerformVerificationResponse: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case authTicket = "authTicket"
   }

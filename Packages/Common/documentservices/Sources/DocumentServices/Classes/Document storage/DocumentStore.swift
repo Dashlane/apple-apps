@@ -1,5 +1,5 @@
 import CorePersonalData
-import DashTypes
+import CoreTypes
 
 public protocol DocumentStore {
   func save<ItemType: PersonalDataCodable>(_ item: ItemType) throws -> ItemType

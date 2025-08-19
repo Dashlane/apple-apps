@@ -75,9 +75,7 @@ struct DarkWebMonitoringAdviceSection: View {
   }
 
   var body: some View {
-    VStack(spacing: 0) {
-      sectionTitle
-
+    Section(advice.sectionTitle ?? "") {
       Infobox(
         advice.title ?? advice.content,
         description: advice.title != nil ? advice.content : nil
@@ -93,42 +91,6 @@ struct DarkWebMonitoringAdviceSection: View {
           }
         }
       }
-      .padding(8)
-    }
-  }
-
-  @ViewBuilder
-  private var sectionTitle: some View {
-    if let sectionTitle = advice.sectionTitle {
-      HStack {
-        Text(sectionTitle.uppercased())
-          .foregroundColor(.ds.text.neutral.quiet)
-          .font(.footnote)
-          .padding([.top, .horizontal], 16)
-        Spacer()
-      }
-    }
-  }
-
-  @ViewBuilder
-  private var content: some View {
-    HStack(alignment: .top, spacing: 10) {
-      Image.ds.feedback.info.outlined
-        .resizable()
-        .frame(width: 20, height: 20)
-        .foregroundColor(.ds.text.brand.quiet)
-
-      VStack(alignment: .leading, spacing: 4) {
-        if let title = advice.title {
-          Text(title)
-            .font(.body)
-            .bold()
-        }
-
-        Text(advice.content)
-          .font(.subheadline)
-          .foregroundColor(Color.ds.text.brand.standard)
-      }
     }
   }
 }
@@ -136,8 +98,11 @@ struct DarkWebMonitoringAdviceSection: View {
 struct DarkWebMonitoringAdviceSection_Previews: PreviewProvider {
   static var previews: some View {
     MultiContextPreview(dynamicTypePreview: false) {
-      DarkWebMonitoringAdviceSection(advice: .changePassword({}))
-      DarkWebMonitoringAdviceSection(advice: .savedNewPassword({}, {}))
+      List {
+        DarkWebMonitoringAdviceSection(advice: .changePassword({}))
+        DarkWebMonitoringAdviceSection(advice: .savedNewPassword({}, {}))
+      }
+      .listStyle(.ds.insetGrouped)
     }.previewLayout(.sizeThatFits)
   }
 }

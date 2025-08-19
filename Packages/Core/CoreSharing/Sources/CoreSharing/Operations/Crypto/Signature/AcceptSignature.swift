@@ -1,5 +1,5 @@
+import CoreTypes
 import CyrilKit
-import DashTypes
 import Foundation
 
 struct AcceptSignatureMessage {
@@ -41,11 +41,13 @@ extension SharingGroupMember {
   private func verifyAcceptSignature(
     using verifier: SignatureVerifier, groupKey: SharingSymmetricKey<Group>
   ) throws {
-    guard let base64Encoded = acceptSignature,
-      let signature = Signature(base64Encoded: base64Encoded)
-    else {
-      throw SharingGroupError.invalidSignature(.accept, reason: .emptyOrInvalidBase64)
+    guard let base64Encoded = acceptSignature else {
+      throw SharingGroupError.invalidSignature(.accept, reason: .empty)
     }
+    guard let signature = Signature(base64Encoded: base64Encoded) else {
+      throw SharingGroupError.invalidSignature(.accept, reason: .invalidBase64)
+    }
+
     let expectedMessageData = try AcceptSignatureMessage(
       id: parentGroupId.rawValue, groupKey: groupKey.raw
     ).data()

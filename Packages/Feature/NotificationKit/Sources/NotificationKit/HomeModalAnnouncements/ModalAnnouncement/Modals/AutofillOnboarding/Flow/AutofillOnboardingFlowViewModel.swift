@@ -3,16 +3,15 @@ import Combine
 import CoreFeature
 import CorePremium
 import CoreSettings
-import CoreUserTracking
 import Foundation
 import UIKit
+import UserTrackingFoundation
 
 @MainActor
 public class AutofillOnboardingFlowViewModel: HomeAnnouncementsServicesInjecting, ObservableObject {
 
   enum Step {
     case intro
-    case instructions
     case success
   }
 
@@ -81,23 +80,8 @@ extension AutofillOnboardingFlowViewModel {
       })
   }
 
-  func makeAutofillOnboardingInstructionsViewModel() -> AutofillOnboardingInstructionsViewModel {
-    .init(
-      action: {
-        let settings = URL(string: "App-prefs://")!
-        UIApplication.shared.open(settings)
-      },
-      close: {
-        self.completion()
-      })
-  }
-
   func setupAutofill() {
-    if #available(iOS 17, *) {
-      ASSettingsHelper.openCredentialProviderAppSettings()
-    } else {
-      self.steps.append(.instructions)
-    }
+    ASSettingsHelper.openCredentialProviderAppSettings()
   }
 }
 

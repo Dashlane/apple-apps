@@ -10,16 +10,10 @@ extension OnboardingService {
     switch action {
     case .addFirstPasswordsManually:
       return hasPassedPasswordOnboarding ? .completed : .todo
-    case .importFromBrowser:
-      return hasPassedPasswordOnboarding ? .completed : .todo
     case .activateAutofill:
       return isAutofillActivated ? .completed : .todo
     case .mobileToDesktop:
       return hasFinishedM2WAtLeastOnce ? .completed : .todo
-    case .fixBreachedAccounts:
-      return hasSeenDWMExperience ? .completed : .todo
-    case .seeScanResult:
-      return hasPassedPasswordOnboarding ? .completed : .todo
     }
   }
 }

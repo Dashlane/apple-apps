@@ -1,12 +1,13 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import StateMachine
 import SwiftTreats
 
-@MainActor
 public struct SecurityChallengeTransferStateMachine: StateMachine {
 
+  @Loggable
   public enum State: Hashable, Sendable {
     case initializing
 
@@ -19,6 +20,7 @@ public struct SecurityChallengeTransferStateMachine: StateMachine {
     case accountRecoveryInfoReady(AccountRecoveryInfo)
   }
 
+  @Loggable
   public enum Event: Hashable {
     case requestTransferInfo
 
@@ -46,8 +48,8 @@ public struct SecurityChallengeTransferStateMachine: StateMachine {
     self.logger = logger
   }
 
-  public mutating func transition(with event: Event) async {
-    logger.logInfo("Received event \(event)")
+  public mutating func transition(with event: Event) async throws {
+    logger.info("Received event \(event)")
     switch (state, event) {
     case (.initializing, .requestTransferInfo):
       await startTransfer()
@@ -61,9 +63,12 @@ public struct SecurityChallengeTransferStateMachine: StateMachine {
         self.state = .transferError(.unknown)
       }
     default:
-      let errorMessage = "Unexpected \(event) event for the state \(state)"
-      logger.error(errorMessage)
+      let errorMessage: LogMessage = "Unexpected \(event) event for the state \(state)"
+      logger.fatal(errorMessage)
+      throw InvalidTransitionError<Self>(event: event, state: state)
     }
+    let state = state
+    logger.info("Transition to state: \(state)")
   }
 
   mutating func startTransfer() async {
@@ -77,7 +82,6 @@ public struct SecurityChallengeTransferStateMachine: StateMachine {
       ).senderPublicKey
       self.state = .readyForTransfer(
         TransferInfo(transferId: transferId, publicKey: senderPublicKey))
-      logger.logInfo("Transition to state: \(state)")
     } catch let error as URLError where error.code == .timedOut {
       logger.error("Transfer failed", error: error)
       state = .transferError(.timeout)
@@ -108,7 +112,7 @@ extension SecurityChallengeTransferStateMachine {
   public static var mock: SecurityChallengeTransferStateMachine {
     SecurityChallengeTransferStateMachine(
       login: "_", apiClient: .fake,
-      cryptoProvider: DeviceTransferCryptoKeysProviderMock.mock(keys: .mock), logger: LoggerMock())
+      cryptoProvider: DeviceTransferCryptoKeysProviderMock.mock(keys: .mock), logger: .mock)
   }
 }
 

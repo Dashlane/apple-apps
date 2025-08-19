@@ -5,12 +5,12 @@ import CorePasswords
 import CorePersonalData
 import CorePremium
 import CoreSession
-import CoreUserTracking
+import CoreTypes
 import CryptoKit
-import DashTypes
 import Foundation
 import SwiftTreats
 import SwiftUI
+import UserTrackingFoundation
 
 @MainActor
 final class SecuritySettingsViewModel: ObservableObject, SessionServicesInjecting {

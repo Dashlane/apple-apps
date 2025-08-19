@@ -1,7 +1,8 @@
 import Combine
 import CoreFeature
+import CorePersonalData
 import CorePremium
-import DashTypes
+import CoreTypes
 import Foundation
 import VaultKit
 
@@ -75,7 +76,7 @@ extension ShareButtonViewModel {
           items: items, userGroupIds: userGroupIds, userEmails: userEmails,
           sharingService: sharingService)
       },
-      vaultStateService: .mock,
+      vaultStateService: .mock(),
       deeplinkingService: DeepLinkingService.fakeService)
   }
 }

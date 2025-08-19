@@ -3,7 +3,7 @@ import PackageDescription
 let package = Package(
   name: "DatabaseFoundation",
   platforms: [
-    .iOS(.v16)
+    .iOS(.v17)
   ],
   products: [
     .library(
@@ -11,12 +11,12 @@ let package = Package(
       targets: ["DatabaseFoundation"])
   ],
   dependencies: [
-    .package(url: "_", from: "6.20.2")
+    .package(url: "_", from: "6.29.1")
   ],
   targets: [
     .target(
       name: "DatabaseFoundation",
-      dependencies: [.product(name: "GRDB", package: "GRDB")]),
+      dependencies: [.product(name: "GRDB", package: "GRDB.swift")]),
     .testTarget(
       name: "DatabaseFoundationTests",
       dependencies: ["DatabaseFoundation"]),

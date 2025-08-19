@@ -1,12 +1,12 @@
 import Combine
 import CorePremium
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import Foundation
 import ImportKit
 import SwiftUI
 import UIDelight
 import UIKit
+import UserTrackingFoundation
 
 @MainActor
 final class SettingsFlowViewModel: ObservableObject, SessionServicesInjecting {
@@ -18,7 +18,6 @@ final class SettingsFlowViewModel: ObservableObject, SessionServicesInjecting {
   let securitySettingsViewModelFactory: SecuritySettingsViewModel.Factory
   let generalSettingsViewModelFactory: GeneralSettingsViewModel.Factory
   let helpCenterSettingsViewModelFactory: HelpCenterSettingsViewModel.Factory
-  private let labsSettingsViewModelFactory: LabsSettingsViewModel.Factory
   private let accountSummaryViewModelFactory: AccountSummaryViewModel.Factory
 
   init(
@@ -26,7 +25,6 @@ final class SettingsFlowViewModel: ObservableObject, SessionServicesInjecting {
     securitySettingsViewModelFactory: SecuritySettingsViewModel.Factory,
     generalSettingsViewModelFactory: GeneralSettingsViewModel.Factory,
     helpCenterSettingsViewModelFactory: HelpCenterSettingsViewModel.Factory,
-    labsSettingsViewModelFactory: LabsSettingsViewModel.Factory,
     accountSummaryViewModelFactory: AccountSummaryViewModel.Factory,
     deepLinkingService: DeepLinkingServiceProtocol
   ) {
@@ -34,7 +32,6 @@ final class SettingsFlowViewModel: ObservableObject, SessionServicesInjecting {
     self.securitySettingsViewModelFactory = securitySettingsViewModelFactory
     self.generalSettingsViewModelFactory = generalSettingsViewModelFactory
     self.helpCenterSettingsViewModelFactory = helpCenterSettingsViewModelFactory
-    self.labsSettingsViewModelFactory = labsSettingsViewModelFactory
     self.accountSummaryViewModelFactory = accountSummaryViewModelFactory
     deepLinkingService.settingsComponentPublisher().map { link in
       switch link {
@@ -50,10 +47,6 @@ final class SettingsFlowViewModel: ObservableObject, SessionServicesInjecting {
     mainSettingsViewModelFactory.make()
   }
 
-  func makeLabsViewModel() -> LabsSettingsViewModel {
-    labsSettingsViewModelFactory.make()
-  }
-
   func makeAccountSummaryViewModel() -> AccountSummaryViewModel {
     accountSummaryViewModelFactory.make()
   }
@@ -67,7 +60,6 @@ extension SettingsFlowViewModel {
       securitySettingsViewModelFactory: .init({ .mock }),
       generalSettingsViewModelFactory: .init({ .mock(status: .Mock.free) }),
       helpCenterSettingsViewModelFactory: .init({ .mock }),
-      labsSettingsViewModelFactory: .init({ .mock }),
       accountSummaryViewModelFactory: .init({ .mock }),
       deepLinkingService: DeepLinkingService.fakeService)
   }

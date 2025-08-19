@@ -9,7 +9,7 @@ extension IDCard: VaultItem {
   }
 
   public var localizedTitle: String {
-    L10n.Core.kwidCardIOS
+    CoreL10n.kwidCardIOS
   }
 
   public var localizedSubtitle: String {
@@ -17,15 +17,15 @@ extension IDCard: VaultItem {
   }
 
   public static var localizedName: String {
-    L10n.Core.kwidCardIOS
+    CoreL10n.kwidCardIOS
   }
 
   public static var addTitle: String {
-    L10n.Core.kwadddatakwidCardIOS
+    CoreL10n.kwadddatakwidCardIOS
   }
 
   public static var nativeMenuAddTitle: String {
-    L10n.Core.addIDCard
+    CoreL10n.addIDCard
   }
 }
 
@@ -49,9 +49,9 @@ extension Gender {
   public var localized: String {
     switch self {
     case .female:
-      return L10n.Core.KWIDCardIOS.Sex.female
+      return CoreL10n.KWIDCardIOS.Sex.female
     case .male:
-      return L10n.Core.KWIDCardIOS.Sex.male
+      return CoreL10n.KWIDCardIOS.Sex.male
     }
   }
 }

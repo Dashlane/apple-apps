@@ -1,4 +1,4 @@
-import DashTypes
+import CoreTypes
 import Foundation
 
 extension ApplicationDBStack {
@@ -56,7 +56,7 @@ extension ApplicationDBStack {
   ) throws -> PersonalDataRecord {
     var metadata = metadata
     metadata.markAsPendingUpload()
-    metadata.lastLocalUseDate = Date()
+    metadata.lastLocalUseDate = item.isSaved ? Date() : nil
 
     try item.prepareForSavingAndValidate()
     let content = try encoder.encode(item, in: existingCotent)

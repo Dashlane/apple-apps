@@ -72,21 +72,30 @@ public struct TextDetailField: DetailField {
     .lineLimit(1)
     .frame(maxWidth: .infinity)
     .fiberAccessibilityHint(
-      detailMode.isEditing ? Text(L10n.Core.detailItemViewAccessibilityEditableHint) : Text(""))
+      detailMode.isEditing ? Text(CoreL10n.detailItemViewAccessibilityEditableHint) : Text(""))
   }
 }
 
-struct TextDetailField_Previews: PreviewProvider {
-  static var previews: some View {
-    MultiContextPreview {
-      VStack {
-        TextDetailField(title: "Title", text: .constant("test")).environment(\.detailMode, .viewing)
-        TextDetailField(title: "Title", text: .constant("test")).environment(
-          \.detailMode, .updating)
-        TextDetailField(title: "Title", text: .constant("")).environment(\.detailMode, .viewing)
-        TextDetailField(title: "Title", text: .constant("")).environment(\.detailMode, .updating)
-      }
-      .background(Color.ds.background.default)
-    }.previewLayout(.sizeThatFits)
-  }
+#Preview("Viewing - with text", traits: .sizeThatFitsLayout) {
+  TextDetailField(title: "Title", text: .constant("test"))
+    .environment(\.detailMode, .viewing)
+    .background(Color.ds.background.default)
+}
+
+#Preview("Updating - with text", traits: .sizeThatFitsLayout) {
+  TextDetailField(title: "Title", text: .constant("test"))
+    .environment(\.detailMode, .updating)
+    .background(Color.ds.background.default)
+}
+
+#Preview("Viewing - empty", traits: .sizeThatFitsLayout) {
+  TextDetailField(title: "Title", text: .constant(""))
+    .environment(\.detailMode, .viewing)
+    .background(Color.ds.background.default)
+}
+
+#Preview("Updating - empty", traits: .sizeThatFitsLayout) {
+  TextDetailField(title: "Title", text: .constant(""))
+    .environment(\.detailMode, .updating)
+    .background(Color.ds.background.default)
 }

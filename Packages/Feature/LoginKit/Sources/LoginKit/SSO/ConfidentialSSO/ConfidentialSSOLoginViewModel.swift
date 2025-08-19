@@ -1,9 +1,10 @@
 import CoreCrypto
 import CoreNetworking
 import CoreSession
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import StateMachine
 import SwiftTreats
 
@@ -16,7 +17,8 @@ public class ConfidentialSSOViewModel: StateMachineBasedObservableObject, LoginK
 
   let login: Login
   let completion: Completion<SSOCompletion>
-  public var machine: ConfidentialSSOLoginStateMachine!
+  @Published public var machine: ConfidentialSSOLoginStateMachine!
+  @Published public var isPerformingEvent: Bool = false
 
   @MainActor
   lazy public var stateMachine: ConfidentialSSOLoginStateMachine = {
@@ -43,7 +45,7 @@ public class ConfidentialSSOViewModel: StateMachineBasedObservableObject, LoginK
         machine = try await ConfidentialSSOLoginStateMachine(
           login: login,
           nitroClient: nitroClient,
-          tunnelCreator: NitroSecureTunnelCreatorImpl(nitroClient: nitroClient),
+          nitroSecureTunnelCreatorType: NitroSecureTunnelCreatorImpl.self,
           logger: logger)
         await perform(.fetchSSOInfo)
       } catch {

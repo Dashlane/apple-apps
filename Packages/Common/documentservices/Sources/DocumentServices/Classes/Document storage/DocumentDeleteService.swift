@@ -1,12 +1,14 @@
 import Combine
 import CoreNetworking
 import CorePersonalData
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import SwiftTreats
 
-public struct DocumentDeleteService {
+public struct DocumentUpdateService {
+  @Loggable
   enum DocumentDeleteError: Error {
     case fileCouldNotBeDeletedFromAWS
   }
@@ -72,5 +74,24 @@ public struct DocumentDeleteService {
       }
 
     try self.database.delete(secureFileInfo)
+  }
+
+  public func renameAttachment(
+    _ attachment: Attachment,
+    withName newFileName: String,
+    on item: DocumentAttachable
+  ) async throws {
+    var updatingItem = item
+    var updatingAttachment = attachment
+    updatingAttachment.filename = newFileName
+    updatingItem.updateAttachments(with: updatingAttachment)
+    try self.database.update(updatingItem)
+
+    if var secureFileInfo = try database.fetch(
+      with: .init(attachment.id), type: SecureFileInformation.self)
+    {
+      secureFileInfo.filename = newFileName
+      try database.save(secureFileInfo)
+    }
   }
 }

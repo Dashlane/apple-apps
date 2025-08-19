@@ -9,8 +9,11 @@ public enum Thumbnail: View {
     case .icon(let icon):
       BaseThumbnail {
         IconThumbnailContentView(icon)
+          .background {
+            Rectangle()
+              .foregroundStyle(Color.ds.container.agnostic.neutral.standard)
+          }
       }
-      .foregroundStyle(Color.ds.container.agnostic.neutral.standard)
     }
   }
 }
@@ -18,7 +21,7 @@ public enum Thumbnail: View {
 #Preview {
   HStack {
     Thumbnail.icon(.ds.action.add.outlined)
-      .controlSize(.mini)
+      .controlSize(.small)
     Thumbnail.icon(.ds.action.add.outlined)
       .controlSize(.regular)
     Thumbnail.icon(.ds.action.add.outlined)

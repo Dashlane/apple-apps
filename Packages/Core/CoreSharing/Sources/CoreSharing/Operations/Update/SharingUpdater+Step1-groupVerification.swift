@@ -1,5 +1,5 @@
+import CoreTypes
 import CyrilKit
-import DashTypes
 import Foundation
 
 extension SharingUpdater {
@@ -11,7 +11,7 @@ extension SharingUpdater {
         try verify(group)
         return true
       } catch {
-        logger.fatal("UserGroup \(group.id) is not valid: \(error)")
+        logger.fatal("UserGroup \(group.id, privacy: .public) is not valid: \(error)")
         return false
       }
     }
@@ -37,34 +37,19 @@ extension SharingUpdater {
       try verifyAcceptSignature(of: user, groupKey: groupKey)
     }
 
-    let proposeSignatureProducer = cryptoProvider.proposeSignatureProducer(using: groupKey)
-    try group.users.filter { $0.rsaStatus == .sharingKeys }.verifyProposeSignatures(
-      using: proposeSignatureProducer)
     _ = try group.info.privateKey(using: groupKey, cryptoProvider: cryptoProvider)
   }
 
   @discardableResult
-  func verifyAndSave(
-    _ collections: [SharingCollection]
-  ) throws -> (
-    savedCollections: [SharingCollection], invalidProposeSignatureCollections: [SharingCollection]
-  ) {
+  func verifyAndSave(_ collections: [SharingCollection]) throws -> [SharingCollection] {
     logger.debug("Verify Collections")
-
-    var invalidProposeSignatureCollections: [SharingCollection] = []
 
     let collections = collections.filter { collection in
       do {
         try verify(collection)
         return true
-      } catch SharingGroupError.invalidSignature(.propose, reason: .notValid) {
-        invalidProposeSignatureCollections.append(collection)
-        logger.fatal(
-          "Collection \(collection.id) is not valid: \(SharingGroupError.invalidSignature(.propose, reason: .notValid))"
-        )
-        return false
       } catch {
-        logger.fatal("Collection \(collection.id) is not valid: \(error)")
+        logger.fatal("Collection \(collection.id, privacy: .public) is not valid: \(error)")
         return false
       }
     }
@@ -76,10 +61,7 @@ extension SharingUpdater {
       logger.debug("No Collection inserted or updated")
     }
 
-    return (
-      savedCollections: collections,
-      invalidProposeSignatureCollections: invalidProposeSignatureCollections
-    )
+    return collections
   }
 
   private func verify(_ collection: SharingCollection) throws {
@@ -95,34 +77,19 @@ extension SharingUpdater {
       try verifyAcceptSignature(of: userGroupMember, groupKey: groupKey)
     }
 
-    let proposeSignatureProducer = cryptoProvider.proposeSignatureProducer(using: groupKey)
-    try collection.users.filter { $0.rsaStatus == .sharingKeys }.verifyProposeSignatures(
-      using: proposeSignatureProducer)
-    try collection.userGroupMembers.verifyProposeSignatures(using: proposeSignatureProducer)
     _ = try collection.info.privateKey(using: groupKey, cryptoProvider: cryptoProvider)
   }
 
   @discardableResult
-  func verifyAndSave(_ groups: [ItemGroup]) throws -> (
-    savedGroups: [ItemGroup], invalidProposeSignatureGroups: [ItemGroup]
-  ) {
+  func verifyAndSave(_ groups: [ItemGroup]) throws -> [ItemGroup] {
     logger.debug("Verify Item Groups")
-
-    var invalidProposeSignatureGroups: [ItemGroup] = []
 
     let groups = groups.filter { group in
       do {
         try verify(group)
         return true
-      } catch SharingGroupError.invalidSignature(.propose, reason: .notValid) {
-        invalidProposeSignatureGroups.append(group)
-        logger.fatal(
-          "ItemGroup \(group.id) is not valid: \(SharingGroupError.invalidSignature(.propose, reason: .notValid))"
-        )
-
-        return false
       } catch {
-        logger.fatal("ItemGroup \(group.id) is not valid: \(error)")
+        logger.fatal("ItemGroup \(group.id, privacy: .public) is not valid: \(error)")
         return false
       }
     }
@@ -134,7 +101,7 @@ extension SharingUpdater {
       logger.debug("No ItemGroup inserted or updated")
     }
 
-    return (savedGroups: groups, invalidProposeSignatureGroups: invalidProposeSignatureGroups)
+    return groups
   }
 
   private func verify(_ group: ItemGroup) throws {
@@ -153,12 +120,6 @@ extension SharingUpdater {
     for collectionMember in group.collectionMembers {
       try verifyAcceptSignature(of: collectionMember, groupKey: groupKey)
     }
-
-    let proposeSignatureProducer = cryptoProvider.proposeSignatureProducer(using: groupKey)
-    try group.users.filter { $0.rsaStatus == .sharingKeys }.verifyProposeSignatures(
-      using: proposeSignatureProducer)
-    try group.userGroupMembers.verifyProposeSignatures(using: proposeSignatureProducer)
-    try group.collectionMembers.verifyProposeSignatures(using: proposeSignatureProducer)
 
     for item in group.itemKeyPairs {
       _ = try item.key(using: groupKey, cryptoProvider: cryptoProvider)

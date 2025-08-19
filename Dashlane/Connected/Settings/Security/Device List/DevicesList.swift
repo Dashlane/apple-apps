@@ -40,7 +40,7 @@ struct DevicesList: View {
           L10n.Localizable.kwDeviceDeactivateFailureTitle,
           isPresented: $model.isDeactivationFailed,
           actions: {
-            Button(CoreLocalization.L10n.Core.kwButtonOk) {}
+            Button(CoreL10n.kwButtonOk) {}
           },
           message: {
             Text(L10n.Localizable.kwDeviceDeactivateFailureMsg)
@@ -65,9 +65,9 @@ struct DevicesList: View {
       if model.listStatus == .loading {
         loadingIndicator
       } else if model.listStatus == .noInternet {
-        listErrorPlaceholder(withMessage: CoreLocalization.L10n.Core.kwNoInternet)
+        listErrorPlaceholder(withMessage: CoreL10n.kwNoInternet)
       } else if model.listStatus == .error {
-        listErrorPlaceholder(withMessage: CoreLocalization.L10n.Core.kwExtSomethingWentWrong)
+        listErrorPlaceholder(withMessage: CoreL10n.kwExtSomethingWentWrong)
       }
     }.animation(.default, value: model.devicesGroups)
       .navigationBarBackButtonHidden(mode?.wrappedValue == .active)
@@ -90,7 +90,9 @@ struct DevicesList: View {
       Image(systemName: "ellipsis.circle")
     }
     Spacer()
-    Text(L10n.Localizable.kwDeviceListToolbarTitle).bold()
+    Text(L10n.Localizable.kwDeviceListToolbarTitle)
+      .bold()
+      .foregroundStyle(Color.ds.text.neutral.standard)
     Spacer()
     Button(
       action: {
@@ -105,7 +107,7 @@ struct DevicesList: View {
       },
       label: {
         Image(systemName: "trash")
-          .foregroundColor(.ds.text.danger.standard)
+          .foregroundStyle(Color.ds.text.danger.standard)
       }
     ).disabled(self.selectedDevices.isEmpty)
   }
@@ -113,21 +115,23 @@ struct DevicesList: View {
   var list: some View {
     List(selection: $selectedDevices) {
       ForEach(model.devicesGroups) { devices in
-        LargeHeaderSection(title: devices.dateGroup.localizedDeviceTitle) {
+        Section(devices.dateGroup.localizedDeviceTitle) {
           ForEach(devices.devices) { device in
             BucketDeviceRow(device: device, isCurrent: model.currentDeviceId == device.id)
               .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
               .padding(6)
-              .onTapGesture(enabled: mode?.wrappedValue != .active) {
-                self.selectedDevice = device
+              .onTapGesture {
+                if mode?.wrappedValue != .active {
+                  self.selectedDevice = device
+                }
               }
 
           }
         }
       }
-
     }
-    .listAppearance(.insetGrouped)
+    .listStyle(.ds.insetGrouped)
+    .headerProminence(.increased)
     .navigationTitle(L10n.Localizable.kwDeviceListTitle)
     .reportPageAppearance(.settingsDeviceList)
   }
@@ -165,7 +169,7 @@ struct DevicesList: View {
       title: title,
       buttons: [
         .default(
-          Text(CoreLocalization.L10n.Core.kwDeviceRename),
+          Text(CoreL10n.kwDeviceRename),
           action: {
             self.deviceToBeRenamed = device
           }),
@@ -280,7 +284,7 @@ struct DevicesListView_Previews: PreviewProvider {
           userDeviceAPIClient: .mock({
             UserDeviceAPIClient.Devices.ListDevices.mock(.init(pairingGroups: [], devices: devices))
           }), currentDeviceId: "current",
-          reachability: NetworkReachability(isConnected: true)))
+          reachability: .mock()))
 
       DevicesList(
         model: .init(
@@ -289,7 +293,7 @@ struct DevicesListView_Previews: PreviewProvider {
               throw URLError(.unknown)
             }
           }), currentDeviceId: "current",
-          reachability: NetworkReachability(isConnected: false)))
+          reachability: .mock(isConnected: false)))
 
       DevicesList(
         model: .init(
@@ -299,7 +303,7 @@ struct DevicesListView_Previews: PreviewProvider {
               throw URLError(.unknown)
             }
           }), currentDeviceId: "current",
-          reachability: NetworkReachability(isConnected: true)))
+          reachability: .mock()))
     }
 
   }

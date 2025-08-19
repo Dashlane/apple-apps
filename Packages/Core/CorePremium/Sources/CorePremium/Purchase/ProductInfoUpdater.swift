@@ -1,7 +1,8 @@
 import Combine
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import StoreKit
 
 @MainActor
@@ -10,6 +11,7 @@ public class ProductInfoUpdater {
   let purchaseService: PurchaseService
   let statusProvider: PremiumStatusProvider
   let logger: Logger
+  let updateProductOrder: UpdateProductAction
 
   private var refreshOnStatusChangeTask: Task<Void, Never>?
 
@@ -26,39 +28,45 @@ public class ProductInfoUpdater {
   ) {
     self.purchaseService = purchaseService
     self.statusProvider = statusProvider
+    self.updateProductOrder = updateProductOrder
     self.logger = logger
 
     refreshOnStatusChangeTask = Task { [weak self] in
-      if #available(iOS 16.4, *) {
-        for await status in statusProvider.statusPublisher.values {
-          guard let self = self else {
-            return
-          }
-
-          await self.updateProductVisiblityAndHasDiscountState(from: status)
+      for await status in statusProvider.statusPublisher.values {
+        guard let self = self else {
+          return
         }
+
+        await self.updateProductVisiblityAndHasDiscountState(from: status)
       }
     }
   }
 
-  @available(iOS 16.4, *)
   public convenience init(
     purchaseService: PurchaseService,
     statusProvider: PremiumStatusProvider,
     logger: Logger
   ) {
-    self.init(
-      purchaseService: purchaseService,
-      statusProvider: statusProvider,
-      updateProductOrder: Product.PromotionInfo.updateProductOrder,
-      logger: logger)
+    #if os(visionOS)
+      self.init(
+        purchaseService: purchaseService,
+        statusProvider: statusProvider,
+        updateProductOrder: { _ in },
+        logger: logger)
+    #else
+      self.init(
+        purchaseService: purchaseService,
+        statusProvider: statusProvider,
+        updateProductOrder: Product.PromotionInfo.updateProductOrder,
+        logger: logger
+      )
+    #endif
   }
 
   deinit {
     refreshOnStatusChangeTask?.cancel()
   }
 
-  @available(iOS 16.4, *)
   func updateProductVisiblityAndHasDiscountState(from status: Status) async {
     do {
       defer {
@@ -67,7 +75,7 @@ public class ProductInfoUpdater {
 
       guard status.b2bStatus?.statusCode != .inTeam else {
         hasDiscountAvailable = false
-        return try await Product.PromotionInfo.updateProductOrder(byID: [])
+        return try await updateProductOrder([])
       }
 
       let plans = try await purchaseService.fetchPurchasePlans()
@@ -76,7 +84,7 @@ public class ProductInfoUpdater {
       logWhenAppStoreDashlanePromoMismatch(plans)
 
       let productIdentifiers = plans.compactMap { $0.subscription.id }
-      return try await Product.PromotionInfo.updateProductOrder(byID: productIdentifiers)
+      return try await updateProductOrder(productIdentifiers)
     } catch {
       logger.error("Fail to update product visiblity", error: error)
     }
@@ -89,7 +97,7 @@ public class ProductInfoUpdater {
       }
 
       logger.fatal(
-        "The promotion \(promotionalOfferId) is not set on AppStore product \(plan.subscription.id)"
+        "The promotion \(promotionalOfferId, privacy: .public) is not set on AppStore product \(plan.subscription.id, privacy: .public)"
       )
     }
   }

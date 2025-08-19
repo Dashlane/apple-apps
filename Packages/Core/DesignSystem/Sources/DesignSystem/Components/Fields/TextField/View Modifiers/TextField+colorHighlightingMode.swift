@@ -1,23 +1,16 @@
 import SwiftUI
 
-public enum TextColorHighlightingMode {
+public enum TextFieldColorHighlightingMode {
   case password
   case url
 }
 
-enum TextColorHighlightingModeKey: EnvironmentKey {
-  static let defaultValue: TextColorHighlightingMode? = nil
-}
-
 extension EnvironmentValues {
-  var textColorHighlightingMode: TextColorHighlightingMode? {
-    get { self[TextColorHighlightingModeKey.self] }
-    set { self[TextColorHighlightingModeKey.self] = newValue }
-  }
+  @Entry var textFieldColorHighlightingMode: TextFieldColorHighlightingMode?
 }
 
 extension View {
-  public func textColorHighlightingMode(_ mode: TextColorHighlightingMode?) -> some View {
-    environment(\.textColorHighlightingMode, mode)
+  public func textFieldColorHighlightingMode(_ mode: TextFieldColorHighlightingMode?) -> some View {
+    environment(\.textFieldColorHighlightingMode, mode)
   }
 }

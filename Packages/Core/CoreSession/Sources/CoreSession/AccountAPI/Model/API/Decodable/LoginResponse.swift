@@ -1,4 +1,4 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 
@@ -66,9 +66,8 @@ extension LoginResponse {
         return .masterPassword
       case .invisibleMasterPassword:
         return .invisibleMasterPassword
-      case .undecodable:
+      case .securityKey, .undecodable:
         throw UndecodableCaseError(AuthenticationMethodsAccountType.self)
-
       }
     }
   }

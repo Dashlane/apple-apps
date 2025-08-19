@@ -15,7 +15,7 @@ extension Thumbnail {
 #Preview {
   HStack {
     Thumbnail.collection
-      .controlSize(.mini)
+      .controlSize(.small)
     Thumbnail.collection
       .controlSize(.regular)
     Thumbnail.collection

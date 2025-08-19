@@ -1,7 +1,7 @@
 import AutofillKit
 import Combine
 import CoreSettings
-import DashTypes
+import CoreTypes
 import Foundation
 import NotificationKit
 import SwiftTreats
@@ -16,14 +16,14 @@ class HomeBottomBannerViewModel: ObservableObject, SessionServicesInjecting {
   let onboardingAction: (OnboardingChecklistFlowViewModel.Action) -> Void
   private let userSettings: UserSettings
   private let deepLinkingService: NotificationKitDeepLinkingServiceProtocol
-  private let autofillService: AutofillService
+  private let autofillService: AutofillStateServiceProtocol
 
   private var subscriptions: Set<AnyCancellable> = .init()
 
   init(
     userSettings: UserSettings,
     deepLinkingService: NotificationKitDeepLinkingServiceProtocol,
-    autofillService: AutofillService,
+    autofillService: AutofillStateServiceProtocol,
     action: @escaping (VaultFlowViewModel.Action) -> Void,
     onboardingChecklistViewModelFactory: OnboardingChecklistViewModel.Factory,
     onboardingAction: @escaping (OnboardingChecklistFlowViewModel.Action) -> Void
@@ -41,7 +41,7 @@ class HomeBottomBannerViewModel: ObservableObject, SessionServicesInjecting {
 
   private func combineSetup() {
     autofillService
-      .$activationStatus
+      .activationStatusPublisher
       .sink { [weak self] status in
         guard let self = self else { return }
         self.showAutofillBanner = status.showAutofillBanner
@@ -79,7 +79,7 @@ extension UserSettings {
     let hasUserUnlockedOnboardingChecklist = self[.hasUserUnlockedOnboardingChecklist] ?? false
 
     return !hasUserDismissedOnboardingChecklist && hasUserUnlockedOnboardingChecklist
-      && !Device.isMac
+      && !Device.is(.mac)
   }
 }
 
@@ -88,7 +88,7 @@ extension HomeBottomBannerViewModel {
     .init(
       userSettings: .mock,
       deepLinkingService: NotificationKitDeepLinkingServiceMock(),
-      autofillService: .fakeService,
+      autofillService: AutofillStateService.fakeService,
       action: { _ in },
       onboardingChecklistViewModelFactory: .init { _ in .mock },
       onboardingAction: { _ in }

@@ -1,7 +1,7 @@
 import CoreLocalization
 import DesignSystem
+import DesignSystemExtra
 import SwiftUI
-import UIComponents
 import UIDelight
 import VaultKit
 
@@ -23,9 +23,7 @@ struct DomainsSection: View {
 
   var body: some View {
     if model.item.url != nil || model.mode.isEditing {
-      Section(
-        header: Text(CoreLocalization.L10n.Core.KWAuthentifiantIOS.urlStringForUI.uppercased())
-      ) {
+      Section(header: Text(CoreL10n.KWAuthentifiantIOS.urlStringForUI.uppercased())) {
         if model.mode == .viewing {
           model.item.url.map {
             URLLinkDetailField(
@@ -36,23 +34,21 @@ struct DomainsSection: View {
             )
           }
         } else {
-          DS.TextField(
-            CoreLocalization.L10n.Core.KWAuthentifiantIOS.url, text: $model.item.editableURL
-          )
-          .fieldLabelPersistencyDisabled()
-          .textColorHighlightingMode(.url)
-          .textInputAutocapitalization(.never)
-          .autocorrectionDisabled()
-          .lineLimit(1)
-          .fiberAccessibilityElement(children: .combine)
-          .fiberAccessibilityLabel(
-            Text("\(CoreLocalization.L10n.Core.KWAuthentifiantIOS.url): \(model.item.editableURL)")
-          )
-          .limitedRights(item: model.item)
+          DS.TextField(CoreL10n.KWAuthentifiantIOS.url, text: $model.item.editableURL)
+            .fieldLabelHiddenOnFocus()
+            .textFieldColorHighlightingMode(.url)
+            .textInputAutocapitalization(.never)
+            .autocorrectionDisabled()
+            .lineLimit(1)
+            .fiberAccessibilityElement(children: .combine)
+            .fiberAccessibilityLabel(
+              Text("\(CoreL10n.KWAuthentifiantIOS.url): \(model.item.editableURL)")
+            )
+            .limitedRights(item: model.item, isFrozen: model.service.isFrozen)
         }
 
         if model.linkedDomainsCount > 0 && !model.item.subdomainOnly {
-          LinkDetailField(
+          NativeNavigationPushRow(
             title: L10n.Localizable.linkedDomainsDetailViewMessage(String(model.linkedDomainsCount))
           ) {
             self.showLinkedDomains = true
@@ -67,10 +63,10 @@ struct DomainsSection: View {
             label: {
               HStack {
                 Image(systemName: "plus.circle.fill")
-                  .foregroundColor(.ds.text.positive.standard)
+                  .foregroundStyle(Color.ds.text.positive.standard)
                 Text(L10n.Localizable.credentialDetailViewAddDomain)
                   .padding(.horizontal, 5)
-                  .foregroundColor(.ds.text.brand.standard)
+                  .foregroundStyle(Color.ds.text.brand.standard)
               }
             })
         }

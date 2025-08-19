@@ -1,9 +1,6 @@
 import CoreLocalization
 import SwiftUI
-
-#if canImport(UIKit)
-  import UIKit
-#endif
+import UIKit
 
 struct ObfuscatedDisplayFieldFormattedValueContentView<F: AccessibleObfuscatedFormatStyle>: View
 where F.FormatInput == String, F.FormatOutput == String {
@@ -19,20 +16,19 @@ where F.FormatInput == String, F.FormatOutput == String {
 
   var body: some View {
     Text(verbatim: format.format(value))
+      .foregroundStyle(.textInputValue)
       .monospaced()
       .contentTransition(.numericText())
       .animation(.spring, value: format)
       .accessibilityLabel(Text(verbatim: format.accessibilityText(for: value)))
-      .onChange(of: format) { newFormat in
+      .onChange(of: format) { _, newFormat in
         guard isInstalledInViewHierarchy else { return }
-        #if canImport(UIKit)
-          DispatchQueue.main.asyncAfter(deadline: .now().advanced(by: .milliseconds(750))) {
-            UIAccessibility.post(
-              notification: .announcement,
-              argument: newFormat.accessibilityText(for: value)
-            )
-          }
-        #endif
+        DispatchQueue.main.asyncAfter(deadline: .now().advanced(by: .milliseconds(750))) {
+          UIAccessibility.post(
+            notification: .announcement,
+            argument: newFormat.accessibilityText(for: value)
+          )
+        }
       }
       .onAppear {
         isInstalledInViewHierarchy = true

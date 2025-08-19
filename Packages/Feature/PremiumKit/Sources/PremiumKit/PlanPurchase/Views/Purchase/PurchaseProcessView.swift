@@ -1,53 +1,51 @@
-#if canImport(UIKit)
-  import CorePremium
-  import SwiftUI
-  import UIDelight
-  import CoreLocalization
+import CoreLocalization
+import CorePremium
+import SwiftUI
+import UIDelight
 
-  struct PurchaseProcessView: View {
+struct PurchaseProcessView: View {
 
-    enum Action {
-      case success(plan: PurchasePlan)
-      case cancellation
-      case failure(_ error: Error)
+  enum Action {
+    case success(plan: PurchasePlan)
+    case cancellation
+    case failure(_ error: Error)
+  }
+
+  private enum Step {
+    case purchasing
+    case verifying
+  }
+
+  @ObservedObject
+  var viewModel: PurchaseProcessViewModel
+
+  let action: (Action) -> Void
+
+  var body: some View {
+    VStack {
+      Spacer()
+
+      ProgressView()
+        .controlSize(.large)
+        .progressViewStyle(.indeterminate)
+        .padding(.bottom, 20)
+
+      Text(viewModel.stepText)
+        .font(.callout)
+        .foregroundStyle(.white)
+        .multilineTextAlignment(.center)
+
+      Spacer()
     }
-
-    private enum Step {
-      case purchasing
-      case verifying
+    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+    .background(Color.black.opacity(0.8), ignoresSafeAreaEdges: .all)
+    .navigationBarBackButtonHidden(true)
+    .transition(.opacity)
+    .onReceive(viewModel.dismissPublisher) {
+      self.action($0)
     }
-
-    @ObservedObject
-    var viewModel: PurchaseProcessViewModel
-
-    let action: (Action) -> Void
-
-    var body: some View {
-      VStack {
-        Spacer()
-
-        ProgressView()
-          .padding(.bottom, 10)
-          .scaleEffect(1.5)
-          .tint(.white)
-
-        Text(viewModel.stepText)
-          .font(.callout)
-          .foregroundColor(.white)
-          .multilineTextAlignment(.center)
-
-        Spacer()
-      }
-      .backgroundColorIgnoringSafeArea(.black.opacity(0.8))
-      .navigationBarBackButtonHidden(true)
-      .navigationBarStyle(.transparent)
-      .transition(.opacity)
-      .onReceive(viewModel.dismissPublisher) {
-        self.action($0)
-      }
-      .onAppear {
-        viewModel.purchase()
-      }
+    .onAppear {
+      viewModel.purchase()
     }
   }
-#endif
+}

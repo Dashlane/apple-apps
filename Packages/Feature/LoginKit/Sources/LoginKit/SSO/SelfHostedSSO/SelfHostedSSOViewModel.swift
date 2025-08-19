@@ -1,7 +1,8 @@
 import AuthenticationServices
 import CoreSession
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 import StateMachine
 import SwiftTreats
 
@@ -13,7 +14,8 @@ public class SelfHostedSSOViewModel: NSObject, StateMachineBasedObservableObject
   let login: Login
   let authorisationURL: URL
   let completion: Completion<SSOCompletion>
-  public var stateMachine: SelfHostedSSOLoginStateMachine
+  @Published public var stateMachine: SelfHostedSSOLoginStateMachine
+  @Published public var isPerformingEvent: Bool = false
 
   public init(
     login: Login,
@@ -26,7 +28,6 @@ public class SelfHostedSSOViewModel: NSObject, StateMachineBasedObservableObject
     self.completion = completion
     stateMachine = SelfHostedSSOLoginStateMachine(login: login, logger: logger)
     super.init()
-    startLogin()
   }
 
   public func update(

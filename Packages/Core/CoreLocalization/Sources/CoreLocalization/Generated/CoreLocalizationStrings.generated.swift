@@ -30,6 +30,9 @@ public enum L10n {
       "Core", "accessibilityHidden", fallback: "Hidden")
     public static let accessibilityPresented = L10n.tr(
       "Core", "accessibilityPresented", fallback: "Presented")
+    public static func accessibilityTraitTab(_ p1: Any) -> String {
+      return L10n.tr("Core", "accessibilityTraitTab", String(describing: p1), fallback: "_")
+    }
     public static let accountCreationPasswordStrengthHigh = L10n.tr(
       "Core", "ACCOUNT_CREATION_PASSWORD_STRENGTH_HIGH", fallback: "Boom! Now that’s strong")
     public static let accountCreationPasswordStrengthLow = L10n.tr(
@@ -83,6 +86,10 @@ public enum L10n {
       return L10n.tr(
         "Core", "ACTION_ITEM_SHARING_DETAIL_COLLECTION", String(describing: p1),
         String(describing: p2), fallback: "_")
+    }
+    public static func actionItemSharingDetailSecret(_ p1: Any) -> String {
+      return L10n.tr(
+        "Core", "ACTION_ITEM_SHARING_DETAIL_SECRET", String(describing: p1), fallback: "_")
     }
     public static let actionItemTrialUpgradeRecommendationDescriptionPremium = L10n.tr(
       "Core", "action_item_trial_upgrade_recommendation_description_premium",
@@ -163,90 +170,8 @@ public enum L10n {
       fallback: "That Master Password isn't right. Need")
     public static let authenticationIncorrectMasterPasswordHelp2 = L10n.tr(
       "Core", "Authentication_IncorrectMasterPassword_Help_2", fallback: "help logging in?")
-    public static let authenticatorPushChallengeButton = L10n.tr(
-      "Core", "AUTHENTICATOR_PUSH_CHALLENGE_BUTTON", fallback: "Receive a push notification")
-    public static let authenticatorSunsetDetails = L10n.tr(
-      "Core", "authenticator_sunset_details",
-      fallback: "Tap for details, and instructions on how to migrate to another app")
-    public static let authenticatorSunsetExportAction = L10n.tr(
-      "Core", "authenticator_sunset_export_action", fallback: "Export tokens")
-    public static let authenticatorSunsetExportLearnMore = L10n.tr(
-      "Core", "authenticator_sunset_export_learnMore", fallback: "Learn more")
-    public static let authenticatorSunsetExportMessage = L10n.tr(
-      "Core", "authenticator_sunset_export_message",
-      fallback: "Here's how to export and migrate your tokens to a new Authenticator.")
-    public static let authenticatorSunsetExportStep1 = L10n.tr(
-      "Core", "authenticator_sunset_export_step1", fallback: "Export your tokens")
-    public static let authenticatorSunsetExportStep2 = L10n.tr(
-      "Core", "authenticator_sunset_export_step2",
-      fallback: "Install another authenticator like Google or Microsoft authenticator")
-    public static let authenticatorSunsetExportStep3 = L10n.tr(
-      "Core", "authenticator_sunset_export_step3",
-      fallback: "Easily input your tokens into the new app")
-    public static let authenticatorSunsetExportTitle = L10n.tr(
-      "Core", "authenticator_sunset_export_title",
-      fallback: "How to export your tokens to a new authenticator app")
-    public static let authenticatorSunsetLearnMore = L10n.tr(
-      "Core", "authenticator_sunset_learnMore", fallback: "Learn more")
-    public static func authenticatorSunsetMessage(_ p1: Any) -> String {
-      return L10n.tr("Core", "authenticator_sunset_message", String(describing: p1), fallback: "_")
-    }
-    public static let authenticatorTotpPushOption = L10n.tr(
-      "Core", "AUTHENTICATOR_TOTP_PUSH_OPTION", fallback: "Enter 2FA token")
-    public static let authenticatorPushRetryButtonTitle = L10n.tr(
-      "Core", "authenticatorPushRetryButtonTitle", fallback: "Resend request")
-    public static let authenticatorPushViewAccepted = L10n.tr(
-      "Core", "authenticatorPushViewAccepted", fallback: "Authentication accepted")
     public static let authenticatorPushViewDeniedError = L10n.tr(
       "Core", "authenticatorPushViewDeniedError", fallback: "Authentication rejected")
-    public static let authenticatorPushViewSendTokenButtonTitle = L10n.tr(
-      "Core", "authenticatorPushViewSendTokenButtonTitle", fallback: "Send code to email")
-    public static let authenticatorPushViewTimeOutError = L10n.tr(
-      "Core", "authenticatorPushViewTimeOutError", fallback: "Your request has expired.")
-    public static func authenticatorPushViewTitle(_ p1: Any) -> String {
-      return L10n.tr("Core", "authenticatorPushViewTitle", String(describing: p1), fallback: "_")
-    }
-    public static let authenticatorSunsetBannerAccessDescription = L10n.tr(
-      "Core", "authenticatorSunset_banner_access_description",
-      fallback: "Tap for details and instructions on how to access your 2FA tokens here.")
-    public static let authenticatorSunsetBannerDismiss = L10n.tr(
-      "Core", "authenticatorSunset_banner_dismiss", fallback: "Dismiss")
-    public static let authenticatorSunsetBannerLearnMore = L10n.tr(
-      "Core", "authenticatorSunset_banner_learnMore", fallback: "Learn more")
-    public static let authenticatorSunsetBannerRelocateDescription = L10n.tr(
-      "Core", "authenticatorSunset_banner_relocate_description",
-      fallback:
-        "Tap for details and instructions on how to relocate your Dashlane 2FA tokens to another app."
-    )
-    public static func authenticatorSunsetBannerTitle(_ p1: Any) -> String {
-      return L10n.tr(
-        "Core", "authenticatorSunset_banner_title", String(describing: p1), fallback: "_")
-    }
-    public static let authenticatorSunsetRelocateActionLearnMore = L10n.tr(
-      "Core", "authenticatorSunset_relocate_action_learnMore",
-      fallback: "Learn about token relocation")
-    public static let authenticatorSunsetRelocateActionOpenSettings = L10n.tr(
-      "Core", "authenticatorSunset_relocate_action_openSettings", fallback: "Open Security settings"
-    )
-    public static let authenticatorSunsetRelocatePage = L10n.tr(
-      "Core", "authenticatorSunset_relocate_page", fallback: "Dashlane 2FA")
-    public static let authenticatorSunsetRelocateStep1 = L10n.tr(
-      "Core", "authenticatorSunset_relocate_step1",
-      fallback: "Disable 2FA from your Dashlane security settings")
-    public static let authenticatorSunsetRelocateStep2 = L10n.tr(
-      "Core", "authenticatorSunset_relocate_step2",
-      fallback: "Install a new Authenticator App (e.g., Google Authenticator)")
-    public static let authenticatorSunsetRelocateStep3 = L10n.tr(
-      "Core", "authenticatorSunset_relocate_step3",
-      fallback: "Reconfigure Dashlane 2FA with your new authenticator app")
-    public static let authenticatorSunsetRelocateSubtitle = L10n.tr(
-      "Core", "authenticatorSunset_relocate_subtitle",
-      fallback:
-        "Your Dashlane 2FA token that is stored in the Dashlane Authenticator will need to migrate to another authenticator before the sunset, here is how:"
-    )
-    public static let authenticatorSunsetRelocateTitle = L10n.tr(
-      "Core", "authenticatorSunset_relocate_title",
-      fallback: "We need to relocate your Dashlane token")
     public static let autofillBannerTitle = L10n.tr(
       "Core", "autofillBannerTitle", fallback: "Autofill isn't on.")
     public static let autofillBannerTitleCta = L10n.tr(
@@ -322,14 +247,8 @@ public enum L10n {
     public static let benefitVpnFamily = L10n.tr(
       "Core", "benefit_vpn_family", fallback: "**VPN** for WiFi protection (1 account per plan)")
     public static let cancel = L10n.tr("Core", "Cancel", fallback: "Cancel")
-    public static let changePinLengthCta = L10n.tr(
-      "Core", "Change_pin_length_cta", fallback: "Change PIN length")
-    public static let changePinLengthDialogFourDigits = L10n.tr(
-      "Core", "Change_pin_length_dialog_four_digits", fallback: "4 Digits")
-    public static let changePinLengthDialogSixDigits = L10n.tr(
-      "Core", "Change_pin_length_dialog_six_digits", fallback: "6 Digits")
-    public static let changePinLengthDialogTitle = L10n.tr(
-      "Core", "Change_pin_length_dialog_title", fallback: "Change PIN length?")
+    public static let changeContactEmailPrompt = L10n.tr(
+      "Core", "changeContactEmail_prompt", fallback: "Change contact email")
     public static let changeMasterPasswordMustBeDifferentError = L10n.tr(
       "Core", "changeMasterPasswordMustBeDifferentError",
       fallback: "Your new password must be different from your current password.")
@@ -346,6 +265,22 @@ public enum L10n {
       fallback:
         "This collection can only be shared with users in your organization. Please check the email address and try again."
     )
+    public static let contextMenuAutofillAutofillAvailable = L10n.tr(
+      "Core", "contextMenuAutofill_autofillAvailable", fallback: "Autofill available")
+    public static let contextMenuAutofillAutofillUnavailable = L10n.tr(
+      "Core", "contextMenuAutofill_autofillUnavailable", fallback: "Autofill unavailable")
+    public static let contextMenuAutofillDashlaneVault = L10n.tr(
+      "Core", "contextMenuAutofill_dashlaneVault", fallback: "Dashlane Vault")
+    public static let contextMenuAutofillTapOnTheFieldYouWantToAutofill = L10n.tr(
+      "Core", "contextMenuAutofill_tapOnTheFieldYouWantToAutofill",
+      fallback: "Tap on the field you want to autofill.")
+    public static let contextMenuAutofillTrustThisWebsite = L10n.tr(
+      "Core", "contextMenuAutofill_trustThisWebsite",
+      fallback:
+        "Make sure you trust this site, as this form might be coming from a different domain.")
+    public static let contextMenuAutofillYouCanStillCopyAndPaste = L10n.tr(
+      "Core", "contextMenuAutofill_youCanStillCopyAndPaste",
+      fallback: "You can still copy and paste these fields.")
     public static let copyError = L10n.tr("Core", "copyError", fallback: "Copy error")
     public static let copyErrorConfirmation = L10n.tr(
       "Core", "copyErrorConfirmation", fallback: "Error copied")
@@ -364,7 +299,7 @@ public enum L10n {
     public static let credentialProviderOnboardingCompletedCTA = L10n.tr(
       "Core", "CredentialProviderOnboarding_CompletedCTA", fallback: "Done")
     public static let credentialProviderOnboardingCompletedTitle = L10n.tr(
-      "Core", "CredentialProviderOnboarding_CompletedTitle", fallback: "Uncheck Keychain")
+      "Core", "CredentialProviderOnboarding_CompletedTitle", fallback: "Turn off Keychain")
     public static let credentialProviderOnboardingCTA = L10n.tr(
       "Core", "CredentialProviderOnboarding_CTA", fallback: "Go to Settings")
     public static let credentialProviderOnboardingHeadLine = L10n.tr(
@@ -372,6 +307,9 @@ public enum L10n {
       fallback: "Activate Dashlane Autofill in your phone settings")
     public static let credentialProviderOnboardingIntroTitle = L10n.tr(
       "Core", "CredentialProviderOnboarding_IntroTitle", fallback: "Activate Dashlane Autofill")
+    public static let credentialProviderOnboardingPasswordsAppCompletedTitle = L10n.tr(
+      "Core", "CredentialProviderOnboarding_PasswordsApp_CompletedTitle",
+      fallback: "Turn off Apple Passwords")
     public static let credentialProviderOnboardingStep1 = L10n.tr(
       "Core", "CredentialProviderOnboarding_step1", fallback: "1. Select Passwords")
     public static let credentialProviderOnboardingStep2 = L10n.tr(
@@ -407,7 +345,7 @@ public enum L10n {
     public static let currentPlanSuggestionTrialText = L10n.tr(
       "Core", "current_plan_suggestion_trial_text",
       fallback:
-        "You’ll be switched to the Free plan after your trial. This plan supports unlimited logins on one device."
+        "You’ll be switched to the Free plan after your trial. This plan only supports up to 25 logins on one device."
     )
     public static let currentPlanTitleTrial = L10n.tr(
       "Core", "current_plan_title_trial", fallback: "What’s included in the Premium trial:")
@@ -448,6 +386,8 @@ public enum L10n {
       "Core", "customFieldsTitle", fallback: "Custom fields")
     public static let dashlaneBusinessActiveSpacesTitle = L10n.tr(
       "Core", "DASHLANE_BUSINESS_ACTIVE_SPACES_TITLE", fallback: "You have Spaces")
+    public static let datePickerCalendar = L10n.tr(
+      "Core", "datePicker_calendar", fallback: "Calendar")
     public static let debugInfoCopyAllInformation = L10n.tr(
       "Core", "debugInfo_copyAllInformation", fallback: "Copy all information")
     public static let debugInfoTakeAScreenshot = L10n.tr(
@@ -614,44 +554,73 @@ public enum L10n {
       "Core", "DWMOnboarding_Card_PWG_Tab_Email_Copied", fallback: "Password copied!")
     public static let dwmOnboardingFixBreachesDetailNoPassword = L10n.tr(
       "Core", "DWMOnboarding_FixBreaches_Detail_NoPassword", fallback: "Missing password")
-    public static let emptyConfidentialCardsListCta = L10n.tr(
-      "Core", "EMPTY_CONFIDENTIAL_CARDS_LIST_CTA", fallback: "Add an ID")
-    public static let emptyConfidentialCardsListText = L10n.tr(
-      "Core", "EMPTY_CONFIDENTIAL_CARDS_LIST_TEXT",
-      fallback: "Keep passport and ID numbers here and leave originals safe at home.")
-    public static let emptyPasswordsListCta = L10n.tr(
-      "Core", "EMPTY_PASSWORDS_LIST_CTA", fallback: "Add a login")
-    public static let emptyPasswordsListText = L10n.tr(
-      "Core", "EMPTY_PASSWORDS_LIST_TEXT",
-      fallback: "With all your logins secured here, never forget one again.")
-    public static let emptyPaymentsListCta = L10n.tr(
-      "Core", "EMPTY_PAYMENTS_LIST_CTA", fallback: "Add a payment")
-    public static let emptyPaymentsListText = L10n.tr(
-      "Core", "EMPTY_PAYMENTS_LIST_TEXT",
-      fallback: "Payment details stored here will be filled for you at checkout.")
-    public static let emptyPersonalInfoListCta = L10n.tr(
-      "Core", "EMPTY_PERSONAL_INFO_LIST_CTA", fallback: "Add my info")
-    public static let emptyPersonalInfoListText = L10n.tr(
-      "Core", "EMPTY_PERSONAL_INFO_LIST_TEXT",
-      fallback: "When you store personal details here, Dashlane can fill forms for you.")
-    public static let emptyRecentActivityText = L10n.tr(
-      "Core", "EMPTY_RECENT_ACTIVITY_TEXT",
-      fallback: "As you use the app, your recent items will appear here.")
-    public static let emptySearchResultsText = L10n.tr(
-      "Core", "EMPTY_SEARCH_RESULTS_TEXT",
-      fallback: "Nothing stored in Dashlane matches your search")
-    public static let emptySecretsListText = L10n.tr(
-      "Core", "EMPTY_SECRETS_LIST_TEXT",
+    public static let emptyIDsListCTA = L10n.tr("Core", "emptyIDsListCTA", fallback: "Add ID")
+    public static let emptyIDsListDescription = L10n.tr(
+      "Core", "emptyIDsListDescription",
+      fallback: "Store your important identification documents here for easy and safe access.")
+    public static let emptyIDsListTitle = L10n.tr(
+      "Core", "emptyIDsListTitle", fallback: "Store IDs securely")
+    public static let emptyItemsListCTA = L10n.tr("Core", "emptyItemsListCTA", fallback: "Add item")
+    public static let emptyItemsListDescription = L10n.tr(
+      "Core", "emptyItemsListDescription",
       fallback:
-        "Protect infrastructure secrets like API keys and encryption codes here, and retrieve them securely using our command-line interface (CLI) capabilities."
+        "Securely store and access all your logins, notes, payment info, IDs, and more in one place."
     )
-    public static let emptySecureNotesListCta = L10n.tr(
-      "Core", "EMPTY_SECURE_NOTES_LIST_CTA", fallback: "Add a secure note")
-    public static let emptySecureNotesListText = L10n.tr(
-      "Core", "EMPTY_SECURE_NOTES_LIST_TEXT",
-      fallback: "Store any important info here, from WiFi passwords to alarm codes.")
-    public static let emptySecretsListCta = L10n.tr(
-      "Core", "emptySecretsListCta", fallback: "Add your first secret")
+    public static let emptyItemsListTitle = L10n.tr(
+      "Core", "emptyItemsListTitle", fallback: "Start adding items")
+    public static let emptyPasswordsListCTA = L10n.tr(
+      "Core", "emptyPasswordsListCTA", fallback: "Add login")
+    public static let emptyPasswordsListDescription = L10n.tr(
+      "Core", "emptyPasswordsListDescription", fallback: "Manage your logins securely in one place."
+    )
+    public static let emptyPasswordsListTitle = L10n.tr(
+      "Core", "emptyPasswordsListTitle", fallback: "Start adding logins")
+    public static let emptyPaymentsListCTA = L10n.tr(
+      "Core", "emptyPaymentsListCTA", fallback: "Add payment info")
+    public static let emptyPaymentsListDescription = L10n.tr(
+      "Core", "emptyPaymentsListDescription",
+      fallback:
+        "Securely store your credit card and bank account information for easy access during online transactions."
+    )
+    public static let emptyPaymentsListTitle = L10n.tr(
+      "Core", "emptyPaymentsListTitle", fallback: "Manage your payments")
+    public static let emptyPersonalInfoListCTA = L10n.tr(
+      "Core", "emptyPersonalInfoListCTA", fallback: "Add personal info")
+    public static let emptyPersonalInfoListDescription = L10n.tr(
+      "Core", "emptyPersonalInfoListDescription",
+      fallback:
+        "Safely store and quickly access your personal details, making autofilling forms easier.")
+    public static let emptyPersonalInfoListTitle = L10n.tr(
+      "Core", "emptyPersonalInfoListTitle", fallback: "Store personal information")
+    public static let emptySearchResultsCTA = L10n.tr(
+      "Core", "emptySearchResultsCTA", fallback: "Add item")
+    public static let emptySearchResultsDescription = L10n.tr(
+      "Core", "emptySearchResultsDescription",
+      fallback:
+        "It looks like there’s nothing in your vault that matches your search.\n\nIf this is a new item, add it to your vault."
+    )
+    public static let emptySearchResultsTitle = L10n.tr(
+      "Core", "emptySearchResultsTitle", fallback: "No results found")
+    public static let emptySecretsListCTA = L10n.tr(
+      "Core", "emptySecretsListCTA", fallback: "Add secret")
+    public static let emptySecretsListDescription = L10n.tr(
+      "Core", "emptySecretsListDescription",
+      fallback: "Securely store and manage sensitive information.")
+    public static let emptySecretsListTitle = L10n.tr(
+      "Core", "emptySecretsListTitle", fallback: "Keep your secrets safe")
+    public static let emptySecureNotesListCTA = L10n.tr(
+      "Core", "emptySecureNotesListCTA", fallback: "Add Secure Note")
+    public static let emptySecureNotesListDescription = L10n.tr(
+      "Core", "emptySecureNotesListDescription",
+      fallback: "Store sensitive information and securely share them with others who use Dashlane.")
+    public static let emptySecureNotesListTitle = L10n.tr(
+      "Core", "emptySecureNotesListTitle", fallback: "Secure your notes")
+    public static let emptyWiFiListCTA = L10n.tr("Core", "emptyWiFiListCTA", fallback: "Add Wi-Fi")
+    public static let emptyWiFiListDescription = L10n.tr(
+      "Core", "emptyWiFiListDescription",
+      fallback: "Securely store your Wi-Fi credentials and easily share them using a QR code.")
+    public static let emptyWiFiListTitle = L10n.tr(
+      "Core", "emptyWiFiListTitle", fallback: "Store Wi-Fi credentials")
     public static let enterPasscode = L10n.tr("Core", "EnterPasscode", fallback: "Enter PIN")
     public static let existingSecureFilesAttachedCta = L10n.tr(
       "Core", "existingSecureFilesAttachedCta", fallback: "Attach another file")
@@ -664,6 +633,13 @@ public enum L10n {
       "Core", "FORGOT_MP_SHEET_RECOVERY_ACTION_TITLE", fallback: "Use recovery key")
     public static let forgotMpSheetTitle = L10n.tr(
       "Core", "FORGOT_MP_SHEET_TITLE", fallback: "Forgot your password?")
+    public static let fozenUserLimitAlertMessage = L10n.tr(
+      "Core", "Fozen_user_limit_alert_message",
+      fallback:
+        "You have over 25 passwords saved, so you can't copy or edit this login. For full editing access, remove passwords or upgrade your plan."
+    )
+    public static let fozenUserLimitAlertTitle = L10n.tr(
+      "Core", "Fozen_user_limit_alert_title", fallback: "Your account is read-only")
     public static let freeTrialStartedDialogDescription = L10n.tr(
       "Core", "free_trial_started_dialog_description",
       fallback:
@@ -684,14 +660,12 @@ public enum L10n {
     public static let freeTrialStartedDialogTitle = L10n.tr(
       "Core", "free_trial_started_dialog_title", fallback: "Your free trial has started!")
     public static let frozenAccountAction = L10n.tr(
-      "Core", "frozenAccount_action", fallback: "Get more storage")
+      "Core", "frozenAccount_action", fallback: "Upgrade")
     public static let frozenAccountMessage = L10n.tr(
       "Core", "frozenAccount_message",
-      fallback:
-        "You have over 25 passwords saved. Remove passwords or upgrade to regain full access to your account."
-    )
+      fallback: "You have over 25 passwords saved and your account is now read-only.")
     public static let frozenAccountTitle = L10n.tr(
-      "Core", "frozenAccount_title", fallback: "Your account is read-only")
+      "Core", "frozenAccount_title", fallback: "Upgrade to unlock all features")
     public static let generatedPassword = L10n.tr(
       "Core", "generated_password", fallback: "Generated password")
     public static let generatedPasswordListTitle = L10n.tr(
@@ -829,6 +803,8 @@ public enum L10n {
     )
     public static let ios13SupportDropAnnouncementCTA = L10n.tr(
       "Core", "iOS13SupportDropAnnouncementCTA", fallback: "Open Settings")
+    public static let itemAccessUnlockPrompt = L10n.tr(
+      "Core", "ITEM_ACCESS_UNLOCK_PROMPT", fallback: "Unlock this secure item")
     public static let itemsTitle = L10n.tr("Core", "ITEMS_TITLE", fallback: "All Items")
     public static let itemSharingTeamOnlyWarning = L10n.tr(
       "Core", "itemSharing_teamOnlyWarning",
@@ -871,7 +847,7 @@ public enum L10n {
     public static let kwadddatakwPhoneIOS = L10n.tr(
       "Core", "KW_ADD_DATA_KWPhoneIOS", fallback: "Add a phone number")
     public static let kwadddatakwSecureNoteIOS = L10n.tr(
-      "Core", "KW_ADD_DATA_KWSecureNoteIOS", fallback: "Add a secure note")
+      "Core", "KW_ADD_DATA_KWSecureNoteIOS", fallback: "Add a Secure Note")
     public static let kwadddatakwSocialSecurityStatementIOS = L10n.tr(
       "Core", "KW_ADD_DATA_KWSocialSecurityStatementIOS", fallback: "Add a social security number")
     public static let kwAttachPremiumMessage = L10n.tr(
@@ -996,15 +972,14 @@ public enum L10n {
     public static let kwItemsShared = L10n.tr("Core", "KW_ITEMS_SHARED", fallback: "items shared")
     public static let kwLimitedRightMessage = L10n.tr(
       "Core", "KW_LIMITED_RIGHT_MESSAGE",
-      fallback:
-        "You have limited rights to this login.\n\nYou can't view, copy or edit it, but you can use it with Dashlane extensions for auto-login."
-    )
+      fallback: "You have limited rights to this login.\n\nYou can't view, copy or edit it.")
     public static let kwLinkedDefaultOther = L10n.tr(
       "Core", "KW_Linked_Default_Other", fallback: "Other")
     public static func kwLockBiometryTypeLoadingMsg(_ p1: Any) -> String {
       return L10n.tr(
         "Core", "KW_LOCK_BIOMETRY_TYPE_LOADING_MSG", String(describing: p1), fallback: "_")
     }
+    public static let kwLockOnExit = L10n.tr("Core", "KW_LOCK_ON_EXIT", fallback: "Lock on exit")
     public static let kwLogOut = L10n.tr("Core", "KW_LOG_OUT", fallback: "Log out")
     public static let kwLoginNow = L10n.tr("Core", "KW_LOGIN_NOW", fallback: "Log in")
     public static let kwLoginVcLoginButton = L10n.tr(
@@ -1166,9 +1141,12 @@ public enum L10n {
       "Core", "KW_SHARING_COLLECTION_PERMISSION_TITLE", fallback: "Permissions")
     public static let kwSharingCollectionTitle = L10n.tr(
       "Core", "KW_SHARING_COLLECTION_TITLE", fallback: "Share collection")
-    public static let kwSharingComposeMessageToFieldPlaceholder = L10n.tr(
-      "Core", "KW_SHARING_COMPOSE_MESSAGE_TO_FIELD_PLACEHOLDER",
+    public static let kwSharingComposeMessageToFieldPlaceholderB2B = L10n.tr(
+      "Core", "KW_SHARING_COMPOSE_MESSAGE_TO_FIELD_PLACEHOLDER_B2B",
       fallback: "Dashlane email address or Group")
+    public static let kwSharingComposeMessageToFieldPlaceholderB2C = L10n.tr(
+      "Core", "KW_SHARING_COMPOSE_MESSAGE_TO_FIELD_PLACEHOLDER_B2C",
+      fallback: "Dashlane email address")
     public static let kwSharingInvitePending = L10n.tr(
       "Core", "KW_SHARING_INVITE_PENDING", fallback: "Invite pending")
     public static let kwSharingMember = L10n.tr(
@@ -1196,8 +1174,12 @@ public enum L10n {
     public static func kwUploaded(_ p1: Any) -> String {
       return L10n.tr("Core", "KW_UPLOADED", String(describing: p1), fallback: "_")
     }
+    public static let kwWrongMasterPassword = L10n.tr(
+      "Core", "KW_WRONG_MASTER_PASSWORD", fallback: "Error")
     public static let kwWrongMasterPasswordTryAgain = L10n.tr(
       "Core", "KW_WRONG_MASTER_PASSWORD_TRY_AGAIN", fallback: "Wrong master password, try again")
+    public static let kwWrongPinCodeMessage = L10n.tr(
+      "Core", "KW_WRONG_PIN_CODE_MESSAGE", fallback: "The PIN you entered is incorrect.")
     public static let kwYes = L10n.tr("Core", "KW_YES", fallback: "Yes")
     public static let kwAddressIOS = L10n.tr("Core", "KWAddressIOS", fallback: "Address")
     public static let kwAuthentifiantIOS = L10n.tr(
@@ -1468,14 +1450,6 @@ public enum L10n {
       return L10n.tr(
         "Core", "numberedSecureFilesAttachedCta", String(describing: p1), fallback: "_")
     }
-    public static let onboardingV3AuthenticatorScreenDescription = L10n.tr(
-      "Core", "OnboardingV3_AuthenticatorScreen_Description",
-      fallback:
-        "Sync your 2FA tokens across the Dashlane Authenticator and Password Manager apps, so you always have access to your accounts."
-    )
-    public static let onboardingV3AuthenticatorScreenTitle = L10n.tr(
-      "Core", "OnboardingV3_AuthenticatorScreen_Title",
-      fallback: "Create an account to finish your backup")
     public static let onboardingV3AutofillScreenDescription = L10n.tr(
       "Core", "OnboardingV3_AutofillScreen_Description",
       fallback: "Use your favorite websites and apps without typing a username or password.")
@@ -1700,11 +1674,12 @@ public enum L10n {
       "Core", "paywallsFrozenTitleTrialEnded",
       fallback: "Your trial ended and your account is now read-only. Upgrade to Premium for:")
     public static let paywallsPasswordLimit = L10n.tr(
-      "Core", "paywallsPasswordLimit",
-      fallback: "Upgrade for unlimited password management across all your devices")
+      "Core", "paywallsPasswordLimit", fallback: "Upgrade for unlimited access on all devices")
     public static let paywallsPasswordLimitAddManually = L10n.tr(
       "Core", "paywallsPasswordLimitAddManually",
-      fallback: "Add passwords manually or import them from other password managers and browsers")
+      fallback:
+        "Add unlimited passwords manually or from a DASH file on this device (or use your computer for more import options)"
+    )
     public static let paywallsPasswordLimitOtherFeatures = L10n.tr(
       "Core", "paywallsPasswordLimitOtherFeatures",
       fallback:
@@ -1712,8 +1687,7 @@ public enum L10n {
     public static let paywallsPasswordLimitSync = L10n.tr(
       "Core", "paywallsPasswordLimitSync",
       fallback:
-        "Access and sync your Dashlane account across multiple smartphones, tablets, and computers at the same time"
-    )
+        "Sync Dashlane across all your devices and always have access, no matter the platform")
     public static func personalInfo(_ p1: Int) -> String {
       return L10n.tr("Core", "personalInfo", p1, fallback: "%1$d personal info")
     }
@@ -1795,6 +1769,8 @@ public enum L10n {
     }
     public static let planScreensActivateLabel = L10n.tr(
       "Core", "planScreens_activateLabel", fallback: "Activate new features")
+    public static let planScreensFreeFrozenCTA = L10n.tr(
+      "Core", "planScreens_freeFrozenCTA", fallback: "Manage logins")
     public static let planScreensFreeFrozenWarning = L10n.tr(
       "Core", "planScreens_freeFrozenWarning",
       fallback:
@@ -1871,7 +1847,7 @@ public enum L10n {
     )
     public static let recoveryKeyLoginMessageNonMp = L10n.tr(
       "Core", "RECOVERY_KEY_LOGIN_MESSAGE_NON_MP",
-      fallback: "Enter your single-use recovery key to recover access to your account.")
+      fallback: "Enter your recovery key to recover access to your account.")
     public static let recoveryKeyLoginProgressMessage = L10n.tr(
       "Core", "RECOVERY_KEY_LOGIN_PROGRESS_MESSAGE", fallback: "Processing your recovery request..."
     )
@@ -2089,6 +2065,16 @@ public enum L10n {
     )
     public static let updateAppTitle = L10n.tr(
       "Core", "updateAppTitle", fallback: "New version available")
+    public static let validityStatusExpiredVersionNoUpdateClose = L10n.tr(
+      "Core", "ValidityStatus_ExpiredVersion_NoUpdate_Close", fallback: "Close")
+    public static let validityStatusExpiredVersionNoUpdateDesc = L10n.tr(
+      "Core", "ValidityStatus_ExpiredVersion_NoUpdate_Desc",
+      fallback: "Visit the Help Center to learn more about what you can do to keep using Dashlane.")
+    public static let validityStatusExpiredVersionNoUpdateTitle = L10n.tr(
+      "Core", "ValidityStatus_ExpiredVersion_NoUpdate_Title",
+      fallback: "This version of the app is no longer supported")
+    public static let vauldAddButtonImportData = L10n.tr(
+      "Core", "vauld_add_button_import_data", fallback: "Import data")
     public static let vaultItemCreationDateLabel = L10n.tr(
       "Core", "vaultItemCreationDate_label", fallback: "Created")
     public static let vaultItemLastUsedDate = L10n.tr(
@@ -2116,6 +2102,12 @@ public enum L10n {
     public static let zxcvbnSuggestionDefaultPersonalInfo = L10n.tr(
       "Core", "ZXCVBN_SUGGESTION_DEFAULT_PERSONAL_INFO",
       fallback: "Avoid including personal information like dates of birth or pet names")
+    public enum CredentialProvider {
+      public static func otpDescription(_ p1: Any) -> String {
+        return L10n.tr(
+          "Core", "CredentialProvider.OTPDescription", String(describing: p1), fallback: "_")
+      }
+    }
     public enum KWAddressIOS {
       public static let addressFull = L10n.tr(
         "Core", "KWAddressIOS.addressFull", fallback: "Address")
@@ -2436,7 +2428,7 @@ public enum L10n {
         "Core", "KWSecureNoteIOS.emptyContent", fallback: "Type note here...")
       public static let locked = L10n.tr("Core", "KWSecureNoteIOS.locked", fallback: "Locked")
       public static let protectedMessage = L10n.tr(
-        "Core", "KWSecureNoteIOS.protectedMessage", fallback: "This note is password-protected")
+        "Core", "KWSecureNoteIOS.protectedMessage", fallback: "Note is locked!")
       public static let spaceId = L10n.tr("Core", "KWSecureNoteIOS.spaceId", fallback: "Space")
       public static let title = L10n.tr("Core", "KWSecureNoteIOS.title", fallback: "Title")
       public static let type = L10n.tr("Core", "KWSecureNoteIOS.type", fallback: "Color")
@@ -2808,9 +2800,9 @@ public enum L10n {
         public enum SecureToggle {
           public static let message = L10n.tr(
             "Core", "KWVaultItem.preferences.secureToggle.message",
-            fallback: "Ask for your Biometrics or Master Password to unlock this item.")
+            fallback: "Ask for authentication to unlock this item.")
           public static let title = L10n.tr(
-            "Core", "KWVaultItem.preferences.secureToggle.title", fallback: "Lock item")
+            "Core", "KWVaultItem.preferences.secureToggle.title", fallback: "Protect item")
         }
       }
       public enum Sharing {
@@ -2945,7 +2937,7 @@ public enum L10n {
           public static let recoveryIntroMessage = L10n.tr(
             "Core", "Mpless.d2d.untrusted.recovery_intro_message",
             fallback:
-              "If you don’t have a logged in device available, you can use your recovery key to log in to Dashlane.\n\nBefore you start the recovery process, make sure you have your single-use recovery key. Depending on your security settings, additional verification may be required to complete the recovery process."
+              "If you don’t have a logged in device available, you can use your recovery key to log in to Dashlane.\n\nBefore you start the recovery process, make sure you have your recovery key. Depending on your security settings, additional verification may be required to complete the recovery process."
           )
           public static let recoveryIntroPrimaryCta = L10n.tr(
             "Core", "Mpless.d2d.untrusted.recovery_intro_primary_cta", fallback: "Start recovery")
@@ -3018,7 +3010,7 @@ public enum L10n {
     }
     public enum Secrets {
       public static let protectedMessage = L10n.tr(
-        "Core", "Secrets.protectedMessage", fallback: "This secret is password-protected")
+        "Core", "Secrets.protectedMessage", fallback: "Secret is locked!")
       public enum Sharing {
         public static let ctaLabel = L10n.tr(
           "Core", "Secrets.sharing.ctaLabel", fallback: "Share secret")
@@ -3051,6 +3043,63 @@ public enum L10n {
         public static let forgotButton = L10n.tr(
           "Core", "Unlock.Pincode.forgotButton", fallback: "Forgot your PIN?")
       }
+    }
+    public enum WiFi {
+      public static let add = L10n.tr("Core", "WiFi.add", fallback: "Add Wi-Fi")
+      public static let connectCTA = L10n.tr(
+        "Core", "WiFi.ConnectCTA", fallback: "Connect to network")
+      public static let copyActionCTA = L10n.tr(
+        "Core", "WiFi.CopyActionCTA", fallback: "Copy Value")
+      public static let mainMenu = L10n.tr("Core", "WiFi.main_menu", fallback: "Wi-Fi")
+      public enum WiFiMenu {
+        public static let copySSID = L10n.tr(
+          "Core", "WiFi.WiFiMenu.copySSID", fallback: "Copy SSID")
+      }
+      public enum DetailView {
+        public static let itemName = L10n.tr(
+          "Core", "WiFi.detail_view.item_name", fallback: "Item name")
+        public static let note = L10n.tr("Core", "WiFi.detail_view.note", fallback: "Note")
+        public static let organization = L10n.tr(
+          "Core", "WiFi.detail_view.organization", fallback: "Organization")
+        public static let password = L10n.tr(
+          "Core", "WiFi.detail_view.password", fallback: "Password")
+        public static let ssid = L10n.tr(
+          "Core", "WiFi.detail_view.ssid", fallback: "Network name (SSID)")
+        public static let viewQRCode = L10n.tr(
+          "Core", "WiFi.detail_view.view_QRCode", fallback: "View QR code")
+        public enum Qrcode {
+          public static let done = L10n.tr("Core", "WiFi.detail_view.qrcode.done", fallback: "Done")
+          public static let subtitle = L10n.tr(
+            "Core", "WiFi.detail_view.qrcode.subtitle",
+            fallback: "Share this QR code to someone to help them connect to this network")
+        }
+      }
+      public enum Pluralized {
+        public static func plural(_ p1: Int) -> String {
+          return L10n.tr("Core", "WiFi.pluralized.plural", p1, fallback: "%1$d Wi-Fi credentials")
+        }
+        public static func singular(_ p1: Int) -> String {
+          return L10n.tr("Core", "WiFi.pluralized.singular", p1, fallback: "%1$d Wi-Fi credential")
+        }
+      }
+      public enum Toast {
+        public static let connected = L10n.tr("Core", "WiFi.toast.connected", fallback: "Connected")
+      }
+    }
+    public enum AddNewDeviceWarning {
+      public static let authorizeCta = L10n.tr(
+        "Core", "add_new_device_warning.authorize_cta", fallback: "Authorize")
+      public static let message1 = L10n.tr(
+        "Core", "add_new_device_warning.message1",
+        fallback: "Your account is about to be loaded on another device.")
+      public static let message2 = L10n.tr(
+        "Core", "add_new_device_warning.message2",
+        fallback:
+          "If you didn’t request this action, please cancel immediately to protect your data.")
+      public static let navigationTitle = L10n.tr(
+        "Core", "add_new_device_warning.navigation_title", fallback: "Add new device")
+      public static let title = L10n.tr(
+        "Core", "add_new_device_warning.title", fallback: "Authorize Account Transfer")
     }
     public enum Announcement {
       public enum UpdateSystem {
@@ -3099,6 +3148,180 @@ public enum L10n {
           "Core", "antiPhishing.websites.trusted", fallback: "Trusted URL")
       }
     }
+    public enum AuthenticatorIntro {
+      public static let cta = L10n.tr("Core", "authenticator_intro.cta", fallback: "Add login")
+      public static let description1 = L10n.tr(
+        "Core", "authenticator_intro.description1",
+        fallback: "2-factor authentication (2FA) adds an extra layer of security to accounts.")
+      public static let description2 = L10n.tr(
+        "Core", "authenticator_intro.description2",
+        fallback: "2FA helps make sure it's really you logging in, keeping your data protected.")
+      public static let description3 = L10n.tr(
+        "Core", "authenticator_intro.description3",
+        fallback: "Boost your score with 2FA-protected logins.")
+      public static let subtitle1 = L10n.tr(
+        "Core", "authenticator_intro.subtitle1", fallback: "Enhance account security")
+      public static let subtitle2 = L10n.tr(
+        "Core", "authenticator_intro.subtitle2", fallback: "Prevent unauthorized access")
+      public static let subtitle3 = L10n.tr(
+        "Core", "authenticator_intro.subtitle3", fallback: "Strengthen Password Health")
+      public static let title = L10n.tr(
+        "Core", "authenticator_intro.title", fallback: "Turn on 2FA for your saved logins")
+    }
+    public enum ChangeLoginEmail {
+      public static let back = L10n.tr("Core", "change_login_email.back", fallback: "Back")
+      public static let cancel = L10n.tr("Core", "change_login_email.cancel", fallback: "Cancel")
+      public static let currentLoginEmail = L10n.tr(
+        "Core", "change_login_email.currentLoginEmail", fallback: "Current login email")
+      public static let footer = L10n.tr(
+        "Core", "change_login_email.footer",
+        fallback:
+          "This email address will be used to login to your account in all your devices. You will need access to the new email address in order to confirm the change."
+      )
+      public static let invalidEmail = L10n.tr(
+        "Core", "change_login_email.invalidEmail", fallback: "Please provide a valid email address."
+      )
+      public static let invalidToken = L10n.tr(
+        "Core", "change_login_email.invalidToken", fallback: "Incorrect code. Please try again.")
+      public static let navigationTitle = L10n.tr(
+        "Core", "change_login_email.navigationTitle", fallback: "Login details")
+      public static let newLoginEmail = L10n.tr(
+        "Core", "change_login_email.newLoginEmail", fallback: "New login email")
+      public static let next = L10n.tr("Core", "change_login_email.next", fallback: "Next")
+      public static func pinScreenMessage(_ p1: Any) -> String {
+        return L10n.tr(
+          "Core", "change_login_email.pinScreenMessage", String(describing: p1), fallback: "_")
+      }
+      public static let pinScreenTitle = L10n.tr(
+        "Core", "change_login_email.pinScreenTitle", fallback: "Verify your new email")
+      public static let processing = L10n.tr(
+        "Core", "change_login_email.processing", fallback: "Processing...")
+      public static let somethingWentWrongMessage = L10n.tr(
+        "Core", "change_login_email.somethingWentWrongMessage",
+        fallback: "An unexpected error occurred. Please try again.")
+      public static let somethingWentWrongTitle = L10n.tr(
+        "Core", "change_login_email.somethingWentWrongTitle", fallback: "Something went wrong")
+      public static let successCta = L10n.tr(
+        "Core", "change_login_email.successCta", fallback: "Log in to Dashlane")
+      public static let successMessage = L10n.tr(
+        "Core", "change_login_email.successMessage",
+        fallback: "You can now use your new email to log back in to Dashlane.")
+      public static let successTitle = L10n.tr(
+        "Core", "change_login_email.successTitle", fallback: "Login email changed successfully")
+      public static let troubleWithCode = L10n.tr(
+        "Core", "change_login_email.troubleWithCode", fallback: "Trouble with code?")
+      public static let troubleWithCodeAlertCta = L10n.tr(
+        "Core", "change_login_email.troubleWithCodeAlertCta", fallback: "Resend code")
+      public static let troubleWithCodeAlertMessage = L10n.tr(
+        "Core", "change_login_email.troubleWithCodeAlertMessage",
+        fallback:
+          "We sent a verification code to your new email address and it is valid for 3h, so that you can confirm you have access to it.\n\nMake sure to check your SPAM folder if you cannot find the email."
+      )
+      public static let troubleWithCodeAlertTitle = L10n.tr(
+        "Core", "change_login_email.troubleWithCodeAlertTitle", fallback: "Trouble with this code?")
+      public static let unavailableEmail = L10n.tr(
+        "Core", "change_login_email.unavailableEmail",
+        fallback: "This email is unavailable because it is already in use.")
+      public static let verificationCode = L10n.tr(
+        "Core", "change_login_email.verificationCode", fallback: "Verification code")
+      public static let wrongTokenCta = L10n.tr(
+        "Core", "change_login_email.wrongTokenCta", fallback: "Try again")
+    }
+    public enum CollectionsIntro {
+      public static let description2 = L10n.tr(
+        "Core", "collections_intro.description2",
+        fallback: "You can also share your Collections with team members on your plan.")
+      public static let subtitle2 = L10n.tr(
+        "Core", "collections_intro.subtitle2", fallback: "Share securely")
+      public static let title = L10n.tr(
+        "Core", "collections_intro.title", fallback: "Start organizing your vault")
+      public enum Cta {
+        public static let v1 = L10n.tr("Core", "collections_intro.cta.v1", fallback: "Add login")
+        public static let v2 = L10n.tr(
+          "Core", "collections_intro.cta.v2", fallback: "Create Collection")
+      }
+      public enum Description1 {
+        public static let v1 = L10n.tr(
+          "Core", "collections_intro.description1.v1",
+          fallback:
+            "After you’ve added items to your vault, you can create Collections to group your related logins and Secure Notes together."
+        )
+        public static let v2 = L10n.tr(
+          "Core", "collections_intro.description1.v2",
+          fallback:
+            "Create your first Collection to group your related logins and Secure Notes together.")
+      }
+      public enum Subtitle1 {
+        public static let v1 = L10n.tr(
+          "Core", "collections_intro.subtitle1.v1", fallback: "Add, group, and share")
+        public static let v2 = L10n.tr(
+          "Core", "collections_intro.subtitle1.v2", fallback: "Group related items")
+      }
+    }
+    public enum DarkWebMonitoringIntro {
+      public static let cta = L10n.tr(
+        "Core", "dark_web_monitoring_intro.cta", fallback: "Start monitoring")
+      public static let description1 = L10n.tr(
+        "Core", "dark_web_monitoring_intro.description1",
+        fallback: "Protect yourself by scanning for breached data.")
+      public static let description2 = L10n.tr(
+        "Core", "dark_web_monitoring_intro.description2",
+        fallback: "Get notified the moment we detect a breach.")
+      public static let description3 = L10n.tr(
+        "Core", "dark_web_monitoring_intro.description3",
+        fallback: "Learn how to secure your accounts after a breach.")
+      public static let subtitle1 = L10n.tr(
+        "Core", "dark_web_monitoring_intro.subtitle1", fallback: "24/7 monitoring")
+      public static let subtitle2 = L10n.tr(
+        "Core", "dark_web_monitoring_intro.subtitle2", fallback: "Instant alerts")
+      public static let subtitle3 = L10n.tr(
+        "Core", "dark_web_monitoring_intro.subtitle3", fallback: "Expert guidance")
+      public static let title = L10n.tr(
+        "Core", "dark_web_monitoring_intro.title", fallback: "Get alerts for breaches and hacks")
+    }
+    public enum FrozenBanner {
+      public static let learnMoreButton = L10n.tr(
+        "Core", "frozen_banner.learnMoreButton", fallback: "Learn more")
+    }
+    public enum FrozenPaywall {
+      public static let footer = L10n.tr(
+        "Core", "frozen_paywall.footer",
+        fallback:
+          "You can view and export logins in read-only mode. To unlock all features, remove passwords or upgrade."
+      )
+      public static let title = L10n.tr(
+        "Core", "frozen_paywall.title", fallback: "Upgrade for unlimited access")
+      public static let upgradeButton = L10n.tr(
+        "Core", "frozen_paywall.upgradeButton", fallback: "Upgrade")
+      public enum Body {
+        public static let regular = L10n.tr(
+          "Core", "frozen_paywall.body.regular",
+          fallback:
+            "You’re over the Free plan’s 25-password limit, so your account is now read-only.")
+        public static let trialEnded = L10n.tr(
+          "Core", "frozen_paywall.body.trialEnded",
+          fallback:
+            "Your Premium trial ended. You have over 25 passwords stored, so your account is read-only."
+        )
+      }
+      public enum Features {
+        public static let autofillMarkdown = L10n.tr(
+          "Core", "frozen_paywall.features.autofillMarkdown",
+          fallback: "**Autofill** logins, forms, & payments")
+        public static let secureMarkdown = L10n.tr(
+          "Core", "frozen_paywall.features.secureMarkdown",
+          fallback: "Stay secure with **Dark Web Monitoring** & a **VPN**")
+        public static let shareMarkdown = L10n.tr(
+          "Core", "frozen_paywall.features.shareMarkdown",
+          fallback: "Easily **share logins** with others")
+        public static let storageMarkdown = L10n.tr(
+          "Core", "frozen_paywall.features.storageMarkdown",
+          fallback: "Enjoy **unlimited password storage**")
+        public static let syncMarkdown = L10n.tr(
+          "Core", "frozen_paywall.features.syncMarkdown",
+          fallback: "**Sync across all devices**, no matter the platform, for instant access")
+      }
+    }
     public enum Login {
       public static let deactivatedUserErrorTitle = L10n.tr(
         "Core", "login.deactivated_user_error_title",
@@ -3112,20 +3335,57 @@ public enum L10n {
             "An unexpected error occurred. Please reach out to your plan admin for more info.")
       }
     }
-  }
-  public enum CoreContext {
-    public static let cancel = L10n.tr(
-      "Core-context", "Cancel", fallback: "⁣⁢Cancel⁡⁠⁯‍⁯؜؜⁮⁯؜⁡⁮؜‍؜⁪⁠⁬⁮⁣⁤")
-    public static let next = L10n.tr(
-      "Core-context", "Next", fallback: "⁣⁢Next⁫⁫‌⁮⁮⁫⁠‍⁯⁬⁠⁪⁪⁫⁯⁫⁭⁮‌‍‌⁮⁮⁠⁭⁡⁮⁡⁣⁤")
-  }
-  public enum CorePending {
-    public static let cancel = L10n.tr("Core-pending", "Cancel", fallback: "Cancel")
-    public static let next = L10n.tr("Core-pending", "Next", fallback: "Next")
-  }
-  public enum CorePseudo {
-    public static let cancel = L10n.tr("Core-pseudo", "Cancel", fallback: "[C~áñc~él]")
-    public static let next = L10n.tr("Core-pseudo", "Next", fallback: "[Ñ~éxt]")
+    public enum PasswordHealthIntro {
+      public static let cta = L10n.tr("Core", "password_health_intro.cta", fallback: "Add login")
+      public static let description1 = L10n.tr(
+        "Core", "password_health_intro.description1", fallback: "Update simple or reused passwords."
+      )
+      public static let description2 = L10n.tr(
+        "Core", "password_health_intro.description2",
+        fallback: "Replace breached passwords quickly.")
+      public static let description3 = L10n.tr(
+        "Core", "password_health_intro.description3",
+        fallback: "Strive for a higher score for better protection.")
+      public static let subtitle1 = L10n.tr(
+        "Core", "password_health_intro.subtitle1", fallback: "Find weak spots")
+      public static let subtitle2 = L10n.tr(
+        "Core", "password_health_intro.subtitle2", fallback: "Stay safe")
+      public static let subtitle3 = L10n.tr(
+        "Core", "password_health_intro.subtitle3", fallback: "Strengthen security")
+      public static let title = L10n.tr(
+        "Core", "password_health_intro.title", fallback: "Check your Password Health score")
+    }
+    public enum SharingIntro {
+      public static let description1 = L10n.tr(
+        "Core", "sharing_intro.description1",
+        fallback:
+          "Securely share one or more logins and Secure Notes with others who use Dashlane. You can share with one person, multiple people, or groups."
+      )
+      public static let subtitle1 = L10n.tr(
+        "Core", "sharing_intro.subtitle1", fallback: "Your data, your choice")
+      public static let title = L10n.tr(
+        "Core", "sharing_intro.title", fallback: "Start sharing items")
+      public enum Cta {
+        public static let v1 = L10n.tr("Core", "sharing_intro.cta.v1", fallback: "Add login")
+        public static let v2 = L10n.tr("Core", "sharing_intro.cta.v2", fallback: "Start sharing")
+      }
+    }
+    public enum VpnIntro {
+      public static let cta = L10n.tr("Core", "vpn_intro.cta", fallback: "Set up VPN")
+      public static let description1 = L10n.tr(
+        "Core", "vpn_intro.description1",
+        fallback:
+          "Connect to the internet securely wherever you are, even on unsecure public Wi-Fi.")
+      public static let description2 = L10n.tr(
+        "Core", "vpn_intro.description2",
+        fallback: "Watch, browse, play, and download without restrictions.")
+      public static let subtitle1 = L10n.tr(
+        "Core", "vpn_intro.subtitle1", fallback: "Stay private and protected")
+      public static let subtitle2 = L10n.tr(
+        "Core", "vpn_intro.subtitle2", fallback: "Access worldwide content")
+      public static let title = L10n.tr(
+        "Core", "vpn_intro.title", fallback: "Set up your Hotspot Shield account")
+    }
   }
 }
 extension L10n {

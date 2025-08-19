@@ -1,17 +1,18 @@
 import Combine
-import CoreActivityLogs
 import CoreFeature
 import CorePersonalData
 import CorePremium
 import CoreSession
 import CoreSettings
-import CoreUserTracking
-import DashTypes
+import CoreTeamAuditLogs
+import CoreTypes
 import DocumentServices
 import Foundation
+import LogFoundation
 import SwiftUI
 import UIComponents
 import UIKit
+import UserTrackingFoundation
 import VaultKit
 
 public final class SecretDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting,
@@ -42,7 +43,7 @@ public final class SecretDetailViewModel: DetailViewModelProtocol, SessionServic
     userSpacesService: UserSpacesService,
     deepLinkService: VaultKit.DeepLinkingServiceProtocol,
     activityReporter: ActivityReporterProtocol,
-    activityLogsService: ActivityLogsServiceProtocol,
+    teamAuditLogsService: TeamAuditLogsServiceProtocol,
     documentStorageService: DocumentStorageService,
     sharingDetailSectionModelFactory: SharingDetailSectionModel.Factory,
     pasteboardService: PasteboardServiceProtocol,
@@ -55,7 +56,6 @@ public final class SecretDetailViewModel: DetailViewModelProtocol, SessionServic
     self.init(
       service: .init(
         item: item,
-        canLock: session.authenticationMethod.supportsLock,
         mode: mode,
         vaultItemDatabase: vaultItemDatabase,
         vaultItemsStore: vaultItemsStore,
@@ -67,7 +67,7 @@ public final class SecretDetailViewModel: DetailViewModelProtocol, SessionServic
         documentStorageService: documentStorageService,
         deepLinkService: deepLinkService,
         activityReporter: activityReporter,
-        activityLogsService: activityLogsService,
+        teamAuditLogsService: teamAuditLogsService,
         iconViewModelProvider: iconViewModelProvider,
         attachmentSectionFactory: attachmentSectionFactory,
         logger: logger,

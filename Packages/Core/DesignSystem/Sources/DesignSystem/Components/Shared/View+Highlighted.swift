@@ -1,15 +1,8 @@
 import Foundation
 import SwiftUI
 
-enum HighlightedKey: EnvironmentKey {
-  static let defaultValue = false
-}
-
 extension EnvironmentValues {
-  public var isHighlighted: Bool {
-    get { self[HighlightedKey.self] }
-    set { self[HighlightedKey.self] = newValue }
-  }
+  @Entry var isHighlighted: Bool = false
 }
 
 extension View {

@@ -2,7 +2,7 @@ import CoreLocalization
 import CorePersonalData
 import Foundation
 
-extension L10n.Core.KWBankStatementIOS {
+extension CoreL10n.KWBankStatementIOS {
   public static func bicFieldTitle(for variant: BICVariant) -> String {
     switch variant {
     case .bic:

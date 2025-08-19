@@ -30,7 +30,7 @@ struct StyxDataAPIClientEngineImpl: StyxDataAPIClientEngine {
     apiURL: URL,
     apiClientEngine: APIClientEngine,
     additionalHeaders: [String: String],
-    session: URLSession = URLSession(configuration: .ephemeral)
+    session: URLSession = URLSession.dashlane()
   ) {
     self.apiURL = apiURL
     self.apiClientEngine = apiClientEngine

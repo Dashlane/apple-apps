@@ -1,8 +1,9 @@
 import Combine
+import CoreSession
 import CoreSettings
 import Foundation
 
-public struct PinCodeAttempts {
+public struct PinCodeAttempts: PinCodeAttemptsProtocol {
 
   public var dates: [Date] {
     return userLockSettings[.pinCodeAttempts] ?? [Date]()
@@ -38,23 +39,15 @@ public struct PinCodeAttempts {
     self.userLockSettings = internalStore.keyed(by: UserLockSettingsKey.self)
   }
 
-  public func addNewAttempt(date: Date = Date()) {
+  public func addNewAttempt() {
     var pinCodeAttempts = userLockSettings[.pinCodeAttempts] ?? [Date]()
-    pinCodeAttempts.append(date)
+    pinCodeAttempts.append(Date())
 
     userLockSettings[.pinCodeAttempts] = pinCodeAttempts
   }
 
   public func removeAll() {
     userLockSettings[.pinCodeAttempts] = [Date]()
-  }
-
-}
-
-extension PinCodeAttempts {
-
-  public static var mock: Self {
-    return .init(internalStore: .mock())
   }
 
 }

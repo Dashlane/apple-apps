@@ -1,5 +1,5 @@
 import CoreSession
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 import SwiftTreats

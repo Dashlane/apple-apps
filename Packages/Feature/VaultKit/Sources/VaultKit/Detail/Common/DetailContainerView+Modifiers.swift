@@ -1,37 +1,16 @@
+import CoreSession
 import SwiftUI
-
-struct DetailContainerViewSpecificDismissKey: EnvironmentKey {
-  static var defaultValue: DetailContainerViewSpecificAction?
-}
-
-struct DetailContainerViewSpecificSaveKey: EnvironmentKey {
-  static var defaultValue: DetailContainerViewSpecificAsyncAction?
-}
 
 public enum SpecificBackButton {
   case close
   case back
 }
 
-struct DetailContainerViewSpecificBackButtonKey: EnvironmentKey {
-  static var defaultValue: SpecificBackButton?
-}
-
 extension EnvironmentValues {
-  public var detailContainerViewSpecificDismiss: DetailContainerViewSpecificAction? {
-    get { self[DetailContainerViewSpecificDismissKey.self] }
-    set { self[DetailContainerViewSpecificDismissKey.self] = newValue }
-  }
-
-  public var detailContainerViewSpecificSave: DetailContainerViewSpecificAsyncAction? {
-    get { self[DetailContainerViewSpecificSaveKey.self] }
-    set { self[DetailContainerViewSpecificSaveKey.self] = newValue }
-  }
-
-  public var detailContainerViewSpecificBackButton: SpecificBackButton? {
-    get { self[DetailContainerViewSpecificBackButtonKey.self] }
-    set { self[DetailContainerViewSpecificBackButtonKey.self] = newValue }
-  }
+  @Entry public var detailContainerViewSpecificDismiss: DetailContainerViewSpecificAction?
+  @Entry public var detailContainerViewSpecificSave: DetailContainerViewSpecificAsyncAction?
+  @Entry public var detailContainerViewSpecificBackButton: SpecificBackButton?
+  @Entry public var authenticationMethod: AuthenticationMethod?
 }
 
 extension View {

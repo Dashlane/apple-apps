@@ -3,6 +3,7 @@ import CorePersonalData
 import DesignSystem
 import Lottie
 import SwiftUI
+import SwiftUILottie
 import UIComponents
 import UIDelight
 
@@ -13,8 +14,7 @@ struct AutoFillDemoDummyFields: View {
   @State private var shouldReveal: Bool = false
   @State private var shouldShowSetupButton: Bool = false
   @FocusState private var isEmailFieldEditing: Bool
-  @State private var isPasswordFieldEditing: Bool = false
-
+  @FocusState private var isPasswordFieldEditing: Bool
   @Environment(\.dismiss) var dismiss
 
   @AutoReverseState(defaultValue: false, autoReverseInterval: 1)
@@ -64,7 +64,7 @@ struct AutoFillDemoDummyFields: View {
           Spacer()
 
           if shouldShowSetupButton {
-            Button(CoreLocalization.L10n.Core.autofillDemoFieldsAction) {
+            Button(CoreL10n.autofillDemoFieldsAction) {
               self.completion?(.setupAutofill)
             }
             .buttonStyle(.designSystem(.titleOnly))
@@ -84,11 +84,11 @@ struct AutoFillDemoDummyFields: View {
   private var contentView: some View {
     VStack(alignment: .center) {
       Text(L10n.Localizable.autofillDemoFieldsTitle)
-        .font(DashlaneFont.custom(26.0, .bold).font)
+        .textStyle(.specialty.spotlight.small)
         .padding(.bottom, 8)
       Text(L10n.Localizable.autofillDemoFieldsSubtitle)
-        .font(.callout)
-        .foregroundColor(.ds.text.neutral.quiet)
+        .textStyle(.body.standard.regular)
+        .foregroundStyle(Color.ds.text.neutral.quiet)
         .padding(.bottom, 32)
         .multilineTextAlignment(.center)
 
@@ -108,28 +108,18 @@ struct AutoFillDemoDummyFields: View {
         completion?(.back)
       },
       label: {
-        Text(CoreLocalization.L10n.Core.kwBack).font(.body)
+        Text(CoreL10n.kwBack).font(.body)
       }
-    ).foregroundColor(.ds.text.neutral.standard)
+    ).foregroundStyle(Color.ds.text.neutral.standard)
   }
 
   @ViewBuilder
   private var emailTextField: some View {
-    TextField(CoreLocalization.L10n.Core.kwEmailIOS, text: $email)
+    DS.TextField(CoreL10n.kwEmailIOS, text: $email)
       .focused($isEmailFieldEditing)
       .keyboardType(.emailAddress)
       .textContentType(.emailAddress)
       .submitLabel(.go)
-      .padding(16)
-      .font(.callout)
-      .frame(height: 48)
-      .overlay(
-        RoundedRectangle(cornerRadius: 4).stroke(
-          Color.ds.border.neutral.standard.idle, lineWidth: 1)
-      )
-      .onTapGesture {
-        self.isEmailFieldEditing.toggle()
-      }
   }
 
   @ViewBuilder
@@ -146,42 +136,13 @@ struct AutoFillDemoDummyFields: View {
 
   @ViewBuilder
   private var passwordTextField: some View {
-    HStack {
-      PasswordField(
-        L10n.Localizable.dwmOnboardingFixBreachesDetailPassword, text: $password,
-        isFocused: $isPasswordFieldEditing
-      )
-      .textContentType(.password)
-      .passwordFieldSecure(!shouldReveal)
-      .submitLabel(.go)
-      .padding(16)
-      .font(.callout)
-
-      if !password.isEmpty {
-        Button(
-          action: {
-            self.shouldReveal.toggle()
-          },
-          label: {
-            (shouldReveal ? Image.ds.action.hide.outlined : Image.ds.action.reveal.outlined)
-              .foregroundColor(.ds.text.brand.quiet)
-          }
-        )
-        .fiberAccessibilityLabel(
-          Text(
-            shouldReveal ? CoreLocalization.L10n.Core.kwHide : CoreLocalization.L10n.Core.kwReveal)
-        )
-        .padding(16)
-      }
-    }
-    .frame(height: 48)
-    .overlay(
-      RoundedRectangle(cornerRadius: 4).stroke(Color.ds.border.neutral.standard.idle, lineWidth: 1)
+    DS.PasswordField(
+      L10n.Localizable.dwmOnboardingFixBreachesDetailPassword, text: $password,
+      shouldReveal: shouldReveal
     )
+    .submitLabel(.go)
+    .focused($isPasswordFieldEditing)
     .padding(.bottom, 8)
-    .onTapGesture {
-      self.isPasswordFieldEditing.toggle()
-    }
   }
 }
 

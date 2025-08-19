@@ -15,9 +15,9 @@ struct PasskeyDetailView: View {
       Section {
         if model.mode.isEditing {
           TextDetailField(
-            title: CoreLocalization.L10n.Core.KWAuthentifiantIOS.title,
+            title: CoreL10n.KWAuthentifiantIOS.title,
             text: $model.item.title,
-            placeholder: CoreLocalization.L10n.Core.KWAuthentifiantIOS.Title.placeholder
+            placeholder: CoreL10n.KWAuthentifiantIOS.Title.placeholder
           )
           .textInputAutocapitalization(.words)
         }
@@ -28,22 +28,33 @@ struct PasskeyDetailView: View {
           actions: [.copy(model.copy)]
         )
         .actions([.copy(model.copy)])
-        .editionDisabled(appearance: model.mode.isEditing ? .emphasized : .discrete)
+        .fieldEditionDisabled(appearance: model.mode.isEditing ? .emphasized : .discrete)
       }
 
-      Section(header: Text(CoreLocalization.L10n.Core.KWAuthentifiantIOS.urlStringForUI)) {
-        URLLinkDetailField(personalDataURL: model.item.relyingPartyId, onOpenURL: {})
-          .editionDisabled(appearance: model.mode.isEditing ? .emphasized : .discrete)
+      Section(header: Text(CoreL10n.KWAuthentifiantIOS.urlStringForUI)) {
+        if model.mode.isEditing {
+          DS.TextField(
+            CoreL10n.KWAuthentifiantIOS.url,
+            text: .constant(
+              "\(model.item.relyingPartyId.displayedScheme)\(model.item.relyingPartyId.displayDomain)"
+            )
+          )
+          .fieldEditionDisabled()
+          .textFieldColorHighlightingMode(.url)
+          .lineLimit(1)
+        } else {
+          URLLinkDetailField(personalDataURL: model.item.relyingPartyId, onOpenURL: {})
+        }
       }
 
       if model.mode.isEditing || !model.item.note.isEmpty {
         Section {
           NotesDetailField(
-            title: CoreLocalization.L10n.Core.KWAuthentifiantIOS.note,
+            title: CoreL10n.KWAuthentifiantIOS.note,
             text: $model.item.note
           )
           .actions([.copy(model.copy)], hasAccessory: false)
-          .limitedRights(item: model.item)
+          .limitedRights(item: model.item, isFrozen: model.service.isFrozen)
           .fiberFieldType(.note)
         }
       }
@@ -52,9 +63,9 @@ struct PasskeyDetailView: View {
 
   var usernameFieldTitle: String {
     if model.isUsernameAnEmail {
-      return CoreLocalization.L10n.Core.KWAuthentifiantIOS.email
+      return CoreL10n.KWAuthentifiantIOS.email
     }
-    return CoreLocalization.L10n.Core.KWAuthentifiantIOS.login
+    return CoreL10n.KWAuthentifiantIOS.login
   }
 }
 

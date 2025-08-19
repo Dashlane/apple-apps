@@ -27,7 +27,7 @@ struct CopyMenuButton_Previews: PreviewProvider {
   static var previews: some View {
     MultiContextPreview {
       CopyMenuButton("Copy info") {}
-        .foregroundColor(.ds.text.neutral.catchy)
+        .foregroundStyle(Color.ds.text.neutral.catchy)
     }
     .padding()
     .background(Color.ds.background.default)

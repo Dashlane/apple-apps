@@ -1,6 +1,6 @@
 import Foundation
 
-public enum SyncDataAction: String, Sendable, Equatable, CaseIterable, Codable {
+public enum SyncDataAction: String, Sendable, Hashable, Codable, CaseIterable {
   case backupEdit = "BACKUP_EDIT"
   case undecodable
   public init(from decoder: Decoder) throws {

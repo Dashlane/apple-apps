@@ -1,7 +1,7 @@
 import Foundation
 
 extension NitroSSOAPIClient.Tunnel {
-  public struct TerminateHello: APIRequest {
+  public struct TerminateHello: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/tunnel/TerminateHello"
 
     public let api: NitroSSOAPIClient
@@ -25,7 +25,7 @@ extension NitroSSOAPIClient.Tunnel {
 }
 
 extension NitroSSOAPIClient.Tunnel.TerminateHello {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case clientHeader = "clientHeader"
     }

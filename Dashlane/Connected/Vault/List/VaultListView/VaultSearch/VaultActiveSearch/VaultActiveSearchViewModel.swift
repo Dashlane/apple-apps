@@ -1,9 +1,10 @@
 import Combine
 import CoreLocalization
+import CorePersonalData
 import CoreSharing
-import CoreUserTracking
 import Foundation
 import UIKit
+import UserTrackingFoundation
 import VaultKit
 
 class VaultActiveSearchViewModel: ObservableObject, SessionServicesInjecting {
@@ -107,8 +108,7 @@ class VaultActiveSearchViewModel: ObservableObject, SessionServicesInjecting {
       guard !filteredItems.isEmpty else { return nil }
       let sectionTitle =
         filteredItems.count > 1
-        ? CoreLocalization.L10n.Core.KWVault.Search.Items.Title.plural
-        : CoreLocalization.L10n.Core.KWVault.Search.Items.Title.singular
+        ? CoreL10n.KWVault.Search.Items.Title.plural : CoreL10n.KWVault.Search.Items.Title.singular
 
       return DataSection(name: sectionTitle, items: filteredItems)
     }
@@ -126,7 +126,7 @@ class VaultActiveSearchViewModel: ObservableObject, SessionServicesInjecting {
             let filteredItems = items.compactMap { item in collection.contains(item) ? item : nil }
             guard !filteredItems.isEmpty else { return nil }
             return DataSection(
-              name: CoreLocalization.L10n.Core.KWVault.Search.Collections.title,
+              name: CoreL10n.KWVault.Search.Collections.title,
               type: .collection(name: collection.name, isShared: collection.isShared),
               items: filteredItems
             )
@@ -185,6 +185,8 @@ class VaultActiveSearchViewModel: ObservableObject, SessionServicesInjecting {
         selectVaultItem(selection),
         isEditing: isEditing)
     )
+
+    vaultItemDatabase.updateLastUseDate(of: [selection.item], origin: [.search])
   }
 
   private func selectVaultItem(_ selection: VaultSelection) -> UserEvent.SelectVaultItem {
@@ -202,10 +204,6 @@ class VaultActiveSearchViewModel: ObservableObject, SessionServicesInjecting {
 
   func delete(item: VaultItem) {
     vaultItemDatabase.dispatchDelete(item)
-  }
-
-  func onAddItemDropdown() {
-    activityReporter.reportPageShown(.homeAddItemDropdown)
   }
 }
 

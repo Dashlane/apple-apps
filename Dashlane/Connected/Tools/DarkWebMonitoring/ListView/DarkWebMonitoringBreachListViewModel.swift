@@ -1,8 +1,8 @@
 import Combine
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import SecurityDashboard
 import UIKit
+import UserTrackingFoundation
 
 public enum BreachListType: Int, CaseIterable {
   case pending

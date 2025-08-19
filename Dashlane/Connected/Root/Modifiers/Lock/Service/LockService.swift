@@ -4,7 +4,8 @@ import CoreKeychain
 import CorePremium
 import CoreSession
 import CoreSettings
-import DashTypes
+import CoreTypes
+import LogFoundation
 import LoginKit
 import UIKit
 
@@ -30,7 +31,8 @@ class LockService: LockServiceProtocol {
     settings: LocalSettingsStore,
     userSpacesService: UserSpacesService,
     featureService: FeatureServiceProtocol,
-    keychainService: AuthenticationKeychainService,
+    keychainService: AuthenticationKeychainServiceProtocol,
+    deeplinkService: DeepLinkingServiceProtocol,
     resetMasterPasswordService: ResetMasterPasswordService,
     sessionLifeCycleHandler: SessionLifeCycleHandler?,
     logger: Logger
@@ -66,6 +68,7 @@ class LockService: LockServiceProtocol {
           secureLockProvider: secureLockProvider,
           settings: settings,
           userSpacesService: userSpacesService,
+          deeplinkService: deeplinkService,
           logger: logger,
           session: session))
     #endif
@@ -87,5 +90,11 @@ extension LockService {
       }
       .compactMap { $0 }
       .eraseToAnyPublisher()
+  }
+}
+
+extension LockServiceProtocol where Self == LockServiceMock {
+  static var mock: LockServiceProtocol {
+    LockServiceMock()
   }
 }

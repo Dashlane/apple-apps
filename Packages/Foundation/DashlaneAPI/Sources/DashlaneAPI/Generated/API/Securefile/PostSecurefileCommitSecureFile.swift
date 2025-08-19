@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Securefile {
-  public struct CommitSecureFile: APIRequest {
+  public struct CommitSecureFile: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/securefile/CommitSecureFile"
 
     public let api: UserDeviceAPIClient
@@ -24,7 +24,7 @@ extension UserDeviceAPIClient.Securefile {
 }
 
 extension UserDeviceAPIClient.Securefile.CommitSecureFile {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case key = "key"
       case secureFileInfoId = "secureFileInfoId"

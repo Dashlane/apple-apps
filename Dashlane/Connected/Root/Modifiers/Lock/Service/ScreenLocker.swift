@@ -2,13 +2,14 @@ import Combine
 import CorePremium
 import CoreSession
 import CoreSettings
-import DashTypes
+import CoreTypes
+import LogFoundation
 import LoginKit
 import PremiumKit
 import SwiftTreats
 import UIKit
 
-public class ScreenLocker {
+public final class ScreenLocker {
   enum Lock: Equatable {
     case privacyShutter
     case secure(_ mode: SecureLockMode)
@@ -31,16 +32,7 @@ public class ScreenLocker {
 
   @Published
   private var privacyShutterOn: Bool = false
-
-  var privacyShutterOnAppInactive: Bool = true {
-    didSet {
-      if privacyShutterOnAppInactive,
-        UIApplication.shared.applicationState != .active
-      {
-        appWillResignActive()
-      }
-    }
-  }
+  private var privacyShutterOnAppInactive: Bool = true
 
   @Published
   var lock: Lock?
@@ -88,7 +80,6 @@ public class ScreenLocker {
   private var cancellables = Set<AnyCancellable>()
   private var autoLockTask: Task<Void, Never>?
   private var businessTeamCancellable: AnyCancellable?
-  private var unlockSubscription: AnyCancellable?
   private var activeLockTimer: Timer?
   private var lockTimerStartTime: TimeInterval?
   private let logger: Logger
@@ -98,12 +89,15 @@ public class ScreenLocker {
   private let userSpacesService: UserSpacesService
   let login: Login
   let session: Session
+  let deeplinkService: DeepLinkingServiceProtocol
+  private var suspensionPrivacyShutterTask: Task<Void, Error>?
 
   init(
     masterKey: CoreSession.MasterKey,
     secureLockProvider: SecureLockProviderProtocol,
     settings: LocalSettingsStore,
     userSpacesService: UserSpacesService,
+    deeplinkService: DeepLinkingServiceProtocol,
     logger: Logger,
     session: Session
   ) {
@@ -114,6 +108,7 @@ public class ScreenLocker {
     self.session = session
     self.login = session.login
     self.logger = logger
+    self.deeplinkService = deeplinkService
     self.setting = AutoLockSetting(
       lockOnExit: userLockSettings[.lockOnExit] ?? false,
       lockTimeInterval: userLockSettings[.autoLockDelay] ?? 300)
@@ -149,8 +144,7 @@ public class ScreenLocker {
     if let lockTimeInterval = setting.lockTimeInterval, lockTimeInterval > 0, !setting.paused {
       autoLockTask = makeAutoLockTaskOnTouch()
     } else {
-      activeLockTimer?.invalidate()
-      lockTimerStartTime = nil
+      stopAutoLockTimer()
     }
 
     $secureLockMode
@@ -176,8 +170,22 @@ public class ScreenLocker {
       .removeDuplicates()
       .assign(to: \.lock, on: self)
       .store(in: &cancellables)
-  }
 
+    deeplinkService.deepLinkPublisher.sink { [weak self] deeplink in
+      guard let self = self else {
+        return
+      }
+      switch deeplink {
+      case .mplessLogin:
+        guard !self.setting.lockOnExit else {
+          return
+        }
+
+        self.secureLock()
+      default: break
+      }
+    }.store(in: &cancellables)
+  }
   private func businessTeamUpdated(_ team: CurrentTeam?) {
 
     let lockOnExitEnforced = team?.teamInfo.lockOnExit ?? false
@@ -227,25 +235,43 @@ public class ScreenLocker {
     self.setting.paused = false
   }
 
-  func suspendMomentarelyPrivacyShutter() {
+  func suspendMomentarilyPrivacyShutter() {
+    logger.debug("Privacy suspended")
+
     privacyShutterOnAppInactive = false
-    DispatchQueue.main.asyncAfter(deadline: .now() + 7) {
-      self.privacyShutterOnAppInactive = true
+    privacyShutterOn = false
+
+    suspensionPrivacyShutterTask?.cancel()
+    suspensionPrivacyShutterTask = Task { [weak self] in
+      try await Task.sleep(for: .seconds(3))
+      self?.activatePrivacyShutterOnAppInactive()
     }
+  }
+
+  func activatePrivacyShutterOnAppInactive() {
+    suspensionPrivacyShutterTask?.cancel()
+    privacyShutterOnAppInactive = true
+    privacyShutterOn = UIApplication.shared.applicationState != .active
+
+    self.logger.debug("Privacy enabled")
   }
 
   private func appWillResignActive() {
     guard privacyShutterOnAppInactive, !self.setting.paused else {
       return
     }
-    logger.debug("appDidEnterBackground privacy on")
+    logger.debug("appWillResignActive Privacy on")
     self.privacyShutterOn = true
   }
 
   private func appDidBecomeActive() {
-    logger.debug("appDidBecomeActive privacy off")
-    self.privacyShutterOn = UIApplication.shared.applicationState != .active
-    secureLockAfterAppInBackground()
+    guard UIApplication.shared.applicationState == .active else {
+      return
+    }
+
+    logger.debug("appDidBecomeActive Privacy off")
+    self.privacyShutterOn = false
+    secureLockTimerAfterAppBecomeActive()
   }
 
   func secureLock() {
@@ -253,7 +279,7 @@ public class ScreenLocker {
     logger.debug("session securely locked using \(String(describing: self.secureLockMode))")
   }
 
-  private func secureLockAfterAppInBackground() {
+  private func secureLockTimerAfterAppBecomeActive() {
     guard let lockTimeInterval = setting.lockTimeInterval, lockTimeInterval > 0,
       let lockTimerStartTime = lockTimerStartTime,
       let currentKernelBootTime = currentKernelBootTime,
@@ -268,33 +294,17 @@ public class ScreenLocker {
   }
 
   func unlock() {
-    guard unlockSubscription == nil else {
-      return
+    logger.debug("session did unlock")
+    if secureLockMode?.biometryType != nil {
+      suspendMomentarilyPrivacyShutter()
     }
-    logger.debug("session will unlock")
-
-    unlockSubscription =
-      $privacyShutterOn
-      .filter { !$0 }
-      .debounce(for: .milliseconds(50), scheduler: RunLoop.main)
-      .sink { [weak self] _ in
-        guard let self = self else {
-          return
-        }
-        self.logger.debug("session did unlock")
-        self.unlockSubscription = nil
-
-        self.secureLockMode = nil
-      }
+    secureLockMode = nil
   }
-
 }
 
 extension ScreenLocker: UnlockSessionHandler {
   @MainActor
-  public func unlock(with masterKey: CoreSession.MasterKey, isRecoveryLogin: Bool) async throws
-    -> Session?
-  {
+  public func unlock(with masterKey: CoreSession.MasterKey) async throws -> Session {
     guard masterKey == self.masterKey else {
       throw MasterPasswordLocalLoginStateMachine.Error.wrongMasterKey
     }
@@ -303,3 +313,16 @@ extension ScreenLocker: UnlockSessionHandler {
 }
 
 extension ScreenLocker: PremiumKit.ScreenLocker {}
+
+extension ScreenLocker {
+  static var mock: ScreenLocker {
+    ScreenLocker(
+      masterKey: .masterPassword("_", serverKey: nil),
+      secureLockProvider: SecureLockProvider.mock,
+      settings: .mock(),
+      userSpacesService: .mock(),
+      deeplinkService: DeepLinkingService.fakeService,
+      logger: .mock,
+      session: .mock())
+  }
+}

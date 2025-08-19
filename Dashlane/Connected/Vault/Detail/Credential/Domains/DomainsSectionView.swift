@@ -18,15 +18,17 @@ struct DomainsSectionView: View {
         ForEach(domains, id: \.self) { item in
           HStack {
             Text(item)
+              .foregroundStyle(Color.ds.text.neutral.catchy)
               .frame(maxWidth: .infinity, alignment: .leading)
             if let url = item.openableURL, isOpenable {
               Button {
                 openURL(url)
               } label: {
                 Image.ds.action.openExternalLink.outlined
+                  .foregroundStyle(Color.ds.text.brand.standard)
               }
 
-              .accessibilityLabel(CoreLocalization.L10n.Core.openWebsite)
+              .accessibilityLabel(CoreL10n.openWebsite)
             }
           }
         }

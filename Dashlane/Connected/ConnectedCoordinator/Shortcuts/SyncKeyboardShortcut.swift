@@ -1,6 +1,6 @@
 import Combine
+import CoreMainMenu
 import Foundation
-import UIComponents
 import UIKit
 import VaultKit
 
@@ -68,7 +68,7 @@ extension UIKeyCommand {
   fileprivate static func makeSyncItem(enable: Bool) -> UIKeyCommand {
     let selector: Selector
     if enable {
-      selector = #selector(DashlaneNavigationController.handleMenuBarShortcut(_:))
+      selector = #selector(MainMenuHandlerNavigationController.handleMenuBarShortcut(_:))
     } else {
       selector = #selector(UIKeyCommand.emptyFunction)
     }

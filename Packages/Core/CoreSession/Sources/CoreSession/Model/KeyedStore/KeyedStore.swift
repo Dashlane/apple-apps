@@ -1,4 +1,5 @@
 import Foundation
+import LogFoundation
 
 public protocol KeyedStore {
   associatedtype Key: StoreKey
@@ -81,6 +82,7 @@ extension KeyedStore {
   }
 }
 
+@Loggable
 public enum KeyedStoreError: Error {
   case noValue(StoreKey)
   case wrongType(StoreKey)

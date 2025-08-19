@@ -1,8 +1,10 @@
 import CommonCrypto
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 
 public struct SessionDirectory: Sendable {
+  @Loggable
   enum Error: Swift.Error {
     case invalidKey
     case invalidLogin
@@ -53,6 +55,10 @@ extension SessionDirectory {
 
   public func remove() throws {
     try fileManager.removeItem(at: url)
+  }
+
+  public func move(to directory: SessionDirectory) throws {
+    try fileManager.moveItem(at: url, to: directory.url)
   }
 }
 

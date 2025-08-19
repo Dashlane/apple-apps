@@ -4,10 +4,6 @@ import Foundation
 import SwiftUI
 
 extension PersonalWebsite {
-  public var listIcon: VaultItemIcon {
-    .personalWebsite
-  }
-
   public var icon: VaultItemIcon {
     .personalWebsite
   }

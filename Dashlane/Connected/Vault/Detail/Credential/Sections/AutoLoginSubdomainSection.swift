@@ -10,10 +10,9 @@ struct AutoLoginSubdomainSection: View {
 
   var body: some View {
     Section {
-      DS.Toggle(CoreLocalization.L10n.Core.KWAuthentifiantIOS.autoLogin, isOn: $item.autoLogin)
+      DS.Toggle(CoreL10n.KWAuthentifiantIOS.autoLogin, isOn: $item.autoLogin)
 
-      DS.Toggle(
-        CoreLocalization.L10n.Core.KWAuthentifiantIOS.subdomainOnly, isOn: $item.subdomainOnly)
+      DS.Toggle(CoreL10n.KWAuthentifiantIOS.subdomainOnly, isOn: $item.subdomainOnly)
     }
   }
 }

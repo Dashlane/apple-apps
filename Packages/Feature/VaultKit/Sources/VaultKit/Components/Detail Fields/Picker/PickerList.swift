@@ -38,8 +38,8 @@ struct DetailPickerList<Content: Equatable & Hashable & Identifiable, ContentVie
       }
     }
     .navigationTitle(title)
-    .toolbarBackground(.hidden, for: .navigationBar)
-    .listAppearance(.insetGrouped)
+    .navigationBarTitleDisplayMode(.inline)
+    .listStyle(.ds.insetGrouped)
   }
 
   func row(for item: Content?) -> some View {
@@ -55,12 +55,13 @@ struct DetailPickerList<Content: Equatable & Hashable & Identifiable, ContentVie
           if item == self.selection {
             Spacer()
             Image(systemName: "checkmark")
-              .foregroundColor(.ds.text.brand.quiet)
+              .foregroundStyle(Color.ds.text.brand.quiet)
           }
         }
       }
     )
     .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
+    .foregroundStyle(Color.ds.text.brand.standard)
   }
 }
 

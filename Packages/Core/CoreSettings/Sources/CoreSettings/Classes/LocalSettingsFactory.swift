@@ -1,4 +1,4 @@
-import DashTypes
+import CoreTypes
 import Foundation
 
 public protocol LocalSettingsFactory {
@@ -15,17 +15,17 @@ public struct LocalSettingsFactoryMock: LocalSettingsFactory {
   init() {
     store = .mock()
   }
-  public func fetchOrCreateSettings(for login: DashTypes.Login) throws -> LocalSettingsStore {
+  public func fetchOrCreateSettings(for login: CoreTypes.Login) throws -> LocalSettingsStore {
     store
   }
 
   public func fetchOrCreateSettings(
-    for login: DashTypes.Login, cryptoEngine: DashTypes.CryptoEngine
+    for login: CoreTypes.Login, cryptoEngine: CoreTypes.CryptoEngine
   ) throws -> LocalSettingsStore {
     store
   }
 
-  public func removeSettings(for login: DashTypes.Login) throws {
+  public func removeSettings(for login: CoreTypes.Login) throws {
     store.delete(login.email)
   }
 }

@@ -1,5 +1,6 @@
 import CoreLocalization
 import CorePersonalData
+import DesignSystem
 import SwiftUI
 
 struct DetailSyncAndDatesSection: View {
@@ -7,36 +8,35 @@ struct DetailSyncAndDatesSection: View {
 
   private var updateDateLabel: String {
     return item.isShared
-      ? L10n.Core.vaultItemModificationDateByYouLabel : L10n.Core.vaultItemModificationDateLabel
+      ? CoreL10n.vaultItemModificationDateByYouLabel : CoreL10n.vaultItemModificationDateLabel
   }
 
   var body: some View {
     Section {
       if let creationDate = item.creationDatetime {
-        Group {
+        let text =
           if item.isCreation, item.metadata.syncStatus == .pendingUpload {
-            Text(L10n.Core.vaultItemSyncStatusPendingUpload)
+            CoreL10n.vaultItemSyncStatusPendingUpload
           } else {
-            Text(creationDate, format: .timeAgo)
+            creationDate.formatted(.timeAgo)
           }
-        }
-        .labeled(L10n.Core.vaultItemCreationDateLabel)
+
+        DisplayField(CoreL10n.vaultItemCreationDateLabel, text: text)
       }
 
       if !item.isCreation, let modificationDate = item.userModificationDatetime {
-        Group {
+        let text =
           if item.metadata.syncStatus == .pendingUpload {
-            Text(L10n.Core.vaultItemSyncStatusPendingUpload)
+            CoreL10n.vaultItemSyncStatusPendingUpload
           } else {
-            Text(modificationDate, format: .timeAgo)
+            modificationDate.formatted(.timeAgo)
           }
-        }
-        .labeled(updateDateLabel)
+
+        DisplayField(updateDateLabel, text: text)
       }
 
       if let lastUsed = item.metadata.lastLocalUseDate {
-        Text(lastUsed, format: .timeAgo)
-          .labeled(L10n.Core.vaultItemLastUsedDate)
+        DisplayField(updateDateLabel, text: lastUsed.formatted(.timeAgo))
       }
     }
   }
@@ -59,7 +59,7 @@ private struct CustomTimeAgoFormatter: FormatStyle {
 
   func format(_ date: Date) -> String {
     if abs(date.timeIntervalSinceNow) < 60 {
-      return L10n.Core.securityAlertUnresolvedJustnow
+      return CoreL10n.securityAlertUnresolvedJustnow
     }
     return Self.timestampFormatter.localizedString(for: date, relativeTo: Date())
   }
@@ -93,7 +93,7 @@ struct SyncAndDatesSection_Previews: PreviewProvider {
       pendingSyncPreviews
       syncedPreviews
     }
-    .listStyle(.insetGrouped)
+    .listStyle(.ds.insetGrouped)
   }
 
   @ViewBuilder

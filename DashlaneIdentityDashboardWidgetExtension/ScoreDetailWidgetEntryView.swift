@@ -13,15 +13,16 @@ private struct ScoreRow: View {
         Spacer()
         Text(title.uppercased())
           .font(.system(size: 10))
-          .foregroundColor(Color.gray)
+          .foregroundStyle(.gray)
           .fontWeight(.bold)
           .minimumScaleFactor(0.4)
           .lineLimit(1)
       }
       Text(displayScore)
         .font(.body)
-        .foregroundColor(color)
+        .foregroundStyle(color)
         .fontWeight(.heavy)
+        .widgetAccentable()
     }
   }
 
@@ -56,7 +57,7 @@ struct ScoreDetailWidgetEntryView: View {
 
 struct ScoreDetailWidgetEntryView_Previews: PreviewProvider {
   static var previews: some View {
-    MultiContextPreview {
+    MultiContextPreview(addDefaultBackground: false) {
       DashlaneWidgetEntryView(
         entry: PasswordHealthEntry(
           score: 45, credentialCount: 100, compromisedCount: 20, reusedCount: 15, weakCount: 9)

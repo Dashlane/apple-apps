@@ -1,8 +1,4 @@
-import Combine
 import CoreLocalization
-import CorePersonalData
-import Foundation
-import SwiftUI
 
 public enum ItemCategory: CaseIterable, Identifiable {
   case credentials
@@ -11,6 +7,7 @@ public enum ItemCategory: CaseIterable, Identifiable {
   case personalInfo
   case ids
   case secrets
+  case wifi
 
   public var id: String {
     return title
@@ -19,119 +16,152 @@ public enum ItemCategory: CaseIterable, Identifiable {
   public var title: String {
     switch self {
     case .credentials:
-      return L10n.Core.mainMenuLoginsAndPasswords
+      return CoreL10n.mainMenuLoginsAndPasswords
     case .secureNotes:
-      return L10n.Core.mainMenuNotes
+      return CoreL10n.mainMenuNotes
     case .payments:
-      return L10n.Core.mainMenuPayment
+      return CoreL10n.mainMenuPayment
     case .personalInfo:
-      return L10n.Core.mainMenuContact
+      return CoreL10n.mainMenuContact
     case .ids:
-      return L10n.Core.mainMenuIDs
+      return CoreL10n.mainMenuIDs
     case .secrets:
-      return L10n.Core.mainMenuSecrets
+      return CoreL10n.mainMenuSecrets
+    case .wifi:
+      return L10n.Core.WiFi.mainMenu
     }
   }
 
   public func sectionSingular(count: Int) -> String {
     switch self {
     case .credentials:
-      return L10n.Core.login(count)
+      return CoreL10n.login(count)
     case .secureNotes:
-      return L10n.Core.secureNote(count)
+      return CoreL10n.secureNote(count)
     case .payments:
-      return L10n.Core.payment(count)
+      return CoreL10n.payment(count)
     case .personalInfo:
-      return L10n.Core.personalInfo(count)
+      return CoreL10n.personalInfo(count)
     case .ids:
-      return L10n.Core.id(count)
+      return CoreL10n.id(count)
     case .secrets:
-      return L10n.Core.secret(count)
+      return CoreL10n.secret(count)
+    case .wifi:
+      return L10n.Core.WiFi.Pluralized.singular(count)
     }
   }
 
   public func sectionPlural(count: Int) -> String {
     switch self {
     case .credentials:
-      return L10n.Core.loginsPlural(count)
+      return CoreL10n.loginsPlural(count)
     case .secureNotes:
-      return L10n.Core.secureNotesPlural(count)
+      return CoreL10n.secureNotesPlural(count)
     case .payments:
-      return L10n.Core.paymentsPlural(count)
+      return CoreL10n.paymentsPlural(count)
     case .personalInfo:
-      return L10n.Core.personalInfoPlural(count)
+      return CoreL10n.personalInfoPlural(count)
     case .ids:
-      return L10n.Core.idsPlural(count)
+      return CoreL10n.idsPlural(count)
     case .secrets:
-      return L10n.Core.secretsPlural(count)
+      return CoreL10n.secretsPlural(count)
+    case .wifi:
+      return L10n.Core.WiFi.Pluralized.plural(count)
     }
   }
 
-  public var placeholder: String {
+  public var placeholderTitle: String {
     switch self {
     case .credentials:
-      return L10n.Core.emptyPasswordsListText
+      return CoreL10n.emptyPasswordsListTitle
     case .secureNotes:
-      return L10n.Core.emptySecureNotesListText
+      return CoreL10n.emptySecureNotesListTitle
     case .payments:
-      return L10n.Core.emptyPaymentsListText
+      return CoreL10n.emptyPaymentsListTitle
     case .personalInfo:
-      return L10n.Core.emptyPersonalInfoListText
+      return CoreL10n.emptyPersonalInfoListTitle
     case .ids:
-      return L10n.Core.emptyConfidentialCardsListText
+      return CoreL10n.emptyIDsListTitle
     case .secrets:
-      return L10n.Core.emptySecretsListText
+      return CoreL10n.emptySecretsListTitle
+    case .wifi:
+      return CoreL10n.emptyWiFiListTitle
     }
   }
 
-  public var placeholderCtaTitle: String {
+  public var placeholderDescription: String {
     switch self {
     case .credentials:
-      return L10n.Core.emptyPasswordsListCta
+      return CoreL10n.emptyPasswordsListDescription
     case .secureNotes:
-      return L10n.Core.emptySecureNotesListCta
+      return CoreL10n.emptySecureNotesListDescription
     case .payments:
-      return L10n.Core.emptyPaymentsListCta
+      return CoreL10n.emptyPaymentsListDescription
     case .personalInfo:
-      return L10n.Core.emptyPersonalInfoListCta
+      return CoreL10n.emptyPersonalInfoListDescription
     case .ids:
-      return L10n.Core.emptyConfidentialCardsListCta
+      return CoreL10n.emptyIDsListDescription
     case .secrets:
-      return L10n.Core.emptySecretsListCta
+      return CoreL10n.emptySecretsListDescription
+    case .wifi:
+      return CoreL10n.emptyWiFiListDescription
+    }
+  }
+
+  public var placeholderCTATitle: String {
+    switch self {
+    case .credentials:
+      return CoreL10n.emptyPasswordsListCTA
+    case .secureNotes:
+      return CoreL10n.emptySecureNotesListCTA
+    case .payments:
+      return CoreL10n.emptyPaymentsListCTA
+    case .personalInfo:
+      return CoreL10n.emptyPersonalInfoListCTA
+    case .ids:
+      return CoreL10n.emptyIDsListCTA
+    case .secrets:
+      return CoreL10n.emptySecretsListCTA
+    case .wifi:
+      return CoreL10n.emptyWiFiListCTA
     }
   }
 
   public var addTitle: String {
     switch self {
     case .credentials:
-      return L10n.Core.kwadddatakwAuthentifiantIOS
+      return CoreL10n.kwadddatakwAuthentifiantIOS
     case .secureNotes:
-      return L10n.Core.kwadddatakwSecureNoteIOS
+      return CoreL10n.kwadddatakwSecureNoteIOS
     case .payments:
-      return L10n.Core.kwEmptyPaymentsAddAction
+      return CoreL10n.kwEmptyPaymentsAddAction
     case .personalInfo:
-      return L10n.Core.kwEmptyContactAddAction
+      return CoreL10n.kwEmptyContactAddAction
     case .ids:
-      return L10n.Core.kwEmptyIdsAddAction
+      return CoreL10n.kwEmptyIdsAddAction
     case .secrets:
-      return L10n.Core.addASecret
+      return CoreL10n.addASecret
+    case .wifi:
+      return L10n.Core.WiFi.add
     }
   }
 
   public var nativeMenuAddTitle: String {
     switch self {
     case .credentials:
-      return L10n.Core.addPassword
+      return CoreL10n.addPassword
     case .secureNotes:
-      return L10n.Core.addSecureNote
+      return CoreL10n.addSecureNote
     case .payments:
-      return L10n.Core.addPayment
+      return CoreL10n.addPayment
     case .personalInfo:
-      return L10n.Core.addPersonalInfo
+      return CoreL10n.addPersonalInfo
     case .ids:
-      return L10n.Core.addID
+      return CoreL10n.addID
     case .secrets:
-      return L10n.Core.addSecret
+      return CoreL10n.addSecret
+    case .wifi:
+      return L10n.Core.WiFi.add
     }
   }
 }

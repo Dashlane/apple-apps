@@ -1,12 +1,10 @@
 import CoreFeature
 import CoreLocalization
-import CorePremium
-import CoreSettings
 import DesignSystem
 import ImportKit
 import SwiftTreats
 import SwiftUI
-import UIDelight
+import UserTrackingFoundation
 import VaultKit
 
 struct GeneralSettingsView: View {
@@ -61,7 +59,7 @@ struct GeneralSettingsView: View {
       }
       .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
 
-      if !Device.isMac {
+      if !Device.is(.mac) {
         Section(
           footer: Text(L10n.Localizable.kwIosIntegrationSettingsSectionFooter).textStyle(
             .body.helper.regular)
@@ -74,12 +72,14 @@ struct GeneralSettingsView: View {
         .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
       }
 
-      Section(footer: Text(L10n.Localizable.clipboardSettingsShouldBeOverridenFooter)) {
-        DS.Toggle(
-          L10n.Localizable.clipboardSettingsShouldBeOverriden,
-          isOn: $viewModel.isClipboardOverridden)
+      if #unavailable(iOS 18.0) {
+        Section(footer: Text(L10n.Localizable.clipboardSettingsShouldBeOverridenFooter)) {
+          DS.Toggle(
+            L10n.Localizable.clipboardSettingsShouldBeOverriden,
+            isOn: $viewModel.isClipboardOverridden)
+        }
+        .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
       }
-      .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
 
       if isRemoveDuplicatesEnabled {
         Section(
@@ -99,33 +99,37 @@ struct GeneralSettingsView: View {
         .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
       }
 
-      if !Device.isMac {
-        if isDashImportEnabled {
-          Section(
-            footer: Text(L10n.Localizable.kwSettingsRestoreFooter).textStyle(.body.helper.regular)
-          ) {
-            Button(
-              action: {
-                viewModel.activityReporter.reportPageShown(.importBackupfile)
-                showDocumentPicker = true
-              },
-              label: {
-                Text(L10n.Localizable.kwSettingsRestoreSection)
-                  .foregroundStyle(Color.ds.text.neutral.standard)
-                  .textStyle(.body.standard.regular)
-              })
-          }
-          .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
-        }
+      if isDashImportEnabled && !Device.is(.mac) {
+        Section(
+          footer: Text(L10n.Localizable.kwSettingsRestoreFooter).textStyle(.body.helper.regular)
+        ) {
+          Button(
+            action: {
+              viewModel.activityReporter.report(
+                UserEvent.ImportData(
+                  backupFileType: .dash, importDataStatus: .start, importDataStep: .selectFile,
+                  importSource: .sourceDash, isDirectImport: false))
 
-        if isDashExportEnabled {
-          Section {
-            SecureArchiveSectionContent(
-              viewModel: viewModel.secureArchiveSectionContentViewModelFactory.make())
-          }
-          .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
-        }
+              viewModel.activityReporter.reportPageShown(.importBackupfile)
 
+              showDocumentPicker = true
+            },
+            label: {
+              Text(L10n.Localizable.kwSettingsRestoreSection)
+                .foregroundStyle(Color.ds.text.neutral.standard)
+                .textStyle(.body.standard.regular)
+            })
+        }
+        .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
+      }
+
+      ExportCSVSettingsSection(viewModel: viewModel.exportCSVSettingsSectionModelFactory.make())
+
+      if isDashExportEnabled && !Device.is(.mac) {
+        SecureArchiveSection(viewModel: viewModel.secureArchiveSectionViewModelFactory.make())
+      }
+
+      if !Device.is(.mac) {
         Section {
           Button {
             showAlternateIconSwitcher = true
@@ -138,7 +142,7 @@ struct GeneralSettingsView: View {
         .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
       }
     }
-    .listAppearance(.insetGrouped)
+    .listStyle(.ds.insetGrouped)
     .navigationBarTitleDisplayMode(.inline)
     .navigationTitle(L10n.Localizable.kwGeneral)
     .reportPageAppearance(.settingsGeneral)
@@ -165,7 +169,6 @@ struct GeneralSettingsView: View {
       }
     )
     .toolbar(.hidden, for: .tabBar)
-
   }
 }
 
@@ -173,5 +176,11 @@ struct GeneralSettingsView_Previews: PreviewProvider {
   static var previews: some View {
     let viewModel = GeneralSettingsViewModel.mock(status: .Mock.free)
     GeneralSettingsView(viewModel: viewModel)
+      .environment(
+        \.enabledFeatures,
+        [
+          .dashImport,
+          .mobileSecureExport,
+        ])
   }
 }

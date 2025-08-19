@@ -16,12 +16,6 @@ public struct NitroSSOAPIClient: APIClient {
 }
 
 extension NitroSSOAPIClient {
-  public func makeSecureNitroSSOAPIClient(secureTunnel: SecureTunnel) -> SecureNitroSSOAPIClient {
-    return SecureNitroSSOAPIClient(engine: engine, secureTunnel: secureTunnel)
-  }
-}
-
-extension NitroSSOAPIClient {
   public static var fake: NitroSSOAPIClient {
     return .mock(using: .init())
   }

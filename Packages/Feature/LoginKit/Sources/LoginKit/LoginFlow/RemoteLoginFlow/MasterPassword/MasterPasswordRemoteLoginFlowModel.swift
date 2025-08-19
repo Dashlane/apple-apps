@@ -1,19 +1,24 @@
 import Combine
 import CoreSession
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import Foundation
 import StateMachine
 import SwiftTreats
+import UserTrackingFoundation
 
 @MainActor
 public class MasterPasswordRemoteLoginFlowModel: StateMachineBasedObservableObject,
   LoginKitServicesInjecting
 {
 
+  public enum CompletionType {
+    case completed(RemoteLoginSession)
+    case cancel
+  }
+
   public enum Step {
     case verification(VerificationMethod, DeviceInfo)
-    case masterPassword(MasterPasswordRemoteStateMachine.State, DeviceRegistrationData)
+    case masterPassword(MasterPasswordInputRemoteStateMachine.State, DeviceRegistrationData)
   }
 
   @Published
@@ -22,31 +27,30 @@ public class MasterPasswordRemoteLoginFlowModel: StateMachineBasedObservableObje
   private let login: Login
   private let accountVerificationFlowModelFactory: AccountVerificationFlowModel.Factory
   private var tokenPublisher: AnyPublisher<String, Never>
-  var verificationMode: Definition.VerificationMode = .none
-  public var stateMachine: MasterPasswordFlowRemoteStateMachine
+  @Published public var stateMachine: MasterPasswordFlowRemoteStateMachine
+  @Published public var isPerformingEvent: Bool = false
   private let masterPasswordFactory: MasterPasswordInputRemoteViewModel.Factory
   private let completion:
-    @MainActor (Result<RegularRemoteLoginFlowViewModel.CompletionType, Error>) -> Void
+    @MainActor (Result<MasterPasswordRemoteLoginFlowModel.CompletionType, Error>) -> Void
 
   public init(
     login: Login,
     deviceInfo: DeviceInfo,
     verificationMethod: VerificationMethod,
+    stateMachine: MasterPasswordFlowRemoteStateMachine,
     tokenPublisher: AnyPublisher<String, Never>,
     accountVerificationFlowModelFactory: AccountVerificationFlowModel.Factory,
     masterPasswordFactory: MasterPasswordInputRemoteViewModel.Factory,
-    masterPasswordRemoteStateMachineFactory: MasterPasswordFlowRemoteStateMachine.Factory,
-    completion: @escaping @MainActor (Result<RegularRemoteLoginFlowViewModel.CompletionType, Error>)
-      -> Void
+    completion: @escaping @MainActor (
+      Result<MasterPasswordRemoteLoginFlowModel.CompletionType, Error>
+    ) -> Void
   ) {
     self.login = login
     self.accountVerificationFlowModelFactory = accountVerificationFlowModelFactory
     self.masterPasswordFactory = masterPasswordFactory
     self.tokenPublisher = tokenPublisher
     self.completion = completion
-    self.stateMachine = masterPasswordRemoteStateMachineFactory.make(
-      state: .initialize, verificationMethod: verificationMethod, deviceInfo: deviceInfo,
-      login: login)
+    self.stateMachine = stateMachine
     Task {
       await perform(.initialize)
     }
@@ -66,8 +70,7 @@ public class MasterPasswordRemoteLoginFlowModel: StateMachineBasedObservableObje
     case .failed:
       self.completion(.failure(AccountError.unknown))
     case let .masterPasswordValidated(remoteLoginSession):
-      self.completion(
-        .success(.completed(remoteLoginSession, LoginFlowLogInfo(loginMode: .masterPassword))))
+      self.completion(.success(.completed(remoteLoginSession)))
     }
   }
 }
@@ -77,7 +80,8 @@ extension MasterPasswordRemoteLoginFlowModel {
     -> AccountVerificationFlowModel
   {
     accountVerificationFlowModelFactory.make(
-      login: login, mode: .masterPassword, verificationMethod: method, deviceInfo: deviceInfo,
+      login: login, mode: .masterPassword,
+      stateMachine: stateMachine.makeAccountVerificationStateMachine(verificationMethod: method),
       debugTokenPublisher: tokenPublisher,
       completion: { [weak self] completion in
 
@@ -87,7 +91,6 @@ extension MasterPasswordRemoteLoginFlowModel {
         Task {
           do {
             let (authTicket, isBackupCode) = try completion.get()
-            self.verificationMode = method.verificationMode
             await self.perform(
               .accountVerificationDidFinish(authTicket, isBackupCode: isBackupCode, method))
           } catch {
@@ -99,10 +102,11 @@ extension MasterPasswordRemoteLoginFlowModel {
   }
 
   func makeMasterPasswordInputRemoteViewModel(
-    state: MasterPasswordRemoteStateMachine.State, data: DeviceRegistrationData
+    state: MasterPasswordInputRemoteStateMachine.State, data: DeviceRegistrationData
   ) -> MasterPasswordInputRemoteViewModel {
     masterPasswordFactory.make(
-      state: state,
+      stateMachine: stateMachine.makeMasterPasswordInputRemoteStateMachine(
+        state: state, data: data),
       login: login,
       data: data
     ) { [weak self] remoteLoginSession in
@@ -119,15 +123,12 @@ extension MasterPasswordRemoteLoginFlowModel {
 extension MasterPasswordRemoteLoginFlowModel {
   static var mock: MasterPasswordRemoteLoginFlowModel {
     MasterPasswordRemoteLoginFlowModel(
-      login: Login(""), deviceInfo: .mock, verificationMethod: .emailToken,
+      login: Login(""), deviceInfo: .mock, verificationMethod: .emailToken, stateMachine: .mock,
       tokenPublisher: Just("").eraseToAnyPublisher(),
-      accountVerificationFlowModelFactory: .init({ _, _, verificationMethod, _, _, _ in
-        .mock(verificationMethod: verificationMethod)
+      accountVerificationFlowModelFactory: .init({ _, _, _, _, _ in
+        .mock(verificationMethod: .emailToken)
       }),
       masterPasswordFactory: .init({ _, _, _, _ in
-        .mock
-      }),
-      masterPasswordRemoteStateMachineFactory: .init({ _, _, _, _ in
         .mock
       }), completion: { _ in })
   }

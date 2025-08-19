@@ -1,6 +1,6 @@
 import Foundation
 
-public struct RegistrationData: Hashable {
+public struct RegistrationData: Hashable, Sendable {
   public let transferData: AccountTransferInfo
   public var pin: String?
   public var authTicket: AuthTicket

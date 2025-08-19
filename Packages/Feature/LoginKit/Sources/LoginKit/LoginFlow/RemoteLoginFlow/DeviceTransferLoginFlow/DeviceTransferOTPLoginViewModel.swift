@@ -1,11 +1,11 @@
 import CoreLocalization
 import CoreSession
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 import StateMachine
 import UIComponents
+import UserTrackingFoundation
 
 @MainActor
 public class DeviceTransferOTPLoginViewModel: ObservableObject, LoginKitServicesInjecting {
@@ -17,7 +17,7 @@ public class DeviceTransferOTPLoginViewModel: ObservableObject, LoginKitServices
   }
 
   @Published
-  var state: ProgressionState = .inProgress(L10n.Core.deviceToDevicePushInProgress)
+  var state: ProgressionState = .inProgress(CoreL10n.deviceToDevicePushInProgress)
 
   @Published
   var otpValue: String = "" {
@@ -39,22 +39,22 @@ public class DeviceTransferOTPLoginViewModel: ObservableObject, LoginKitServices
     otpValue.count == 6
   }
 
-  public var stateMachine: ThirdPartyOTPLoginStateMachine
+  @Published public var stateMachine: ThirdPartyOTPLoginStateMachine
+  @Published public var isPerformingEvent: Bool = false
+
   let activityReporter: ActivityReporterProtocol
   let lostOTPSheetViewModel: LostOTPSheetViewModel
   let completion: (DeviceTransferOTPLoginViewModel.CompletionType) -> Void
 
   public init(
-    initialState: ThirdPartyOTPLoginStateMachine.State,
+    stateMachine: ThirdPartyOTPLoginStateMachine,
     login: Login,
     option: ThirdPartyOTPOption,
     activityReporter: ActivityReporterProtocol,
     appAPIClient: AppAPIClient,
-    thirdPartyOTPLoginStateMachineFactory: ThirdPartyOTPLoginStateMachine.Factory,
     completion: @escaping (DeviceTransferOTPLoginViewModel.CompletionType) -> Void
   ) {
-    self.stateMachine = thirdPartyOTPLoginStateMachineFactory.make(
-      initialState: initialState, login: login, option: option)
+    self.stateMachine = stateMachine
     self.activityReporter = activityReporter
     self.lostOTPSheetViewModel = LostOTPSheetViewModel(
       appAPIClient: appAPIClient,
@@ -97,6 +97,15 @@ public class DeviceTransferOTPLoginViewModel: ObservableObject, LoginKitServices
 
 @MainActor
 extension DeviceTransferOTPLoginViewModel: StateMachineBasedObservableObject {
+  public func willPerform(_ event: ThirdPartyOTPLoginStateMachine.Event) async {
+    switch event {
+    case .validateOTP:
+      self.inProgress = true
+    case .start, .sendPush:
+      break
+    }
+  }
+
   public func update(
     for event: ThirdPartyOTPLoginStateMachine.Event,
     from oldState: ThirdPartyOTPLoginStateMachine.State,
@@ -112,7 +121,7 @@ extension DeviceTransferOTPLoginViewModel: StateMachineBasedObservableObject {
       isTokenError = true
     case let .errorOccured(error, _) where error == .duoChallengeFailed:
       self.logError()
-      state = .failed(L10n.Core.authenticatorPushViewDeniedError, {})
+      state = .failed(CoreL10n.authenticatorPushViewDeniedError, {})
     case let .errorOccured(error, _):
       self.completion(.error(error))
     }

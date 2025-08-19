@@ -1,4 +1,4 @@
-import DashTypes
+import CoreTypes
 import Foundation
 
 public struct DeviceTransferSecretBoxImpl: DeviceTransferSecretBox {
@@ -15,7 +15,7 @@ public struct DeviceTransferSecretBoxImpl: DeviceTransferSecretBox {
   }
 
   public func open<T: Decodable>(
-    _ type: T.Type, from text: Base64EncodedString, nonce: DashTypes.Base64EncodedString
+    _ type: T.Type, from text: Base64EncodedString, nonce: CoreTypes.Base64EncodedString
   ) throws -> T {
     let decryptedData = try cryptoEngine.decrypt(text, nonce: nonce)
     return try JSONDecoder().decode(T.self, from: decryptedData)

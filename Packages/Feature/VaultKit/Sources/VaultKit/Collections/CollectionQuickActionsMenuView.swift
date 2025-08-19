@@ -53,51 +53,49 @@ public struct CollectionQuickActionsMenuView: View {
       Image.ds.action.moreEmphasized.outlined
         .resizable()
         .aspectRatio(contentMode: .fit)
-        .accessibility(label: Text(L10n.Core.kwActions))
+        .accessibility(label: Text(CoreL10n.kwActions))
         .frame(width: 24, height: 40)
-        .foregroundColor(.ds.text.brand.standard)
+        .foregroundStyle(Color.ds.text.brand.standard)
     }
     .toasterOn()
     .onTapGesture {
       viewModel.reportAppearance()
     }
     .sheet(isPresented: $showEdit) {
-      #if canImport(UIKit)
-        CollectionNamingView(viewModel: viewModel.makeEditableCollectionNamingViewModel()) {
-          completion in
-          if case .done(let collection) = completion {
-            viewModel.collection = collection
-          }
-          showEdit = false
+      CollectionNamingView(viewModel: viewModel.makeEditableCollectionNamingViewModel()) {
+        completion in
+        if case .done(let collection) = completion {
+          viewModel.collection = collection
         }
-      #endif
+        showEdit = false
+      }
     }
     .confirmationDialog(
-      L10n.Core.KWVaultItem.Collections.DeleteAlert.title,
+      CoreL10n.KWVaultItem.Collections.DeleteAlert.title,
       isPresented: $showDelete,
       titleVisibility: .visible,
       actions: {
-        Button(L10n.Core.kwDelete, role: .destructive) { viewModel.deleteCollection(with: toast) }
+        Button(CoreL10n.kwDelete, role: .destructive) { viewModel.deleteCollection(with: toast) }
       },
       message: {
-        Text(L10n.Core.KWVaultItem.Collections.DeleteAlert.message)
+        Text(CoreL10n.KWVaultItem.Collections.DeleteAlert.message)
       }
     )
     .alert(isPresented: $viewModel.showSharedCollectionErrorMessage) {
       Alert(
-        title: Text(L10n.Core.KWVaultItem.Collections.DeleteAlert.Error.Shared.title),
-        message: Text(L10n.Core.KWVaultItem.Collections.DeleteAlert.Error.Shared.message),
-        dismissButton: .default(Text(L10n.Core.kwButtonOk))
+        title: Text(CoreL10n.KWVaultItem.Collections.DeleteAlert.Error.Shared.title),
+        message: Text(CoreL10n.KWVaultItem.Collections.DeleteAlert.Error.Shared.message),
+        dismissButton: .default(Text(CoreL10n.kwButtonOk))
       )
     }
     .alert(
-      L10n.Core.teamSpacesSharingCollectionsDisabledMessageTitle,
+      CoreL10n.teamSpacesSharingCollectionsDisabledMessageTitle,
       isPresented: $showSharingDisabledAlert,
       actions: {
-        Button(L10n.Core.kwButtonOk) {}
+        Button(CoreL10n.kwButtonOk) {}
       },
       message: {
-        Text(L10n.Core.teamSpacesSharingCollectionsDisabledMessageBody)
+        Text(CoreL10n.teamSpacesSharingCollectionsDisabledMessageBody)
       }
     )
   }
@@ -109,7 +107,7 @@ public struct CollectionQuickActionsMenuView: View {
       },
       label: {
         HStack {
-          Text(L10n.Core.kwEdit)
+          Text(CoreL10n.kwEdit)
           Image.ds.action.edit.outlined
         }
       }
@@ -126,7 +124,7 @@ public struct CollectionQuickActionsMenuView: View {
       },
       label: {
         HStack {
-          Text(L10n.Core.kwDelete)
+          Text(CoreL10n.kwDelete)
           Image.ds.action.delete.outlined
         }
       }
@@ -145,7 +143,7 @@ public struct CollectionQuickActionsMenuView: View {
       },
       label: {
         HStack {
-          Text(L10n.Core.kwShare)
+          Text(CoreL10n.kwShare)
           Image.ds.action.share.outlined
         }
       }
@@ -163,7 +161,7 @@ public struct CollectionQuickActionsMenuView: View {
       },
       label: {
         HStack {
-          Text(L10n.Core.kwSharedAccess)
+          Text(CoreL10n.kwSharedAccess)
           Image.ds.shared.outlined
         }
       }

@@ -26,7 +26,6 @@ struct DarkWebToolsFlow: View {
           model: viewModel.makeDarkWebMonitoringDetailsViewModel(for: breach))
       case let .credentialDetails(credential):
         CredentialDetailView(model: viewModel.makeCredentialDetailViewModel(credential: credential))
-          .navigationBarHidden(true)
       }
     }
     .sheet(item: $viewModel.presentedSheet) { sheet in

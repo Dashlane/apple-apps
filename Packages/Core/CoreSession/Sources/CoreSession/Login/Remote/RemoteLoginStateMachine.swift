@@ -1,12 +1,13 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import StateMachine
 import SwiftTreats
 
-@MainActor
 public struct RemoteLoginStateMachine: StateMachine {
 
+  @Loggable
   public enum Error: Swift.Error, Equatable {
     case wrongMasterKey
     case userDataNotFetched
@@ -14,7 +15,8 @@ public struct RemoteLoginStateMachine: StateMachine {
     case invalidSettings
   }
 
-  public enum State: Hashable {
+  @Loggable
+  public enum State: Hashable, Sendable {
     case authentication(RemoteLoginType)
     case deviceUnlink(DeviceUnlinker, RemoteLoginSession)
     case migrateAccount(AccountMigrationInfos)
@@ -24,7 +26,8 @@ public struct RemoteLoginStateMachine: StateMachine {
     case failed(StateMachineError)
   }
 
-  public enum Event {
+  @Loggable
+  public enum Event: Sendable {
     case initialize
     case cancel
     case logout
@@ -43,6 +46,8 @@ public struct RemoteLoginStateMachine: StateMachine {
   private let ssoInfo: SSOInfo?
   private let cryptoEngineProvider: CryptoEngineProvider
   private let type: RemoteLoginType
+  private let sessionCleaner: SessionCleanerProtocol
+  private let remoteLogger: RemoteLogger
 
   public init(
     type: RemoteLoginType,
@@ -50,8 +55,10 @@ public struct RemoteLoginStateMachine: StateMachine {
     ssoInfo: SSOInfo? = nil,
     apiclient: AppAPIClient,
     sessionsContainer: SessionsContainerProtocol,
+    sessionCleaner: SessionCleanerProtocol,
     logger: Logger,
-    cryptoEngineProvider: CryptoEngineProvider
+    cryptoEngineProvider: CryptoEngineProvider,
+    remoteLogger: RemoteLogger
   ) {
     self.type = type
     self.apiclient = apiclient
@@ -60,11 +67,13 @@ public struct RemoteLoginStateMachine: StateMachine {
     self.deviceInfo = deviceInfo
     self.ssoInfo = ssoInfo
     self.cryptoEngineProvider = cryptoEngineProvider
+    self.sessionCleaner = sessionCleaner
+    self.remoteLogger = remoteLogger
     self.state = .authentication(type)
   }
 
-  public mutating func transition(with event: Event) async {
-    logger.logInfo("Received event \(event)")
+  public mutating func transition(with event: Event) async throws {
+    logger.info("Received event \(event)")
     switch event {
     case .initialize:
       state = .authentication(type)
@@ -85,6 +94,8 @@ public struct RemoteLoginStateMachine: StateMachine {
     case let .failed(error):
       state = .failed(error)
     }
+    let state = state
+    logger.info("Transition to state: \(state)")
   }
 
   private mutating func loadAccount(with session: RemoteLoginSession) async {
@@ -209,7 +220,7 @@ public struct RemoteLoginStateMachine: StateMachine {
   }
 }
 
-public struct RemoteLoginConfiguration: Hashable {
+public struct RemoteLoginConfiguration: Hashable, Sendable {
   public let session: Session
   public let pinCode: String?
   public let isRecoveryLogin: Bool
@@ -227,5 +238,25 @@ public struct RemoteLoginConfiguration: Hashable {
     self.isRecoveryLogin = isRecoveryLogin
     self.shouldEnableBiometry = shouldEnableBiometry
     self.newMasterPassword = newMasterPassword
+  }
+}
+
+extension RemoteLoginStateMachine {
+  public func makeDeviceTransferLoginFlowStateMachine(login: Login?)
+    -> DeviceTransferLoginFlowStateMachine
+  {
+    DeviceTransferLoginFlowStateMachine(
+      login: login, deviceInfo: deviceInfo, apiClient: apiclient,
+      sessionsContainer: sessionsContainer, sessionCleaner: sessionCleaner, logger: logger,
+      cryptoEngineProvider: cryptoEngineProvider, remoteLogger: remoteLogger)
+  }
+
+  public func makeRegularRemoteLoginStateMachine(
+    login: Login, deviceRegistrationMethod: LoginMethod
+  ) -> RegularRemoteLoginStateMachine {
+    RegularRemoteLoginStateMachine(
+      login: login, deviceRegistrationMethod: deviceRegistrationMethod, deviceInfo: deviceInfo,
+      appAPIClient: apiclient, sessionsContainer: sessionsContainer, logger: logger,
+      cryptoEngineProvider: cryptoEngineProvider, remoteLogger: remoteLogger)
   }
 }

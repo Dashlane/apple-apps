@@ -1,16 +1,21 @@
-import DashTypes
+import CoreSession
+import CoreTypes
 import Foundation
+import LoginKit
+import StateMachine
 import SwiftTreats
 
 @MainActor
-class PasswordLessAccountCreationFlowViewModel: ObservableObject,
+class PasswordLessAccountCreationFlowViewModel: StateMachineBasedObservableObject,
   AccountCreationFlowDependenciesInjecting
 {
+  var isPerformingEvent: Bool = false
+
   enum Step {
     case intro
     case pinCode
     case biometry(biometry: Biometry)
-    case userConsent
+    case userConsent(email: String, password: String)
     case complete(SessionServicesContainer)
   }
 
@@ -28,24 +33,69 @@ class PasswordLessAccountCreationFlowViewModel: ObservableObject,
   let userConsentViewModelFactory: UserConsentViewModel.Factory
   let fastLocalSetupViewModelFactory: FastLocalSetupInAccountCreationViewModel.Factory
 
-  @Published
-  var configuration: AccountCreationConfiguration
-  let accountCreationService: AccountCreationService
   let completion: @MainActor (PasswordLessAccountCreationFlowViewModel.CompletionResult) -> Void
+  let sessionServicesLoader: SessionServicesLoader
+  var stateMachine: PasswordlessAccountCreationStateMachine
 
   init(
-    configuration: AccountCreationConfiguration,
-    accountCreationService: AccountCreationService,
+    sessionServicesLoader: SessionServicesLoader,
+    stateMachine: PasswordlessAccountCreationStateMachine,
     userConsentViewModelFactory: UserConsentViewModel.Factory,
     fastLocalSetupViewModelFactory: FastLocalSetupInAccountCreationViewModel.Factory,
     completion: @escaping @MainActor (PasswordLessAccountCreationFlowViewModel.CompletionResult) ->
       Void
   ) {
+    self.stateMachine = stateMachine
     self.completion = completion
-    self.configuration = configuration
-    self.accountCreationService = accountCreationService
+    self.sessionServicesLoader = sessionServicesLoader
     self.userConsentViewModelFactory = userConsentViewModelFactory
     self.fastLocalSetupViewModelFactory = fastLocalSetupViewModelFactory
+  }
+
+  func update(
+    for event: PasswordlessAccountCreationStateMachine.Event,
+    from oldState: PasswordlessAccountCreationStateMachine.State,
+    to newState: PasswordlessAccountCreationStateMachine.State
+  ) async {
+    func popLastStepOrPush(_ step: Step) {
+      if case .back = event {
+        _ = steps.popLast()
+      } else {
+        steps.append(step)
+      }
+    }
+
+    switch newState {
+    case .initial:
+      steps = [.intro]
+    case let .biometrySetup(biometry):
+      popLastStepOrPush(.biometry(biometry: biometry))
+    case .pinSetup:
+      popLastStepOrPush(.pinCode)
+    case let .waitingForUserConsent(email, password):
+      popLastStepOrPush(.userConsent(email: email, password: password))
+    case let .accountCreated(session, localConfig):
+      await self.load(session, with: localConfig)
+    case let .accountCreationFailed(error):
+      self.error = error.underlyingError
+    case .cancelled:
+      self.completion(.cancel)
+    }
+  }
+
+  func makePinViewModel() -> PinCodeSelectionViewModel {
+    PinCodeSelectionViewModel { pin in
+      let event: Machine.Event = pin.map { .pinSetupCompleted(pin: $0) } ?? .back
+      Task {
+        await self.perform(event)
+      }
+    }
+  }
+
+  func completeBiometrySetup(_ result: BiometricQuickSetupView.CompletionResult) {
+    Task {
+      await self.perform(.biometrySetupCompleted(isEnabled: result == .useBiometry))
+    }
   }
 
   func makeUserContentViewModel() -> UserConsentViewModel {
@@ -54,46 +104,31 @@ class PasswordLessAccountCreationFlowViewModel: ObservableObject,
         return
       }
 
-      switch completion {
-      case .next(_, let hasUserAcceptedEmailMarketing):
-        self.configuration.hasUserAcceptedEmailMarketing = hasUserAcceptedEmailMarketing
-        Task {
-          await self.load()
-        }
+      Task {
+        switch completion {
+        case .next(_, let hasUserAcceptedEmailMarketing):
+          await self.perform(
+            .userConsentCompleted(hasUserAcceptedEmailMarketing: hasUserAcceptedEmailMarketing))
 
-      case .back(_, let hasUserAcceptedEmailMarketing):
-        self.configuration.hasUserAcceptedEmailMarketing = hasUserAcceptedEmailMarketing
-        self.steps.removeLast()
+        case .back:
+          await self.perform(.back)
+        }
       }
     }
   }
 
   func startCreation() {
-    steps.append(.pinCode)
-  }
-
-  func setupPin(_ pin: String) {
-    configuration.local.pincode = pin
-    if let biometry = Device.biometryType {
-      steps.append(.biometry(biometry: biometry))
-    } else {
-      steps.append(.userConsent)
+    Task {
+      await perform(.startPinSetup)
     }
   }
 
-  func enableBiometry() {
-    configuration.local.isBiometricAuthenticationEnabled = true
-    steps.append(.userConsent)
-  }
-
-  func skipBiometry() {
-    steps.append(.userConsent)
-  }
-
-  private func load() async {
+  private func load(_ session: Session, with localConfig: LocalConfiguration) async {
     do {
-      let sessionServices = try await self.accountCreationService.createAccountAndLoad(
-        using: configuration)
+      let sessionServices = try await sessionServicesLoader.load(
+        for: session, context: .accountCreation)
+      sessionServices.activityReporter.logAccountCreationSuccessful()
+      sessionServices.apply(localConfig)
       self.steps.append(.complete(sessionServices))
     } catch {
       self.error = error
@@ -105,6 +140,8 @@ class PasswordLessAccountCreationFlowViewModel: ObservableObject,
   }
 
   func cancel() {
-    self.completion(.cancel)
+    Task {
+      await self.perform(.cancel)
+    }
   }
 }

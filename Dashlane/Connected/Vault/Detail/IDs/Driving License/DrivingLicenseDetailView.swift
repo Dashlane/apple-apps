@@ -1,5 +1,6 @@
 import CoreLocalization
 import CorePersonalData
+import DesignSystem
 import SwiftUI
 import UIDelight
 import VaultKit
@@ -16,20 +17,21 @@ struct DrivingLicenseDetailView: View {
       Section {
         if model.mode.isEditing {
           PickerDetailField(
-            title: CoreLocalization.L10n.Core.KWDriverLicenceIOS.localeFormat,
+            title: CoreL10n.KWDriverLicenceIOS.localeFormat,
             selection: $model.item.country,
             elements: CountryCodeNamePair.countries,
             content: { country in
               Text(country?.name ?? "")
             })
         } else {
-          Text(model.item.country?.name ?? CountryCodeNamePair.defaultCountry.name)
-            .labeled(CoreLocalization.L10n.Core.KWDriverLicenceIOS.localeFormat)
+          DS.DisplayField(
+            CoreL10n.KWDriverLicenceIOS.localeFormat,
+            text: model.item.country?.name ?? CountryCodeNamePair.defaultCountry.name)
         }
 
         if model.mode.isEditing {
           PickerDetailField(
-            title: CoreLocalization.L10n.Core.KWDriverLicenceIOS.linkedIdentity,
+            title: CoreL10n.KWDriverLicenceIOS.linkedIdentity,
             selection: $model.item.linkedIdentity,
             elements: model.identities,
             allowEmptySelection: true,
@@ -39,31 +41,30 @@ struct DrivingLicenseDetailView: View {
         }
 
         if !model.mode.isEditing {
-          Text(model.displayFullName).labeled(
-            CoreLocalization.L10n.Core.KWDriverLicenceIOS.fullname)
+          DS.DisplayField(CoreL10n.KWDriverLicenceIOS.fullname, text: model.displayFullName)
         }
 
         if model.item.linkedIdentity == nil {
           if model.mode.isEditing {
             TextDetailField(
-              title: CoreLocalization.L10n.Core.KWDriverLicenceIOS.fullname,
+              title: CoreL10n.KWDriverLicenceIOS.fullname,
               text: $model.item.fullname)
 
             PickerDetailField(
-              title: CoreLocalization.L10n.Core.KWDriverLicenceIOS.sex,
+              title: CoreL10n.KWDriverLicenceIOS.sex,
               selection: $model.item.sex,
               elements: Gender.allCases,
               content: { gender in
                 Text(gender?.localized ?? "")
               })
           } else if model.item.sex != nil {
-            Text(model.item.genderString).labeled(CoreLocalization.L10n.Core.KWDriverLicenceIOS.sex)
+            DS.DisplayField(CoreL10n.KWDriverLicenceIOS.sex, text: model.item.genderString)
           }
         }
 
         if model.mode.isEditing || !model.item.number.isEmpty {
           TextDetailField(
-            title: CoreLocalization.L10n.Core.KWDriverLicenceIOS.number,
+            title: CoreL10n.KWDriverLicenceIOS.number,
             text: $model.item.number,
             actions: [.copy(model.copy)]
           )
@@ -74,7 +75,7 @@ struct DrivingLicenseDetailView: View {
         if model.item.mode == .countryWithState {
           if model.mode.isEditing {
             PickerDetailField(
-              title: CoreLocalization.L10n.Core.KWDriverLicenceIOS.state,
+              title: CoreL10n.KWDriverLicenceIOS.state,
               selection: $model.item.state,
               elements: model.stateItems,
               content: { country in
@@ -83,18 +84,19 @@ struct DrivingLicenseDetailView: View {
             )
             .textInputAutocapitalization(.words)
           } else if model.item.state != nil {
-            Text(model.item.state?.name ?? "").labeled(
-              CoreLocalization.L10n.Core.KWDriverLicenceIOS.state)
+            DisplayField(
+              CoreL10n.KWDriverLicenceIOS.state,
+              text: model.item.state?.name ?? "")
           }
         }
 
         DateDetailField(
-          title: CoreLocalization.L10n.Core.KWDriverLicenceIOS.deliveryDate,
+          title: CoreL10n.KWDriverLicenceIOS.deliveryDate,
           date: $model.item.deliveryDate,
           range: .past)
 
         DateDetailField(
-          title: CoreLocalization.L10n.Core.KWPassportIOS.expireDate,
+          title: CoreL10n.KWPassportIOS.expireDate,
           date: $model.item.expireDate,
           range: .future)
       }.makeShortcuts(model: model)

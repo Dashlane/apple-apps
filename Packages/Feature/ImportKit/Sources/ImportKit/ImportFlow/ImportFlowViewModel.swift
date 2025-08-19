@@ -22,8 +22,8 @@ public enum ImportFlowStep {
   case intro(ImportInformationViewModel)
   case instructions(ImportInformationViewModel)
   case `extension`(ImportInformationViewModel)
-  case list(ImportViewModel)
-  case error(ImportViewModel)
+  case list(OldImportViewModel)
+  case error(OldImportViewModel)
 }
 
 public enum ImportDismissAction {
@@ -34,7 +34,7 @@ public enum ImportDismissAction {
 @MainActor
 public protocol ImportFlowViewModel: ObservableObject {
 
-  associatedtype AnyImportViewModel: ImportViewModel, ObservableObject
+  associatedtype AnyImportViewModel: OldImportViewModel, ObservableObject
 
   var kind: ImportFlowKind { get }
   var steps: [ImportFlowStep] { get set }

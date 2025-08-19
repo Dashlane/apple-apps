@@ -1,8 +1,8 @@
 import CorePersonalData
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import Foundation
 import SwiftTreats
+import UserTrackingFoundation
 import VaultKit
 
 extension VaultFlowViewModel {

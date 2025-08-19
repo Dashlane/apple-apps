@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppAPIClient.Killswitch {
-  public struct GetKillSwitches: APIRequest {
+  public struct GetKillSwitches: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/killswitch/GetKillSwitches"
 
     public let api: AppAPIClient
@@ -24,7 +24,7 @@ extension AppAPIClient.Killswitch {
 }
 
 extension AppAPIClient.Killswitch.GetKillSwitches {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case requestedKillswitches = "requestedKillswitches"
     }
@@ -43,7 +43,7 @@ extension AppAPIClient.Killswitch.GetKillSwitches {
 }
 
 extension AppAPIClient.Killswitch.GetKillSwitches {
-  public enum ResponseValue: Codable, Equatable, Sendable {
+  public enum ResponseValue: Codable, Hashable, Sendable {
     case boolean(Bool)
     case number(Int)
 

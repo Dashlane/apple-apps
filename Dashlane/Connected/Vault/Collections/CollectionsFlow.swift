@@ -29,14 +29,13 @@ public struct CollectionsFlow: View {
         ) { viewModel.handleCollectionDetailAction($0) }
       case .itemDetail(let item):
         VaultDetailView(model: viewModel.makeDetailViewModel(), itemDetailViewType: .viewing(item))
-          .navigationBarHidden(true)
       }
     }
     .alert(
-      CoreLocalization.L10n.Core.KWVaultItem.Collections.AttachmentsLimitation.Message.share,
+      CoreL10n.KWVaultItem.Collections.AttachmentsLimitation.Message.share,
       isPresented: $viewModel.showCannotShareWithAttachments
     ) {
-      Button(CoreLocalization.L10n.Core.kwButtonClose, role: .cancel) {
+      Button(CoreL10n.kwButtonClose, role: .cancel) {
 
       }
     }

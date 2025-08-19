@@ -1,11 +1,12 @@
 import AVFoundation
 import CoreLocalization
-import CoreUserTracking
 import SwiftUI
 import TOTPGenerator
 import UIComponents
 import UIDelight
+import UserTrackingFoundation
 
+@available(visionOS, unavailable)
 public struct ScanQRCodeView: View {
 
   enum ScannerAlert: String, Identifiable {
@@ -33,7 +34,7 @@ public struct ScanQRCodeView: View {
 
   public var body: some View {
     VStack {
-      Text(L10n.Core._2faSetupCta)
+      Text(CoreL10n._2faSetupCta)
         .font(.title2)
         .lineLimit(2)
         .minimumScaleFactor(0.6)
@@ -95,9 +96,9 @@ public struct ScanQRCodeView: View {
 
   private func cameraAlert() -> Alert {
     Alert(
-      title: Text(L10n.Core.kwOtpSecretUpdate),
-      message: Text(L10n.Core.kwRequiresCameraAccess),
-      primaryButton: .default(Text(L10n.Core.kwAuthoriseCameraAccess), action: openSetting),
+      title: Text(CoreL10n.kwOtpSecretUpdate),
+      message: Text(CoreL10n.kwRequiresCameraAccess),
+      primaryButton: .default(Text(CoreL10n.kwAuthoriseCameraAccess), action: openSetting),
       secondaryButton: .cancel({
         self.dismiss()
       }))
@@ -106,8 +107,8 @@ public struct ScanQRCodeView: View {
   private func dashlaneAlert() -> Alert {
     Alert(
       title: Text(""),
-      message: Text(L10n.Core.kwOtpDashlaneSecretRead),
-      dismissButton: .cancel(Text(L10n.Core.kwButtonOk)))
+      message: Text(CoreL10n.kwOtpDashlaneSecretRead),
+      dismissButton: .cancel(Text(CoreL10n.kwButtonOk)))
   }
 
   private func openSetting() {
@@ -165,10 +166,7 @@ private struct CameraOverlayShape: Shape {
   }
 }
 
-struct ScanQRCodeView_Previews: PreviewProvider {
-  static var previews: some View {
-    ScanQRCodeView { _ in
-
-    }
-  }
+@available(visionOS, unavailable)
+#Preview {
+  ScanQRCodeView { _ in }
 }

@@ -1,7 +1,7 @@
 import Combine
 import CoreLocalization
 import CoreSession
-import DashTypes
+import CoreTypes
 import DesignSystem
 import Foundation
 import LoginKit
@@ -29,12 +29,11 @@ struct UserConsentView<TopSection: View>: View {
       .navigationBarBackButtonHidden(true)
       .toolbar {
         ToolbarItem(placement: .navigationBarLeading) {
-          NavigationBarButton(action: model.back, title: CoreLocalization.L10n.Core.kwBack)
+          Button(CoreL10n.kwBack, action: model.back)
         }
       }
       .navigationTitle(L10n.Localizable.kwTitle)
       .reportPageAppearance(.accountCreationTermsServices)
-      .navigationBarStyle(.alternate)
   }
 
   private var mainView: some View {
@@ -44,7 +43,7 @@ struct UserConsentView<TopSection: View>: View {
       consentSection
         .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
     }
-    .listAppearance(.insetGrouped)
+    .listStyle(.ds.insetGrouped)
     .safeAreaInset(edge: .bottom, alignment: .center) {
       createButton
     }
@@ -75,13 +74,13 @@ struct UserConsentView<TopSection: View>: View {
       )
       .padding(.bottom, 8)
 
-      Button(CoreLocalization.L10n.Core.kwCreateAccountTermsConditions) { model.goToTerms() }
+      Button(CoreL10n.kwCreateAccountTermsConditions) { model.goToTerms() }
         .buttonStyle(.externalLink)
         .controlSize(.small)
         .accessibilityAddTraits(.isLink)
         .accessibilityRemoveTraits(.isButton)
 
-      Button(CoreLocalization.L10n.Core.kwCreateAccountPrivacy) { model.goToPrivacy() }
+      Button(CoreL10n.kwCreateAccountPrivacy) { model.goToPrivacy() }
         .buttonStyle(.externalLink)
         .controlSize(.small)
         .accessibilityAddTraits(.isLink)
@@ -98,6 +97,7 @@ struct UserConsentView<TopSection: View>: View {
       label: {
         Text(L10n.Localizable.AccountCreation.Finish.createButton)
           .fixedSize(horizontal: false, vertical: true)
+          .frame(maxWidth: .infinity)
       }
     )
     .buttonStyle(.designSystem(.titleOnly))
@@ -113,24 +113,26 @@ struct UserConsentView<TopSection: View>: View {
 
 }
 
-struct UserConsentView_Previews: PreviewProvider {
-
-  static var previews: some View {
-    MultiContextPreview {
-      UserConsentView(
-        model: UserConsentViewModel(userCountryProvider: .mock(userCountryInfos: .usa)) { _ in
-
-        }
-      ) {
+#Preview {
+  NavigationStack {
+    UserConsentView(
+      model: UserConsentViewModel(userCountryProvider: .mock(userCountryInfos: .usa)) { _ in
 
       }
-      UserConsentView(
-        model: UserConsentViewModel(userCountryProvider: .mock(userCountryInfos: .france)) { _ in
+    ) {
 
-        }
-      ) {
+    }
+  }
+}
+
+#Preview {
+  NavigationStack {
+    UserConsentView(
+      model: UserConsentViewModel(userCountryProvider: .mock(userCountryInfos: .france)) { _ in
 
       }
+    ) {
+
     }
   }
 }

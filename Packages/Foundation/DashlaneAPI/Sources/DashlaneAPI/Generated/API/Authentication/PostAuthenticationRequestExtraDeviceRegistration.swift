@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Authentication {
-  public struct RequestExtraDeviceRegistration: APIRequest {
+  public struct RequestExtraDeviceRegistration: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/authentication/RequestExtraDeviceRegistration"
 
     public let api: UserDeviceAPIClient
@@ -24,12 +24,12 @@ extension UserDeviceAPIClient.Authentication {
 }
 
 extension UserDeviceAPIClient.Authentication.RequestExtraDeviceRegistration {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case tokenType = "tokenType"
     }
 
-    public enum TokenType: String, Sendable, Equatable, CaseIterable, Codable {
+    public enum TokenType: String, Sendable, Hashable, Codable, CaseIterable {
       case shortLived = "shortLived"
       case googleAccountNewDevice = "googleAccountNewDevice"
       case undecodable
@@ -54,7 +54,7 @@ extension UserDeviceAPIClient.Authentication.RequestExtraDeviceRegistration {
 }
 
 extension UserDeviceAPIClient.Authentication.RequestExtraDeviceRegistration {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case token = "token"
     }

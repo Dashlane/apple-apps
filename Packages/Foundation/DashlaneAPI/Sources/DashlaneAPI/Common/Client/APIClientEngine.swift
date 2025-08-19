@@ -5,14 +5,14 @@ import Foundation
 #endif
 
 public protocol APIClientEngine: Sendable {
-  func post<Response: Decodable, Body: Encodable>(
+  func post<Response: Decodable & Sendable, Body: Encodable & Sendable>(
     _ endpoint: Endpoint,
     body: Body,
     timeout: TimeInterval?,
     signer: RequestSigner?
   ) async throws -> Response
 
-  func get<Response: Decodable>(
+  func get<Response: Decodable & Sendable>(
     _ endpoint: Endpoint,
     timeout: TimeInterval?,
     signer: RequestSigner?
@@ -27,10 +27,7 @@ struct APIClientEngineImpl<Client: OpenAPISpecClient & APIClient, ErrorType: Err
   let decoder = JSONDecoder()
   let encoder = JSONEncoder()
 
-  init(
-    configuration: ClientConfiguration<Client>,
-    session: URLSession = URLSession(configuration: .ephemeral)
-  ) {
+  init(configuration: ClientConfiguration<Client>, session: URLSession = URLSession.dashlane()) {
     decoder.dateDecodingStrategy = .iso8601
     decoder.dataDecodingStrategy = .base64
     encoder.dateEncodingStrategy = .iso8601
@@ -40,7 +37,7 @@ struct APIClientEngineImpl<Client: OpenAPISpecClient & APIClient, ErrorType: Err
     self.session = session
   }
 
-  func post<Response: Decodable, Body: Encodable>(
+  func post<Response: Decodable & Sendable, Body: Encodable & Sendable>(
     _ endpoint: Endpoint,
     body: Body,
     timeout: TimeInterval?,
@@ -56,7 +53,7 @@ struct APIClientEngineImpl<Client: OpenAPISpecClient & APIClient, ErrorType: Err
     return try await perform(urlRequest, signer: signer)
   }
 
-  func get<Response: Decodable>(
+  func get<Response: Decodable & Sendable>(
     _ endpoint: Endpoint,
     timeout: TimeInterval?,
     signer: RequestSigner?
@@ -68,8 +65,8 @@ struct APIClientEngineImpl<Client: OpenAPISpecClient & APIClient, ErrorType: Err
     return try await perform(urlRequest, signer: signer)
   }
 
-  func perform<Response: Decodable>(_ request: URLRequest, signer: RequestSigner?) async throws
-    -> Response
+  func perform<Response: Decodable & Sendable>(_ request: URLRequest, signer: RequestSigner?)
+    async throws -> Response
   {
     var urlRequest = request
 

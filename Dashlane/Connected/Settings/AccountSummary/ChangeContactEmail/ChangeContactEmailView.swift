@@ -1,4 +1,4 @@
-import DashTypes
+import CoreTypes
 import DesignSystem
 import SwiftUI
 
@@ -29,17 +29,16 @@ struct ChangeContactEmailView: View {
           DS.TextField(
             L10n.Localizable.changeContactEmailCurrentContactEmail, text: $model.currentContactEmail
           )
-          .editionDisabled()
-          .fieldAppearance(.grouped)
+          .fieldEditionDisabled()
           DS.TextField(L10n.Localizable.changeContactEmailNewContactEmail, text: $newContactEmail)
             .autocorrectionDisabled()
             .textInputAutocapitalization(.never)
-            .fieldAppearance(.grouped)
             .onSubmit {
               changeEmail()
             }
         }
       }
+      .listStyle(.ds.insetGrouped)
       .toolbar {
         ToolbarItem(placement: .navigationBarLeading) {
           Button(L10n.Localizable.changeContactEmailCancel) {

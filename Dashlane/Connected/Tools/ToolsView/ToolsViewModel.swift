@@ -1,6 +1,7 @@
 import Combine
+import CoreFeature
 import CorePremium
-import DashTypes
+import CoreTypes
 import Foundation
 
 final class ToolsViewModel: ObservableObject, SessionServicesInjecting {
@@ -13,10 +14,13 @@ final class ToolsViewModel: ObservableObject, SessionServicesInjecting {
   private let didSelectItem: PassthroughSubject<ToolsItem, Never>
 
   init(
-    toolsService: ToolsServiceProtocol,
+    featureService: FeatureServiceProtocol,
+    premiumStatusServicesSuit: PremiumStatusServicesSuit,
     didSelectItem: PassthroughSubject<ToolsItem, Never>
   ) {
-    self.toolsService = toolsService
+    self.toolsService = ToolsService(
+      featureService: featureService, capabilityService: premiumStatusServicesSuit.capabilityService
+    )
     self.didSelectItem = didSelectItem
     toolsService.displayableTools().assign(to: &$tools)
   }
@@ -29,7 +33,8 @@ final class ToolsViewModel: ObservableObject, SessionServicesInjecting {
 extension ToolsViewModel {
   static var mock: ToolsViewModel {
     ToolsViewModel(
-      toolsService: .mock(capabilities: []),
+      featureService: .mock(),
+      premiumStatusServicesSuit: .mock,
       didSelectItem: PassthroughSubject<ToolsItem, Never>())
   }
 }

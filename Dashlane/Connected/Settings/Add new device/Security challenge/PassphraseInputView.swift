@@ -65,7 +65,8 @@ struct PassphraseInputView: View {
       Spacer()
     }
     .padding(24)
-    .backgroundColorIgnoringSafeArea(.ds.background.alternate)
+    .frame(maxHeight: .infinity, alignment: .top)
+    .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
     .navigationTitle(L10n.Localizable.Mpless.D2d.trustedNavigationTitle)
     .navigationBarTitleDisplayMode(.inline)
     .navigationBarBackButtonHidden()
@@ -77,7 +78,7 @@ struct PassphraseInputView: View {
             model.validate()
           }
         )
-        .foregroundColor(.ds.text.brand.standard)
+        .foregroundStyle(Color.ds.text.brand.standard)
       }
       ToolbarItem(placement: .topBarLeading) {
         Button(
@@ -93,15 +94,14 @@ struct PassphraseInputView: View {
       isPresented: $showCancelAlert,
       content: {
         Alert(
-          title: Text(CoreLocalization.L10n.Core.Mpless.D2d.Trusted.cancelAlertTitle),
-          message: Text(CoreLocalization.L10n.Core.Mpless.D2d.Trusted.cancelAlertMessage),
+          title: Text(CoreL10n.Mpless.D2d.Trusted.cancelAlertTitle),
+          message: Text(CoreL10n.Mpless.D2d.Trusted.cancelAlertMessage),
           primaryButton: Alert.Button.destructive(
-            Text(CoreLocalization.L10n.Core.Mpless.D2d.Trusted.cancelAlertCta),
+            Text(CoreL10n.Mpless.D2d.Trusted.cancelAlertCta),
             action: {
               model.cancel()
             }),
-          secondaryButton: .cancel(
-            Text(CoreLocalization.L10n.Core.Mpless.D2d.Trusted.cancelAlertCancelCta)))
+          secondaryButton: .cancel(Text(CoreL10n.Mpless.D2d.Trusted.cancelAlertCancelCta)))
       })
   }
 }

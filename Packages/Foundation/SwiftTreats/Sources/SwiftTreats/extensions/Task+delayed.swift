@@ -3,13 +3,12 @@ import Foundation
 extension Task where Failure == Error {
   @discardableResult
   public static func delayed(
-    by delayInterval: TimeInterval,
+    by duration: Duration,
     priority: TaskPriority? = nil,
     @_implicitSelfCapture operation: @escaping @Sendable () async throws -> Success
   ) -> Task {
     Task(priority: priority) {
-      let delay = UInt64(delayInterval * 1_000_000_000)
-      try await Task<Never, Never>.sleep(nanoseconds: delay)
+      try await Task<Never, Never>.sleep(for: duration)
       return try await operation()
     }
   }

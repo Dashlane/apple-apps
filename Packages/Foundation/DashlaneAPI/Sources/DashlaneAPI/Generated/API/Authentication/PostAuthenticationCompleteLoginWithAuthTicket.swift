@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppAPIClient.Authentication {
-  public struct CompleteLoginWithAuthTicket: APIRequest {
+  public struct CompleteLoginWithAuthTicket: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/authentication/CompleteLoginWithAuthTicket"
 
     public let api: AppAPIClient
@@ -24,7 +24,7 @@ extension AppAPIClient.Authentication {
 }
 
 extension AppAPIClient.Authentication.CompleteLoginWithAuthTicket {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case login = "login"
       case deviceAccessKey = "deviceAccessKey"
@@ -51,7 +51,7 @@ extension AppAPIClient.Authentication.CompleteLoginWithAuthTicket {
 }
 
 extension AppAPIClient.Authentication.CompleteLoginWithAuthTicket {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case remoteKeys = "remoteKeys"
       case serverKey = "serverKey"

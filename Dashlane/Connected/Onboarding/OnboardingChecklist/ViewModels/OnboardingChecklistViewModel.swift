@@ -5,12 +5,13 @@ import CoreFeature
 import CorePremium
 import CoreSession
 import CoreSettings
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import Foundation
 @preconcurrency import Lottie
 import NotificationKit
+import SwiftUILottie
 import UIComponents
+import UserTrackingFoundation
 import VaultKit
 
 enum OnboardingChecklistDismissability: String {
@@ -23,13 +24,10 @@ enum OnboardingChecklistDismissability: String {
 class OnboardingChecklistViewModel: ObservableObject, SessionServicesInjecting {
 
   let userSettings: UserSettings
-  let dwmOnboardingSettings: DWMOnboardingSettings
-  let dwmOnboardingService: DWMOnboardingService
   private let onboardingService: OnboardingService
-  let autofillService: AutofillService
+  let autofillService: AutofillStateServiceProtocol
   private let featureService: FeatureServiceProtocol
   private let capabilityService: CapabilityServiceProtocol
-  private let activityReporter: ActivityReporterProtocol
   var cancellables = Set<AnyCancellable>()
   let userSpaceSwitcherViewModelFactory: UserSpaceSwitcherViewModel.Factory
 
@@ -63,34 +61,24 @@ class OnboardingChecklistViewModel: ObservableObject, SessionServicesInjecting {
     onboardingService.hasFinishedM2WAtLeastOnce
   }
 
-  var hasSeenDWMExperience: Bool {
-    onboardingService.hasSeenDWMExperience
-  }
-
   let action: (OnboardingChecklistFlowViewModel.Action) -> Void
   private let session: Session
 
   init(
     session: Session,
     userSettings: UserSettings,
-    dwmOnboardingSettings: DWMOnboardingSettings,
-    dwmOnboardingService: DWMOnboardingService,
     capabilityService: CapabilityServiceProtocol,
     featureService: FeatureServiceProtocol,
     onboardingService: OnboardingService,
-    autofillService: AutofillService,
-    activityReporter: ActivityReporterProtocol,
+    autofillService: AutofillStateServiceProtocol,
     action: @escaping (OnboardingChecklistFlowViewModel.Action) -> Void,
     userSpaceSwitcherViewModelFactory: UserSpaceSwitcherViewModel.Factory
   ) {
     self.session = session
     self.userSettings = userSettings
     self.featureService = featureService
-    self.dwmOnboardingSettings = dwmOnboardingSettings
-    self.dwmOnboardingService = dwmOnboardingService
     self.onboardingService = onboardingService
     self.autofillService = autofillService
-    self.activityReporter = activityReporter
     self.capabilityService = capabilityService
     self.userSpaceSwitcherViewModelFactory = userSpaceSwitcherViewModelFactory
     self.action = action
@@ -163,10 +151,6 @@ class OnboardingChecklistViewModel: ObservableObject, SessionServicesInjecting {
     action(.onDismiss)
   }
 
-  func onAddItemDropdown() {
-    activityReporter.reportPageShown(.homeAddItemDropdown)
-  }
-
   func addNewItemAction(mode: AddItemFlowViewModel.DisplayMode) {
     action(.addNewItem(displayMode: mode))
   }
@@ -203,13 +187,10 @@ extension OnboardingChecklistViewModel {
     OnboardingChecklistViewModel(
       session: .mock,
       userSettings: .mock,
-      dwmOnboardingSettings: .init(internalStore: .mock()),
-      dwmOnboardingService: .mock,
       capabilityService: .mock(),
       featureService: .mock(),
       onboardingService: .mock,
-      autofillService: .fakeService,
-      activityReporter: .mock,
+      autofillService: AutofillStateService.fakeService,
       action: { _ in },
       userSpaceSwitcherViewModelFactory: .init({ .mock })
     )

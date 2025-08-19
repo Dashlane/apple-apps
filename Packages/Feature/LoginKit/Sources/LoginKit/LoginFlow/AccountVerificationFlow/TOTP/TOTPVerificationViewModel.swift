@@ -1,16 +1,16 @@
 import CoreLocalization
 import CoreSession
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import StateMachine
+import UserTrackingFoundation
 
 @MainActor
-public class TOTPVerificationViewModel: ObservableObject, LoginKitServicesInjecting {
+public class TOTPVerificationViewModel: StateMachineBasedObservableObject, LoginKitServicesInjecting
+{
 
-  public var login: Login {
-    return Login(accountVerificationService.login)
-  }
+  public let login: Login
 
   @Published
   public var otp: String = "" {
@@ -40,33 +40,59 @@ public class TOTPVerificationViewModel: ObservableObject, LoginKitServicesInject
   @Published
   public var inProgress: Bool = false
 
-  let accountVerificationService: AccountVerificationService
-  let loginMetricsReporter: LoginMetricsReporterProtocol
+  @Published public var stateMachine: TOTPVerificationStateMachine
+  @Published public var isPerformingEvent: Bool = false
+
   let completion: (Result<(AuthTicket, Bool), Error>) -> Void
   public let hasDuoPush: Bool
   let activityReporter: ActivityReporterProtocol
   public let lostOTPSheetViewModel: LostOTPSheetViewModel
-  public let context: LocalLoginFlowContext = .passwordApp
+  public let context: UnlockOriginProcess = .passwordApp
 
   @Published
   public var showDuoPush: Bool = false
 
   public init(
-    accountVerificationService: AccountVerificationService,
+    login: Login,
+    stateMachine: TOTPVerificationStateMachine,
     appAPIClient: AppAPIClient,
-    loginMetricsReporter: LoginMetricsReporterProtocol,
     activityReporter: ActivityReporterProtocol,
     pushType: VerificationMethod.PushType?,
     completion: @escaping (Result<(AuthTicket, Bool), Error>) -> Void
   ) {
-    self.accountVerificationService = accountVerificationService
-    self.loginMetricsReporter = loginMetricsReporter
+    self.login = login
+    self.stateMachine = stateMachine
     self.activityReporter = activityReporter
     self.hasDuoPush = pushType == .duo
     self.lostOTPSheetViewModel = LostOTPSheetViewModel(
       appAPIClient: appAPIClient,
-      login: Login(accountVerificationService.login))
+      login: login)
     self.completion = completion
+  }
+
+  public func willPerform(_ event: TOTPVerificationStateMachine.Event) async {
+    switch event {
+    case .validateOTP, .validateDuoPush:
+      self.inProgress = true
+    }
+  }
+
+  public func update(
+    for event: TOTPVerificationStateMachine.Event,
+    from oldState: TOTPVerificationStateMachine.State,
+    to newState: TOTPVerificationStateMachine.State
+  ) async {
+    switch newState {
+    case .initialize:
+      break
+    case let .otpVadidated(authTicket):
+      self.completion(.success((authTicket, false)))
+    case let .duoPushValidated(authTicket):
+      self.completion(.success((authTicket, false)))
+    case let .errorOccurred(error, isBackupCode):
+      self.logError(isBackupCode: isBackupCode)
+      self.handleError(error.underlyingError)
+    }
   }
 
   public func validate() {
@@ -94,17 +120,7 @@ public class TOTPVerificationViewModel: ObservableObject, LoginKitServicesInject
   }
 
   public func sendPush(_ type: VerificationMethod.PushType) async {
-    inProgress = true
-    do {
-      let authTicket: AuthTicket
-      authTicket = try await accountVerificationService.validateUsingDUOPush()
-      self.errorMessage = nil
-      self.completion(.success((authTicket, false)))
-    } catch {
-      self.logError()
-      self.handleError(error)
-    }
-    inProgress = false
+    await self.perform(.validateDuoPush)
   }
 
   private func handleError(_ error: Error) {
@@ -112,7 +128,7 @@ public class TOTPVerificationViewModel: ObservableObject, LoginKitServicesInject
     case let error as DashlaneAPI.APIError where error.hasAuthenticationCode(.invalidOTPBlocked):
       self.completion(.failure(error))
     default:
-      self.errorMessage = CoreLocalization.L10n.errorMessage(for: error)
+      self.errorMessage = CoreL10n.errorMessage(for: error)
     }
   }
 
@@ -123,25 +139,16 @@ public class TOTPVerificationViewModel: ObservableObject, LoginKitServicesInject
   }
 
   private func validate(code: String, isBackupCode: Bool = false) async {
-    do {
-      inProgress = true
-      let authTicket = try await accountVerificationService.validateOTP(code)
-      self.errorMessage = nil
-      self.completion(.success((authTicket, isBackupCode)))
-    } catch {
-      self.logError(isBackupCode: isBackupCode)
-      self.handleError(error)
-    }
-    inProgress = false
+    await self.perform(.validateOTP(code, isBackupCode: isBackupCode))
   }
 }
 
 extension TOTPVerificationViewModel {
   static var mock: TOTPVerificationViewModel {
     TOTPVerificationViewModel(
-      accountVerificationService: .mock,
+      login: Login("_"),
+      stateMachine: .mock,
       appAPIClient: .fake,
-      loginMetricsReporter: LoginMetricsReporter(appLaunchTimeStamp: 1.0),
       activityReporter: .mock,
       pushType: .duo,
       completion: { _ in }

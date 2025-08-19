@@ -34,7 +34,7 @@ struct SquircleIconThumbnailContentView: View {
     Rectangle()
       .opacity(0.25)
       .overlay(
-        ThumbnailShape()
+        Squircle()
           .opacity(0.9)
           .overlay(
             icon
@@ -70,7 +70,7 @@ struct SquircleImageThumbnailContentView: View {
               .renderingMode(.original)
               .aspectRatio(contentMode: .fill)
           )
-          .mask(ThumbnailShape())
+          .mask(Squircle())
           .padding(outerPadding * controlSize.thumbnailScaleValue)
       )
   }
@@ -92,6 +92,11 @@ struct SquircleImageThumbnailContentView: View {
 
 #Preview("SquircleIconThumbnailContentView") {
   HStack {
+    BaseThumbnail {
+      SquircleIconThumbnailContentView(.ds.accountSettings.outlined)
+    }
+    .foregroundStyle(Color.ds.container.decorative.grey)
+
     BaseThumbnail {
       SquircleIconThumbnailContentView(.ds.accountSettings.outlined)
     }

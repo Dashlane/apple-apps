@@ -26,13 +26,13 @@ struct PasswordHealthSummaryCardsView: View {
     HStack(spacing: 0) {
       VStack(alignment: .leading, spacing: 8) {
         Text("\(item.count)")
-          .font(DashlaneFont.custom(26, .bold).font)
-          .foregroundColor(item.color)
+          .textStyle(.specialty.spotlight.medium)
+          .foregroundStyle(item.color!)
           .padding(.top, 16)
 
         Text(item.kind.title)
           .font(.footnote)
-          .foregroundColor(.ds.text.neutral.quiet)
+          .foregroundStyle(Color.ds.text.neutral.quiet)
           .frame(maxHeight: .infinity)
       }
       .padding([.leading, .trailing, .bottom], 16)

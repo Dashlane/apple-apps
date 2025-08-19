@@ -1,10 +1,13 @@
 import CoreNetworking
 import CorePersonalData
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 
+@Loggable
 struct DocumentDownloadError: Error {
+  @LogPublicPrivacy
   let message: String
   init(_ message: String) {
     self.message = message

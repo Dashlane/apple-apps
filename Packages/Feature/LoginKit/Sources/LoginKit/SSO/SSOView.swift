@@ -1,28 +1,26 @@
-#if canImport(UIKit)
-  import Foundation
-  import SwiftUI
+import Foundation
+import SwiftUI
 
-  public struct SSOView: View {
+public struct SSOView: View {
 
-    @StateObject
-    var model: SSOViewModel
+  @StateObject
+  var model: SSOViewModel
 
-    public init(model: @autoclosure @escaping () -> SSOViewModel) {
-      self._model = .init(wrappedValue: model())
-    }
-
-    public var body: some View {
-      if model.isNitroProvider {
-        ConfidentialSSOView(model: model.makeConfidentialSSOViewModel())
-      } else {
-        SelfHostedSSOView(model: model.makeSelfHostedSSOLoginViewModel())
-      }
-    }
+  public init(model: @autoclosure @escaping () -> SSOViewModel) {
+    self._model = .init(wrappedValue: model())
   }
 
-  struct SSOView_previews: PreviewProvider {
-    static var previews: some View {
-      SSOView(model: .mock)
+  public var body: some View {
+    if model.isNitroProvider {
+      ConfidentialSSOView(model: model.makeConfidentialSSOViewModel())
+    } else {
+      SelfHostedSSOView(model: model.makeSelfHostedSSOLoginViewModel())
     }
   }
-#endif
+}
+
+struct SSOView_previews: PreviewProvider {
+  static var previews: some View {
+    SSOView(model: .mock)
+  }
+}

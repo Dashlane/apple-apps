@@ -1,15 +1,16 @@
 import Combine
-import CoreActivityLogs
 import CoreFeature
 import CorePersonalData
 import CorePremium
 import CoreSession
 import CoreSettings
-import CoreUserTracking
-import DashTypes
+import CoreTeamAuditLogs
+import CoreTypes
 import DocumentServices
 import Foundation
+import LogFoundation
 import UIComponents
+import UserTrackingFoundation
 import VaultKit
 
 final class BankAccountDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting,
@@ -66,7 +67,7 @@ final class BankAccountDetailViewModel: DetailViewModelProtocol, SessionServices
     userSpacesService: UserSpacesService,
     deepLinkService: VaultKit.DeepLinkingServiceProtocol,
     activityReporter: ActivityReporterProtocol,
-    activityLogsService: ActivityLogsServiceProtocol,
+    teamAuditLogsService: TeamAuditLogsServiceProtocol,
     iconViewModelProvider: @escaping (VaultItem) -> VaultItemIconViewModel,
     logger: Logger,
     regionInformationService: RegionInformationService,
@@ -78,7 +79,6 @@ final class BankAccountDetailViewModel: DetailViewModelProtocol, SessionServices
     self.init(
       service: .init(
         item: item,
-        canLock: session.authenticationMethod.supportsLock,
         mode: mode,
         vaultItemDatabase: vaultItemDatabase,
         vaultItemsStore: vaultItemsStore,
@@ -90,7 +90,7 @@ final class BankAccountDetailViewModel: DetailViewModelProtocol, SessionServices
         documentStorageService: documentStorageService,
         deepLinkService: deepLinkService,
         activityReporter: activityReporter,
-        activityLogsService: activityLogsService,
+        teamAuditLogsService: teamAuditLogsService,
         iconViewModelProvider: iconViewModelProvider,
         attachmentSectionFactory: attachmentSectionFactory,
         logger: logger,

@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Authenticator {
-  public struct DisableAuthenticator: APIRequest {
+  public struct DisableAuthenticator: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/authenticator/DisableAuthenticator"
 
     public let api: UserDeviceAPIClient

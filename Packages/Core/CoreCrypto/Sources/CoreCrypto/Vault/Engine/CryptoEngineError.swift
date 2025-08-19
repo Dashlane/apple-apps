@@ -1,6 +1,9 @@
 import Foundation
+import LogFoundation
 
+@Loggable
 public enum CryptoEngineError: Error, LocalizedError {
+  @Loggable
   public enum KeyMode {
     case direct
     case derived

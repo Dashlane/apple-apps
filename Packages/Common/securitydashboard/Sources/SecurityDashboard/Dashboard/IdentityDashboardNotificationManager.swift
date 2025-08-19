@@ -12,7 +12,7 @@ public struct IdentityDashboardNotificationManager {
     case dataLeakMonitoringEmailsDidUpdate
     case securityDashboardDidRefresh
 
-    var name: Notification.Name {
+    public var name: Notification.Name {
       return Notification.Name(self.rawValue)
     }
   }

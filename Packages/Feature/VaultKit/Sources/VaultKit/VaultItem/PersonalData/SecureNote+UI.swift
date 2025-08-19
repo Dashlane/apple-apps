@@ -15,21 +15,21 @@ extension SecureNote: VaultItem {
 
   public var localizedSubtitle: String {
     guard !secured else {
-      return L10n.Core.KWSecureNoteIOS.protectedMessage
+      return CoreL10n.KWSecureNoteIOS.protectedMessage
     }
 
     return displaySubtitle ?? ""
   }
 
   public static var localizedName: String {
-    L10n.Core.kwSecureNoteIOS
+    CoreL10n.kwSecureNoteIOS
   }
 
   public static var addTitle: String {
-    L10n.Core.kwadddatakwSecureNoteIOS
+    CoreL10n.kwadddatakwSecureNoteIOS
   }
 
   public static var nativeMenuAddTitle: String {
-    L10n.Core.addSecureNote
+    CoreL10n.addSecureNote
   }
 }

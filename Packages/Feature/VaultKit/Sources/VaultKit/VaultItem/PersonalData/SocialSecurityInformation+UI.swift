@@ -1,6 +1,6 @@
 import CoreLocalization
 import CorePersonalData
-import DashTypes
+import CoreTypes
 import Foundation
 import SwiftUI
 
@@ -10,7 +10,7 @@ extension SocialSecurityInformation: VaultItem {
   }
 
   public var localizedTitle: String {
-    return L10n.Core.kwSocialSecurityStatementIOS
+    return CoreL10n.kwSocialSecurityStatementIOS
   }
 
   public var localizedSubtitle: String {
@@ -18,15 +18,15 @@ extension SocialSecurityInformation: VaultItem {
   }
 
   public static var localizedName: String {
-    L10n.Core.kwSocialSecurityStatementIOS
+    CoreL10n.kwSocialSecurityStatementIOS
   }
 
   public static var addTitle: String {
-    L10n.Core.kwadddatakwSocialSecurityStatementIOS
+    CoreL10n.kwadddatakwSocialSecurityStatementIOS
   }
 
   public static var nativeMenuAddTitle: String {
-    L10n.Core.addSocialSecurityNumber
+    CoreL10n.addSocialSecurityNumber
   }
 }
 

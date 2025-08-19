@@ -1,6 +1,6 @@
 import CoreLocalization
 import CoreSession
-import DashTypes
+import CoreTypes
 import SwiftUI
 import UIDelight
 
@@ -38,7 +38,6 @@ struct DebugAccountList: View {
         }
       }
     }
-    .bottomSheet()
     .onAppear {
       self.viewModel.fetchLocalAccounts()
     }
@@ -51,6 +50,7 @@ struct DebugAccountList: View {
       .padding(.trailing, 20)
       .padding(.top, 10)
     }
+    .presentationDetents([.medium, .large])
   }
 
   private func deleteRow(at indexSet: IndexSet) {

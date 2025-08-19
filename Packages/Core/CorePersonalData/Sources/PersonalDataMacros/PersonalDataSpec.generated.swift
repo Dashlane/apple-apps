@@ -74,9 +74,9 @@ struct PersonalDataSpec {
       "localeFormat", "personalNote", "spaceId", "title", "userModificationDatetime", "website",
     ],
     "PASSKEY": [
-      "anonId", "attachments", "counter", "creationDatetime", "credentialId", "id", "isFavorite",
-      "itemName", "keyAlgorithm", "lastBackupTime", "localeFormat", "note", "personalNote",
-      "privateKey", "rpId", "rpName", "spaceId", "userDisplayName", "userHandle",
+      "anonId", "attachments", "cloudPasskey", "counter", "creationDatetime", "credentialId", "id",
+      "isFavorite", "itemName", "keyAlgorithm", "lastBackupTime", "localeFormat", "note",
+      "personalNote", "privateKey", "rpId", "rpName", "spaceId", "userDisplayName", "userHandle",
       "userModificationDatetime",
     ],
     "PASSPORT": [
@@ -88,7 +88,8 @@ struct PersonalDataSpec {
       "anonId", "attachments", "bank", "cCNote", "cardNumber", "cardNumberLastDigits", "color",
       "creationDatetime", "expireMonth", "expireYear", "id", "isFavorite", "issueNumber",
       "lastBackupTime", "linkedBillingAddress", "localeFormat", "name", "ownerName", "personalNote",
-      "securityCode", "spaceId", "startMonth", "startYear", "type", "userModificationDatetime",
+      "pin", "securityCode", "spaceId", "startMonth", "startYear", "type",
+      "userModificationDatetime",
     ],
     "PAYMENTMEAN_PAYPAL": [
       "anonId", "attachments", "creationDatetime", "id", "isFavorite", "lastBackupTime",
@@ -191,6 +192,11 @@ struct PersonalDataSpec {
       "lastBackupTime", "linkedIdentity", "localeFormat", "personalNote", "sex",
       "socialSecurityFullname", "socialSecurityNumber", "spaceId", "userModificationDatetime",
     ],
+    "WIFI": [
+      "anonId", "attachments", "creationDatetime", "encryptionType", "hidden", "id", "isFavorite",
+      "lastBackupTime", "localeFormat", "name", "note", "passphrase", "personalNote", "spaceId",
+      "ssid", "userModificationDatetime",
+    ],
   ]
 
   static var jsonKeys: [String: Set<String>] = [
@@ -223,6 +229,7 @@ struct PersonalDataSpec {
     "SECURITYBREACH": ["attachments"],
     "SETTINGS": ["attachments", "autofillSettings"],
     "SOCIALSECURITYSTATEMENT": ["attachments"],
+    "WIFI": ["attachments"],
   ]
 
   static var triggerHistoryKeys: [String: Set<String>] = [

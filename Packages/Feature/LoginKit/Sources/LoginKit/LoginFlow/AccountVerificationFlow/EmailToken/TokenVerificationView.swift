@@ -1,137 +1,137 @@
-#if canImport(UIKit)
-  import Foundation
-  import SwiftUI
-  import Combine
-  import UIDelight
-  import SwiftTreats
-  import DashTypes
-  import UIComponents
-  import DesignSystem
-  import CoreLocalization
+import Combine
+import CoreLocalization
+import CoreTypes
+import DesignSystem
+import Foundation
+import SwiftTreats
+import SwiftUI
+import UIComponents
+import UIDelight
 
-  struct TokenVerificationView: View {
+struct TokenVerificationView: View {
 
-    @StateObject
-    var model: TokenVerificationViewModel
+  @StateObject
+  var model: TokenVerificationViewModel
 
-    @Environment(\.dismiss)
-    private var dismiss
+  @Environment(\.dismiss)
+  private var dismiss
 
-    @State
-    var displayResendAlert: Bool = false
+  @State
+  var displayResendAlert: Bool = false
 
-    @FocusState
-    var isTextFieldFocused: Bool
+  @FocusState
+  var isTextFieldFocused: Bool
 
-    init(model: @escaping @autoclosure () -> TokenVerificationViewModel) {
-      self._model = .init(wrappedValue: model())
-    }
+  init(model: @escaping @autoclosure () -> TokenVerificationViewModel) {
+    self._model = .init(wrappedValue: model())
+  }
 
-    var body: some View {
-      mainStack
-        .navigationTitle(L10n.Core.kwLoginVcLoginButton)
-        .navigationBarTitleDisplayMode(.inline)
-        .onAppear {
-          Task { await model.onViewAppear() }
-        }
-        .loading(isLoading: model.inProgress, loadingIndicatorOffset: true)
-    }
+  var body: some View {
+    mainStack
+      .navigationTitle(CoreL10n.kwLoginVcLoginButton)
+      .navigationBarTitleDisplayMode(.inline)
+      .onAppear {
+        Task { await model.onViewAppear() }
+      }
+      .loading(Device.is(.pad, .mac, .vision) ? false : model.inProgress)
+  }
 
-    @ViewBuilder
-    private var mainStack: some View {
-      LoginContainerView(
-        topView: LoginLogo(login: model.login),
-        centerView: calloutAndCodeField,
-        bottomView: bottomView
-      )
-      .toolbar {
-        ToolbarItem(placement: .navigationBarTrailing) {
-          if !Device.isIpadOrMac {
-            NavigationBarButton(
-              action: self.validateToken,
-              title: L10n.Core.kwNext
-            )
+  @ViewBuilder
+  private var mainStack: some View {
+    LoginContainerView(
+      topView: LoginLogo(login: model.login),
+      centerView: calloutAndCodeField,
+      bottomView: bottomView
+    )
+    .toolbar {
+      ToolbarItem(placement: .navigationBarTrailing) {
+        if !Device.is(.pad, .mac, .vision) {
+          Button(CoreL10n.kwNext, action: self.validateToken)
             .disabled(!self.model.canLogin)
-          }
         }
       }
     }
+  }
 
-    private var calloutAndCodeField: some View {
-      VStack {
-        Text(L10n.Core.kwTokenMsg)
-          .font(.callout)
-          .fixedSize(horizontal: false, vertical: true)
-          .multilineTextAlignment(.leading)
-          .lineLimit(nil)
-        DS.TextField(L10n.Core.kwTokenPlaceholderText, text: $model.token)
-          .focused($isTextFieldFocused)
-          .onSubmit {
-            self.validateToken()
+  private var calloutAndCodeField: some View {
+    VStack {
+      Text(CoreL10n.kwTokenMsg)
+        .font(.callout)
+        .foregroundStyle(Color.ds.text.neutral.standard)
+        .fixedSize(horizontal: false, vertical: true)
+        .multilineTextAlignment(.leading)
+        .lineLimit(nil)
+      DS.TextField(
+        CoreL10n.kwTokenPlaceholderText, text: $model.token,
+        feedback: {
+          if let errorMessage = model.errorMessage {
+            FieldTextualFeedback(errorMessage)
+              .style(.error)
           }
-          .style(intensity: .supershy)
-          .keyboardType(.numberPad)
-          .textInputAutocapitalization(.never)
-          .submitLabel(.continue)
-          .disabled(model.inProgress)
-          .bubbleErrorMessage(text: $model.errorMessage)
-          .copyErrorMessageAction(errorMessage: model.errorMessage)
-          .onAppear {
-            isTextFieldFocused = true
-          }
-      }
-    }
-
-    private var bottomView: some View {
-      VStack(spacing: 8) {
-        if Device.isIpadOrMac {
-          Button(L10n.Core.kwNext) {
-            validateToken()
-          }
-          .disabled(!self.model.canLogin)
         }
-        resendTokenButton
-      }
-      .buttonStyle(.designSystem(.titleOnly))
-      .padding(.vertical, 12)
-    }
-
-    private var resendTokenButton: some View {
-      Button(L10n.Core.troubleWithToken) {
-        displayResendAlert = true
+      )
+      .focused($isTextFieldFocused)
+      .onSubmit {
+        self.validateToken()
       }
       .style(intensity: .supershy)
-      .alert(
-        L10n.Core.tokenNotWorkingTitle,
-        isPresented: $displayResendAlert,
-        actions: {
-          Button(L10n.Core.actionResend) {
-            Task {
-              await self.model.requestToken()
-            }
-            self.model.logResendToken()
-          }
-          Button(L10n.Core.cancel, role: .cancel) {}
-        },
-        message: {
-          Text(L10n.Core.tokenNotWorkingBody)
+      .keyboardType(.numberPad)
+      .textInputAutocapitalization(.never)
+      .submitLabel(.continue)
+      .disabled(model.inProgress)
+      .copyErrorMessageAction(errorMessage: model.errorMessage)
+      .onAppear {
+        isTextFieldFocused = true
+      }
+    }
+  }
+
+  private var bottomView: some View {
+    VStack(spacing: 8) {
+      if Device.is(.pad, .mac, .vision) {
+        Button(CoreL10n.kwNext) {
+          validateToken()
         }
-      )
-    }
-
-    private func validateToken() {
-      UIApplication.shared.endEditing()
-      Task {
-        await model.validateToken()
+        .disabled(!self.model.canLogin)
+        .buttonDisplayProgressIndicator(model.inProgress)
       }
+      resendTokenButton
     }
+    .buttonStyle(.designSystem(.titleOnly))
+    .padding(.vertical, 12)
   }
 
-  struct TokenVerificationView_Previews: PreviewProvider {
-    static var previews: some View {
-      MultiDevicesPreview {
-        TokenVerificationView(model: .mock)
+  private var resendTokenButton: some View {
+    Button(CoreL10n.troubleWithToken) {
+      displayResendAlert = true
+    }
+    .style(intensity: .supershy)
+    .alert(
+      CoreL10n.tokenNotWorkingTitle,
+      isPresented: $displayResendAlert,
+      actions: {
+        Button(CoreL10n.actionResend) {
+          Task {
+            await self.model.requestToken()
+          }
+          self.model.logResendToken()
+        }
+        Button(CoreL10n.cancel, role: .cancel) {}
+      },
+      message: {
+        Text(CoreL10n.tokenNotWorkingBody)
       }
+    )
+  }
+
+  private func validateToken() {
+    UIApplication.shared.endEditing()
+    Task {
+      await model.validateToken()
     }
   }
-#endif
+}
+
+#Preview {
+  TokenVerificationView(model: .mock)
+}

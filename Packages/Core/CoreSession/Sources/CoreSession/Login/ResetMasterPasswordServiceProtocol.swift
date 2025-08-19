@@ -1,7 +1,7 @@
 import Combine
 import Foundation
 
-public protocol ResetMasterPasswordServiceProtocol {
+public protocol ResetMasterPasswordServiceProtocol: Sendable {
   var isActive: Bool { get }
   var needsReactivation: Bool { get }
 
@@ -13,7 +13,9 @@ public protocol ResetMasterPasswordServiceProtocol {
   func update(masterPassword: String) throws
 }
 
-public class ResetMasterPasswordServiceMock: ResetMasterPasswordServiceProtocol {
+public final class ResetMasterPasswordServiceMock: @unchecked Sendable,
+  ResetMasterPasswordServiceProtocol
+{
 
   public init(isActive: Bool = false, needsReactivation: Bool = false) {
     self.isActive = isActive
@@ -42,5 +44,11 @@ public class ResetMasterPasswordServiceMock: ResetMasterPasswordServiceProtocol 
 
   public func storedMasterPassword() throws -> String {
     return "test"
+  }
+}
+
+extension ResetMasterPasswordServiceProtocol where Self == ResetMasterPasswordServiceMock {
+  public static var mock: ResetMasterPasswordServiceProtocol {
+    ResetMasterPasswordServiceMock()
   }
 }

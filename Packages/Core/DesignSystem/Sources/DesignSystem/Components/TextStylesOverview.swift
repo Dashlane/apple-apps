@@ -65,13 +65,13 @@ struct TextStylesOverview: View {
       Text("The quick brown fox jumps over the lazy dog")
         .textStyle(style)
       Text(name)
-        .foregroundColor(.white)
+        .foregroundStyle(.white)
         .font(.caption.weight(.medium))
         .padding(.horizontal, 6)
         .padding(.vertical, 2)
         .background(
           Capsule()
-            .foregroundColor(.secondary)
+            .foregroundStyle(.secondary)
         )
     }
   }

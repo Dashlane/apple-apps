@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppAPIClient.Accountrecovery {
-  public struct GetEncryptedVaultKey: APIRequest {
+  public struct GetEncryptedVaultKey: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/accountrecovery/GetEncryptedVaultKey"
 
     public let api: AppAPIClient
@@ -24,7 +24,7 @@ extension AppAPIClient.Accountrecovery {
 }
 
 extension AppAPIClient.Accountrecovery.GetEncryptedVaultKey {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case login = "login"
       case authTicket = "authTicket"
@@ -47,7 +47,7 @@ extension AppAPIClient.Accountrecovery.GetEncryptedVaultKey {
 }
 
 extension AppAPIClient.Accountrecovery.GetEncryptedVaultKey {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case encryptedVaultKey = "encryptedVaultKey"
       case recoveryId = "recoveryId"

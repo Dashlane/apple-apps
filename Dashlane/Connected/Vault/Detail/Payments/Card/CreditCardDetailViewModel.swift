@@ -1,17 +1,18 @@
 import Combine
-import CoreActivityLogs
 import CoreFeature
 import CoreLocalization
 import CorePersonalData
 import CorePremium
 import CoreSession
 import CoreSettings
-import CoreUserTracking
-import DashTypes
+import CoreTeamAuditLogs
+import CoreTypes
 import DocumentServices
 import Foundation
+import LogFoundation
 import SwiftUI
 import UIComponents
+import UserTrackingFoundation
 import VaultKit
 
 class CreditCardDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting,
@@ -83,7 +84,7 @@ class CreditCardDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
     userSpacesService: UserSpacesService,
     deepLinkService: VaultKit.DeepLinkingServiceProtocol,
     activityReporter: ActivityReporterProtocol,
-    activityLogsService: ActivityLogsServiceProtocol,
+    teamAuditLogsService: TeamAuditLogsServiceProtocol,
     iconViewModelProvider: @escaping (VaultItem) -> VaultItemIconViewModel,
     logger: Logger,
     regionInformationService: RegionInformationService,
@@ -96,7 +97,6 @@ class CreditCardDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
     self.init(
       service: .init(
         item: item,
-        canLock: session.authenticationMethod.supportsLock,
         mode: mode,
         vaultItemDatabase: vaultItemDatabase,
         vaultItemsStore: vaultItemsStore,
@@ -108,7 +108,7 @@ class CreditCardDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
         documentStorageService: documentStorageService,
         deepLinkService: deepLinkService,
         activityReporter: activityReporter,
-        activityLogsService: activityLogsService,
+        teamAuditLogsService: teamAuditLogsService,
         iconViewModelProvider: iconViewModelProvider,
         attachmentSectionFactory: attachmentSectionFactory,
         logger: logger,
@@ -159,7 +159,7 @@ class CreditCardDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
   private func setupInfo() {
     if mode.isAdding {
       let count = vaultItemsStore.creditCards.count + 1
-      item.name = "\(CoreLocalization.L10n.Core.kwPaymentMeanCreditCardIOS) \(count)"
+      item.name = "\(CoreL10n.kwPaymentMeanCreditCardIOS) \(count)"
 
       guard mode.isAdding,
         let identity = vaultItemsStore.identities.first,

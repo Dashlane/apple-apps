@@ -41,7 +41,7 @@ public struct TextArea<FeedbackAccessory: View>: View {
     } feedback: {
       feedbackAccessory
     }
-    .actionlessField()
+    .defaultFieldActionsHidden()
   }
 }
 
@@ -76,15 +76,15 @@ private struct PreviewContent: View {
         TextArea("Notes 4", text: $notes4) {
           EmptyView()
         }
-        .editionDisabled()
+        .fieldEditionDisabled()
         TextArea("Edge Case", text: $notes4)
-          .fieldAppearance(.grouped)
+          .containerContext(.list(.insetGrouped))
         TextArea("Notes with Placeholder", placeholder: "Placeholder", text: $notes5)
       }
       .frame(maxHeight: .infinity, alignment: .top)
       .padding()
     }
-    .backgroundColorIgnoringSafeArea(.ds.background.alternate)
+    .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
   }
 }
 

@@ -1,5 +1,5 @@
 import CorePremium
-import DashTypes
+import CoreTypes
 import SwiftUI
 
 struct SettingsStatusSection: View {
@@ -21,7 +21,7 @@ struct SettingsStatusSection: View {
       ActivePlanSettingsSection(
         status: model.status.b2cStatus, vaultState: model.vaultState,
         showPurchase: model.showPurchase,
-        learnMore: { openURL(DashlaneURLFactory.learonMoreAboutFrozenAccounts) })
+        learnMore: { openURL(DashlaneURLFactory.learnMoreAboutFrozenAccounts) })
     }
   }
 

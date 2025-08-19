@@ -11,10 +11,10 @@
   import CoreSettings
 #endif
 #if canImport(CoreUserTracking)
-  import CoreUserTracking
+  import UserTrackingFoundation
 #endif
-#if canImport(DashTypes)
-  import DashTypes
+#if canImport(CoreTypes)
+  import CoreTypes
 #endif
 #if canImport(Foundation)
   import Foundation
@@ -76,6 +76,7 @@ extension ImportKitServicesContainer {
     return ChromeImportViewModel(
       activityReporter: reporter,
       userSpacesService: userSpacesService,
+      iconService: iconService,
       personalDataURLDecoder: personalDataURLDecoder
     )
   }
@@ -94,7 +95,7 @@ extension ImportKitServicesContainer {
       databaseDriver: databaseDriver,
       iconService: iconService,
       activityReporter: reporter,
-      activityLogsService: activityLogsService,
+      teamAuditLogsService: teamAuditLogsService,
       dashImportViewModelFactory: InjectedFactory(makeDashImportViewModel),
       importInformationViewModelFactory: InjectedFactory(makeImportInformationViewModel)
     )
@@ -110,7 +111,7 @@ extension ImportKitServicesContainer {
       databaseDriver: databaseDriver,
       iconService: iconService,
       activityReporter: reporter,
-      activityLogsService: activityLogsService,
+      teamAuditLogsService: teamAuditLogsService,
       dashImportViewModelFactory: InjectedFactory(makeDashImportViewModel),
       importInformationViewModelFactory: InjectedFactory(makeImportInformationViewModel)
     )

@@ -1,6 +1,6 @@
 import CoreLocalization
 import CoreSharing
-import DashTypes
+import CoreTypes
 import DesignSystem
 import Foundation
 import IconLibrary
@@ -19,16 +19,16 @@ struct SharingToolRecipientRow<Icon: View>: View {
             .resizable()
             .frame(width: 12, height: 12)
 
-          Text(CoreLocalization.L10n.Core.kwSharingInvitePending)
+          Text(CoreL10n.kwSharingInvitePending)
             .lineLimit(1)
             .textStyle(.body.helper.regular)
         }
-        .foregroundColor(.ds.text.warning.quiet)
+        .foregroundStyle(Color.ds.text.warning.quiet)
       case .other(let subtitle):
         if let subtitle {
           Text(subtitle)
             .textStyle(.body.helper.regular)
-            .foregroundColor(.ds.text.neutral.quiet)
+            .foregroundStyle(Color.ds.text.neutral.quiet)
         }
       default:
         EmptyView()
@@ -85,6 +85,7 @@ struct SharingToolRecipientRow<Icon: View>: View {
 
       VStack(alignment: .leading, spacing: 4) {
         Text(title)
+          .foregroundStyle(Color.ds.text.neutral.catchy)
           .textStyle(.body.standard.regular)
           .lineLimit(1)
 
@@ -134,9 +135,9 @@ extension L10n.Localizable {
   fileprivate static func subtitle(for permission: SharingPermission) -> String {
     switch permission {
     case .admin:
-      return CoreLocalization.L10n.Core.KWVaultItem.Collections.Sharing.Roles.Manager.title
+      return CoreL10n.KWVaultItem.Collections.Sharing.Roles.Manager.title
     case .limited:
-      return CoreLocalization.L10n.Core.KWVaultItem.Collections.Sharing.Roles.Editor.title
+      return CoreL10n.KWVaultItem.Collections.Sharing.Roles.Editor.title
     }
   }
 }
@@ -145,7 +146,6 @@ extension L10n.Localizable {
   List {
     SharingToolRecipientRow(title: "Preview", status: .accepted) {
       Thumbnail.User.single(nil)
-        .controlSize(.small)
     }
   }
 }

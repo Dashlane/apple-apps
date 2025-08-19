@@ -28,78 +28,96 @@ public struct Library: LibraryContentProvider {
         title: "Component Icon Alignment",
         category: .effect
       ),
+      LibraryItem(
+        base.foregroundStyle(.ds.expressiveContainer),
+        title: "Expressive Container Shape Style",
+        category: .effect
+      ),
+      LibraryItem(
+        base.foregroundStyle(.ds.border),
+        title: "Border Shape Style",
+        category: .effect
+      ),
+      LibraryItem(
+        base.foregroundStyle(.ds.text),
+        title: "Text Shape Style",
+        category: .effect
+      ),
+      LibraryItem(
+        base.listStyle(.ds.plain),
+        title: "Plain List Style",
+        category: .effect
+      ),
+      LibraryItem(
+        base.listStyle(.ds.insetGrouped),
+        title: "Inset Grouped List Style",
+        category: .effect
+      ),
     ]
   }
 }
 
-#if canImport(UIKit)
-  public struct ContrainedLibrary: LibraryContentProvider {
-    public var views: [LibraryItem] {
-      [
-        LibraryItem(
-          DS.TextField(
-            "Label",
-            placeholder: "Placeholder",
-            text: .constant(""),
-            actions: {
-              FieldAction.Button("Copy", image: .ds.action.copy.outlined) {
-              }
-            },
-            feedback: {
-              FieldTextualFeedback("An important information.")
+public struct ContrainedLibrary: LibraryContentProvider {
+  public var views: [LibraryItem] {
+    [
+      LibraryItem(
+        DS.TextField(
+          "Label",
+          placeholder: "Placeholder",
+          text: .constant(""),
+          actions: {
+            FieldAction.Button("Copy", image: .ds.action.copy.outlined) {
             }
-          ),
-          title: "TextField",
-          category: .control
+          },
+          feedback: {
+            FieldTextualFeedback("An important information.")
+          }
         ),
-        LibraryItem(
-          DS.PasswordField(
-            "Label",
-            placeholder: "Placeholder",
-            text: .constant(""),
-            actions: {
-              FieldAction.Button("Copy", image: .ds.action.copy.outlined) {
-              }
-            },
-            feedback: {
-              FieldTextualFeedback("An important information.")
+        title: "TextField",
+        category: .control
+      ),
+      LibraryItem(
+        DS.PasswordField(
+          "Label",
+          placeholder: "Placeholder",
+          text: .constant(""),
+          actions: {
+            FieldAction.Button("Copy", image: .ds.action.copy.outlined) {
             }
-          ),
-          title: "PasswordField",
-          category: .control
+          },
+          feedback: {
+            FieldTextualFeedback("An important information.")
+          }
         ),
-      ]
-    }
-
-    @LibraryContentBuilder
-    public func modifiers(base: some View) -> [LibraryItem] {
-      [
-        LibraryItem(
-          base.fieldLabelPersistencyDisabled(),
-          title: "Disable Field Label Persistency",
-          category: .effect
-        ),
-        LibraryItem(
-          base.fieldAppearance(.grouped),
-          title: "TextField Appearance",
-          category: .effect
-        ),
-        LibraryItem(
-          base.style(.error),
-          title: "TextField Feedback Appearance",
-          category: .effect
-        ),
-        LibraryItem(
-          base.textColorHighlightingMode(.url),
-          title: "TextField Color Highlighting Mode",
-          category: .effect
-        ),
-        LibraryItem(
-          base.onRevealSecureValue({}),
-          title: "TextField onRevealSecureValue callback",
-          category: .other
-        ),
-      ]
-    }
+        title: "PasswordField",
+        category: .control
+      ),
+    ]
   }
-#endif
+
+  @LibraryContentBuilder
+  public func modifiers(base: some View) -> [LibraryItem] {
+    [
+      LibraryItem(
+        base.fieldLabelHiddenOnFocus(),
+        title: "Disable Field Label Persistency",
+        category: .effect
+      ),
+      LibraryItem(
+        base.style(.error),
+        title: "TextField Feedback Appearance",
+        category: .effect
+      ),
+      LibraryItem(
+        base.textFieldColorHighlightingMode(.url),
+        title: "TextField Color Highlighting Mode",
+        category: .effect
+      ),
+      LibraryItem(
+        base.onRevealSecureValue({}),
+        title: "TextField onRevealSecureValue callback",
+        category: .other
+      ),
+    ]
+  }
+}

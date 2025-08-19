@@ -1,24 +1,23 @@
 import Combine
-import CoreActivityLogs
 import CoreFeature
 import CorePersonalData
 import CorePremium
 import CoreSession
 import CoreSettings
-import CoreUserTracking
-import DashTypes
+import CoreTeamAuditLogs
+import CoreTypes
 import DocumentServices
 import Foundation
+import LogFoundation
 import UIComponents
 import UIKit
+import UserTrackingFoundation
 import VaultKit
 
+@MainActor
 final class SecureNotesDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting,
   MockVaultConnectedInjecting
 {
-
-  private var deleteAttachmentsSubscriber: AnyCancellable?
-
   var selectedColor: SecureNoteColor {
     get {
       return item.color
@@ -60,7 +59,7 @@ final class SecureNotesDetailViewModel: DetailViewModelProtocol, SessionServices
     userSpacesService: UserSpacesService,
     deepLinkService: VaultKit.DeepLinkingServiceProtocol,
     activityReporter: ActivityReporterProtocol,
-    activityLogsService: ActivityLogsServiceProtocol,
+    teamAuditLogsService: TeamAuditLogsServiceProtocol,
     pasteboardService: PasteboardServiceProtocol,
     iconViewModelProvider: @escaping (VaultItem) -> VaultItemIconViewModel,
     sharingDetailSectionModelFactory: SharingDetailSectionModel.Factory,
@@ -76,7 +75,6 @@ final class SecureNotesDetailViewModel: DetailViewModelProtocol, SessionServices
       session: session,
       service: .init(
         item: item,
-        canLock: session.authenticationMethod.supportsLock,
         mode: mode,
         vaultItemDatabase: vaultItemDatabase,
         vaultItemsStore: vaultItemsStore,
@@ -88,7 +86,7 @@ final class SecureNotesDetailViewModel: DetailViewModelProtocol, SessionServices
         documentStorageService: documentStorageService,
         deepLinkService: deepLinkService,
         activityReporter: activityReporter,
-        activityLogsService: activityLogsService,
+        teamAuditLogsService: teamAuditLogsService,
         iconViewModelProvider: iconViewModelProvider,
         attachmentSectionFactory: attachmentSectionFactory,
         logger: logger,
@@ -148,13 +146,5 @@ final class SecureNotesDetailViewModel: DetailViewModelProtocol, SessionServices
     Task {
       await save()
     }
-  }
-
-  func makeAttachmentsListViewModel() -> AttachmentsListViewModel? {
-    let publisher = service.vaultItemDatabase
-      .itemPublisher(for: item)
-      .map { $0 as VaultItem }
-      .eraseToAnyPublisher()
-    return attachmentsListViewModelFactory.make(editingItem: item, itemPublisher: publisher)
   }
 }

@@ -8,7 +8,7 @@ extension CoreSession.AccountType {
       self = .invisibleMasterPassword
     case .masterPassword:
       self = .masterPassword
-    case .undecodable:
+    case .securityKey, .undecodable:
       throw UndecodableCaseError(DashlaneAPI.AccountType.self)
     }
   }

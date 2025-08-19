@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Darkwebmonitoring {
-  public struct ListRegistrations: APIRequest {
+  public struct ListRegistrations: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/darkwebmonitoring/ListRegistrations"
 
     public let api: UserDeviceAPIClient
@@ -26,7 +26,7 @@ extension UserDeviceAPIClient.Darkwebmonitoring.ListRegistrations {
 }
 
 extension UserDeviceAPIClient.Darkwebmonitoring.ListRegistrations {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case emails = "emails"
     }

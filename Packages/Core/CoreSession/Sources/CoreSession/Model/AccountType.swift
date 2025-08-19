@@ -9,7 +9,7 @@ extension AuthenticationMethodsAccountType {
         return .masterPassword
       case .invisibleMasterPassword:
         return .invisibleMasterPassword
-      case .undecodable:
+      case .securityKey, .undecodable:
         throw UndecodableCaseError(AuthenticationMethodsAccountType.self)
       }
     }

@@ -1,10 +1,10 @@
 import AuthenticatorKit
 import Combine
 import CorePersonalData
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import Foundation
 import IconLibrary
+import UserTrackingFoundation
 import VaultKit
 
 @MainActor

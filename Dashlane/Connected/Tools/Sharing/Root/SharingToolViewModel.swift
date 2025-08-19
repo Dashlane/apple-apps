@@ -1,15 +1,14 @@
+import Combine
 import CorePersonalData
 import CorePremium
-import DashTypes
 import Foundation
-import IconLibrary
 import VaultKit
 
 @MainActor
 class SharingToolViewModel: ObservableObject, SessionServicesInjecting {
   enum State: Hashable {
     case loading(serviceIsLoading: Bool)
-    case empty
+    case empty(isVaultEmpty: Bool)
     case ready
   }
 
@@ -20,9 +19,12 @@ class SharingToolViewModel: ObservableObject, SessionServicesInjecting {
   let userGroupsSectionViewModel: SharingUserGroupsSectionViewModel
   let userSpaceSwitcherViewModelFactory: UserSpaceSwitcherViewModel.Factory
   let shareButtonViewModelFactory: ShareButtonViewModel.Factory
+  let deepLinkingService: DeepLinkingServiceProtocol
 
   @Published
   var state: State = .loading(serviceIsLoading: false)
+
+  var cancellables = Set<AnyCancellable>()
 
   init(
     itemsProviderFactory: SharingToolItemsProvider.Factory,
@@ -32,7 +34,8 @@ class SharingToolViewModel: ObservableObject, SessionServicesInjecting {
     usersSectionViewModelFactory: SharingUsersSectionViewModel.Factory,
     userSpaceSwitcherViewModelFactory: UserSpaceSwitcherViewModel.Factory,
     shareButtonViewModelFactory: ShareButtonViewModel.Factory,
-    sharingService: SharingServiceProtocol
+    sharingService: SharingServiceProtocol,
+    deepLinkingService: DeepLinkingServiceProtocol
   ) {
     itemsProvider = itemsProviderFactory.make()
     self.pendingUserGroupsSectionViewModel = pendingUserGroupsSectionViewModelFactory.make()
@@ -42,6 +45,7 @@ class SharingToolViewModel: ObservableObject, SessionServicesInjecting {
     self.usersSectionViewModel = usersSectionViewModelFactory.make(itemsProvider: itemsProvider)
     self.userSpaceSwitcherViewModelFactory = userSpaceSwitcherViewModelFactory
     self.shareButtonViewModelFactory = shareButtonViewModelFactory
+    self.deepLinkingService = deepLinkingService
 
     let pendingItemsIsEmpty = pendingUserGroupsSectionViewModel.$pendingUserGroups.combineLatest(
       pendingEntitiesSectionViewModel.$pendingItemGroups,
@@ -71,16 +75,26 @@ class SharingToolViewModel: ObservableObject, SessionServicesInjecting {
       return pendingItemsIsEmpty && itemsIsEmpty
     }
 
-    sharingService.isReadyPublisher().receive(on: DispatchQueue.main).combineLatest(isEmpty) {
-      isReady, isEmpty in
-      if !isReady {
-        return .loading(serviceIsLoading: true)
-      } else if let isEmpty {
-        return isEmpty ? .empty : .ready
-      } else {
-        return .loading(serviceIsLoading: false)
+    let isVaultEmpty = itemsProvider.$vaultItemByIds.map(\.isEmpty).eraseToAnyPublisher()
+
+    sharingService.isReadyPublisher()
+      .receive(on: DispatchQueue.main)
+      .combineLatest(isEmpty, isVaultEmpty)
+      .debounce(for: .milliseconds(100), scheduler: DispatchQueue.main)
+      .sink { isReady, isEmpty, isVaultEmpty in
+        if !isReady {
+          self.state = .loading(serviceIsLoading: true)
+        } else if let isEmpty {
+          self.state = isEmpty ? .empty(isVaultEmpty: isVaultEmpty) : .ready
+        } else {
+          self.state = .loading(serviceIsLoading: false)
+        }
       }
-    }.assign(to: &$state)
+      .store(in: &cancellables)
+  }
+
+  func addPassword() {
+    deepLinkingService.handleLink(.vault(.create(.credential)))
   }
 }
 
@@ -128,7 +142,8 @@ extension SharingToolViewModel {
           sharingService: sharingService
         )
       },
-      sharingService: sharingService
+      sharingService: sharingService,
+      deepLinkingService: DeepLinkingService.fakeService
     )
   }
 }

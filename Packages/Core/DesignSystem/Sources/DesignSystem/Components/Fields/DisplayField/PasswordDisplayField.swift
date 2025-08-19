@@ -24,6 +24,7 @@ public struct PasswordDisplayField: View {
           Text(verbatim: String(repeating: "•", count: password.count))
             .monospaced()
             .transition(.opacity.combined(with: .scale(scale: 0.9)))
+            .foregroundStyle(.textInputValue)
         } else {
           Text(.passwordAttributedString(from: password, with: dynamicTypeSize))
             .transition(.opacity.combined(with: .scale(scale: 0.9)))

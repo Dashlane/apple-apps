@@ -1,8 +1,6 @@
 import Combine
-import CoreFeature
-import CorePersonalData
 import CorePremium
-import Foundation
+import CoreTypes
 import SecurityDashboard
 import UIKit
 import VaultKit
@@ -15,6 +13,12 @@ final class PasswordHealthViewModel: ObservableObject, SessionServicesInjecting 
     let count: Int
   }
 
+  enum ViewState {
+    case loading
+    case intro
+    case summary
+  }
+
   let passwordHealthListViewModelFactory: PasswordHealthListViewModel.Factory
   let passwordHealthService: IdentityDashboardServiceProtocol
   let origin: PasswordHealthFlowViewModel.Origin
@@ -22,6 +26,7 @@ final class PasswordHealthViewModel: ObservableObject, SessionServicesInjecting 
   let deeplinkingService: DeepLinkingServiceProtocol
   let userSpacesService: UserSpacesService
   let userSpaceSwitcherViewModelFactory: UserSpaceSwitcherViewModel.Factory
+  let vaultItemsStore: VaultItemsStore
 
   @Published
   var score: Int?
@@ -31,6 +36,9 @@ final class PasswordHealthViewModel: ObservableObject, SessionServicesInjecting 
 
   @Published
   var isFrozen: Bool = false
+
+  @Published
+  var viewState: ViewState = .loading
 
   var currentKind: PasswordHealthKind = .total
 
@@ -60,6 +68,7 @@ final class PasswordHealthViewModel: ObservableObject, SessionServicesInjecting 
   }
   private var reportCancellable: AnyCancellable?
   private var cancellables: Set<AnyCancellable> = []
+  private var vaultCancellable = Set<AnyCancellable>()
 
   init(
     passwordHealthListViewModelFactory: PasswordHealthListViewModel.Factory,
@@ -68,7 +77,8 @@ final class PasswordHealthViewModel: ObservableObject, SessionServicesInjecting 
     vaultStateService: VaultStateServiceProtocol,
     deeplinkingService: DeepLinkingServiceProtocol,
     userSpacesService: UserSpacesService,
-    userSpaceSwitcherViewModelFactory: UserSpaceSwitcherViewModel.Factory
+    userSpaceSwitcherViewModelFactory: UserSpaceSwitcherViewModel.Factory,
+    vaultItemsStore: VaultItemsStore
   ) {
     self.passwordHealthListViewModelFactory = passwordHealthListViewModelFactory
     self.passwordHealthService = passwordHealthService
@@ -78,6 +88,7 @@ final class PasswordHealthViewModel: ObservableObject, SessionServicesInjecting 
     self.userSpacesService = userSpacesService
     self.userSpaceSwitcherViewModelFactory = userSpaceSwitcherViewModelFactory
     self.score = nil
+    self.vaultItemsStore = vaultItemsStore
 
     registerHandlers()
   }
@@ -95,6 +106,23 @@ final class PasswordHealthViewModel: ObservableObject, SessionServicesInjecting 
   }
 
   private func registerHandlers() {
+    vaultItemsStore
+      .$credentials
+      .filter(by: userSpacesService.$configuration)
+      .receive(on: DispatchQueue.main)
+      .sink { [weak self] credentialsList in
+        guard let self else {
+          return
+        }
+
+        if credentialsList.isEmpty {
+          self.viewState = .intro
+        } else {
+          self.viewState = .summary
+        }
+      }
+      .store(in: &vaultCancellable)
+
     vaultStateService
       .vaultStatePublisher()
       .map { $0 == .frozen }
@@ -149,9 +177,10 @@ extension PasswordHealthViewModel {
     },
     passwordHealthService: IdentityDashboardService.mock,
     origin: .identityDashboard,
-    vaultStateService: .mock,
+    vaultStateService: .mock(),
     deeplinkingService: DeepLinkingService.fakeService,
     userSpacesService: .mock(),
-    userSpaceSwitcherViewModelFactory: .init({ .mock })
+    userSpaceSwitcherViewModelFactory: .init({ .mock }),
+    vaultItemsStore: .mock()
   )
 }

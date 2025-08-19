@@ -1,70 +1,14 @@
 import Combine
-import CoreActivityLogs
 import CoreLocalization
 import CorePersonalData
 import CorePremium
 import CoreSpotlight
+import CoreTeamAuditLogs
 import DashlaneAPI
 import Foundation
 import SwiftUI
 
-public protocol VaultItem: CorePersonalData.Displayable,
-  CorePersonalData.DatedPersonalData,
-  CorePersonalData.DocumentAttachable,
-  CoreActivityLogs.ActivityLogReportableItem
-{
-  static var localizedName: String { get }
-  static var addIcon: SwiftUI.Image { get }
-  static var addTitle: String { get }
-  static var nativeMenuAddTitle: String { get }
-
-  var enumerated: VaultItemEnumeration { get }
-
-  var localizedTitle: String { get }
-  var localizedSubtitle: String { get }
-
-  var listIcon: VaultItemIcon { get }
-  var icon: VaultItemIcon { get }
-  var subtitleImage: SwiftUI.Image? { get }
-  var subtitleFont: Font? { get }
-
-  var creationDatetime: Date? { get set }
-  var userModificationDatetime: Date? { get set }
-
-  var spaceId: String? { get set }
-
-  var limitedRightsAlertTitle: String { get }
-
-  init()
-
-  func matchCriteria(_ criteria: String) -> SearchMatch?
-
-  func isAssociated(to: PremiumStatusTeamInfo) -> Bool
-}
-
 extension VaultItem {
-  public var displayTitle: String {
-    localizedTitle
-  }
-
-  public var displaySubtitle: String? {
-    localizedSubtitle
-  }
-
-  public var subtitleImage: SwiftUI.Image? {
-    return nil
-  }
-
-  public var subtitleFont: Font? {
-    return nil
-  }
-}
-
-extension VaultItem {
-  public var listIcon: VaultItemIcon {
-    return icon
-  }
-
   public var addTitle: String {
     return Self.addTitle
   }
@@ -72,9 +16,9 @@ extension VaultItem {
   public var limitedRightsAlertTitle: String {
     switch vaultItemType {
     case .credential:
-      return CoreLocalization.L10n.Core.kwLimitedRightMessage
+      return CoreL10n.kwLimitedRightMessage
     case .secureNote:
-      return CoreLocalization.L10n.Core.kwSecureNoteLimitedRightMessage
+      return CoreL10n.kwSecureNoteLimitedRightMessage
     default:
       return ""
     }
@@ -86,49 +30,9 @@ extension VaultItem {
 }
 
 extension VaultItem {
-  public func reportableInfo() -> ActivityLogReportableInfo? {
+  public func generateReportableInfo(with context: AuditLogContext) -> ReportableInfo? {
     return nil
   }
-}
-
-public enum VaultItemEnumeration {
-  case credential(Credential)
-  case secureNote(SecureNote)
-  case secret(Secret)
-  case bankAccount(BankAccount)
-  case creditCard(CreditCard)
-  case identity(Identity)
-  case email(Email)
-  case phone(Phone)
-  case address(Address)
-  case company(Company)
-  case personalWebsite(PersonalWebsite)
-  case passport(Passport)
-  case idCard(IDCard)
-  case fiscalInformation(FiscalInformation)
-  case socialSecurityInformation(SocialSecurityInformation)
-  case drivingLicence(DrivingLicence)
-  case passkey(Passkey)
-}
-
-public enum VaultItemIcon: Equatable {
-  case address
-  case bankAccount
-  case company
-  case creditCard(CreditCard)
-  case credential(Credential)
-  case drivingLicense
-  case email
-  case idCard
-  case identity
-  case passkey(Passkey)
-  case passport
-  case personalWebsite
-  case phoneNumber
-  case secret
-  case secureNote(Color)
-  case socialSecurityCard
-  case `static`(_ asset: SwiftUI.Image, backgroundColor: SwiftUI.Color? = nil)
 }
 
 extension VaultItem where Self: Searchable {

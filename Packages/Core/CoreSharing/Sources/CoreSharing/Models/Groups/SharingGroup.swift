@@ -1,7 +1,8 @@
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 
-public protocol SharingGroup: Sendable {
+public protocol SharingGroup: Sendable, Loggable {
   associatedtype Info: Identifiable where Info.ID == Identifier
 
   var info: Info { get }

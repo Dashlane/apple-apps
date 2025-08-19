@@ -2,10 +2,12 @@ import Combine
 import CoreNetworking
 import CorePersonalData
 import CoreSession
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import LoginKit
+import SwiftUI
 import TOTPGenerator
 import UIKit
 
@@ -52,7 +54,7 @@ class TwoFASettingsViewModel: SessionServicesInjecting, ObservableObject {
 
   let twoFADeactivationViewModelFactory: TwoFADeactivationViewModel.Factory
   let twoFactorEnforcementViewModelFactory: TwoFactorEnforcementViewModel.Factory
-  let reachability: NetworkReachability
+  let reachability: NetworkReachabilityProtocol
   private var subcription: AnyCancellable?
 
   var twoFASettingsMessage: String {
@@ -72,7 +74,7 @@ class TwoFASettingsViewModel: SessionServicesInjecting, ObservableObject {
     userAPIClient: UserDeviceAPIClient,
     logger: Logger,
     isTwoFAEnforced: Bool,
-    reachability: NetworkReachability,
+    reachability: NetworkReachabilityProtocol,
     sessionLifeCycleHandler: SessionLifeCycleHandler?,
     twoFADeactivationViewModelFactory: TwoFADeactivationViewModel.Factory,
     twoFactorEnforcementViewModelFactory: TwoFactorEnforcementViewModel.Factory
@@ -109,7 +111,7 @@ class TwoFASettingsViewModel: SessionServicesInjecting, ObservableObject {
       return
     }
 
-    subcription = reachability.$isConnected
+    subcription = reachability.isConnectedPublisher
       .receive(on: DispatchQueue.main)
       .filter { $0 }.sink { [weak self] _ in
         Task {
@@ -142,6 +144,18 @@ class TwoFASettingsViewModel: SessionServicesInjecting, ObservableObject {
       showDeactivationAlert = true
     }
   }
+
+  func checkTFA() -> Binding<Bool> {
+    return Binding {
+      self.isTFAEnabled
+    } set: { value in
+      if value {
+        assertionFailure("The toggle can't be turned on via UI.")
+      } else {
+        self.update()
+      }
+    }
+  }
 }
 
 extension TwoFASettingsViewModel {
@@ -151,9 +165,9 @@ extension TwoFASettingsViewModel {
       login: Login("_"),
       loginOTPOption: nil,
       userAPIClient: .fake,
-      logger: LoggerMock(),
+      logger: .mock,
       isTwoFAEnforced: true,
-      reachability: NetworkReachability(isConnected: true),
+      reachability: .mock(),
       sessionLifeCycleHandler: nil,
       twoFADeactivationViewModelFactory: .init({ _ in .mock() }),
       twoFactorEnforcementViewModelFactory: .init({ _ in .mock }))

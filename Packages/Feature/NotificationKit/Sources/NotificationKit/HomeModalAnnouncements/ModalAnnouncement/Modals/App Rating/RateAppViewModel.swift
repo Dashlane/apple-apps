@@ -1,6 +1,6 @@
 import CoreLocalization
 import CoreSettings
-import DashTypes
+import CoreTypes
 import Foundation
 import SwiftTreats
 import UIKit
@@ -35,11 +35,11 @@ public struct RateAppViewModel: HomeAnnouncementsServicesInjecting {
   }
 
   func makeMailViewModel() -> MailViewModel {
-    let subject = [L10n.Core.kwFeedbackEmailSubject, Application.version(), System.version].joined(
+    let subject = [CoreL10n.kwFeedbackEmailSubject, Application.version(), System.version].joined(
       separator: "-")
     return MailViewModel(
       subject: subject,
-      body: L10n.Core.kwFeedbackEmailBody(login),
+      body: CoreL10n.kwFeedbackEmailBody(login),
       recipients: ["_"],
       logFilePath: nil)
   }

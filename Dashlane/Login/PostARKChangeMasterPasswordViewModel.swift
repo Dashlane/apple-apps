@@ -1,11 +1,12 @@
 import Combine
 import CorePersonalData
 import CoreSession
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import LoginKit
+import UserTrackingFoundation
 
 @MainActor
 class PostARKChangeMasterPasswordViewModel: ObservableObject, SessionServicesInjecting {
@@ -15,46 +16,47 @@ class PostARKChangeMasterPasswordViewModel: ObservableObject, SessionServicesInj
     case cancel
   }
 
-  let accountCryptoChangerService: AccountCryptoChangerServiceProtocol
+  let accountMigrationConfiguration: AccountMigrationConfiguration
   let activityReporter: ActivityReporterProtocol
   var dismissPublisher = PassthroughSubject<Void, Never>()
   let completion: (Completion) -> Void
   let userDeviceAPIClient: UserDeviceAPIClient
   let syncedSettings: SyncedSettingsService
   let logger: Logger
+  private let accountTypeMigrationStateMachineFactory: AccountTypeMigrationStateMachine.Factory
   let migrationProgressViewModelFactory: MigrationProgressViewModel.Factory
 
   init(
-    accountCryptoChangerService: AccountCryptoChangerServiceProtocol,
+    accountMigrationConfiguration: AccountMigrationConfiguration,
     userDeviceAPIClient: UserDeviceAPIClient,
     syncedSettings: SyncedSettingsService,
     activityReporter: ActivityReporterProtocol,
     logger: Logger,
+    accountTypeMigrationStateMachineFactory: AccountTypeMigrationStateMachine.Factory,
     migrationProgressViewModelFactory: MigrationProgressViewModel.Factory,
     completion: @escaping (PostARKChangeMasterPasswordViewModel.Completion) -> Void
   ) {
-    self.accountCryptoChangerService = accountCryptoChangerService
+    self.accountMigrationConfiguration = accountMigrationConfiguration
     self.activityReporter = activityReporter
     self.completion = completion
     self.syncedSettings = syncedSettings
     self.userDeviceAPIClient = userDeviceAPIClient
     self.logger = logger
+    self.accountTypeMigrationStateMachineFactory = accountTypeMigrationStateMachineFactory
     self.migrationProgressViewModelFactory = migrationProgressViewModelFactory
-    Task {
-      accountCryptoChangerService.start()
-    }
   }
 
   func makeMigrationProgressViewModel() -> MigrationProgressViewModel {
     let model = migrationProgressViewModelFactory.make(
-      type: .masterPasswordToMasterPassword,
-      accountCryptoChangerService: accountCryptoChangerService,
-      context: .accountRecovery
+      context: .accountRecovery,
+      stateMachine: accountTypeMigrationStateMachineFactory.make(
+        accountMigrationConfiguration: accountMigrationConfiguration)
     ) { [weak self] result in
       guard let self = self else {
         return
       }
       if case .success(let session) = result {
+        self.activityReporter.report(UserEvent.UseAccountRecoveryKey(flowStep: .complete))
         self.completion(.finished(session))
       } else {
         self.dismissPublisher.send()
@@ -67,15 +69,15 @@ class PostARKChangeMasterPasswordViewModel: ObservableObject, SessionServicesInj
 extension PostARKChangeMasterPasswordViewModel {
   static var mock: PostARKChangeMasterPasswordViewModel {
     PostARKChangeMasterPasswordViewModel(
-      accountCryptoChangerService: AccountCryptoChangerService.mock,
+      accountMigrationConfiguration: .mock,
       userDeviceAPIClient: .fake,
       syncedSettings: .mock,
       activityReporter: .mock,
-      logger: LoggerMock(),
-      migrationProgressViewModelFactory: .init({ _, _, _, _, _, _ in
-        .mock()
-      }
-      ),
+      logger: .mock,
+      accountTypeMigrationStateMachineFactory: InjectedFactory {
+        .mock(accountMigrationConfiguration: $0)
+      },
+      migrationProgressViewModelFactory: InjectedFactory { _, _, _ in .mock() },
       completion: { _ in }
     )
   }

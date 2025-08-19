@@ -1,6 +1,8 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
+import SwiftTreats
 
 public protocol SharingClientAPI {
   func fetch(_ request: FetchRequest) async throws -> ParsedServerResponse
@@ -46,7 +48,6 @@ public protocol SharingClientAPI {
     withId groupId: Identifier,
     users: [UserUpdate]?,
     userGroups: [UserGroupUpdate]?,
-    userAuditLogDetails: AuditLogDetails?,
     revision: SharingRevision
   ) async throws -> ParsedServerResponse
   func inviteOnItemGroup(
@@ -118,7 +119,6 @@ public protocol SharingClientAPI {
     withId collectionId: Identifier,
     userIds: [UserId]?,
     userGroupIds: [Identifier]?,
-    userAuditLogDetails: AuditLogDetails?,
     revision: SharingRevision
   ) async throws -> ParsedServerResponse
 
@@ -185,7 +185,9 @@ public struct FetchRequest: Equatable {
 
 public typealias RawPublicKey = String
 
+@Loggable
 public struct SharingInvalidActionError: Error {
+  @Loggable
   public enum InvalidType {
     case item
     case itemGroup

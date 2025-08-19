@@ -1,16 +1,17 @@
 import Combine
-import CoreActivityLogs
 import CoreFeature
 import CorePersonalData
 import CorePremium
 import CoreSession
 import CoreSettings
-import CoreUserTracking
-import DashTypes
+import CoreTeamAuditLogs
+import CoreTypes
 import DocumentServices
 import Foundation
+import LogFoundation
 import SwiftUI
 import UIComponents
+import UserTrackingFoundation
 import VaultKit
 
 @MainActor
@@ -24,6 +25,7 @@ class PasskeyDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting,
 
   private var cancellables: Set<AnyCancellable> = []
 
+  @Loggable
   enum Error: String, Swift.Error {
     case cannotChangePasskeyData
   }
@@ -41,7 +43,7 @@ class PasskeyDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting,
     userSpacesService: UserSpacesService,
     deepLinkService: VaultKit.DeepLinkingServiceProtocol,
     activityReporter: ActivityReporterProtocol,
-    activityLogsService: ActivityLogsServiceProtocol,
+    teamAuditLogsService: TeamAuditLogsServiceProtocol,
     iconViewModelProvider: @escaping (VaultItem) -> VaultItemIconViewModel,
     logger: Logger,
     accessControl: AccessControlHandler,
@@ -54,7 +56,6 @@ class PasskeyDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting,
     self.init(
       service: .init(
         item: item,
-        canLock: session.authenticationMethod.supportsLock,
         mode: mode,
         vaultItemDatabase: vaultItemDatabase,
         vaultItemsStore: vaultItemsStore,
@@ -66,7 +67,7 @@ class PasskeyDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting,
         documentStorageService: documentStorageService,
         deepLinkService: deepLinkService,
         activityReporter: activityReporter,
-        activityLogsService: activityLogsService,
+        teamAuditLogsService: teamAuditLogsService,
         iconViewModelProvider: iconViewModelProvider,
         attachmentSectionFactory: attachmentSectionFactory,
         logger: logger,
@@ -109,8 +110,9 @@ class PasskeyDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting,
 
 extension Passkey {
   fileprivate func valideChange(for originalItem: Passkey) -> Bool {
-    originalItem.privateKey == privateKey && originalItem.credentialId == credentialId
-      && originalItem.userHandle == userHandle && originalItem.userDisplayName == userDisplayName
+    originalItem.cloudPasskey == cloudPasskey && originalItem.localPrivateKey == localPrivateKey
+      && originalItem.credentialId == credentialId && originalItem.userHandle == userHandle
+      && originalItem.userDisplayName == userDisplayName
       && originalItem.keyAlgorithm == keyAlgorithm && originalItem.relyingPartyId == relyingPartyId
       && originalItem.relyingPartyName == relyingPartyName
   }

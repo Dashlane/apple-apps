@@ -1,12 +1,13 @@
 import Foundation
 
-public enum PremiumStatusPlanFeature: String, Sendable, Equatable, CaseIterable, Codable {
+public enum PremiumStatusPlanFeature: String, Sendable, Hashable, Codable, CaseIterable {
   case legacy = "legacy"
-  case entryLevel = "entry_level"
+  case standard = "standard"
   case starter = "starter"
   case team = "team"
   case business = "business"
   case entreprise = "entreprise"
+  case businessplus = "businessplus"
   case undecodable
   public init(from decoder: Decoder) throws {
     let container = try decoder.singleValueContainer()

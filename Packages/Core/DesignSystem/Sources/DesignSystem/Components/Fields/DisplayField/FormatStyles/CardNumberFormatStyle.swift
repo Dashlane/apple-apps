@@ -3,7 +3,7 @@ import Foundation
 
 private struct Card: Equatable {
   var lastDigits: String {
-    if let lastDigitsGroup = type?.spacingPattern(for: number).last {
+    if let lastDigitsGroup = type?.spacingPattern(for: number)?.last {
       return String(number.suffix(lastDigitsGroup))
     }
     return String(number.suffix(3))
@@ -53,7 +53,7 @@ private enum CardType: CaseIterable {
     }
   }
 
-  func spacingPattern(for cardNumber: String) -> SpacingPattern {
+  func spacingPattern(for cardNumber: String) -> SpacingPattern? {
     switch self {
     case .americanExpress:
       guard cardNumber.count == 15 else { break }
@@ -106,12 +106,14 @@ private enum CardType: CaseIterable {
     return fallbackSpacingPattern(for: cardNumber)
   }
 
-  private func fallbackSpacingPattern(for cardNumber: String) -> SpacingPattern {
+  private func fallbackSpacingPattern(for cardNumber: String) -> SpacingPattern? {
     let defaultGrouping = 4
     let groups = Int(cardNumber.count / defaultGrouping)
     let suffix = Int(cardNumber.count % defaultGrouping)
 
-    if suffix == 0 {
+    if groups < 1 {
+      return nil
+    } else if suffix == 0 {
       return SpacingPattern(repeating: defaultGrouping, count: groups)
     } else {
       if suffix < 3 {
@@ -154,6 +156,7 @@ struct CardNumberFormatStyle: AccessibleObfuscatedFormatStyle {
 
     if obfuscated {
       guard let spacingPattern = card.spacingPattern,
+        spacingPattern.count > 1,
         let lastPattern = spacingPattern.last
       else {
         return String(repeating: "•", count: card.number.count)
@@ -173,7 +176,7 @@ struct CardNumberFormatStyle: AccessibleObfuscatedFormatStyle {
   func accessibilityText(for value: String) -> String {
     if obfuscated {
       let card = Card(number: value)
-      return L10n.Core.accessibilityCardNumberEndingWith(card.lastDigits)
+      return CoreL10n.accessibilityCardNumberEndingWith(card.lastDigits)
     }
     return format(value)
   }

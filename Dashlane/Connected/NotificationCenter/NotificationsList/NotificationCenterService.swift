@@ -5,10 +5,10 @@ import CorePremium
 import CoreSession
 import CoreSettings
 import CoreSync
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import Foundation
 import LoginKit
+import UserTrackingFoundation
 import VaultKit
 
 public class NotificationCenterServicePublishersStore {

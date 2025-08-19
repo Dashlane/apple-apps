@@ -1,7 +1,6 @@
 import Foundation
 
-public enum PaymentsAccessibleStoreOffersDuration: String, Sendable, Equatable, CaseIterable,
-  Codable
+public enum PaymentsAccessibleStoreOffersDuration: String, Sendable, Hashable, Codable, CaseIterable
 {
   case yearly = "yearly"
   case monthly = "monthly"

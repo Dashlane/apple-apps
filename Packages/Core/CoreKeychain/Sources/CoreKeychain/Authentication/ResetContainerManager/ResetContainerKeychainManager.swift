@@ -1,13 +1,5 @@
+import CoreTypes
 import Foundation
-
-public protocol ResetContainerKeychainManager {
-  func checkStatus() throws -> ResetContainerStatus
-  func get() throws -> ResetContainer
-  @discardableResult
-  func store(_ masterPassword: MasterPassword, accessMode: KeychainAccessMode) throws
-    -> ResetContainer
-  func remove() throws
-}
 
 extension ResetContainerKeychainManager {
   @discardableResult
@@ -15,22 +7,6 @@ extension ResetContainerKeychainManager {
     try self.store(masterPassword, accessMode: .afterBiometricAuthentication)
   }
 
-}
-
-public typealias MasterPassword = String
-
-public enum ResetContainerStatus: Equatable {
-  case available
-  case notAvailable
-
-  init(keychainItemStatus: KeychainItemStatus) {
-    switch keychainItemStatus {
-    case .found:
-      self = .available
-    case .notFound:
-      self = .notAvailable
-    }
-  }
 }
 
 public struct ResetContainerKeychainManagerImpl: ResetContainerKeychainManager, KeychainManager {

@@ -1,11 +1,12 @@
 import CoreLocalization
+import CorePersonalData
 import DesignSystem
+import DesignSystemExtra
 import SwiftUI
-import UIComponents
-import UIDelight
+import UserTrackingFoundation
 import VaultKit
 
-public struct ImportListView<Model>: View where Model: ObservableObject, Model: ImportViewModel {
+public struct ImportListView<Model>: View where Model: ObservableObject, Model: OldImportViewModel {
 
   public enum Action {
     case saved
@@ -15,11 +16,12 @@ public struct ImportListView<Model>: View where Model: ObservableObject, Model: 
   @ObservedObject
   var model: Model
 
+  @Environment(\.report)
+  var report
+
   var items: [VaultItem] {
     model.items.compactMap(\.vaultItem)
   }
-
-  @ScaledMetric private var titleFontSize: CGFloat = 28
 
   let action: @MainActor (Action) -> Void
   @State var showSpaceConfirmationDialog = false
@@ -30,13 +32,12 @@ public struct ImportListView<Model>: View where Model: ObservableObject, Model: 
       passwordList
     }
     .confirmationDialog(
-      L10n.Core.teamSpacesSharingAcceptPrompt,
+      CoreL10n.teamSpacesSharingAcceptPrompt,
       isPresented: $showSpaceConfirmationDialog,
       titleVisibility: .visible,
       actions: spacePickerDialog
     )
-    .backgroundColorIgnoringSafeArea(.ds.background.alternate)
-    .navigationBarStyle(.transparent(tintColor: .ds.text.brand.standard, titleColor: nil))
+    .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
     .overlay(importButton, alignment: .bottom)
     .reportPageAppearance(.importCsvPreviewDataUpload)
   }
@@ -44,14 +45,14 @@ public struct ImportListView<Model>: View where Model: ObservableObject, Model: 
   @ViewBuilder
   private var title: some View {
     if !items.isEmpty {
-      Text(L10n.Core.m2WImportGenericImportScreenPrimaryTitle(model.items.count))
+      Text(CoreL10n.m2WImportGenericImportScreenPrimaryTitle(model.items.count))
         .frame(maxWidth: 400, alignment: .leading)
-        .font(DashlaneFont.custom(titleFontSize, .medium).font)
-        .foregroundColor(.ds.text.neutral.catchy)
+        .textStyle(.title.section.large)
+        .foregroundStyle(Color.ds.text.neutral.catchy)
         .multilineTextAlignment(.leading)
         .padding(.horizontal, 16)
     } else {
-      Text(L10n.Core.importLoadingItems)
+      Text(CoreL10n.importLoadingItems)
     }
   }
 
@@ -78,8 +79,9 @@ public struct ImportListView<Model>: View where Model: ObservableObject, Model: 
         save()
       },
       label: {
-        Text(L10n.Core.m2WImportGenericImportScreenImport)
+        Text(CoreL10n.m2WImportGenericImportScreenImport)
           .fixedSize(horizontal: false, vertical: true)
+          .frame(maxWidth: .infinity)
       }
     )
     .buttonStyle(.designSystem(.titleOnly))
@@ -102,6 +104,11 @@ public struct ImportListView<Model>: View where Model: ObservableObject, Model: 
             await MainActor.run {
               self.action(.saved)
             }
+
+            report?(
+              UserEvent.ImportData(
+                backupFileType: .dash, importDataStatus: .success, importDataStep: .success,
+                importSource: .sourceDash, isDirectImport: false))
           } catch {
             await MainActor.run {
               self.action(.savingError)
@@ -111,7 +118,7 @@ public struct ImportListView<Model>: View where Model: ObservableObject, Model: 
       }
     }
 
-    Button(L10n.Core.cancel, role: .cancel) {
+    Button(CoreL10n.cancel, role: .cancel) {
       showSpaceConfirmationDialog = false
     }
   }
@@ -133,6 +140,11 @@ public struct ImportListView<Model>: View where Model: ObservableObject, Model: 
         await MainActor.run {
           self.action(.saved)
         }
+
+        report?(
+          UserEvent.ImportData(
+            backupFileType: .dash, importDataStatus: .success, importDataStep: .success,
+            importSource: .sourceDash, isDirectImport: false))
       } catch ImportViewModelError.needsSpaceSelection {
         self.showSpaceConfirmationDialog = true
       } catch {
@@ -160,7 +172,7 @@ private struct ImportItemRowView: View {
       VStack(alignment: .leading) {
         Text(item.vaultItem?.localizedTitle ?? "")
           .font(.body.weight(.medium))
-          .foregroundColor(.ds.text.neutral.catchy)
+          .foregroundStyle(Color.ds.text.neutral.catchy)
           .lineLimit(1)
 
         Spacer()
@@ -168,24 +180,17 @@ private struct ImportItemRowView: View {
 
         Text(item.vaultItem?.localizedSubtitle ?? "")
           .font(.footnote)
-          .foregroundColor(.ds.text.neutral.quiet)
+          .foregroundStyle(Color.ds.text.neutral.quiet)
           .lineLimit(1)
       }
       .padding(.vertical, 10)
 
       Spacer()
 
-      if item.isSelected {
-        Image(asset: Asset.checkboxSelected)
-          .resizable()
-          .frame(width: 24, height: 24)
-      } else {
-        Image(asset: Asset.checkboxUnselected)
-          .resizable()
-          .frame(width: 24, height: 24)
-      }
+      NativeCheckmarkIcon(isChecked: item.isSelected)
+        .frame(width: 24, height: 24)
     }
-    .background(.ds.background.alternate)
+    .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
     .onTapGesture {
       item.isSelected.toggle()
     }
@@ -194,10 +199,6 @@ private struct ImportItemRowView: View {
 
 }
 
-struct ImportListView_Previews: PreviewProvider {
-  static var previews: some View {
-    MultiContextPreview(deviceRange: .some([.iPhone8, .iPhone11, .iPadPro])) {
-      ImportListView(model: DashImportViewModel.mock, action: { _ in })
-    }
-  }
+#Preview {
+  ImportListView(model: DashImportViewModel.mock) { _ in }
 }

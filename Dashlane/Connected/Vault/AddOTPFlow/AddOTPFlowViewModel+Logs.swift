@@ -1,10 +1,10 @@
 import Combine
 import CoreNetworking
 import CorePersonalData
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import Foundation
 import TOTPGenerator
+import UserTrackingFoundation
 import VaultKit
 
 extension AddOTPFlowViewModel {

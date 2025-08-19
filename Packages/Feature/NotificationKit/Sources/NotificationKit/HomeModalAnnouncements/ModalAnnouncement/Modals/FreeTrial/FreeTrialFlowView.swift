@@ -1,9 +1,9 @@
 import CorePremium
 import CoreSettings
-import CoreUserTracking
 import Foundation
 import SwiftUI
 import UIDelight
+import UserTrackingFoundation
 
 public class FreeTrialFlowViewModel: ObservableObject, HomeAnnouncementsServicesInjecting {
 

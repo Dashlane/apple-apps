@@ -7,107 +7,74 @@ import CorePremium
 import CoreSession
 import CoreSettings
 import CoreSync
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import DomainParser
 import Foundation
+import LogFoundation
 import SecurityDashboard
 import UIKit
 import VaultKit
 
-public protocol IdentityDashboardServiceProtocol {
-  var session: SecurityDashboard.IdentityDashboardSession { get }
-  var logger: DashTypes.Logger { get }
-  var notificationManager: IdentityDashboardNotificationManager { get }
-  var passwordEvaluator: PasswordEvaluatorProtocol { get }
-  var breaches: [StoredBreach] { get set }
-  var breachesPublisher: Published<[StoredBreach]>.Publisher { get }
-  var dataLeaksLastUpdate: IdentityDashboardService.DataLeaksUpdate { get set }
-  var dataLeaksLastUpdatePublisher: Published<IdentityDashboardService.DataLeaksUpdate>.Publisher {
-    get
-  }
-  var dataLeaksUpdateRequested: PassthroughSubject<Void, Never> { get set }
-  var dataLeaksUpdateRequestedPublisher: Published<PassthroughSubject<Void, Never>>.Publisher {
-    get
-  }
-  var dataLeakMonitoringRegisterService: DataLeakMonitoringRegisterServiceProtocol { get }
-  var decryptorPublisher: Published<DataLeakInformationDecryptor?>.Publisher { get }
-  func trayAlertsPublisher() -> AnyPublisher<[TrayAlertProtocol], Never>
-  func present(_ breaches: [PopupAlertProtocol])
-  func credentialsDataDidUpdate()
-  func passwordHealthDataDidUpdate()
-  func report(spaceId: String?, completion: @escaping (PasswordHealthReport) -> Void)
-  func report(spaceId: String?) async -> PasswordHealthReport
-  func data(
-    for requests: [PasswordHealthAnalyzer.Request],
-    completion: @escaping ([PasswordHealthAnalyzer.Request: PasswordHealthResult]) -> Void)
-  func data(for request: PasswordHealthAnalyzer.Request) async -> PasswordHealthResult
-  func data(for requests: [PasswordHealthAnalyzer.Request]) async -> [PasswordHealthAnalyzer
-    .Request: PasswordHealthResult]
-  func numberOfTimesPasswordIsReused(of credential: Credential, completion: @escaping (Int) -> Void)
-  func reusedCredentials(in credentials: [Credential]) -> AnyPublisher<[Credential], Never>
-  func isCompromised(_ credential: Credential, completion: @escaping (Bool) -> Void)
-  func compromisedCredentials(in credentials: [Credential]) -> AnyPublisher<[Credential], Never>
-  func trayAlerts() async -> [TrayAlertProtocol]
-  func mark(breaches: [BreachesService.Identifier], as status: StoredBreach.Status) async
-  func credentials(forBreachId breachId: String) -> [SecurityDashboardCredential]
-  func reportPublisher(spaceId: String?) -> AnyPublisher<PasswordHealthReport, Never>
-  func dataPublisher(for request: PasswordHealthAnalyzer.Request) -> AnyPublisher<
-    PasswordHealthResult, Never
-  >
-  func dataPublisher(for requests: [PasswordHealthAnalyzer.Request]) -> AnyPublisher<
-    [PasswordHealthAnalyzer.Request: PasswordHealthResult], Never
-  >
-}
-
 public class IdentityDashboardService: IdentityDashboardServiceProtocol {
-  public let session: SecurityDashboard.IdentityDashboardSession
+
+  let session: SecurityDashboard.IdentityDashboardSession
   private let breachesStore: BreachesStore
   private let credentialsProvider: CredentialsProvider
-  public let logger: DashTypes.Logger
-  public let notificationManager = IdentityDashboardNotificationManager()
-  public let passwordEvaluator: PasswordEvaluatorProtocol
+  let logger: LogFoundation.Logger
+  let notificationManager = IdentityDashboardNotificationManager()
+  let passwordEvaluator: PasswordEvaluatorProtocol
 
-  private(set) var widgetService: IdentityDashboardWidgetService = IdentityDashboardWidgetService()
+  #if !os(visionOS)
+    private(set) var widgetService = IdentityDashboardWidgetService()
+  #endif
   private let userSpacesService: UserSpacesService
 
   @Published
   public var breaches: [StoredBreach] = []
-
   public var breachesPublisher: Published<[StoredBreach]>.Publisher { $breaches }
 
   @Published
   public var dataLeaksLastUpdate: DataLeaksUpdate = DataLeaksUpdate()
-
   public var dataLeaksLastUpdatePublisher:
     Published<IdentityDashboardService.DataLeaksUpdate>.Publisher
   { $dataLeaksLastUpdate }
 
   @Published
   public var dataLeaksUpdateRequested = PassthroughSubject<Void, Never>()
-
   public var dataLeaksUpdateRequestedPublisher: Published<PassthroughSubject<Void, Never>>.Publisher
   { $dataLeaksUpdateRequested }
 
-  var breachesToPresent = [PopupAlertProtocol]() {
-    didSet {
-      guard !breachesToPresent.isEmpty else { return }
-      breachesToPresentAvailable.send()
-    }
-  }
   @Published
-  var breachesToPresentAvailable = PassthroughSubject<Void, Never>()
-  public let dataLeakMonitoringRegisterService: DataLeakMonitoringRegisterServiceProtocol
-  let notificationService: SessionNotificationService
-
-  var sharingServiceCancellable: AnyCancellable?
-  var cancellables = Set<AnyCancellable>()
+  public var breachesToPresent = [PopupAlertProtocol]()
+  public var breachesToPresentPublisher: Published<[PopupAlertProtocol]>.Publisher {
+    $breachesToPresent
+  }
 
   @Published
   private(set) var decryptor: DataLeakInformationDecryptor?
   public var decryptorPublisher: Published<DataLeakInformationDecryptor?>.Publisher { $decryptor }
 
+  public let dataLeakMonitoringRegisterService: DataLeakMonitoringRegisterServiceProtocol
+  let notificationService: SessionNotificationService
+
   private var dataLeaksUpdatePublisher = PassthroughSubject<Void, Error>()
+  private var sharingServiceCancellable: AnyCancellable?
+  private var cancellables = Set<AnyCancellable>()
+
+  public var monitoredEmails: Set<SecurityDashboard.DataLeakEmail> {
+    dataLeakMonitoringRegisterService.monitoredEmails
+  }
+
+  public var monitoredEmailsPublisher: AnyPublisher<Set<SecurityDashboard.DataLeakEmail>, Never> {
+    dataLeakMonitoringRegisterService.monitoredEmailsPublisher
+  }
+
+  public func publisher(
+    for notification: SecurityDashboard.IdentityDashboardNotificationManager.NotificationType
+  ) -> NotificationCenter.Publisher {
+    notificationManager.publisher(for: notification)
+  }
 
   init(
     session: Session,
@@ -124,7 +91,7 @@ public class IdentityDashboardService: IdentityDashboardServiceProtocol {
     domainParser: DomainParserProtocol,
     categorizer: Categorizer,
     notificationService: SessionNotificationService,
-    logger: DashTypes.Logger
+    logger: LogFoundation.Logger
   ) {
     credentialsProvider = CredentialsProvider(
       vaultItemsStore: vaultItemsStore,
@@ -202,6 +169,7 @@ public class IdentityDashboardService: IdentityDashboardServiceProtocol {
 
     self.session
       .$popupAlerts
+      .receive(on: DispatchQueue.main)
       .sink { [weak self] alerts in
         guard let self = self,
           alerts.count != 0
@@ -257,12 +225,9 @@ public class IdentityDashboardService: IdentityDashboardServiceProtocol {
       }.store(in: &cancellables)
   }
 
-  func markAsPresented(_ breach: Breach) {
-    breachesToPresent.removeAll { $0.breach == breach }
-  }
-
   private func setupBreachesSubscription() {
     self.session.$breaches
+      .receive(on: DispatchQueue.main)
       .assign(to: &$breaches)
   }
 
@@ -273,7 +238,6 @@ public class IdentityDashboardService: IdentityDashboardServiceProtocol {
       }
 
     self.session.dataLeaksUpdatePublisher()
-      .receive(on: DispatchQueue.main)
       .map { _ -> Error? in
         return nil
       }
@@ -284,6 +248,7 @@ public class IdentityDashboardService: IdentityDashboardServiceProtocol {
       .map { updateError, emails in
         return DataLeaksUpdate(emails: emails, error: updateError)
       }
+      .receive(on: DispatchQueue.main)
       .assign(to: &$dataLeaksLastUpdate)
   }
 
@@ -360,6 +325,25 @@ extension IdentityDashboardService {
   public func credentials(forBreachId breachId: String) -> [SecurityDashboardCredential] {
     return session.credentials(forBreachId: breachId)
   }
+
+  public func registerEmail(email: String) async throws {
+    try await dataLeakMonitoringRegisterService.webService.registerEmail(email: email)
+  }
+
+  public func updateMonitoredEmails(
+    onCompletion: ((Result<SecurityDashboard.DataLeakStatusResponse, any Error>) -> Void)?
+  ) {
+    dataLeakMonitoringRegisterService.updateMonitoredEmails(onCompletion: onCompletion)
+  }
+
+  public func removeFromMonitoredEmails(email: String) {
+    dataLeakMonitoringRegisterService.removeFromMonitoredEmails(email: email)
+  }
+
+  public func monitorNew(email: String) async throws {
+    try await dataLeakMonitoringRegisterService.monitorNew(email: email)
+  }
+
 }
 
 extension IdentityDashboardService {
@@ -390,5 +374,19 @@ extension IdentityDashboardService {
       self.emails = emails
       self.error = error
     }
+  }
+}
+
+extension IdentityDashboardService {
+
+  public func vaultSnapshot(for credentials: [Credential]) async
+    -> [UserSecureNitroEncryptionAPIClient.Uvvs.UploadUserSnapshot.Body.UvvsElement]
+  {
+    await credentials
+      .asyncMap {
+        return UserSecureNitroEncryptionAPIClient.Uvvs.UploadUserSnapshot.Body.UvvsElement.init(
+          id: $0.id.rawValue, domain: $0.url?.domain?.name ?? "",
+          creationDateUnix: Int(Date().timeIntervalSince1970))
+      }
   }
 }

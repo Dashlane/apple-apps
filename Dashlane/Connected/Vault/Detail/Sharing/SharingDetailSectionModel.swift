@@ -1,4 +1,5 @@
 import Combine
+import CorePersonalData
 import Foundation
 import VaultKit
 

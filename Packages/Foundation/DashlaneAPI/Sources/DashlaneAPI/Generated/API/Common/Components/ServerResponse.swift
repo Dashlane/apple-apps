@@ -1,6 +1,6 @@
 import Foundation
 
-public struct ServerResponse: Codable, Equatable, Sendable {
+public struct ServerResponse: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case collections = "collections"
     case itemErrors = "itemErrors"

@@ -75,7 +75,7 @@ class AppTodayExtensionCommunicator {
   }
 
   private func sendContext() {
-    if !Device.isMac {
+    if !Device.is(.mac) {
       try? applicationContext.toDisk()
     }
   }

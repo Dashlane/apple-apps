@@ -1,6 +1,6 @@
 import Foundation
 
-public struct PaymentsAccessibleStoreOffersGroupSharing: Codable, Equatable, Sendable {
+public struct PaymentsAccessibleStoreOffersGroupSharing: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case enabled = "enabled"
     case info = "info"

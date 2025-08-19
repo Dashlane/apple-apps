@@ -1,4 +1,5 @@
 import Combine
+import CorePersonalData
 
 public class VaultCollectionsPublishersStore {
 

@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppAPIClient.Authentication {
-  public struct Get2FAStatusUnauthenticated: APIRequest {
+  public struct Get2FAStatusUnauthenticated: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/authentication/Get2FAStatusUnauthenticated"
 
     public let api: AppAPIClient
@@ -27,7 +27,7 @@ extension AppAPIClient.Authentication.Get2FAStatusUnauthenticated {
 }
 
 extension AppAPIClient.Authentication.Get2FAStatusUnauthenticated {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case type = "type"
       case isDuoEnabled = "isDuoEnabled"

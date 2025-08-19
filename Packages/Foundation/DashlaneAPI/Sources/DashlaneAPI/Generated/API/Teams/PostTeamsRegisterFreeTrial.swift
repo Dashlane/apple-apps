@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppAPIClient.Teams {
-  public struct RegisterFreeTrial: APIRequest {
+  public struct RegisterFreeTrial: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/teams/RegisterFreeTrial"
 
     public let api: AppAPIClient
@@ -42,7 +42,7 @@ extension AppAPIClient.Teams {
 }
 
 extension AppAPIClient.Teams.RegisterFreeTrial {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case creatorEmail = "creatorEmail"
       case language = "language"
@@ -70,13 +70,13 @@ extension AppAPIClient.Teams.RegisterFreeTrial {
       case utmTerm = "utm_term"
     }
 
-    public struct ConsentsElement: Codable, Equatable, Sendable {
+    public struct ConsentsElement: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case consentType = "consentType"
         case status = "status"
       }
 
-      public enum ConsentType: String, Sendable, Equatable, CaseIterable, Codable {
+      public enum ConsentType: String, Sendable, Hashable, Codable, CaseIterable {
         case privacyPolicyAndToS = "privacyPolicyAndToS"
         case emailsOffersAndTips = "emailsOffersAndTips"
         case undecodable
@@ -102,10 +102,12 @@ extension AppAPIClient.Teams.RegisterFreeTrial {
       }
     }
 
-    public enum Tier: String, Sendable, Equatable, CaseIterable, Codable {
+    public enum Tier: String, Sendable, Hashable, Codable, CaseIterable {
       case legacy = "legacy"
+      case standard = "standard"
       case team = "team"
       case business = "business"
+      case businessplus = "businessplus"
       case undecodable
       public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()

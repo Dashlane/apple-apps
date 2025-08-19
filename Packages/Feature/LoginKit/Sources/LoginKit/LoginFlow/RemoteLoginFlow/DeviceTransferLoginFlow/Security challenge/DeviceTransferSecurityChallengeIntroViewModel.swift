@@ -1,7 +1,7 @@
 import CoreCrypto
 import CoreLocalization
 import CoreSession
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 import StateMachine
@@ -23,21 +23,20 @@ public class DeviceTransferSecurityChallengeIntroViewModel: ObservableObject,
 
   @Published
   var progressState: ProgressionState = .inProgress(
-    L10n.Core.Mpless.D2d.Universal.Untrusted.loadingChallenge)
+    CoreL10n.Mpless.D2d.Universal.Untrusted.loadingChallenge)
 
   let completion: (CompletionType) -> Void
 
-  public var stateMachine: SecurityChallengeTransferStateMachine
+  @Published public var stateMachine: SecurityChallengeTransferStateMachine
+  @Published public var isPerformingEvent: Bool = false
 
   public init(
     login: Login,
+    stateMachine: SecurityChallengeTransferStateMachine,
     apiClient: AppAPIClient,
-    securityChallengeTransferStateMachineFactory: SecurityChallengeTransferStateMachine.Factory,
     completion: @escaping (DeviceTransferSecurityChallengeIntroViewModel.CompletionType) -> Void
   ) {
-    let cryptoProvider = DeviceTransferCryptoKeysProviderImpl()
-    self.stateMachine = securityChallengeTransferStateMachineFactory.make(
-      login: login, cryptoProvider: cryptoProvider)
+    self.stateMachine = stateMachine
     self.completion = completion
     Task {
       await perform(.requestTransferInfo)
@@ -74,11 +73,7 @@ extension DeviceTransferSecurityChallengeIntroViewModel: StateMachineBasedObserv
 
 extension DeviceTransferSecurityChallengeIntroViewModel {
   static var mock: DeviceTransferSecurityChallengeIntroViewModel {
-    DeviceTransferSecurityChallengeIntroViewModel(
-      login: "", apiClient: .fake,
-      securityChallengeTransferStateMachineFactory: .init({ _, _ in
-        .mock
-      })
-    ) { _ in }
+    DeviceTransferSecurityChallengeIntroViewModel(login: "", stateMachine: .mock, apiClient: .fake)
+    { _ in }
   }
 }

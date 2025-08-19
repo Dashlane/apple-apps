@@ -30,7 +30,7 @@ public struct CollectionsSection<Item: VaultItem & Equatable>: View {
 
   public var body: some View {
     if model.item.hasAttachments {
-      CoreLocalization.L10n.Core.attachmentsLimitation(for: model.item).map {
+      CoreL10n.attachmentsLimitation(for: model.item).map {
         Text($0)
           .textStyle(.body.reduced.regular)
           .foregroundStyle(Color.ds.text.neutral.quiet)
@@ -66,7 +66,7 @@ extension CollectionsSection {
         },
         label: {
           Image(systemName: "minus.circle.fill")
-            .foregroundColor(.ds.text.danger.quiet)
+            .foregroundStyle(Color.ds.text.danger.quiet)
         }
       )
       .buttonStyle(.plain)
@@ -79,7 +79,7 @@ extension CollectionsSection {
 
   fileprivate var addCollectionTitle: String {
     model.itemCollections.isEmpty
-      ? L10n.Core.KWVaultItem.Collections.add : L10n.Core.KWVaultItem.Collections.addAnother
+      ? CoreL10n.KWVaultItem.Collections.add : CoreL10n.KWVaultItem.Collections.addAnother
   }
 
   fileprivate var addCollection: some View {
@@ -88,9 +88,9 @@ extension CollectionsSection {
       label: {
         HStack(spacing: horizontalRowSpacing) {
           Image(systemName: "plus.circle.fill")
-            .foregroundColor(.ds.text.positive.standard)
+            .foregroundStyle(Color.ds.text.positive.standard)
           Text(addCollectionTitle)
-            .foregroundColor(.ds.text.brand.standard)
+            .foregroundStyle(Color.ds.text.brand.standard)
         }
       })
   }
@@ -100,17 +100,19 @@ extension CollectionsSection {
   @ViewBuilder
   fileprivate var viewingCollectionsList: some View {
     if model.itemCollections.isEmpty {
-      Button(L10n.Core.KWVaultItem.Collections.add) {
+      Button(CoreL10n.KWVaultItem.Collections.add) {
         showCollectionAddition = true
         model.mode = .updating
       }
       .buttonStyle(DetailRowButtonStyle())
     } else {
-      TagsList(
-        model.itemCollections.map {
-          .init(title: $0.name, trailingAccessory: $0.isShared ? .icon(.ds.shared.outlined) : nil)
+      VWaterfallLayout(spacing: 12) {
+        ForEach(model.itemCollections) { collection in
+          Tag(
+            collection.name,
+            trailingAccessory: collection.isShared ? .icon(.ds.shared.outlined) : nil)
         }
-      )
+      }
       .listRowInsets(EdgeInsets(top: 16, leading: 16, bottom: 16, trailing: 16))
     }
   }
@@ -129,7 +131,7 @@ struct CollectionsSection_Previews: PreviewProvider {
   }
 }
 
-extension CoreLocalization.L10n.Core {
+extension CoreL10n {
   fileprivate static func attachmentsLimitation(for item: VaultItem) -> String? {
     return switch item.enumerated {
     case .credential:

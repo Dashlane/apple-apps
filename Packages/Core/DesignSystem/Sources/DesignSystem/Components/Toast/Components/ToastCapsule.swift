@@ -41,7 +41,7 @@ struct ToastView_Previews: PreviewProvider {
       List {
         Text("content")
       }
-      .listAppearance(.insetGrouped)
+      .listStyle(.ds.insetGrouped)
       .navigationTitle("A title")
       #if os(iOS)
         .navigationBarTitleDisplayMode(.inline)
@@ -56,7 +56,7 @@ struct ToastView_Previews: PreviewProvider {
     .previewDisplayName("Toast over grouped list")
 
     Rectangle()
-      .foregroundColor(.clear)
+      .foregroundStyle(.clear)
       .overlay(alignment: .top) {
         ToastCapsule {
           ToastLabel("Copied !", systemImage: "doc.on.doc")

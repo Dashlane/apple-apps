@@ -1,4 +1,4 @@
-import DashTypes
+import CoreTypes
 
 extension PersonalDataContentType {
   private static var sharedPropertyKeys: [String: Set<String>] = [
@@ -8,6 +8,7 @@ extension PersonalDataContentType {
     ],
     "SECRET": ["content", "secured", "title"],
     "SECURENOTE": ["content", "title"],
+    "WIFI": ["name", "note", "passphrase", "ssid"],
   ]
 
   var sharedPropertyKeys: Set<String> {
@@ -65,6 +66,7 @@ extension PersonalDataContentType {
     "SECURITYBREACH": ["attachments"],
     "SETTINGS": ["attachments"],
     "SOCIALSECURITYSTATEMENT": ["attachments", "socialSecurityNumber"],
+    "WIFI": ["attachments", "name", "note", "passphrase", "ssid"],
   ]
 
   var deduplicationSignatureKeys: Set<String> {

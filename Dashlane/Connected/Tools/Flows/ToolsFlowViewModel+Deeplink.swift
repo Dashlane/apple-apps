@@ -54,7 +54,7 @@ extension ToolDeepLinkComponent {
     case let .otherTool(tool):
       switch tool {
       case .tools:
-        return Device.isIpadOrMac ? .identityDashboard : nil
+        return Device.is(.pad, .mac, .vision) ? .identityDashboard : nil
       case .generator, .history:
         return .passwordGenerator
       case .vpn:

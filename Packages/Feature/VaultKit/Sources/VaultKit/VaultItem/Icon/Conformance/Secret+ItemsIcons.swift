@@ -9,6 +9,6 @@ extension Secret {
   }
 
   public static var addIcon: SwiftUI.Image {
-    Asset.imgSecret.swiftUIImage
+    .ds.item.secret.outlined
   }
 }

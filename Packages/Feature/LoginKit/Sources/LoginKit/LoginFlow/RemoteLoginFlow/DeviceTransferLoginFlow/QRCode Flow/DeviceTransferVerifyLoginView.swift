@@ -1,110 +1,110 @@
 import CoreLocalization
 import CoreSession
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import DesignSystem
 import Foundation
 import SwiftUI
 import UIComponents
 
-#if canImport(UIKit)
-  struct DeviceTransferVerifyLoginView: View {
+struct DeviceTransferVerifyLoginView: View {
 
-    public enum Completion {
-      case confirm
-      case cancel
-    }
+  public enum Completion {
+    case confirm
+    case cancel
+  }
 
-    let login: Login
+  let login: Login
 
-    @State
-    var isLoading = false
+  @State
+  var isLoading = false
 
-    @State
-    var showError = false
+  @State
+  var showError = false
 
-    @Binding
-    var progressState: ProgressionState
+  @Binding
+  var progressState: ProgressionState
 
-    let completion: (Completion) -> Void
+  let completion: (Completion) -> Void
 
-    @Environment(\.dismiss)
-    var dismiss
+  @Environment(\.dismiss)
+  var dismiss
 
-    var body: some View {
-      ZStack {
-        if isLoading {
-          ProgressionView(state: $progressState)
-        } else {
-          loginView
-        }
+  var body: some View {
+    ZStack {
+      if isLoading {
+        LottieProgressionFeedbacksView(state: progressState)
+      } else {
+        loginView
       }
-      .frame(maxWidth: .infinity)
-      .padding(.vertical, 24)
-      .loginAppearance()
-      .animation(.default, value: isLoading)
-      .navigationBarBackButtonHidden()
-      .navigationTitle(L10n.Core.deviceToDeviceNavigationTitle)
-      .navigationBarTitleDisplayMode(.inline)
-      .navigationBarStyle(.transparent)
     }
+    .frame(maxWidth: .infinity)
+    .padding(24)
+    .loginAppearance()
+    .animation(.default, value: isLoading)
+    .navigationBarBackButtonHidden()
+    .navigationTitle(CoreL10n.deviceToDeviceNavigationTitle)
+    .navigationBarTitleDisplayMode(.inline)
+  }
 
-    @ViewBuilder
-    var loginView: some View {
+  @ViewBuilder
+  var loginView: some View {
+    VStack(alignment: .leading) {
       topView
-        .overlay(bottonView)
+
+      Spacer()
+
+      bottonView
     }
+    .frame(maxWidth: .infinity)
+  }
 
-    @ViewBuilder
-    var topView: some View {
-      VStack(alignment: .leading, spacing: 8) {
-        Text(L10n.Core.deviceToDeviceVerifyLoginTitle)
-          .foregroundColor(.ds.text.neutral.catchy)
-          .font(.custom(GTWalsheimPro.bold.name, size: 26, relativeTo: .title))
-          .multilineTextAlignment(.leading)
-        Text(L10n.Core.deviceToDeviceVerifyLoginMessage)
-          .foregroundColor(.ds.text.neutral.standard)
-          .padding(.top, 4)
-          .multilineTextAlignment(.leading)
-        Text(login.email)
-          .fixedSize(horizontal: false, vertical: true)
-          .padding(.top, 4)
-          .multilineTextAlignment(.leading)
-        Spacer()
-      }
-      .padding(.horizontal, 16)
-      .padding(.vertical, 24)
-    }
-
-    var bottonView: some View {
-      VStack(spacing: 23) {
-        Spacer()
-        Button(L10n.Core.kwConfirmButton) {
-          isLoading = true
-          completion(.confirm)
-        }
-        .buttonStyle(.designSystem(.titleOnly))
-        .style(mood: .brand, intensity: .catchy)
-
-        Button(L10n.Core.cancel) {
-          completion(.cancel)
-        }
-        .buttonStyle(.borderless)
-        .foregroundColor(.ds.text.brand.standard)
-      }
-      .padding(.horizontal, 24)
+  @ViewBuilder
+  var topView: some View {
+    VStack(alignment: .leading) {
+      Text(CoreL10n.deviceToDeviceVerifyLoginTitle)
+        .foregroundStyle(Color.ds.text.neutral.catchy)
+        .textStyle(.title.section.large)
+        .multilineTextAlignment(.leading)
+      Text(CoreL10n.deviceToDeviceVerifyLoginMessage)
+        .foregroundStyle(Color.ds.text.neutral.standard)
+        .padding(.top, 4)
+        .multilineTextAlignment(.leading)
+        .textStyle(.body.standard.regular)
+      Text(login.email)
+        .fixedSize(horizontal: false, vertical: true)
+        .padding(.top, 4)
+        .multilineTextAlignment(.leading)
+        .textStyle(.body.standard.regular)
     }
   }
 
-  struct DeviceToDeviceVerifyLoginView_Previews: PreviewProvider {
-    static var previews: some View {
-      NavigationView {
-        DeviceTransferVerifyLoginView(
-          login: "_",
-          progressState: .constant(.inProgress("")),
-          completion: { _ in }
-        )
+  var bottonView: some View {
+    VStack {
+      Button(CoreL10n.kwConfirmButton) {
+        isLoading = true
+        completion(.confirm)
       }
+      .buttonStyle(.designSystem(.titleOnly))
+      .style(mood: .brand, intensity: .catchy)
+
+      Button(CoreL10n.cancel) {
+        completion(.cancel)
+      }
+      .buttonStyle(.designSystem(.titleOnly))
+      .style(mood: .brand, intensity: .supershy)
     }
   }
-#endif
+}
+
+struct DeviceToDeviceVerifyLoginView_Previews: PreviewProvider {
+  static var previews: some View {
+    NavigationView {
+      DeviceTransferVerifyLoginView(
+        login: "_",
+        progressState: .constant(.inProgress("")),
+        completion: { _ in }
+      )
+    }
+  }
+}

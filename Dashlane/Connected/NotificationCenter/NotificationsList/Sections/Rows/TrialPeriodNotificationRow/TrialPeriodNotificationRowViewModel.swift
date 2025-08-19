@@ -1,9 +1,9 @@
 import CoreFeature
 import CorePremium
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import Foundation
 import NotificationKit
+import UserTrackingFoundation
 
 class TrialPeriodNotificationRowViewModel: ObservableObject, SessionServicesInjecting {
   let notification: DashlaneNotification

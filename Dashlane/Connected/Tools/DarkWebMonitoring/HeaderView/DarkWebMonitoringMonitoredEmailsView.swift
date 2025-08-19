@@ -21,45 +21,40 @@ struct DarkWebMonitoringMonitoredEmailsView<
   }
 
   var body: some View {
-    ZStack(alignment: .top) {
-      if model.shouldShowEmailSection {
-        emailListView
-          .padding(.top, 80)
-          .transition(.move(edge: .top).combined(with: .opacity))
-      }
-
+    Section {
       DarkWebMonitoringEmailHeaderView(
         status: model.status(),
         numberOfEmailsMonitored: model.numberOfEmailsMonitored(),
         isUnrolled: $model.shouldShowEmailSection)
-
+      if model.shouldShowEmailSection {
+        emailListView
+          .transition(.move(edge: .top).combined(with: .opacity))
+      }
     }
-    .background(.ds.container.agnostic.neutral.quiet)
-    .clipShape(RoundedRectangle(cornerRadius: 8))
-    .padding(.horizontal, 16)
-    .padding(.top, 16)
   }
 
   @ViewBuilder
   private var emailListView: some View {
-    ScrollView {
-      VStack(spacing: 24) {
-        VStack(spacing: 20) {
+    ForEach(model.registeredEmails, id: \.email) { email in
+      let hideSeparator =
+        email == model.registeredEmails.last
+        && model.registeredEmails.count == model.maxMonitoredEmails
+      DarkWebMonitoringEmailRowView(model: model.makeRowViewModel(email: email))
+        .listRowSeparator(hideSeparator ? .hidden : .visible)
+    }
+    ForEach(model.registeredEmails.count..<model.maxMonitoredEmails, id: \.self) { index in
+      DarkWebMonitoringEmailRowPlaceholderView()
+        .listRowSeparator(index == (model.maxMonitoredEmails - 1) ? .hidden : .visible)
+    }
 
-          ForEach(model.registeredEmails, id: \.email) { email in
-            DarkWebMonitoringEmailRowView(model: model.makeRowViewModel(email: email))
-          }
-          ForEach(model.registeredEmails.count..<model.maxMonitoredEmails, id: \.self) { _ in
-            DarkWebMonitoringEmailRowPlaceholderView()
-          }
-        }
-        if model.isMonitoringEnabled {
-          addEmailButton
-          numberOfSpotsAvailableText
-        }
+    VStack(spacing: 16) {
+      if model.isMonitoringEnabled {
+        addEmailButton
+        numberOfSpotsAvailableText
       }
     }
-    .frame(idealHeight: 440, maxHeight: 440)
+    .frame(maxWidth: .infinity)
+
   }
 
   @ViewBuilder
@@ -68,15 +63,15 @@ struct DarkWebMonitoringMonitoredEmailsView<
       .buttonStyle(.designSystem(.titleOnly))
       .disabled(!model.canAddEmail)
       .opacity(!model.canAddEmail ? 0.4 : 1)
-      .padding(.horizontal, 16)
   }
 
   @ViewBuilder
   private var numberOfSpotsAvailableText: some View {
     HStack {
       MarkdownText(L10n.Localizable.dwmHeaderViewSpotsAvailable(model.availableSpots))
-        .font(.body)
-        .padding(.bottom, 24)
+        .textStyle(.body.standard.regular)
+        .foregroundStyle(Color.ds.text.neutral.standard)
+        .padding(.bottom, 12)
     }
     .frame(maxWidth: .infinity)
   }
@@ -86,15 +81,21 @@ struct DarkWebMonitoringHeaderView_Previews: PreviewProvider {
 
   static var previews: some View {
     MultiContextPreview {
-      DarkWebMonitoringMonitoredEmailsView(
-        model: FakeDarkWebMonitoringMonitoredEmailsViewModel(shouldShowEmailSection: true)
-      )
-      .background(Color.ds.background.default)
+      List {
+        DarkWebMonitoringMonitoredEmailsView(
+          model: FakeDarkWebMonitoringMonitoredEmailsViewModel(shouldShowEmailSection: true)
+        )
+        .background(Color.ds.background.default)
+      }
+      .listStyle(.ds.insetGrouped)
 
-      DarkWebMonitoringMonitoredEmailsView(
-        model: FakeDarkWebMonitoringMonitoredEmailsViewModel(shouldShowEmailSection: false)
-      )
-      .background(Color.ds.background.default)
+      List {
+        DarkWebMonitoringMonitoredEmailsView(
+          model: FakeDarkWebMonitoringMonitoredEmailsViewModel(shouldShowEmailSection: false)
+        )
+        .background(Color.ds.background.default)
+      }
+      .listStyle(.ds.insetGrouped)
     }
   }
 }

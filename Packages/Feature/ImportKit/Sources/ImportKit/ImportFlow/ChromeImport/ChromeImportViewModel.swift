@@ -1,11 +1,12 @@
 import CorePersonalData
 import CorePremium
-import CoreUserTracking
 import Foundation
+import IconLibrary
 import UniformTypeIdentifiers
-import VaultKit
+import UserTrackingFoundation
 
-public class ChromeImportViewModel: ImportViewModel, ObservableObject, ImportKitServicesInjecting {
+public class ChromeImportViewModel: OldImportViewModel, ObservableObject, ImportKitServicesInjecting
+{
 
   public let kind: ImportFlowKind = .chrome
   public var step: ImportStep = .extract
@@ -25,10 +26,11 @@ public class ChromeImportViewModel: ImportViewModel, ObservableObject, ImportKit
   init(
     activityReporter: ActivityReporterProtocol,
     userSpacesService: UserSpacesService,
+    iconService: IconServiceProtocol,
     personalDataURLDecoder: PersonalDataURLDecoderProtocol
   ) {
     self.importService = ChromeImportService()
-    self.iconService = IconServiceMock()
+    self.iconService = iconService
     self.activityReporter = activityReporter
     self.userSpacesService = userSpacesService
     self.personalDataURLDecoder = personalDataURLDecoder

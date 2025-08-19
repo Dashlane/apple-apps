@@ -4,7 +4,9 @@ import CorePersonalData
 import CorePremium
 import CoreSession
 import CoreSettings
+import CoreTypes
 import Foundation
+import LoginKit
 import SecurityDashboard
 import SwiftTreats
 import SwiftUI
@@ -62,6 +64,7 @@ class ToolsFlowViewModel: ObservableObject, SessionServicesInjecting {
   var cancellables = Set<AnyCancellable>()
   let deepLinkingService: DeepLinkingServiceProtocol
   let deeplinkPublisher: AnyPublisher<DeepLink, Never>
+  let accessControlService: AccessControlHandler
 
   var isPasswordlessAccount: Bool {
     session.configuration.info.accountType == .invisibleMasterPassword
@@ -75,6 +78,7 @@ class ToolsFlowViewModel: ObservableObject, SessionServicesInjecting {
     session: Session,
     userSettings: UserSettings,
     vpnService: VPNServiceProtocol,
+    accessControlService: AccessControlHandler,
     capabilityService: CapabilityServiceProtocol,
     vaultStateService: VaultStateServiceProtocol,
     deepLinkingService: DeepLinkingServiceProtocol,
@@ -93,6 +97,7 @@ class ToolsFlowViewModel: ObservableObject, SessionServicesInjecting {
     self.userSettings = userSettings
     self.toolsItem = toolsItem
     self.vpnService = vpnService
+    self.accessControlService = accessControlService
     self.capabilityService = capabilityService
     self.deepLinkingService = deepLinkingService
     self.darkWebMonitoringService = darkWebMonitoringService
@@ -151,8 +156,12 @@ class ToolsFlowViewModel: ObservableObject, SessionServicesInjecting {
         self.presentedSheet = .vpnB2BDisabled
       }
     case .multiDevices:
-      presentedSheet =
-        (isPasswordlessAccount || Device.isMac) ? .showAddNewDevice : .showM2W("tools")
+      accessControlService.requestAccess(for: .addNewDevice) { success in
+        if success {
+          self.presentedSheet =
+            (self.isPasswordlessAccount || !Device.is(.mac)) ? .showAddNewDevice : .showM2W("tools")
+        }
+      }
     case .darkWebMonitoring:
       guard darkWebMonitoringService.isDwmEnabled else {
         deepLinkingService.handleLink(
@@ -175,17 +184,17 @@ class ToolsFlowViewModel: ObservableObject, SessionServicesInjecting {
     case .secureWifi:
       if vpnService.isAvailable {
         self.steps.append(.item(.secureWifi))
-      } else if Device.isIpadOrMac {
+      } else if Device.is(.pad, .mac, .vision) {
         self.steps = [.placeholder(.secureWifi)]
       }
     case .darkWebMonitoring:
       if darkWebMonitoringService.isDwmEnabled {
         self.steps.append(.item(.darkWebMonitoring))
-      } else if Device.isIpadOrMac {
+      } else if Device.is(.pad, .mac, .vision) {
         self.steps = [.placeholder(.darkWebMonitoring)]
       }
     case .multiDevices:
-      if Device.isIpadOrMac {
+      if Device.is(.pad, .mac, .vision) {
         self.steps = [.placeholder(.multiDevices)]
       }
     default:
@@ -225,8 +234,9 @@ extension ToolsFlowViewModel {
       session: .mock,
       userSettings: .mock,
       vpnService: vpnService,
+      accessControlService: .mock(result: .success),
       capabilityService: .mock(),
-      vaultStateService: .mock,
+      vaultStateService: .mock(),
       deepLinkingService: DeepLinkingService.fakeService,
       darkWebMonitoringService: DarkWebMonitoringServiceMock(),
       toolsViewModelFactory: .init({ _ in .mock }),

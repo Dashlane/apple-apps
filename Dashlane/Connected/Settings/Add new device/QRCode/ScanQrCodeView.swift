@@ -3,6 +3,7 @@ import Foundation
 import SwiftUI
 import UIDelight
 
+@available(visionOS, unavailable)
 struct ScanQrCodeView: View {
 
   @Environment(\.dismiss)
@@ -28,35 +29,36 @@ struct ScanQrCodeView: View {
           }
         }
         .alert(
-          CoreLocalization.L10n.Core.kwOtpSecretUpdate,
+          CoreL10n.kwOtpSecretUpdate,
           isPresented: $isCameraAlertErrorPresented,
           actions: {
-            Button(CoreLocalization.L10n.Core.kwAuthoriseCameraAccess) {
+            Button(CoreL10n.kwAuthoriseCameraAccess) {
               openSetting()
             }
-            Button(CoreLocalization.L10n.Core.cancel) {
+            Button(CoreL10n.cancel) {
               self.dismiss()
             }
           },
           message: {
-            Text(CoreLocalization.L10n.Core.kwRequiresCameraAccess)
+            Text(CoreL10n.kwRequiresCameraAccess)
           }
         )
-        .backgroundColorIgnoringSafeArea(.black)
+        .frame(maxHeight: .infinity, alignment: .top)
+        .background(Color.black, ignoresSafeAreaEdges: .all)
         VStack(spacing: 32) {
-          Image(asset: FiberAsset.qrScanFrame)
+          Image(.qrScanFrame)
           Text(L10n.Localizable.addNewDeviceScanCta)
-            .foregroundColor(.ds.text.inverse.catchy)
+            .foregroundStyle(Color.ds.text.inverse.catchy)
             .font(.title2.weight(.semibold))
             .multilineTextAlignment(.center)
         }.padding(.horizontal, 48)
       }
       .toolbar {
         ToolbarItem(placement: .navigationBarLeading) {
-          Button(CoreLocalization.L10n.Core.cancel) {
+          Button(CoreL10n.cancel) {
             dismiss()
           }
-          .foregroundColor(.ds.text.inverse.standard)
+          .foregroundStyle(Color.ds.text.inverse.standard)
         }
       }
       .toolbarColorScheme(.dark, for: .navigationBar)
@@ -73,8 +75,7 @@ struct ScanQrCodeView: View {
 
 }
 
-struct ScanQrCodeView_Previews: PreviewProvider {
-  static var previews: some View {
-    ScanQrCodeView { _ in }
-  }
+@available(visionOS, unavailable)
+#Preview {
+  ScanQrCodeView { _ in }
 }

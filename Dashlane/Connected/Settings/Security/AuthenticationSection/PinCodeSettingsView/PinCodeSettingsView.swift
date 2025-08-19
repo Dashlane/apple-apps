@@ -14,7 +14,7 @@ struct PinCodeSettingsView: View {
 
   var body: some View {
     if viewModel.canShowPin {
-      DS.Toggle(L10n.Localizable.kwUsePinCode, isOn: $viewModel.isToggleOn.animation())
+      DS.Toggle(L10n.Localizable.kwUsePinCode, isOn: $viewModel.isToggleOn)
         .alert(using: $viewModel.activeAlert) { activeAlert in
           switch activeAlert {
           case .deviceNotProtected(let completion):
@@ -26,7 +26,15 @@ struct PinCodeSettingsView: View {
             return makeBiometryReplacementAlert(completion: completion)
           }
         }
-        .onChange(of: viewModel.isToggleOn, perform: viewModel.handleToggleValueChange)
+        .onChange(of: viewModel.isToggleOn) { _, newValue in
+          accessControl.requestAccess(for: .authenticationSetup) { success in
+            if success {
+              viewModel.handleToggleValueChange(newValue: newValue)
+            } else {
+              viewModel.isToggleOn.toggle()
+            }
+          }
+        }
         .overFullScreen(
           isPresented: Binding(
             get: {
@@ -50,8 +58,8 @@ struct PinCodeSettingsView: View {
           }
         },
         label: {
-          Text(CoreLocalization.L10n.Core.kwChangePinCode)
-            .foregroundColor(.ds.text.neutral.standard)
+          Text(CoreL10n.kwChangePinCode)
+            .foregroundStyle(Color.ds.text.neutral.standard)
             .textStyle(.body.standard.regular)
         }
       )
@@ -65,7 +73,7 @@ struct PinCodeSettingsView: View {
     Alert(
       title: Text(L10n.Localizable.kwDeviceNotProtectedAlertTitle),
       message: Text(L10n.Localizable.kwDeviceNotProtectedAlertBody),
-      dismissButton: .cancel(Text(CoreLocalization.L10n.Core.kwButtonOk), action: completion))
+      dismissButton: .cancel(Text(CoreL10n.kwButtonOk), action: completion))
   }
 
   private func makeKeychainStoredMasterPasswordAlert(
@@ -79,7 +87,7 @@ struct PinCodeSettingsView: View {
       title: Text(title),
       message: nil,
       primaryButton: .cancel({ completion(false) }),
-      secondaryButton: .default(Text(CoreLocalization.L10n.Core.kwButtonOk)) { completion(true) })
+      secondaryButton: .default(Text(CoreL10n.kwButtonOk)) { completion(true) })
   }
 
   private func makeBiometryReplacementAlert(completion: @escaping (Bool) -> Void) -> Alert {
@@ -88,10 +96,8 @@ struct PinCodeSettingsView: View {
     return Alert(
       title: Text(title),
       message: nil,
-      primaryButton: .cancel(
-        Text(CoreLocalization.L10n.Core.kwReplaceTouchidCancel), action: { completion(false) }),
-      secondaryButton: .default(
-        Text(CoreLocalization.L10n.Core.kwReplaceTouchidOk), action: { completion(true) }))
+      primaryButton: .cancel(Text(CoreL10n.kwReplaceTouchidCancel), action: { completion(false) }),
+      secondaryButton: .default(Text(CoreL10n.kwReplaceTouchidOk), action: { completion(true) }))
   }
 }
 

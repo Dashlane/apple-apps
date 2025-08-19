@@ -1,5 +1,5 @@
 import Combine
-import DashTypes
+import CoreTypes
 import Foundation
 
 public struct InMemoryDatabaseDriver: DatabaseDriver {
@@ -57,7 +57,7 @@ public struct InMemoryDatabaseDriver: DatabaseDriver {
     .eraseToAnyPublisher()
   }
 
-  public func metadataPublisher(with id: DashTypes.Identifier) -> AnyPublisher<
+  public func metadataPublisher(with id: CoreTypes.Identifier) -> AnyPublisher<
     RecordMetadata?, Error
   > {
     publisher(with: id).map { $0?.metadata }.eraseToAnyPublisher()

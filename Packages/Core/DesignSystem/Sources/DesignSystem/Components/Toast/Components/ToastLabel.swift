@@ -48,10 +48,8 @@ struct ToastLabel: View {
         .scaleEffect(x: showImage ? 1 : 0.9, y: showImage ? 1 : 0.9, anchor: .leading)
         .padding(.horizontal, 4)
     }
-    .foregroundColor(.contentForegroundColor(for: style))
-    #if canImport(UIKit)
-      .fiberAccessibilityAnnouncement(accessibilityAnnouncement)
-    #endif
+    .foregroundStyle(Color.contentForegroundColor(for: style))
+    .fiberAccessibilityAnnouncement(accessibilityAnnouncement)
     .onAppear {
       withAnimation(.spring(response: 0.5, dampingFraction: 0.46).delay(0.2)) {
         showImage = true

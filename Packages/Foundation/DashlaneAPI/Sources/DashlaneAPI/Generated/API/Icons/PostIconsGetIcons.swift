@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Icons {
-  public struct GetIcons: APIRequest {
+  public struct GetIcons: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/icons/GetIcons"
 
     public let api: UserDeviceAPIClient
@@ -24,7 +24,7 @@ extension UserDeviceAPIClient.Icons {
 }
 
 extension UserDeviceAPIClient.Icons.GetIcons {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case hashes = "hashes"
     }
@@ -43,12 +43,12 @@ extension UserDeviceAPIClient.Icons.GetIcons {
 }
 
 extension UserDeviceAPIClient.Icons.GetIcons {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case icons = "icons"
     }
 
-    public struct IconsElement: Codable, Equatable, Sendable {
+    public struct IconsElement: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case hash = "hash"
         case validity = "validity"
@@ -56,7 +56,7 @@ extension UserDeviceAPIClient.Icons.GetIcons {
         case url = "url"
       }
 
-      public enum Validity: String, Sendable, Equatable, CaseIterable, Codable {
+      public enum Validity: String, Sendable, Hashable, Codable, CaseIterable {
         case expired = "expired"
         case invalid = "invalid"
         case valid = "valid"

@@ -15,12 +15,12 @@ struct ButtonIconOnlyLabelStyle: LabelStyle {
 
   private var padding: Double {
     switch controlSize {
-    case .mini, .small:
-      return 12
-    case .regular, .large:
-      fallthrough
+    case .mini, .small, .regular:
+      return 10
+    case .large, .extraLarge:
+      return 14
     @unknown default:
-      return 16
+      return 14
     }
   }
 

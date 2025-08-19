@@ -3,11 +3,11 @@ import Combine
 import CoreNetworking
 import CorePersonalData
 import CoreSync
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import Foundation
 import IconLibrary
 import TOTPGenerator
+import UserTrackingFoundation
 import VaultKit
 
 @MainActor

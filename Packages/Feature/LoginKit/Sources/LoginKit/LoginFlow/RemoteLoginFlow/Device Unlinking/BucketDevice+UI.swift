@@ -1,18 +1,20 @@
 import CoreLocalization
 import CoreSession
+import DesignSystem
 import Foundation
+import SwiftUI
 
-extension DevicePlatform {
-  var imageAsset: ImageAsset {
-    switch self {
+extension Image {
+  init(platform: DevicePlatform) {
+    switch platform {
     case .iphone, .ipad, .ipod, .macos, .catalyst:
-      return Asset.applePlatform
+      self = .ds.os.apple.filled
     case .windows:
-      return Asset.windowsPlatform
+      self = .ds.os.windows.filled
     case .android:
-      return Asset.androidPlatform
+      self = .ds.os.android.filled
     case .web:
-      return Asset.webPlatform
+      self = .ds.web.filled
     }
   }
 }
@@ -22,7 +24,7 @@ extension BucketDevice {
     let formatter = RelativeDateTimeFormatter()
     formatter.unitsStyle = .full
     let timeAgo = formatter.localizedString(for: lastActivityDate, relativeTo: Date())
-    return L10n.Core.deviceUnlinkingUnlinkLastActive(timeAgo)
+    return CoreL10n.deviceUnlinkingUnlinkLastActive(timeAgo)
   }
 }
 

@@ -1,6 +1,9 @@
 import Foundation
+import LogFoundation
 
+@Loggable
 public enum SettingRegistrationError: Error {
+  @LogPublicPrivacy
   case alreadyRegistered(identifier: String)
 }
 
@@ -16,7 +19,7 @@ public struct SettingRegistration {
   }
 }
 
-public final class SettingsRegister {
+public final class SettingsRegister: @unchecked Sendable {
 
   private let queue = DispatchQueue(label: "settings")
 

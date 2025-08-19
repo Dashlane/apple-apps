@@ -1,5 +1,5 @@
 import CoreSync
-import DashTypes
+import CoreTypes
 import Foundation
 import IconLibrary
 import SwiftUI
@@ -13,7 +13,7 @@ public struct PlaceholderWebsiteView: View {
         .fiberAccessibilityHidden(true)
       Text(model.title)
         .font(.body.weight(.medium))
-        .foregroundColor(.ds.text.neutral.catchy)
+        .foregroundStyle(Color.ds.text.neutral.catchy)
     }
     .padding(.vertical, 12)
     .accessibilityElement(children: .combine)

@@ -2,10 +2,10 @@ import Combine
 import CoreLocalization
 import CorePremium
 import CoreSession
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import UIKit
+import UserTrackingFoundation
 
 public enum VPNActivationState {
   case initial
@@ -144,7 +144,7 @@ extension AttributedString {
     let privacyPolicyURL = URL(string: "_")!
 
     let termString = L10n.Localizable.vpnActivationViewTermsOfService
-    let privacyString = CoreLocalization.L10n.Core.kwCreateAccountPrivacy
+    let privacyString = CoreL10n.kwCreateAccountPrivacy
 
     let legalNotice = L10n.Localizable.vpnActivationViewTermsAgree(termString, privacyString)
 

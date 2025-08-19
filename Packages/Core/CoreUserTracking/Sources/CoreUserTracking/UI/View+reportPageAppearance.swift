@@ -1,6 +1,5 @@
-import DashTypes
-import Foundation
 import SwiftUI
+import UserTrackingFoundation
 
 extension View {
   public func reportPageAppearance(_ page: Page) -> some View {

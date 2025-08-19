@@ -1,7 +1,9 @@
 import CoreLocalization
+import CoreUserTracking
 import DesignSystem
 import SwiftUI
 import UIComponents
+import UserTrackingFoundation
 
 struct AutofillOnboardingSuccessView: View {
   let action: () -> Void
@@ -9,16 +11,30 @@ struct AutofillOnboardingSuccessView: View {
   var body: some View {
     VStack {
       Spacer()
-      Image(asset: Asset.introCheckmark)
-      Text(L10n.Core.credentialProviderOnboardingCompletedTitle)
-        .font(DashlaneFont.custom(26, .bold).font)
+      DS.ExpressiveIcon(.ds.feedback.success.outlined)
+        .controlSize(.extraLarge)
+        .style(mood: .neutral, intensity: .quiet)
+      if #available(iOS 18, *) {
+        Text(CoreL10n.credentialProviderOnboardingPasswordsAppCompletedTitle)
+          .textStyle(.specialty.spotlight.small)
+      } else {
+        Text(CoreL10n.credentialProviderOnboardingCompletedTitle)
+          .textStyle(.specialty.spotlight.small)
+      }
+
       Spacer()
-      Button(L10n.Core.credentialProviderOnboardingCompletedCTA, action: action)
+      Button(CoreL10n.credentialProviderOnboardingCompletedCTA, action: action)
         .buttonStyle(.designSystem(.titleOnly))
     }
     .padding(.horizontal, 20)
-    .foregroundColor(.ds.text.neutral.catchy)
+    .foregroundStyle(Color.ds.text.neutral.catchy)
     .navigationBarBackButtonHidden(true)
     .reportPageAppearance(.settingsConfirmAutofillActivation)
+  }
+}
+
+#Preview(traits: .sizeThatFitsLayout) {
+  AutofillOnboardingSuccessView {
+
   }
 }

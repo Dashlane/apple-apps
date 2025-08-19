@@ -27,7 +27,7 @@ struct MatchingCredentialsListView: View {
 
     }
     .navigationBarTitleDisplayMode(.inline)
-    .backgroundColorIgnoringSafeArea(.ds.background.alternate)
+    .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
   }
 
   private var explanations: some View {
@@ -39,12 +39,12 @@ struct MatchingCredentialsListView: View {
         )
         .font(.title.bold())
         .multilineTextAlignment(.leading)
-        .foregroundColor(.ds.text.neutral.catchy)
+        .foregroundStyle(Color.ds.text.neutral.catchy)
         Spacer()
       }
       Text(L10n.Localizable.pwmMatchingCredentialsListDescription)
         .font(.body)
-        .foregroundColor(.ds.text.neutral.standard)
+        .foregroundStyle(Color.ds.text.neutral.standard)
     }
   }
 
@@ -60,7 +60,7 @@ struct MatchingCredentialsListView: View {
 
       Spacer()
       Image(systemName: "chevron.right")
-        .foregroundColor(.ds.text.neutral.catchy)
+        .foregroundStyle(Color.ds.text.neutral.catchy)
         .fiberAccessibilityHidden(true)
     }
     .padding(.horizontal, 16)
@@ -78,7 +78,7 @@ struct MatchingCredentialsListView: View {
       label: {
         Text(L10n.Localizable.addNewPassword)
           .font(.body.weight(.medium))
-          .foregroundColor(.ds.text.brand.standard)
+          .foregroundStyle(Color.ds.text.brand.standard)
       })
   }
 }

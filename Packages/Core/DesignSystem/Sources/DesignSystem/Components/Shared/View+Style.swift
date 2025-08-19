@@ -33,19 +33,8 @@ public struct Style: Equatable, Comparable, Hashable {
   }
 }
 
-struct StyleKey: EnvironmentKey {
-  static var defaultValue: Style = .init(
-    mood: .brand,
-    intensity: .catchy,
-    priority: .low
-  )
-}
-
 extension EnvironmentValues {
-  var style: Style {
-    get { self[StyleKey.self] }
-    set { self[StyleKey.self] = newValue }
-  }
+  @Entry var style: Style = .init(mood: .brand, intensity: .catchy, priority: .low)
 }
 
 extension View {

@@ -9,7 +9,7 @@ extension FiscalInformation: VaultItem {
   }
 
   public var localizedTitle: String {
-    L10n.Core.kwFiscalStatementIOS
+    CoreL10n.kwFiscalStatementIOS
   }
 
   public var localizedSubtitle: String {
@@ -17,15 +17,15 @@ extension FiscalInformation: VaultItem {
   }
 
   public static var localizedName: String {
-    L10n.Core.kwFiscalStatementIOS
+    CoreL10n.kwFiscalStatementIOS
   }
 
   public static var addTitle: String {
-    L10n.Core.kwadddatakwFiscalStatementIOS
+    CoreL10n.kwadddatakwFiscalStatementIOS
   }
 
   public static var nativeMenuAddTitle: String {
-    L10n.Core.addTaxNumber
+    CoreL10n.addTaxNumber
   }
 }
 

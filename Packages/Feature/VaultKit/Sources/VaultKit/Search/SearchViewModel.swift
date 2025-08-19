@@ -42,8 +42,7 @@ open class SearchViewModel {
       guard !filteredItems.isEmpty else { return nil }
       let sectionTitle =
         filteredItems.count > 1
-        ? L10n.Core.KWVault.Search.Items.Title.plural
-        : L10n.Core.KWVault.Search.Items.Title.singular
+        ? CoreL10n.KWVault.Search.Items.Title.plural : CoreL10n.KWVault.Search.Items.Title.singular
 
       return DataSection(name: sectionTitle, items: filteredItems)
     }
@@ -62,7 +61,7 @@ open class SearchViewModel {
             let filteredItems = items.compactMap { item in collection.contains(item) ? item : nil }
             guard !filteredItems.isEmpty else { return nil }
             return DataSection(
-              name: L10n.Core.KWVault.Search.Collections.title,
+              name: CoreL10n.KWVault.Search.Collections.title,
               type: .collection(name: collection.name, isShared: collection.isShared),
               items: filteredItems
             )

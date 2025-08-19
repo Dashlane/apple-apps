@@ -4,7 +4,6 @@ import CorePremium
 import Foundation
 
 public class VaultItemsLimitService: VaultItemsLimitServiceProtocol {
-
   @Published
   public private(set) var credentialsLimit: VaultItemsLimit = .unlimited
   public var credentialsLimitPublisher: Published<VaultItemsLimit>.Publisher { $credentialsLimit }

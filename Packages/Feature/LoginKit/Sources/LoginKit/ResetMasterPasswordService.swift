@@ -1,12 +1,14 @@
-import Combine
+@preconcurrency import Combine
 import CoreKeychain
 import CoreSession
 import CoreSettings
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 
-public class ResetMasterPasswordService: ResetMasterPasswordServiceProtocol {
+public final class ResetMasterPasswordService: ResetMasterPasswordServiceProtocol {
 
+  @Loggable
   enum ResetMasterPasswordServiceError: Error {
     case masterPasswordUnavailable
     case resetContainerCreationError
@@ -26,6 +28,7 @@ public class ResetMasterPasswordService: ResetMasterPasswordServiceProtocol {
     self.resetContainerManager = keychainService.makeResetContainerKeychainManager(
       userLogin: login.email)
     self.keychainService = keychainService
+    var subscriptions = Set<AnyCancellable>()
     self.keychainService.masterKeyStatusChanged.sink { [weak self] in
       guard let self = self else { return }
       switch $0 {
@@ -42,7 +45,7 @@ public class ResetMasterPasswordService: ResetMasterPasswordServiceProtocol {
   public var isActive: Bool {
     let resetContainerStatus = try? resetContainerManager.checkStatus()
     guard let status = resetContainerStatus else {
-      assertionFailure("We should always be able to check the reset container status.")
+      print("Reset container status check failed. Returning false for isActive.")
       return false
     }
     return status == .available && settings.activated
@@ -87,7 +90,7 @@ public class ResetMasterPasswordService: ResetMasterPasswordServiceProtocol {
   private func removeResetContainer() throws {
     do {
       try resetContainerManager.remove()
-    } catch let error as CoreKeychain.KeychainError where error == .itemNotFound {
+    } catch let error as KeychainError where error == .itemNotFound {
     }
   }
 }
@@ -113,7 +116,7 @@ extension ResetMasterPasswordService {
     ResetMasterPasswordService(
       login: Login("_"),
       settings: .mock(),
-      keychainService: .fake
+      keychainService: .mock
     )
   }
 }

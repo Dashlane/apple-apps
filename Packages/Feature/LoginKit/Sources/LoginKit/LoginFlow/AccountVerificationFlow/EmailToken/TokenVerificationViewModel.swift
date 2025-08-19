@@ -1,19 +1,20 @@
 import Combine
 import CoreLocalization
 import CoreSession
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import StateMachine
+import UserTrackingFoundation
 
 @MainActor
-public final class TokenVerificationViewModel: ObservableObject, LoginKitServicesInjecting {
+public final class TokenVerificationViewModel: StateMachineBasedObservableObject,
+  LoginKitServicesInjecting
+{
 
   static let expectedTokenSize = 6
 
-  var login: Login {
-    return Login(accountVerificationService.login)
-  }
+  let login: Login
 
   var canLogin: Bool {
     return !token.isEmpty && !inProgress
@@ -42,7 +43,10 @@ public final class TokenVerificationViewModel: ObservableObject, LoginKitService
   var inProgress: Bool = false
 
   let tokenPublisher: AnyPublisher<String, Never>?
-  let accountVerificationService: AccountVerificationService
+
+  @Published public var stateMachine: TokenVerificationStateMachine
+  @Published public var isPerformingEvent: Bool = false
+
   let completion: @MainActor (Result<AuthTicket, Error>) -> Void
   var errorCount: Int = 0
   let activityReporter: ActivityReporterProtocol
@@ -51,69 +55,72 @@ public final class TokenVerificationViewModel: ObservableObject, LoginKitService
   private var cancellables: Set<AnyCancellable> = []
 
   public init(
+    login: Login,
     tokenPublisher: AnyPublisher<String, Never>?,
-    accountVerificationService: AccountVerificationService,
+    stateMachine: TokenVerificationStateMachine,
     activityReporter: ActivityReporterProtocol,
     mode: Definition.Mode,
     completion: @escaping @MainActor (Result<AuthTicket, Error>) -> Void
   ) {
+    self.login = login
     self.tokenPublisher = tokenPublisher
-    self.accountVerificationService = accountVerificationService
+    self.stateMachine = stateMachine
     self.completion = completion
     self.activityReporter = activityReporter
     self.mode = mode
     tokenPublisher?.assign(to: &$token)
   }
 
-  public func requestToken() async {
-    token = ""
-    do {
-      try await accountVerificationService.requestToken()
-      self.errorMessage = nil
-    } catch {
-      self.errorMessage = CoreLocalization.L10n.errorMessage(for: error)
+  public func willPerform(_ event: TokenVerificationStateMachine.Event) async {
+    switch event {
+    case .validateToken:
+      self.inProgress = true
+    case .requestToken, .requestQAToken:
+      break
     }
+  }
+
+  public func update(
+    for event: TokenVerificationStateMachine.Event,
+    from oldState: TokenVerificationStateMachine.State,
+    to newState: TokenVerificationStateMachine.State
+  ) async {
+    switch newState {
+
+    case .waitingForTokenInput:
+      token = ""
+      self.errorMessage = nil
+    case let .qaTokenReceived(token):
+      try? await Task.sleep(nanoseconds: UInt64(TimeInterval(NSEC_PER_SEC) * 0.2))
+      self.token = token
+    case let .tokenValidated(authTicket):
+      inProgress = false
+      self.completion(.success(authTicket))
+    case let .errorOccured(error):
+      inProgress = false
+      logError()
+      self.errorMessage = CoreL10n.errorMessage(for: error.underlyingError)
+    }
+  }
+
+  public func requestToken() async {
+    await perform(.requestToken)
   }
 
   public func validateToken() async {
     guard !inProgress else { return }
 
     guard token.count == Self.expectedTokenSize else {
-      self.errorMessage = L10n.Core.badToken
+      self.errorMessage = CoreL10n.badToken
       self.logError()
       return
     }
 
-    inProgress = true
-
-    do {
-      let authTicket = try await accountVerificationService.validateToken(token)
-      self.errorMessage = nil
-      self.completion(.success(authTicket))
-    } catch {
-      self.logError()
-      self.errorMessage = CoreLocalization.L10n.errorMessage(for: error)
-    }
-    inProgress = false
+    await perform(.validateToken(token))
   }
 
   public func autofillToken() async {
-    do {
-      let token = try await accountVerificationService.qaToken()
-      try await Task.sleep(nanoseconds: UInt64(TimeInterval(NSEC_PER_SEC) * 0.2))
-      self.token = token
-    } catch {}
-  }
-
-  public func logShowToken() {
-    activityReporter.report(
-      UserEvent.AskAuthentication(
-        mode: self.mode,
-        reason: .login,
-        verificationMode: .emailToken
-      )
-    )
-    activityReporter.reportPageShown(.loginToken)
+    await self.perform(.requestQAToken)
   }
 
   func onViewAppear() async {
@@ -126,7 +133,10 @@ public final class TokenVerificationViewModel: ObservableObject, LoginKitService
     #endif
   }
 
-  public func logResendToken() {
+}
+
+extension TokenVerificationViewModel {
+  func logResendToken() {
     activityReporter.report(UserEvent.ResendToken())
   }
 
@@ -140,13 +150,25 @@ public final class TokenVerificationViewModel: ObservableObject, LoginKitService
       )
     )
   }
+
+  func logShowToken() {
+    activityReporter.report(
+      UserEvent.AskAuthentication(
+        mode: self.mode,
+        reason: .login,
+        verificationMode: .emailToken
+      )
+    )
+    activityReporter.reportPageShown(.loginToken)
+  }
 }
 
 extension TokenVerificationViewModel {
   static var mock: TokenVerificationViewModel {
     TokenVerificationViewModel(
+      login: Login("_"),
       tokenPublisher: PassthroughSubject().eraseToAnyPublisher(),
-      accountVerificationService: .mock,
+      stateMachine: .mock,
       activityReporter: .mock,
       mode: .masterPassword,
       completion: { _ in }

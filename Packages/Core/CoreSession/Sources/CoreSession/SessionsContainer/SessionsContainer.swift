@@ -1,11 +1,20 @@
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 
+@Loggable
 public enum SessionsContainerError: Error, Equatable {
   case cannotDecypherLocalKey
+  @LogPublicPrivacy
   case invalidURL(_ reason: String)
 }
 
+@globalActor
+public actor SessionsContainerActor: GlobalActor {
+  public static let shared = SessionsContainerActor()
+}
+
+@SessionsContainerActor
 public struct SessionsContainer<StoreProvider: SessionStoreProviderProtocol>:
   SessionsContainerProtocol
 {
@@ -143,6 +152,24 @@ public struct SessionsContainer<StoreProvider: SessionStoreProviderProtocol>:
     }
     try directory.remove()
   }
+
+  public func update(_ session: Session, to login: Login) throws -> Session {
+    let oldDirectory = try sessionDirectory(for: session.login)
+    let newDirectory = try SessionDirectory(baseURL: baseURL, login: login)
+    try oldDirectory.move(to: newDirectory)
+
+    return Session(
+      configuration: SessionConfiguration(
+        login: login,
+        masterKey: session.configuration.masterKey,
+        keys: session.configuration.keys,
+        info: session.configuration.info),
+      localKey: session.localKey,
+      directory: newDirectory,
+      cryptoEngine: session.cryptoEngine,
+      localCryptoEngine: session.localCryptoEngine,
+      remoteCryptoEngine: session.remoteCryptoEngine)
+  }
 }
 
 extension SessionsContainer {
@@ -151,12 +178,18 @@ extension SessionsContainer {
     to newMasterKey: MasterKey,
     remoteKey: Data?,
     cryptoConfig: CryptoRawConfig,
-    accountMigrationType: AccountMigrationType,
     loginOTPOption: ThirdPartyOTPOption?
   ) throws -> MigratingSession {
     let newKeys = SessionSecureKeys(
       serverAuthentication: currentSession.configuration.keys.serverAuthentication,
       remoteKey: remoteKey, analyticsIds: currentSession.configuration.keys.analyticsIds)
+    let accountType: AccountType =
+      switch newMasterKey {
+      case .masterPassword:
+        .masterPassword
+      case .ssoKey:
+        .sso
+      }
     let newConfiguration = SessionConfiguration(
       login: currentSession.login,
       masterKey: newMasterKey,
@@ -164,7 +197,7 @@ extension SessionsContainer {
       info: SessionInfo(
         deviceAccessKey: currentSession.configuration.info.deviceAccessKey,
         loginOTPOption: loginOTPOption,
-        accountType: accountMigrationType == .masterPasswordToSSO ? .sso : .masterPassword))
+        accountType: accountType))
     return try prepareMigration(
       of: currentSession, to: newConfiguration, cryptoConfig: cryptoConfig)
   }
@@ -275,8 +308,9 @@ extension URL {
   }
 }
 
+@SessionsContainerActor
 extension SessionsContainer {
   public static var mock: FakeSessionsContainer {
-    FakeSessionsContainer()
+    .mock
   }
 }

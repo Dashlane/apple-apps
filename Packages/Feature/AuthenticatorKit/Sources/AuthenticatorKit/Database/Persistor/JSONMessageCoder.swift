@@ -1,11 +1,13 @@
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 
 public protocol JSONMessageCoderProtocol {
   func encode<T: Encodable>(_ message: T) throws -> Data
   func decode<T: Decodable>(_ data: Data) throws -> T
 }
 
+@Loggable
 public enum JSONMessageCoderError: Error {
   case cannotDecryptData
   case cannotEncryptData

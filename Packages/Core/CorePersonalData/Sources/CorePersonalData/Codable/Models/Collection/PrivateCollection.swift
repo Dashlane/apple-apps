@@ -1,7 +1,9 @@
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 import SwiftTreats
 
+@Loggable
 @PersonalData("COLLECTION")
 public struct PrivateCollection: Equatable, Identifiable {
   public static let searchCategory: SearchCategory = .collection

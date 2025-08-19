@@ -1,12 +1,14 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 
 public typealias PendingTransfer = UserDeviceAPIClient.SecretTransfer.GetKeyExchangeTransferInfo
   .Response.Transfer
 
 public class SenderSecurityChallengeService {
 
+  @Loggable
   enum Error: Swift.Error {
     case publicKeyHashNotMatching
   }

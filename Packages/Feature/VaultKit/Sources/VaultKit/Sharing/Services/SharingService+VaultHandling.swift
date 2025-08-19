@@ -1,11 +1,11 @@
 import CorePersonalData
 import CoreSharing
 import CoreSync
-import DashTypes
+import CoreTypes
 import Foundation
 
 extension SharingService: SharedVaultHandling {
-  public func permission(for item: PersonalDataCodable) -> SharingPermission? {
+  public func permission(for item: VaultItem) -> SharingPermission? {
     guard item.isShared else {
       return nil
     }
@@ -16,12 +16,12 @@ extension SharingService: SharedVaultHandling {
     return try engine.deleteBehaviour(forItemId: id)
   }
 
-  public func deleteBehaviour(for item: PersonalDataCodable) async throws -> ItemDeleteBehaviour {
+  public func deleteBehaviour(for item: VaultItem) async throws -> ItemDeleteBehaviour {
     return try engine.deleteBehaviour(forItemId: item.id)
   }
 
-  public func refuseAndDelete(_ item: CorePersonalData.PersonalDataCodable) async throws {
-    let auditLogDetails = try? activityLogsService.makeActivityLog(codable: item)
+  public func refuseAndDelete(_ item: VaultItem) async throws {
+    let auditLogDetails = try await teamAuditLogsService.auditLogDetails(for: item)
     try await engine.refuseItem(with: item.id, userAuditLogDetails: auditLogDetails)
   }
 

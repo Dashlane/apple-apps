@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.SecretTransfer {
-  public struct CompleteTransfer: APIRequest {
+  public struct CompleteTransfer: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/secretTransfer/CompleteTransfer"
 
     public let api: UserDeviceAPIClient
@@ -25,12 +25,12 @@ extension UserDeviceAPIClient.SecretTransfer {
 }
 
 extension UserDeviceAPIClient.SecretTransfer.CompleteTransfer {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case transfer = "transfer"
     }
 
-    public struct Transfer: Codable, Equatable, Sendable {
+    public struct Transfer: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case transferType = "transferType"
         case transferId = "transferId"

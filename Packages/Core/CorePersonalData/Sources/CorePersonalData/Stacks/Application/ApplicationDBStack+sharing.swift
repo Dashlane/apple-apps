@@ -1,5 +1,6 @@
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 
 extension ApplicationDBStack {
   public func checkShareability(of itemIds: [Identifier]) throws {
@@ -26,6 +27,7 @@ extension ApplicationDBStack {
   }
 }
 
+@Loggable
 public enum ShareabilityError: Error {
   case cannotShareWithAttachments
   case itemNotShareable

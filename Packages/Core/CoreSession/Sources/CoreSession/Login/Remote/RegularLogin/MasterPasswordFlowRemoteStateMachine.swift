@@ -1,20 +1,23 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import StateMachine
 
-@MainActor
 public struct MasterPasswordFlowRemoteStateMachine: StateMachine {
 
-  public enum State: Hashable {
+  @Loggable
+  public enum State: Hashable, Sendable {
     case initialize
     case accountVerification(VerificationMethod, DeviceInfo)
-    case masterPasswordValidation(MasterPasswordRemoteStateMachine.State, DeviceRegistrationData)
+    case masterPasswordValidation(
+      MasterPasswordInputRemoteStateMachine.State, DeviceRegistrationData)
     case masterPasswordValidated(RemoteLoginSession)
     case failed(StateMachineError)
   }
 
-  public enum Event {
+  @Loggable
+  public enum Event: Sendable {
     case initialize
     case accountVerificationDidFinish(AuthTicket, isBackupCode: Bool, VerificationMethod)
     case accountVerificationFailed(StateMachineError)
@@ -29,6 +32,7 @@ public struct MasterPasswordFlowRemoteStateMachine: StateMachine {
   private let deviceInfo: DeviceInfo
   private let logger: Logger
   private let verificationMethod: VerificationMethod
+  private let remoteLogger: RemoteLogger
 
   public init(
     state: MasterPasswordFlowRemoteStateMachine.State,
@@ -37,7 +41,8 @@ public struct MasterPasswordFlowRemoteStateMachine: StateMachine {
     login: Login,
     appAPIClient: AppAPIClient,
     cryptoEngineProvider: CryptoEngineProvider,
-    logger: Logger
+    logger: Logger,
+    remoteLogger: RemoteLogger
   ) {
     self.state = .accountVerification(verificationMethod, deviceInfo)
     self.login = login
@@ -46,10 +51,10 @@ public struct MasterPasswordFlowRemoteStateMachine: StateMachine {
     self.deviceInfo = deviceInfo
     self.logger = logger
     self.verificationMethod = verificationMethod
+    self.remoteLogger = remoteLogger
   }
 
-  public mutating func transition(with event: Event) async {
-    logger.logInfo("Received event \(event)")
+  public mutating func transition(with event: Event) async throws {
     switch (state, event) {
     case (_, .initialize):
       state = .accountVerification(verificationMethod, deviceInfo)
@@ -62,7 +67,8 @@ public struct MasterPasswordFlowRemoteStateMachine: StateMachine {
     case (_, let .masterPasswordValidated(remoteSession)):
       state = .masterPasswordValidated(remoteSession)
     }
-    logger.logInfo("Transition to state: \(state)")
+    let state = state
+    logger.info("Transition to state: \(state)")
   }
 
   private mutating func registerDevice(
@@ -83,8 +89,8 @@ public struct MasterPasswordFlowRemoteStateMachine: StateMachine {
         serverKey: deviceRegistrationResponse.serverKey,
         remoteKeys: deviceRegistrationResponse.remoteKeys,
         isBackupCode: isBackupCode)
+      remoteLogger.configureReportedDeviceId(deviceRegistrationResponse.deviceAccessKey)
       self.state = .masterPasswordValidation(.waitingForUserInput(false), deviceRegistrationData)
-      logger.logInfo("Transition to state: \(state)")
     } catch {
       self.state = .failed(StateMachineError(underlyingError: error))
       logger.error("Device registration failed", error: error)
@@ -96,7 +102,25 @@ extension MasterPasswordFlowRemoteStateMachine {
   public static var mock: MasterPasswordFlowRemoteStateMachine {
     MasterPasswordFlowRemoteStateMachine(
       state: .initialize, verificationMethod: .emailToken, deviceInfo: .mock, login: Login(""),
-      appAPIClient: .mock({}), cryptoEngineProvider: FakeCryptoEngineProvider(),
-      logger: LoggerMock())
+      appAPIClient: .mock({}), cryptoEngineProvider: .mock(), logger: .mock, remoteLogger: .mock)
+  }
+}
+
+extension MasterPasswordFlowRemoteStateMachine {
+  public func makeMasterPasswordInputRemoteStateMachine(
+    state: MasterPasswordInputRemoteStateMachine.State,
+    data: DeviceRegistrationData
+  ) -> MasterPasswordInputRemoteStateMachine {
+    MasterPasswordInputRemoteStateMachine(
+      state: state, login: login, data: data, appAPIClient: appAPIClient,
+      cryptoEngineProvider: cryptoEngineProvider, logger: logger)
+  }
+
+  public func makeAccountVerificationStateMachine(verificationMethod: VerificationMethod)
+    -> AccountVerificationStateMachine
+  {
+    AccountVerificationStateMachine(
+      state: .initialize, login: login, verificationMethod: verificationMethod,
+      appAPIClient: appAPIClient, logger: logger)
   }
 }

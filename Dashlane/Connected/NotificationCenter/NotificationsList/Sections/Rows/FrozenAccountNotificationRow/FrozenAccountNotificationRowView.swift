@@ -1,5 +1,4 @@
 import SwiftUI
-import UIDelight
 
 struct FrozenAccountNotificationRowView: View {
   let model: FrozenAccountNotificationRowViewModel
@@ -10,12 +9,10 @@ struct FrozenAccountNotificationRowView: View {
   var body: some View {
     BaseNotificationRowView(
       icon: model.notification.icon,
-      iconBackgroundColor: Color.red,
       title: model.notification.title,
-      description: model.notification.description
-    ) {
-      self.model.showPaywall()
-    }
+      description: model.notification.description,
+      notificationState: model.notification.state
+    ) { self.model.showPaywall() }
   }
 }
 

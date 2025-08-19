@@ -1,9 +1,10 @@
 import CoreCrypto
 import CorePersonalData
 import CoreSession
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 
 public struct SessionCryptoEngineProvider: CoreSession.CryptoEngineProvider {
 

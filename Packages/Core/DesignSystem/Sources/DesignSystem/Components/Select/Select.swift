@@ -195,15 +195,14 @@ public struct Select<SelectionValue: Hashable, Content: View>: View {
           }
         }
       }
-      .listAppearance(.insetGrouped)
+      .listStyle(.ds.insetGrouped)
       .navigationTitle(label)
       #if !os(macOS)
         .navigationBarTitleDisplayMode(.inline)
       #endif
     } label: {
       DS.TextField(label, text: .constant(effectiveValueLabel))
-        .fieldAppearance(.grouped)
-        .editionDisabled(appearance: .discrete)
+        .fieldEditionDisabled(appearance: .discrete)
     }
     .accessibilityLabel(
       Text([label, effectiveValueLabel].filter(\.isNotEmpty).joined(separator: ", "))
@@ -301,7 +300,7 @@ private struct PreviewContent: View {
         }
       }
       .navigationTitle("Custom")
-      .listAppearance(.insetGrouped)
+      .listStyle(.ds.insetGrouped)
     }
   }
 }

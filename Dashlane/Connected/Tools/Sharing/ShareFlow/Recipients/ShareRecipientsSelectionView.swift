@@ -1,7 +1,8 @@
 import CoreLocalization
 import CoreSharing
-import DashTypes
+import CoreTypes
 import DesignSystem
+import DesignSystemExtra
 import SwiftTreats
 import SwiftUI
 import UIComponents
@@ -29,7 +30,7 @@ struct ShareRecipientsSelectionView: View {
     let isReadyToShare = model.isReadyToShare && !isTextFieldFocused
 
     VStack(alignment: .leading, spacing: 0) {
-      SharingMagicRecipientField(text: $model.search)
+      SharingMagicRecipientField(text: $model.search, placeholderText: model.placeholderText)
         .padding(.horizontal)
         .focused($isTextFieldFocused)
         .onSubmit {
@@ -56,7 +57,7 @@ struct ShareRecipientsSelectionView: View {
       {
         Text(warningLabel)
           .font(.footnote)
-          .foregroundColor(.ds.text.danger.standard)
+          .foregroundStyle(Color.ds.text.danger.standard)
           .padding()
       }
 
@@ -87,8 +88,7 @@ struct ShareRecipientsSelectionView: View {
 
   private var warningLabel: String {
     model.configuration.sharingType == .collection
-      ? CoreLocalization.L10n.Core.collectionSharingTeamOnlyWarning
-      : CoreLocalization.L10n.Core.itemSharingTeamOnlyWarning
+      ? CoreL10n.collectionSharingTeamOnlyWarning : CoreL10n.itemSharingTeamOnlyWarning
   }
 
   var submitLabel: SubmitLabel {
@@ -107,11 +107,16 @@ extension ShareRecipientsSelectionView {
   var toolbarContent: some ToolbarContent {
     ToolbarItem(placement: .navigationBarLeading) {
       if isRoot {
-        Button(CoreLocalization.L10n.Core.cancel) {
-          dismiss()
-        }
+        Button(
+          action: {
+            dismiss()
+          },
+          label: {
+            Text(CoreL10n.cancel)
+              .foregroundStyle(Color.ds.text.brand.standard)
+          })
       } else {
-        BackButton(color: .accentColor) {
+        NativeNavigationBarBackButton {
           dismiss()
         }
       }
@@ -123,7 +128,7 @@ extension ShareRecipientsSelectionView {
           model.configuration.count == 1
           ? L10n.Localizable.sharingRecipientSelected(model.configuration.count)
           : L10n.Localizable.sharingRecipientsSelected(model.configuration.count)
-        Button(CoreLocalization.L10n.Core.next + "(\(model.configuration.count))") {
+        Button(CoreL10n.next + "(\(model.configuration.count))") {
           model.search = ""
           isTextFieldFocused = false
         }
@@ -139,7 +144,7 @@ extension ShareRecipientsSelectionView {
       List {
         ForEach(model.groups) { group in
           let isSelected = model.configuration.groupIds.contains(group.id)
-          SelectionRow(isSelected: isSelected) {
+          NativeSelectionRow(isSelected: isSelected) {
             groupRow(for: group)
           }.onTapWithFeedback {
             model.toggle(group)
@@ -163,7 +168,7 @@ extension ShareRecipientsSelectionView {
             .style(mood: .neutral, intensity: model.isSearchInsertable ? .catchy : .quiet)
 
           case let .toggle(isRemovable):
-            SelectionRow(isSelected: isSelected) {
+            NativeSelectionRow(isSelected: isSelected) {
               emailRecipientRow(for: recipient)
             }.onTapWithFeedback {
               model.toggle(recipient)
@@ -175,11 +180,13 @@ extension ShareRecipientsSelectionView {
           model.delete(at: indexSet)
         }
       }
-      .dismissKeyboardOnDrag()
+      #if !os(visionOS)
+        .scrollDismissesKeyboard(.immediately)
+      #endif
     }
-    .listStyle(.plain)
+    .listStyle(.ds.plain)
     .overlay(emptyView)
-    .loading(isLoading: !model.isLoaded, loadingIndicatorOffset: true)
+    .loading(!model.isLoaded)
   }
 
   func resetSearchFieldIfNeeded() {
@@ -196,7 +203,7 @@ extension ShareRecipientsSelectionView {
       Image.ds.group.outlined
         .resizable()
         .frame(width: 60, height: 60)
-        .foregroundColor(.ds.text.inverse.quiet.opacity(0.5))
+        .foregroundStyle(Color.ds.text.inverse.quiet.opacity(0.5))
         .padding(.horizontal, 40)
     }
   }
@@ -210,7 +217,6 @@ extension ShareRecipientsSelectionView {
     ) {
       if let image = recipient.image {
         Thumbnail.User.single(image)
-          .controlSize(.small)
       } else {
         GravatarIconView(
           model: model.gravatarIconViewModelFactory.make(email: recipient.email),
@@ -228,7 +234,6 @@ extension ShareRecipientsSelectionView {
         ? model.configuration.permission : nil
     ) {
       Thumbnail.User.group
-        .controlSize(.small)
     }
   }
 }

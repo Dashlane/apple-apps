@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Features {
-  public struct GetAndEvaluateForUser: APIRequest {
+  public struct GetAndEvaluateForUser: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/features/GetAndEvaluateForUser"
 
     public let api: UserDeviceAPIClient
@@ -24,7 +24,7 @@ extension UserDeviceAPIClient.Features {
 }
 
 extension UserDeviceAPIClient.Features.GetAndEvaluateForUser {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case features = "features"
     }
@@ -43,7 +43,7 @@ extension UserDeviceAPIClient.Features.GetAndEvaluateForUser {
 }
 
 extension UserDeviceAPIClient.Features.GetAndEvaluateForUser {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case enabledFeatures = "enabledFeatures"
     }

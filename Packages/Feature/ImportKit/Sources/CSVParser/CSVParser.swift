@@ -1,4 +1,5 @@
 import Foundation
+import LogFoundation
 
 public struct CSVParser {
 

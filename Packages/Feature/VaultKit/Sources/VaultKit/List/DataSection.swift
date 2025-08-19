@@ -1,5 +1,6 @@
 import Combine
-import DashTypes
+import CorePersonalData
+import CoreTypes
 import Foundation
 
 public struct DataSection: Identifiable {

@@ -1,3 +1,4 @@
+import DesignSystem
 import SwiftTreats
 import SwiftUI
 import UIComponents
@@ -18,7 +19,7 @@ struct NotificationSectionView: View {
         .onFirstDisappear {
           notification.notificationActionHandler.reportAsDisplayed()
         }
-        .listRowBackground(rowBackground(for: notification))
+        .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
     }.onDelete(perform: deleteItems)
   }
 
@@ -52,8 +53,8 @@ struct NotificationSectionView: View {
     if model.shouldShowHeader {
       HStack {
         Text(model.dataSection.category.sectionTitle)
-          .font(.custom(GTWalsheimPro.medium.name, size: 20, relativeTo: .title3))
-          .foregroundColor(Color.primary)
+          .textStyle(.title.supporting.small)
+          .foregroundStyle(Color.ds.text.neutral.quiet)
 
         Spacer()
 
@@ -70,7 +71,7 @@ struct NotificationSectionView: View {
         showAll()
       } label: {
         Text(L10n.Localizable.notificationCenterSeeAll(model.dataSection.notifications.count))
-          .foregroundColor(.ds.text.brand.standard)
+          .foregroundStyle(Color.ds.text.brand.standard)
           .font(.subheadline)
       }
       .fiberAccessibilityLabel(
@@ -78,14 +79,6 @@ struct NotificationSectionView: View {
           L10n.Localizable.notificationCenterSeeAll(model.dataSection.notifications.count)
             + " \(model.dataSection.category.sectionTitle) \(L10n.Localizable.tabNotificationsTitle)"
         ))
-    }
-  }
-
-  private func rowBackground(for notification: DashlaneNotification) -> Color {
-    if notification.state == .unseen {
-      return .ds.container.expressive.brand.quiet.idle
-    } else {
-      return .ds.container.agnostic.neutral.supershy
     }
   }
 

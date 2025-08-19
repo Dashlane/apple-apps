@@ -128,6 +128,7 @@ final class HomeFlowViewModel: ObservableObject, SessionServicesInjecting,
 
   func displayAnnouncementIffNeeded() {
     lockService.locker.unlockedPublisher
+      .delay(for: .seconds(1), scheduler: DispatchQueue.main)
       .sinkOnce { [weak self] _ in
         self?.homeModalAnnouncementsViewModel.trigger.send(.sessionUnlocked)
       }
@@ -163,20 +164,33 @@ extension HomeFlowViewModel {
   fileprivate func makeOnboardingCheckListFlowViewModel() -> OnboardingChecklistFlowViewModel {
     onboardingChecklistFlowViewModel.make(
       displayMode: .root,
-      onboardingChecklistViewAction: handleOnboardingChecklistViewAction
-    ) { [weak self] completion in
-      switch completion {
-      case .dismiss:
-        self?.currentScreen = nil
-      }
-    }
+      onboardingChecklistViewAction: { [weak self] in
+        self?.handleOnboardingChecklistViewAction($0)
+      },
+      completion: { [weak self] completion in
+        switch completion {
+        case .dismiss:
+          self?.currentScreen = nil
+        }
+      })
   }
 }
 
 extension HomeFlowViewModel {
   func handle(_ deepLink: VaultDeeplink) {
-    guard case let .homeView(vaultFlowViewModel) = currentScreen else { return }
-    vaultFlowViewModel.handle(deepLink)
+    guard let currentScreen else { return }
+
+    switch currentScreen {
+    case .homeView(let viewModel):
+      if viewModel.canHandle(deepLink: deepLink) {
+        viewModel.handle(deepLink)
+      }
+
+    case .onboardingChecklist:
+      if case .create(let component) = deepLink {
+        addNewItem(displayMode: .itemType(component.type))
+      }
+    }
   }
 
   func createCredential(using password: GeneratedPassword) {
@@ -188,11 +202,6 @@ extension HomeFlowViewModel {
     default:
       break
     }
-  }
-
-  func canHandle(deepLink: VaultDeeplink) -> Bool {
-    guard case let .homeView(vaultFlowViewModel) = currentScreen else { return false }
-    return vaultFlowViewModel.canHandle(deepLink: deepLink)
   }
 }
 
@@ -210,7 +219,7 @@ extension HomeFlowViewModel {
       }
       .toolbar {
         ToolbarItem(placement: .navigationBarLeading) {
-          NavigationBarButton(CoreLocalization.L10n.Core.cancel) {
+          Button(CoreL10n.cancel) {
             self.genericFullCover = nil
           }
         }

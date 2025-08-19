@@ -12,7 +12,7 @@ extension DetailService {
 
     isSaving = true
 
-    let itemDidChange = vaultItemEditionService.itemDidChange
+    let itemDidChange = vaultItemEditionService.itemHasChanged
     let collectionsDidChange = vaultCollectionEditionService.collectionsDidChange()
 
     guard mode.isAdding || itemDidChange || collectionsDidChange else {

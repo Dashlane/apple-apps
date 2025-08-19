@@ -1,6 +1,5 @@
 import CorePersonalData
 import Foundation
-import VaultKit
 
 public struct ImportableItems {
 

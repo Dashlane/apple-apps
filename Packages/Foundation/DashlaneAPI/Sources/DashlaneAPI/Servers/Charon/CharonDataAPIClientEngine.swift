@@ -28,7 +28,7 @@ struct CharonDataAPIClientEngineImpl: CharonDataAPIClientEngine {
     apiClientEngine: APIClientEngine,
     signer: RequestSigner,
     additionalHeaders: [String: String],
-    session: URLSession = URLSession(configuration: .ephemeral)
+    session: URLSession = URLSession.dashlane()
   ) {
     self.decoder.keyDecodingStrategy = .convertFromSnakeCase
     self.apiURL = apiURL

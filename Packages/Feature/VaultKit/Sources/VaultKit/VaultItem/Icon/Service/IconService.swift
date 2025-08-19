@@ -1,13 +1,9 @@
 import CoreSession
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 import IconLibrary
-
-public protocol IconServiceProtocol {
-  var domain: DomainIconLibraryProtocol { get }
-  var gravatar: GravatarIconLibraryProtocol { get }
-}
+import LogFoundation
 
 public struct IconService: IconServiceProtocol {
   public let domain: DomainIconLibraryProtocol

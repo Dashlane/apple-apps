@@ -30,23 +30,14 @@ struct DeviceTransferSecurityChallengeFlow_Preview: PreviewProvider {
   static var previews: some View {
     DeviceTransferSecurityChallengeFlow(
       model: .init(
-        login: "_",
-        securityChallengeIntroViewModelFactory: .init({ login, completion in
+        login: "_", stateMachine: .mock,
+        securityChallengeIntroViewModelFactory: .init({ login, stateMachine, completion in
           DeviceTransferSecurityChallengeIntroViewModel(
-            login: login, apiClient: .mock({}),
-            securityChallengeTransferStateMachineFactory: .init({ _, _ in
-              .mock
-            }), completion: completion)
+            login: login, stateMachine: stateMachine, apiClient: .mock({}), completion: completion)
         }),
-        passphraseViewModelFactory: .init({ state, words, transferId, secretBox, completion in
+        passphraseViewModelFactory: .init({ _, words, completion in
           DeviceTransferPassphraseViewModel(
-            initialState: state, words: words, transferId: transferId, secretBox: secretBox,
-            passphraseStateMachineFactory: .init({ _, _, _ in
-              .mock
-            }), completion: completion)
-        }),
-        securityChallengeFlowStateMachineFactory: .init({ _ in
-          .mock
+            stateMachine: .mock, words: words, completion: completion)
         }), completion: { _ in }))
   }
 }

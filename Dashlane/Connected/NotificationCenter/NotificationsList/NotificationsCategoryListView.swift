@@ -1,5 +1,5 @@
-import CoreUserTracking
 import SwiftUI
+import UserTrackingFoundation
 
 class NotificationsCategoryListViewModel {
   let section: NotificationDataSection
@@ -76,7 +76,7 @@ struct NotificationsCategoryListView: View {
 
       }
     }
-    .listAppearance(.insetGrouped)
+    .listStyle(.ds.insetGrouped)
     .navigationTitle(model.section.category.sectionTitle)
     .navigationBarTitleDisplayMode(.inline)
   }

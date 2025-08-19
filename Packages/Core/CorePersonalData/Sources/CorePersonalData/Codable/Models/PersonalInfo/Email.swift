@@ -1,9 +1,10 @@
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 import SwiftTreats
 
+@Loggable
 @PersonalData
-
 public struct Email: Equatable, Identifiable, DatedPersonalData {
   public static let searchCategory: SearchCategory = .personalInfo
 

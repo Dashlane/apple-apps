@@ -1,4 +1,4 @@
-import DashTypes
+import CoreTypes
 import DesignSystem
 import LoginKit
 import SwiftTreats
@@ -20,40 +20,21 @@ struct AccountCreationFlow: View {
       case .email:
         AccountEmailView(model: model.makeEmailViewModel())
 
-      case let .masterPassword(email, isB2BAccount):
-        NewMasterPasswordView(model: model.makeNewPasswordModel(email: email), title: "") {
-          if !isB2BAccount {
-            Button(L10n.Localizable.NewMasterPassword.skipMasterPasswordButton) {
-              model.startPasswordLess(email: email)
-            }
-            .buttonStyle(.designSystem(.titleOnly))
-            .style(mood: .brand, intensity: .quiet)
-            .controlSize(.large)
-          }
-        }
+      case let .create(type):
+        switch type {
+        case let .masterPassword(email, isB2BAccount):
+          RegularAccountCreationFlow(
+            model: model.makeRegularAccountCreationFlowViewModel(
+              email: email, isB2BAccount: isB2BAccount))
 
-      case let .create(configuration):
-        switch configuration.accountType {
-        case .masterPassword:
-          MasterPasswordAccountCreationFlow(
-            model: model.makeMasterPasswordAccountCreationFlow(configuration: configuration))
+        case let .sso(email, info):
+          SSOAccountCreationFlow(
+            viewModel: model.makeSSOAccountCreationFlowViewModel(email: email, info: info))
 
-        case .invisibleMasterPassword:
-          PasswordLessAccountCreationFlow(
-            model: model.makePasswordLessAccountCreationFlow(configuration: configuration))
-
-        case .undecodable:
-          EmptyView()
         }
 
       }
     }
   }
 
-}
-
-extension AccountCreationFlow: NavigationBarStyleProvider {
-  var navigationBarStyle: UIComponents.NavigationBarStyle {
-    .transparent(tintColor: .ds.text.neutral.standard, statusBarStyle: .default)
-  }
 }

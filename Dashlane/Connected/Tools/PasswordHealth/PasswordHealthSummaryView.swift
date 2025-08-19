@@ -34,10 +34,10 @@ struct PasswordHealthSummaryView: View {
     VStack(spacing: 24) {
       Text(addPasswordViewTitle)
         .font(.body)
-        .foregroundColor(.ds.text.brand.quiet)
+        .foregroundStyle(Color.ds.text.brand.quiet)
         .multilineTextAlignment(.center)
 
-      Button(CoreLocalization.L10n.Core.addPassword) {
+      Button(CoreL10n.addPassword) {
         action(.addPasswords)
       }
       .buttonStyle(.designSystem(.titleOnly))

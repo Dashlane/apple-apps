@@ -1,34 +1,10 @@
 import Foundation
-import UIComponents
+import SwiftUILottie
 
 extension LottieAsset {
 
   internal static let gradientLoading = LottieAsset(
     file: "Lottie/Gradient_Loading.json", bundle: BundleToken.bundle)
-
-  internal static let guidedOnboarding01Autofill = LottieAsset(
-    file: "Lottie/guidedOnboarding_01_autofill.json", bundle: BundleToken.bundle)
-
-  internal static let guidedOnboarding02PwGenerator = LottieAsset(
-    file: "Lottie/guidedOnboarding_02_pw_generator.json", bundle: BundleToken.bundle)
-
-  internal static let guidedOnboarding03Breach = LottieAsset(
-    file: "Lottie/guidedOnboarding_03_breach.json", bundle: BundleToken.bundle)
-
-  internal static let guidedOnboarding04Onlinelife = LottieAsset(
-    file: "Lottie/guidedOnboarding_04_onlinelife.json", bundle: BundleToken.bundle)
-
-  internal static let guidedOnboarding05Vault = LottieAsset(
-    file: "Lottie/guidedOnboarding_05_vault.json", bundle: BundleToken.bundle)
-
-  internal static let guidedOnboarding06BouncingLogos = LottieAsset(
-    file: "Lottie/guidedOnboarding_06_bouncing_logos.json", bundle: BundleToken.bundle)
-
-  internal static let guidedOnboarding07Pwimport = LottieAsset(
-    file: "Lottie/guidedOnboarding_07_pwimport.json", bundle: BundleToken.bundle)
-
-  internal static let guidedOnboarding08Devices = LottieAsset(
-    file: "Lottie/guidedOnboarding_08_devices.json", bundle: BundleToken.bundle)
 
   internal static let loadingAnimationCompletion = LottieAsset(
     file: "Lottie/loading_animation_completion.json", bundle: BundleToken.bundle)

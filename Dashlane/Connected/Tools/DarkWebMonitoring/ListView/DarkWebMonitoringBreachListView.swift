@@ -1,6 +1,7 @@
 import Combine
 import CoreLocalization
 import CorePersonalData
+import DesignSystem
 import SecurityDashboard
 import SwiftUI
 import UIComponents
@@ -30,76 +31,80 @@ struct DarkWebMonitoringBreachListView: View {
   }
 
   var body: some View {
-    ZStack {
-      Color.ds.background.default.edgesIgnoringSafeArea(.all)
-      if viewModel.isMonitoringAvailable {
-        if viewModel.shouldShowList() {
-          listView
-        } else {
-          EmptyView()
-        }
-      } else {
-        premiumView
+    Group {
+      Section {
+        Text(L10n.Localizable.darkWebMonitoringListViewSectionHeaderTitle)
+          .textStyle(.title.section.medium)
+          .foregroundStyle(Color.ds.text.neutral.catchy)
+          .listRowBackground(Color.ds.background.alternate)
+          .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
       }
-    }
-    .confirmationDialog(
-      L10n.Localizable.dwmDetailViewDeleteConfirmTitle,
-      isPresented: $showConfirmAlert,
-      actions: {
-        Button(CoreLocalization.L10n.Core.kwDelete) {
-          deleteItems()
-          toBeDeleted = nil
+      .listSectionSpacing(0)
+
+      listView
+        .confirmationDialog(
+          L10n.Localizable.dwmDetailViewDeleteConfirmTitle,
+          isPresented: $showConfirmAlert,
+          actions: {
+            Button(CoreL10n.kwDelete) {
+              deleteItems()
+              toBeDeleted = nil
+            }
+          }
+        )
+        .reportPageAppearance(.toolsDarkWebMonitoringList)
+        .onAppear {
+          viewModel.reportPendingBreaches()
         }
-      }
-    )
-    .reportPageAppearance(.toolsDarkWebMonitoringList)
-    .onAppear {
-      viewModel.reportPendingBreaches()
     }
+    .animation(.easeInOut, value: selectedListType)
 
   }
-
-  @State
-  private var listHeight: CGFloat = 0
 
   @ViewBuilder
   private var listView: some View {
-    VStack(spacing: 0) {
-      CustomSegmentedControl(
-        selectedIndex: $selectedListType,
-        options: [
-          pendingSegment,
-          solvedSegment,
-        ]
-      ).background(.ds.background.default)
-
-      if !filteredBreaches.isEmpty {
-        List {
-          ForEach(filteredBreaches, id: \.self) { breach in
-            DarkWebMonitoringBreachView(model: self.viewModel.makeRowViewModel(breach))
-              .onTapGesture { self.viewModel.actionPublisher?.send(.showDetails(breach)) }
-          }.onDelete(perform: { indexSet in
-            toBeDeleted = indexSet
-            showConfirmAlert.toggle()
-          })
-        }.listStyle(GroupedListStyle())
-      } else {
-        emptyListView
+    Section {
+      Picker(selection: $selectedListType) {
+        pendingSegment
+        solvedSegment
+      } label: {
+        EmptyView()
       }
-    }.animation(.easeInOut, value: selectedListType)
-      .frame(maxHeight: .infinity)
+      .pickerStyle(.segmented)
+      .listRowInsets(.init(top: 0, leading: 0, bottom: 0, trailing: 0))
+      .listRowBackground(Color.ds.background.alternate)
+      .padding(.bottom, 16)
+      .tint(.ds.text.brand.standard)
+    }
+    .listSectionSpacing(0)
+
+    if !filteredBreaches.isEmpty {
+      ForEach(filteredBreaches, id: \.self) { breach in
+        DarkWebMonitoringBreachView(model: self.viewModel.makeRowViewModel(breach))
+          .onTapGesture { self.viewModel.actionPublisher?.send(.showDetails(breach)) }
+      }.onDelete(perform: { indexSet in
+        toBeDeleted = indexSet
+        showConfirmAlert.toggle()
+      })
+
+    } else {
+      emptyListView
+    }
   }
 
-  private var pendingSegment: CustomSegment {
-    CustomSegment(
-      title: L10n.Localizable.dataleakEmailStatusPending,
-      segmentTag: SegmentTag(tag: viewModel.pendingBreachesCount, type: .full))
+  private var pendingSegment: some View {
+    Group {
+      Text(L10n.Localizable.dataleakEmailStatusPending)
+        + Text("(\(viewModel.pendingBreachesCount))")
+    }
+    .tag(BreachListType.pending.rawValue)
   }
 
-  private var solvedSegment: CustomSegment {
-    CustomSegment(
-      title: L10n.Localizable.dwmAlertSolvedTitle,
-      segmentTag: SegmentTag(tag: viewModel.solvedBreachesCount, type: .outline))
+  private var solvedSegment: some View {
+    Group {
+      Text(L10n.Localizable.dwmAlertSolvedTitle) + Text("(\(viewModel.solvedBreachesCount))")
+    }
+    .tag(BreachListType.solved.rawValue)
   }
 
   private var segmentedControl: some View {
@@ -114,27 +119,30 @@ struct DarkWebMonitoringBreachListView: View {
   private var emptyListView: some View {
     let selectedListType = BreachListType(rawValue: selectedListType)!
 
-    let image: ImageAsset.Image = {
-      switch selectedListType {
-      case .pending: return FiberAsset.thumbsAllGood.image
-      case .solved: return FiberAsset.emptyViewSolved.image
-      }
-    }()
+    VStack(alignment: .center, spacing: 16) {
+      let image: Image =
+        switch selectedListType {
+        case .pending:
+          .ds.feature.darkWebMonitoring.outlined
+        case .solved:
+          .ds.healthPositive.outlined
+        }
+      DS.ExpressiveIcon(image)
+        .style(mood: selectedListType == .pending ? .neutral : .positive, intensity: .quiet)
+        .controlSize(.extraLarge)
 
-    let content: String = {
-      switch selectedListType {
-      case .pending:
-        return L10n.Localizable.darkWebMonitoringOnboardingEmailConfirmationNoBreachesSubtitle
-      case .solved: return L10n.Localizable.breachViewSolvedEmptyViewTitle
-      }
-    }()
+      let content: String =
+        switch selectedListType {
+        case .pending:
+          L10n.Localizable.darkWebMonitoringOnboardingEmailConfirmationNoBreachesSubtitle
+        case .solved:
+          L10n.Localizable.breachViewSolvedEmptyViewTitle
+        }
 
-    ScrollView {
-      VStack(alignment: .center) {
-        Image(uiImage: image).padding(.bottom, 35).padding(.top, 65)
+      VStack(spacing: 2) {
         Text(content)
-          .foregroundColor(.ds.text.neutral.quiet)
-          .font(.body).padding(.bottom, 32)
+          .foregroundStyle(Color.ds.text.neutral.standard)
+          .textStyle(.body.standard.regular)
           .multilineTextAlignment(.center)
 
         if selectedListType == .solved {
@@ -144,15 +152,16 @@ struct DarkWebMonitoringBreachListView: View {
               Text(L10n.Localizable.breachViewSolvedEmptyViewButton)
             }
           )
-          .buttonStyle(ColoredButtonStyle())
+          .buttonStyle(.designSystem(.titleOnly))
+          .style(intensity: .supershy)
+          .controlSize(.mini)
         }
-
-        Spacer()
       }
-      .id(selectedListType)
-      .frame(maxWidth: .infinity)
-      .padding(.horizontal, 16)
     }
+    .padding(.top, 16)
+    .id(selectedListType)
+    .frame(maxWidth: .infinity)
+    .listRowBackground(Color.ds.background.alternate)
   }
 
   @ViewBuilder
@@ -168,16 +177,36 @@ struct DarkWebMonitoringBreachListView: View {
   }
 }
 
-struct DarkWebMonitoringBreachListView_Previews: PreviewProvider {
-  static var previews: some View {
-    MultiContextPreview {
-      DarkWebMonitoringBreachListView(viewModel: .mock(isMonitoringAvailable: true))
-      DarkWebMonitoringBreachListView(viewModel: .mock(breaches: [], isMonitoringAvailable: true))
-      DarkWebMonitoringBreachListView(
-        viewModel: .mock(breaches: [], isMonitoringAvailable: true), selectedListType: 1)
-      DarkWebMonitoringBreachListView(viewModel: .mock(breaches: [], isMonitoringAvailable: false))
-    }
-  }
+#Preview {
+  List {
+    DarkWebMonitoringBreachListView(viewModel: .mock(isMonitoringAvailable: true))
+  }.listStyle(.ds.insetGrouped)
+}
+
+#Preview {
+  List {
+    DarkWebMonitoringBreachListView(
+      viewModel: .mock(
+        breaches: [
+          .mock
+        ], isMonitoringAvailable: true))
+  }.listStyle(.ds.insetGrouped)
+}
+
+#Preview {
+  List {
+    DarkWebMonitoringBreachListView(
+      viewModel: .mock(
+        breaches: [
+          .mock
+        ], isMonitoringAvailable: true), selectedListType: 1)
+  }.listStyle(.ds.insetGrouped)
+}
+
+#Preview {
+  List {
+    DarkWebMonitoringBreachListView(viewModel: .mock(breaches: [], isMonitoringAvailable: false))
+  }.listStyle(.ds.insetGrouped)
 }
 
 extension Credential {

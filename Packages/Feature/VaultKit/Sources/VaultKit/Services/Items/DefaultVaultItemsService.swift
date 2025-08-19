@@ -2,10 +2,12 @@ import CoreCategorizer
 import CoreLocalization
 import CorePersonalData
 import CorePremium
-import DashTypes
+import CoreSession
+import CoreTypes
+import LogFoundation
 
-protocol DefaultVaultItemsServiceProtocol {
-  func createDefaultItems()
+public protocol DefaultVaultItemsServiceProtocol {
+  func createItemsIfNeeded(for context: SessionLoadingContext)
 }
 
 struct DefaultVaultItemsService: VaultKitServicesInjecting, DefaultVaultItemsServiceProtocol {
@@ -31,16 +33,48 @@ struct DefaultVaultItemsService: VaultKitServicesInjecting, DefaultVaultItemsSer
     self.categorizer = categorizer
   }
 
-  func createDefaultItems() {
+  func createItemsIfNeeded(for context: SessionLoadingContext) {
+    switch context {
+    case .accountCreation:
+      createNewAccountDefaultItems()
+
+    case .localLogin(.afterLogout(reason: .loginEmailChanged), _):
+      try? createAccountEmailIfNotExistAlready()
+
+    default:
+      break
+    }
+  }
+
+  func createNewAccountDefaultItems() {
     createDefaultCategories()
     createDefaultEmail()
   }
 
-  private func createDefaultEmail() {
+  func createAccountEmailIfNotExistAlready() throws {
+    let emails = try database.fetchAll(Email.self)
+    guard
+      !emails.contains(where: {
+        $0.value.lowercased().trimmingCharacters(in: .whitespaces) == login.email
+      })
+    else {
+      return
+    }
+
+    var nextAvailableEmailNumber = 1
+
+    while emails.contains(where: { $0.name == "Email \(nextAvailableEmailNumber)" }) {
+      nextAvailableEmailNumber += 1
+    }
+
+    createDefaultEmail(number: nextAvailableEmailNumber)
+  }
+
+  private func createDefaultEmail(number: Int = 1) {
     do {
       var email = Email()
       email.value = login.email
-      email.name = L10n.Core.kwEmailIOS + " 1"
+      email.name = CoreL10n.kwEmailIOS + " \(number)"
       email.spaceId = userSpacesService.configuration.defaultSpace(for: email).personalDataId
 
       _ = try database.save(email)
@@ -75,17 +109,17 @@ struct DefaultVaultItemsService: VaultKitServicesInjecting, DefaultVaultItemsSer
 
   private func createDefaultSecureNotesCategories() throws {
     let categories = [
-      L10n.Core.KWSecureNoteCategoriesManager.categoryNoteAppPasswords,
-      L10n.Core.KWSecureNoteCategoriesManager.categoryNoteDatabase,
-      L10n.Core.KWSecureNoteCategoriesManager.categoryNoteFinance,
-      L10n.Core.KWSecureNoteCategoriesManager.categoryNoteLegal,
-      L10n.Core.KWSecureNoteCategoriesManager.categoryNoteMemberships,
-      L10n.Core.KWSecureNoteCategoriesManager.categoryNoteOther,
-      L10n.Core.KWSecureNoteCategoriesManager.categoryNotePersonal,
-      L10n.Core.KWSecureNoteCategoriesManager.categoryNoteServer,
-      L10n.Core.KWSecureNoteCategoriesManager.categoryNoteSoftwareLicenses,
-      L10n.Core.KWSecureNoteCategoriesManager.categoryNoteWifiPasswords,
-      L10n.Core.KWSecureNoteCategoriesManager.categoryNoteWork,
+      CoreL10n.KWSecureNoteCategoriesManager.categoryNoteAppPasswords,
+      CoreL10n.KWSecureNoteCategoriesManager.categoryNoteDatabase,
+      CoreL10n.KWSecureNoteCategoriesManager.categoryNoteFinance,
+      CoreL10n.KWSecureNoteCategoriesManager.categoryNoteLegal,
+      CoreL10n.KWSecureNoteCategoriesManager.categoryNoteMemberships,
+      CoreL10n.KWSecureNoteCategoriesManager.categoryNoteOther,
+      CoreL10n.KWSecureNoteCategoriesManager.categoryNotePersonal,
+      CoreL10n.KWSecureNoteCategoriesManager.categoryNoteServer,
+      CoreL10n.KWSecureNoteCategoriesManager.categoryNoteSoftwareLicenses,
+      CoreL10n.KWSecureNoteCategoriesManager.categoryNoteWifiPasswords,
+      CoreL10n.KWSecureNoteCategoriesManager.categoryNoteWork,
     ]
     .map { categoryName -> SecureNoteCategory in
       var category = SecureNoteCategory()
@@ -100,7 +134,7 @@ extension DefaultVaultItemsServiceProtocol where Self == DefaultVaultItemsServic
   static var mock: DefaultVaultItemsServiceProtocol {
     DefaultVaultItemsService(
       login: .init("_"),
-      logger: LoggerMock(),
+      logger: .mock,
       database: ApplicationDBStack.mock(),
       userSpacesService: UserSpacesService.mock(),
       categorizer: CategorizerMock()

@@ -1,4 +1,4 @@
-import DashTypes
+import CoreTypes
 import UIKit
 
 final class HelpCenterSettingsViewModel: ObservableObject, SessionServicesInjecting {

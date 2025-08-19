@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol TrayAlertProtocol: AlertProtocol {
+public protocol TrayAlertProtocol: AlertProtocol, Sendable {
   var timestamp: String? { get }
   var date: AlertSection? { get }
 }

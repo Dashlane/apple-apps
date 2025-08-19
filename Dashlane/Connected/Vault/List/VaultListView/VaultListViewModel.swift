@@ -6,13 +6,13 @@ import CorePersonalData
 import CorePremium
 import CoreSettings
 import CoreSharing
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import Foundation
 import ImportKit
 import NotificationKit
 import SwiftTreats
 import SwiftUI
+import UserTrackingFoundation
 import VaultKit
 
 struct VaultSelection {

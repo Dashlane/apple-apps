@@ -19,7 +19,7 @@ struct DeviceTransferAccountRecoveryIntroView: View {
       overlayView
     }
     .navigationBarTitleDisplayMode(.inline)
-    .navigationTitle(L10n.Core.deviceToDeviceNavigationTitle)
+    .navigationTitle(CoreL10n.deviceToDeviceNavigationTitle)
     .loginAppearance()
     .reportPageAppearance(.loginDeviceTransferAccountRecoveryKey)
   }
@@ -27,28 +27,28 @@ struct DeviceTransferAccountRecoveryIntroView: View {
   var mainView: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 16) {
-        Text(L10n.Core.Mpless.D2d.Untrusted.recoveryIntroTitle)
+        Text(CoreL10n.Mpless.D2d.Untrusted.recoveryIntroTitle)
           .textStyle(.title.section.large)
           .foregroundStyle(Color.ds.text.neutral.catchy)
-        MarkdownText(L10n.Core.Mpless.D2d.Untrusted.recoveryIntroMessage)
+        MarkdownText(CoreL10n.Mpless.D2d.Untrusted.recoveryIntroMessage)
           .textStyle(.body.standard.regular)
           .foregroundStyle(Color.ds.text.neutral.standard)
         Spacer()
       }
       .padding(24)
     }
-    .backgroundColorIgnoringSafeArea(.ds.background.alternate)
+    .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
   }
 
   var overlayView: some View {
     VStack(spacing: 8) {
       Spacer()
-      Button(L10n.Core.Mpless.D2d.Untrusted.recoveryIntroPrimaryCta) {
+      Button(CoreL10n.Mpless.D2d.Untrusted.recoveryIntroPrimaryCta) {
         completion(.startRecovery)
       }
       .style(mood: .brand, intensity: .catchy)
 
-      Button(L10n.Core.Mpless.D2d.Untrusted.recoveryIntroSecondaryCta) {
+      Button(CoreL10n.Mpless.D2d.Untrusted.recoveryIntroSecondaryCta) {
         completion(.startLostKey)
       }
       .style(mood: .brand, intensity: .quiet)

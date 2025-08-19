@@ -1,13 +1,14 @@
 import CoreData
-import DashTypes
+import CoreTypes
+import LogFoundation
 
-final public class Settings {
+final public class Settings: Sendable {
 
   public let register: SettingsRegister = SettingsRegister()
   public let configuration: SettingsConfiguration
   public let logger: Logger
 
-  private var dataStack: DataStack
+  private let dataStack: DataStack
   public weak var delegate: SettingsDelegate?
 
   public func value<T: DataConvertible>(for identifier: String) -> T? {
@@ -85,7 +86,7 @@ final public class Settings {
         try context.recursiveSave()
       } catch {
         context.rollback()
-        logger.fatal("Cannot save settings for key \(identifier)", error: error)
+        logger.fatal("Cannot save settings for key \(identifier, privacy: .public)", error: error)
       }
     }
   }
@@ -107,4 +108,12 @@ final public class Settings {
     self.dataStack = dataStack
   }
 
+}
+
+extension Settings: LocalSettingsStore {
+  public func registerIfneeded(_ settingRegistrations: [SettingRegistration]) {
+    settingRegistrations.forEach {
+      try? register.append($0)
+    }
+  }
 }

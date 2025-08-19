@@ -1,4 +1,5 @@
 import AuthenticatorKit
+import AutofillKit
 import CoreCategorizer
 import CoreFeature
 import CoreKeychain
@@ -7,15 +8,17 @@ import CorePasswords
 import CorePersonalData
 import CoreSession
 import CoreSettings
+import CoreTypes
 import CoreUserTracking
-import DashTypes
 import DashlaneAPI
 import DomainParser
 import Foundation
+import LogFoundation
 import Logger
 import LoginKit
 import NotificationKit
 import SwiftTreats
+import UserTrackingFoundation
 import VaultKit
 import ZXCVBN
 
@@ -30,19 +33,19 @@ final class AppServicesContainer: DependenciesContainer {
   let categorizer: Categorizer
   let regionInformationService: RegionInformationService
   let globalSettings = AppSettings()
-  let keychainService: AuthenticationKeychainService
+  let keychainService: AuthenticationKeychainServiceProtocol
   weak var sessionLifeCycleHandler: SessionLifeCycleHandler?
   let passwordEvaluator: PasswordEvaluatorProtocol
-  let crashReporter: CrashReporterService
+  let crashReporter: CrashReporter
   let notificationService: NotificationService
   let deepLinkingService: DeepLinkingService
-  let loginMetricsReporter: LoginMetricsReporter
-  let networkReachability: NetworkReachability
+  let networkReachability: NetworkReachabilityProtocol
   let unauthenticatedABTestingService: UnauthenticatedABTestingService
   let spotlightIndexer: SpotlightIndexer
   let spiegelSettingsManager: SettingsManager
-  let activityReporter: UserTrackingAppActivityReporter
+  let userTrackingAppActivityReporter: UserTrackingAppActivityReporter
   let versionValidityService: VersionValidityService
+  let autofillExtensionCommunicationCenter = AppAutofillExtensionCommunicationCenter()
   #if targetEnvironment(macCatalyst)
     let appKitBridge: AppKitBridgeProtocol
   #endif
@@ -51,9 +54,9 @@ final class AppServicesContainer: DependenciesContainer {
   @MainActor
   init(
     sessionLifeCycleHandler: SessionLifeCycleHandler,
-    crashReporter: CrashReporterService,
+    crashReporter: CrashReporter,
     appLaunchTimeStamp: TimeInterval
-  ) throws {
+  ) async throws {
     self.crashReporter = crashReporter
     globalSettings.configure()
 
@@ -68,7 +71,8 @@ final class AppServicesContainer: DependenciesContainer {
     remoteLogger = try KibanaLogger(
       apiClient: .init(),
       outputLevel: .fatal,
-      origin: .mainApplication)
+      origin: .mainApplication,
+      deviceId: globalSettings.deviceId)
 
     rootLogger = [
       localLogger,
@@ -87,12 +91,12 @@ final class AppServicesContainer: DependenciesContainer {
       keychainSettingsDataProvider: spiegelSettingsManager,
       accessGroup: ApplicationGroup.keychainAccessGroup)
 
-    sessionContainer = try SessionsContainer(
+    sessionContainer = try await SessionsContainer(
       baseURL: ApplicationGroup.fiberSessionsURL,
       cryptoEngineProvider: sessionCryptoEngineProvider,
       sessionStoreProvider: SessionStoreProvider())
 
-    activityReporter = try UserTrackingAppActivityReporter(
+    userTrackingAppActivityReporter = try UserTrackingAppActivityReporter(
       logger: rootLogger[.userTrackingLogs],
       component: .mainApp,
       cryptoEngineProvider: sessionCryptoEngineProvider,
@@ -106,7 +110,6 @@ final class AppServicesContainer: DependenciesContainer {
       sessionLifeCycleHandler: sessionLifeCycleHandler, notificationService: notificationService,
       brazeService: brazeService)
     self.sessionLifeCycleHandler = sessionLifeCycleHandler
-    loginMetricsReporter = LoginMetricsReporter(appLaunchTimeStamp: appLaunchTimeStamp)
 
     spotlightIndexer = SpotlightIndexer(logger: rootLogger[.spotlight])
     unauthenticatedABTestingService = UnauthenticatedABTestingService(
@@ -119,7 +122,8 @@ final class AppServicesContainer: DependenciesContainer {
       appSettings: globalSettings,
       logoutHandler: sessionLifeCycleHandler,
       logger: rootLogger[.versionValidity],
-      activityReporter: activityReporter)
+      activityReporter: userTrackingAppActivityReporter)
+
     #if targetEnvironment(macCatalyst)
       appKitBridge = AppKitBundleLoader.load()
     #endif
@@ -138,12 +142,37 @@ extension AppServicesContainer {
   }
 }
 
-extension LoginKitServicesContainer: AppServicesInjecting {
+extension AppServicesContainer: LoginKitServicesContainer {
+  var activityReporter: UserTrackingFoundation.ActivityReporterProtocol {
+    userTrackingAppActivityReporter
+  }
 
+  var cryptoEngineProvider: any CoreSession.CryptoEngineProvider {
+    sessionCryptoEngineProvider
+  }
+
+  var settingsManager: any CoreSettings.LocalSettingsFactory {
+    spiegelSettingsManager
+  }
 }
 
 extension AppServicesContainer: AccountCreationFlowDependenciesContainer {
-  var logger: DashTypes.Logger {
+
+  var logger: LogFoundation.Logger {
     rootLogger
+  }
+}
+
+extension AppServicesContainer {
+  var accountCreationFlowStateMachine: AccountCreationStateMachine {
+    return CoreSession.AccountCreationStateMachine(
+      logger: logger,
+      appAPIClient: appAPIClient,
+      sessionCleaner: sessionCleaner,
+      sessionContainer: sessionContainer,
+      passwordGenerator: PasswordGenerator(length: 40, composition: .all, distinguishable: false),
+      sessionCryptoEngineProvider: sessionCryptoEngineProvider,
+      accountCreationSettingsProvider: self,
+      accountCreationSharingKeysProvider: self)
   }
 }

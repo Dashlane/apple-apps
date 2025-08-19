@@ -43,7 +43,7 @@ public struct ClientInfo: Sendable {
 }
 
 extension ClientInfo {
-  static var mock = ClientInfo(
+  static let mock = ClientInfo(
     platform: "server_iphone",
     appVersion: "1",
     osVersion: "2",

@@ -1,7 +1,7 @@
 import Foundation
 
-public enum AuthenticationPerformVerificationIntent: String, Sendable, Equatable, CaseIterable,
-  Codable
+public enum AuthenticationPerformVerificationIntent: String, Sendable, Hashable, Codable,
+  CaseIterable
 {
   case defaultIntent = "default_intent"
   case accountDeleteOrReset = "account_delete_or_reset"

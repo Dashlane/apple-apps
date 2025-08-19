@@ -17,10 +17,8 @@ struct AddressDetailView: View {
     DetailContainerView(service: model.service) {
       Section {
         if model.mode.isEditing {
-          TextDetailField(
-            title: CoreLocalization.L10n.Core.KWPersonalWebsiteIOS.name, text: $model.item.name
-          )
-          .textInputAutocapitalization(.words)
+          TextDetailField(title: CoreL10n.KWPersonalWebsiteIOS.name, text: $model.item.name)
+            .textInputAutocapitalization(.words)
         }
 
         if model.item.mode == .europe {
@@ -53,7 +51,7 @@ struct AddressDetailView: View {
           zipCode
         }
         PickerDetailField(
-          title: CoreLocalization.L10n.Core.KWAddressIOS.country,
+          title: CoreL10n.KWAddressIOS.country,
           selection: $model.selectedCountry,
           elements: CountryCodeNamePair.countries,
           content: { country in
@@ -64,7 +62,7 @@ struct AddressDetailView: View {
       Section {
         if !model.item.receiver.isEmpty || model.mode.isEditing {
           TextDetailField(
-            title: CoreLocalization.L10n.Core.KWAddressIOS.receiver,
+            title: CoreL10n.KWAddressIOS.receiver,
             text: $model.item.receiver,
             actions: [.copy(model.copy)]
           )
@@ -72,7 +70,7 @@ struct AddressDetailView: View {
         }
         if !model.item.building.isEmpty || model.mode.isEditing {
           TextDetailField(
-            title: CoreLocalization.L10n.Core.KWAddressIOS.building,
+            title: CoreL10n.KWAddressIOS.building,
             text: $model.item.building,
             actions: [.copy(model.copy)]
           )
@@ -80,7 +78,7 @@ struct AddressDetailView: View {
         }
         if !model.item.stairs.isEmpty || model.mode.isEditing {
           TextDetailField(
-            title: CoreLocalization.L10n.Core.KWAddressIOS.stairs,
+            title: CoreL10n.KWAddressIOS.stairs,
             text: $model.item.stairs,
             actions: [.copy(model.copy)]
           )
@@ -88,7 +86,7 @@ struct AddressDetailView: View {
         }
         if !model.item.floor.isEmpty || model.mode.isEditing {
           TextDetailField(
-            title: CoreLocalization.L10n.Core.KWAddressIOS.floor,
+            title: CoreL10n.KWAddressIOS.floor,
             text: $model.item.floor,
             actions: [.copy(model.copy)]
           )
@@ -96,7 +94,7 @@ struct AddressDetailView: View {
         }
         if !model.item.door.isEmpty || model.mode.isEditing {
           TextDetailField(
-            title: CoreLocalization.L10n.Core.KWAddressIOS.door,
+            title: CoreL10n.KWAddressIOS.door,
             text: $model.item.door,
             actions: [.copy(model.copy)]
           )
@@ -104,7 +102,7 @@ struct AddressDetailView: View {
         }
         if !model.item.digitCode.isEmpty || model.mode.isEditing {
           TextDetailField(
-            title: CoreLocalization.L10n.Core.KWAddressIOS.digitCode,
+            title: CoreL10n.KWAddressIOS.digitCode,
             text: $model.item.digitCode,
             actions: [.copy(model.copy)]
           )
@@ -114,7 +112,7 @@ struct AddressDetailView: View {
 
       Section {
         PickerDetailField(
-          title: CoreLocalization.L10n.Core.KWAddressIOS.linkedPhone,
+          title: CoreL10n.KWAddressIOS.linkedPhone,
           selection: $model.selectedPhone,
           elements: model.phoneList,
           allowEmptySelection: true
@@ -128,7 +126,7 @@ struct AddressDetailView: View {
 
   var addressFull: some View {
     TextDetailField(
-      title: CoreLocalization.L10n.Core.KWAddressIOS.addressFull,
+      title: CoreL10n.KWAddressIOS.addressFull,
       text: $model.item.addressFull,
       actions: [.copy(model.copy)]
     )
@@ -139,8 +137,7 @@ struct AddressDetailView: View {
 
   var zipCode: some View {
     TextDetailField(
-      title: CoreLocalization.L10n.Core.KWAddressIOS.zipCodeFieldTitle(
-        for: model.item.stateVariant),
+      title: CoreL10n.KWAddressIOS.zipCodeFieldTitle(for: model.item.stateVariant),
       text: $model.item.zipCode,
       actions: [.copy(model.copy)]
     )
@@ -149,17 +146,18 @@ struct AddressDetailView: View {
 
   var city: some View {
     TextDetailField(
-      title: CoreLocalization.L10n.Core.KWAddressIOS.city,
+      title: CoreL10n.KWAddressIOS.city,
       text: $model.item.city,
       actions: [.copy(model.copy)]
     )
     .actions([.copy(model.copy)])
     .textInputAutocapitalization(.words)
+    .fieldRequired()
   }
 
   var state: some View {
     PickerDetailField(
-      title: CoreLocalization.L10n.Core.KWAddressIOS.stateFieldTitle(for: model.item.stateVariant),
+      title: CoreL10n.KWAddressIOS.stateFieldTitle(for: model.item.stateVariant),
       selection: $model.item.state,
       elements: model.stateItems,
       allowEmptySelection: true
@@ -170,7 +168,7 @@ struct AddressDetailView: View {
 
   var streetNumber: some View {
     TextDetailField(
-      title: CoreLocalization.L10n.Core.KWAddressIOS.streetNumber,
+      title: CoreL10n.KWAddressIOS.streetNumber,
       text: $model.item.streetNumber,
       actions: [.copy(model.copy)]
     )
@@ -179,7 +177,7 @@ struct AddressDetailView: View {
 
   var streetName: some View {
     TextDetailField(
-      title: CoreLocalization.L10n.Core.KWAddressIOS.streetName,
+      title: CoreL10n.KWAddressIOS.streetName,
       text: $model.item.streetName,
       actions: [.copy(model.copy)]
     )

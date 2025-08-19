@@ -1,8 +1,8 @@
 import CorePersonalData
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import Foundation
 import SwiftUI
+import UserTrackingFoundation
 import VaultKit
 
 class DomainsSectionModel: DetailViewModelProtocol, SessionServicesInjecting,

@@ -7,23 +7,23 @@ extension SecureNoteColor {
   public var color: Color {
     switch self {
     case .blue:
-      return Color(asset: Asset.secureNoteBlue)
+      return Color(.secureNoteBlue)
     case .purple:
-      return Color(asset: Asset.secureNotePurple)
+      return Color(.secureNotePurple)
     case .pink:
-      return Color(asset: Asset.secureNotePink)
+      return Color(.secureNotePink)
     case .red:
-      return Color(asset: Asset.secureNoteRed)
+      return Color(.secureNoteRed)
     case .brown:
-      return Color(asset: Asset.secureNoteBrown)
+      return Color(.secureNoteBrown)
     case .green:
-      return Color(asset: Asset.secureNoteGreen)
+      return Color(.secureNoteGreen)
     case .orange:
-      return Color(asset: Asset.secureNoteOrange)
+      return Color(.secureNoteOrange)
     case .yellow:
-      return Color(asset: Asset.secureNoteYellow)
+      return Color(.secureNoteYellow)
     case .gray:
-      return Color(asset: Asset.secureNoteGray)
+      return Color(.secureNoteGray)
     }
   }
 
@@ -51,4 +51,4 @@ extension SecureNoteColor {
   }
 }
 
-typealias SecureNoteL10n = L10n.Core.KWSecureNoteIOS.`Type`
+typealias SecureNoteL10n = CoreL10n.KWSecureNoteIOS.`Type`

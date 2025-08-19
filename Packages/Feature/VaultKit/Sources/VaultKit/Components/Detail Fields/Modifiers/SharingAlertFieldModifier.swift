@@ -1,6 +1,6 @@
 import CoreLocalization
 import CorePersonalData
-import DashTypes
+import CoreTypes
 import DesignSystem
 import SwiftUI
 import UIComponents
@@ -25,13 +25,15 @@ extension View {
   @ViewBuilder
   public func limitedRights(
     hasInfoButton: Bool = true,
-    item: PersonalDataCodable
+    item: PersonalDataCodable,
+    isFrozen: Bool
   ) -> some View {
     if item.isShared && item.metadata.sharingPermission == .limited,
       let sharingType = item.metadata.contentType.sharingType
     {
       self.modifier(
-        SharingAlertFieldModifier(sharingType: sharingType, hasInfoButton: hasInfoButton))
+        SharingAlertFieldModifier(
+          sharingType: sharingType, hasInfoButton: hasInfoButton, isFrozen: isFrozen))
     } else {
       self
     }
@@ -41,7 +43,19 @@ extension View {
   public func limitedRights(model: LimitedRightsModifierViewModel) -> some View {
     if model.shouldLimit, let sharingType = model.item.metadata.contentType.sharingType {
       self.modifier(
-        SharingAlertFieldModifier(sharingType: sharingType, hasInfoButton: model.hasInfoButton))
+        SharingAlertFieldModifier(
+          sharingType: sharingType, hasInfoButton: model.hasInfoButton, isFrozen: model.isFrozen))
+    } else {
+      self
+    }
+  }
+
+  @ViewBuilder
+  public func limitedRightsAutofill(model: LimitedRightsModifierViewModel) -> some View {
+    if model.shouldLimit, let sharingType = model.item.metadata.contentType.sharingType {
+      self.modifier(
+        SharingAlertAutofillFieldModifier(
+          sharingType: sharingType, hasInfoButton: model.hasInfoButton, isFrozen: model.isFrozen))
     } else {
       self
     }
@@ -59,16 +73,18 @@ private struct SharingAlertFieldModifier: ViewModifier {
   let sharingType: SharingType
   let hasInfoButton: Bool
 
+  let isFrozen: Bool
+
   @ViewBuilder
   func body(content: Content) -> some View {
     HStack {
       content
         .environment(\.detailMode, .limitedViewing)
-        .editionDisabled(true, appearance: .discrete)
-        .textInputRemoveBuiltInActions(true)
+        .fieldEditionDisabled(true, appearance: .discrete)
+        .defaultFieldActionsHidden()
       if hasInfoButton {
         Image.ds.feedback.info.outlined
-          .foregroundColor(.ds.text.brand.standard)
+          .foregroundStyle(Color.ds.text.brand.standard)
       }
     }
     .frame(maxWidth: .infinity, alignment: .leading)
@@ -80,10 +96,58 @@ private struct SharingAlertFieldModifier: ViewModifier {
         }
     )
     .alert(
-      sharingType.limitedRightsAlertTitle,
+      isFrozen && sharingType == .password
+        ? CoreL10n.fozenUserLimitAlertTitle : sharingType.limitedRightsAlertTitle,
+      isPresented: $showAlert,
+      actions: {
+        Button(CoreL10n.kwButtonOk) {}
+      },
+      message: {
+        Text(isFrozen && sharingType == .password ? CoreL10n.fozenUserLimitAlertMessage : "")
+      }
+    )
+  }
+}
+
+private struct SharingAlertAutofillFieldModifier: ViewModifier {
+
+  @State
+  var showAlert: Bool = false
+
+  @Environment(\.detailMode)
+  var detailMode
+
+  let sharingType: SharingType
+  let hasInfoButton: Bool
+
+  let isFrozen: Bool
+
+  @ViewBuilder
+  func body(content: Content) -> some View {
+    HStack {
+      content
+        .environment(\.detailMode, .limitedViewing)
+        .fieldEditionDisabled(true, appearance: .discrete)
+        .defaultFieldActionsHidden()
+      if hasInfoButton {
+        Image.ds.feedback.info.outlined
+          .foregroundStyle(Color.ds.text.brand.standard)
+          .contentShape(Rectangle())
+          .onTapGesture {
+            self.showAlert = true
+          }
+      }
+    }
+    .frame(maxWidth: .infinity, alignment: .leading)
+    .alert(
+      isFrozen && sharingType == .password
+        ? CoreL10n.fozenUserLimitAlertTitle : sharingType.limitedRightsAlertTitle,
       isPresented: $showAlert,
       actions: {
         Button(L10n.Core.kwButtonOk) {}
+      },
+      message: {
+        Text(isFrozen && sharingType == .password ? CoreL10n.fozenUserLimitAlertMessage : "")
       }
     )
   }
@@ -93,11 +157,11 @@ extension SharingType {
   public var limitedRightsAlertTitle: String {
     switch self {
     case .password:
-      return CoreLocalization.L10n.Core.kwLimitedRightMessage
+      return CoreL10n.kwLimitedRightMessage
     case .note:
-      return CoreLocalization.L10n.Core.kwSecureNoteLimitedRightMessage
+      return CoreL10n.kwSecureNoteLimitedRightMessage
     case .secret:
-      return CoreLocalization.L10n.Core.Secrets.Sharing.limitedRightsMessage
+      return CoreL10n.Secrets.Sharing.limitedRightsMessage
     }
   }
 }

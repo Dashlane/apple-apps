@@ -3,8 +3,9 @@ import CoreData
 import CorePersonalData
 import CoreSession
 import CoreSettings
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 import SecurityDashboard
 
 class BreachesStore: SecurityDashboard.BreachesStore {

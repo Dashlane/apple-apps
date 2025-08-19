@@ -1,6 +1,6 @@
 import CoreData
-import DashTypes
-import UIComponents
+import CoreMainMenu
+import CoreTypes
 import UIKit
 
 class AppDelegate: UIResponder, UIApplicationDelegate {

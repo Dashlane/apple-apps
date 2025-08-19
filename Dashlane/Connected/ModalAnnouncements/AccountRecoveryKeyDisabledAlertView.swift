@@ -17,32 +17,23 @@ struct AccountRecoveryKeyDisabledAlertView: View {
         .navigationBarBackButtonHidden(true)
         .toolbar(.hidden, for: .navigationBar)
     }
-    .backgroundColorIgnoringSafeArea(.ds.background.alternate)
+    .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
     .overlay(overlayButton)
   }
 
   var mainView: some View {
     VStack(alignment: .leading, spacing: 33) {
-      Image.ds.recoveryKey.outlined
-        .resizable()
-        .frame(width: 77, height: 77)
-        .foregroundColor(.ds.text.brand.quiet)
-        .padding(.horizontal, 16)
+      DS.ExpressiveIcon(.ds.recoveryKey.outlined)
+        .style(mood: .brand, intensity: .quiet)
+        .controlSize(.extraLarge)
       VStack(alignment: .leading, spacing: 16) {
         Text(L10n.Localizable.postLoginRecoveryKeyDisabledTitle)
           .multilineTextAlignment(.leading)
           .lineLimit(nil)
           .fixedSize(horizontal: false, vertical: true)
-          .font(
-            .custom(
-              GTWalsheimPro.regular.name,
-              size: 28,
-              relativeTo: .title
-            )
-            .weight(.medium)
-          )
-          .foregroundColor(.ds.text.neutral.catchy)
-        textBody(Text(model.authenticationMethod.message))
+          .textStyle(.title.section.large)
+          .foregroundStyle(Color.ds.text.neutral.catchy)
+        textBody(Text(L10n.Localizable.postLoginRecoveryKeyDisabledMpMessage))
         textBody(Text(L10n.Localizable.postLoginRecoveryKeyDisabledMessage))
           .padding(.top, 16)
       }
@@ -62,6 +53,7 @@ struct AccountRecoveryKeyDisabledAlertView: View {
         label: {
           Text(L10n.Localizable.postLoginRecoveryKeyDisabledCta)
             .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity)
         })
 
       Button(
@@ -71,6 +63,7 @@ struct AccountRecoveryKeyDisabledAlertView: View {
         label: {
           Text(L10n.Localizable.postLoginRecoveryKeyDisabledCancel)
             .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity)
         }
       )
       .style(mood: .brand, intensity: .quiet)
@@ -86,7 +79,7 @@ struct AccountRecoveryKeyDisabledAlertView: View {
       .multilineTextAlignment(.leading)
       .lineLimit(nil)
       .fixedSize(horizontal: false, vertical: true)
-      .foregroundColor(.ds.text.neutral.standard)
+      .foregroundStyle(Color.ds.text.neutral.standard)
       .font(.body)
   }
 }
@@ -96,20 +89,5 @@ struct PostAccountRecoveryLoginDisabledView_Previews: PreviewProvider {
     AccountRecoveryKeyDisabledAlertView(
       model: AccountRecoveryKeyDisabledAlertViewModel(
         authenticationMethod: .masterPassword(""), deeplinkService: DeepLinkingService.fakeService))
-    AccountRecoveryKeyDisabledAlertView(
-      model: AccountRecoveryKeyDisabledAlertViewModel(
-        authenticationMethod: .invisibleMasterPassword(""),
-        deeplinkService: DeepLinkingService.fakeService))
-  }
-}
-
-extension AuthenticationMethod {
-  fileprivate var message: String {
-    switch self {
-    case .invisibleMasterPassword, .sso:
-      return L10n.Localizable.postLoginRecoveryKeyDisabledMplessMessage
-    case .masterPassword:
-      return L10n.Localizable.postLoginRecoveryKeyDisabledMpMessage
-    }
   }
 }

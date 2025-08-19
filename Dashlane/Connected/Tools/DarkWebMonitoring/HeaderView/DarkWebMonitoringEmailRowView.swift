@@ -1,10 +1,10 @@
 import Combine
 import CorePersonalData
 import DesignSystem
+import IconLibrary
 import SecurityDashboard
 import SwiftUI
 import UIDelight
-import VaultKit
 
 struct DarkWebMonitoringEmailRowView: View {
 
@@ -12,31 +12,34 @@ struct DarkWebMonitoringEmailRowView: View {
   var model: DarkWebMonitoringEmailRowViewModel
 
   var body: some View {
-    HStack {
+    HStack(spacing: 12) {
       GravatarIconView(model: model.makeGravatarIconViewModel(), isLarge: false)
       VStack(alignment: .leading, spacing: 3) {
         Text(model.title)
-          .font(.body)
-          .foregroundColor(.ds.text.neutral.standard)
+          .textStyle(.body.standard.regular)
+          .foregroundStyle(Color.ds.text.neutral.catchy)
+          .lineLimit(1)
         Text(title(for: model.status))
-          .font(.footnote)
-          .foregroundColor(titleColor(for: model.status))
-      }.padding(.leading, 16)
-        .accessibilityElement(children: .combine)
+          .textStyle(.body.reduced.regular)
+          .foregroundStyle(titleColor(for: model.status))
+      }
+      .accessibilityElement(children: .combine)
+
       Spacer()
       Button(
         action: { model.actionPublisher.send(.deleteEmail(model.title)) },
         label: {
           Image.ds.action.close.outlined
-            .foregroundColor(.ds.text.neutral.quiet)
+            .resizable()
+            .frame(width: 16, height: 16)
+            .foregroundStyle(Color.ds.text.neutral.quiet)
         }
       )
+      .buttonStyle(PlainButtonStyle())
       .accessibilityLabel(L10n.Localizable.dataleakEmailStopMonitoring(model.title))
       .accessibilityIdentifier("DeleteMonitoredEmailButton")
     }
-    .padding(.horizontal, 16)
-    .background(Color.clear)
-    .frame(maxWidth: .infinity)
+    .frame(maxWidth: .infinity, alignment: .leading)
   }
 
   private func title(for status: DataLeakEmail.State) -> String {
@@ -76,11 +79,11 @@ struct DarkWebMonitoringEmailRowView_Previews: PreviewProvider {
 
   static var previews: some View {
     MultiContextPreview {
-      VStack {
+      List {
         DarkWebMonitoringEmailRowView(model: model)
         DarkWebMonitoringEmailRowView(model: notMonitoredModel)
       }
-      .background(Color.ds.container.expressive.brand.quiet.idle)
+      .listStyle(.ds.insetGrouped)
     }
     .previewLayout(.sizeThatFits)
   }

@@ -1,10 +1,12 @@
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 import StoreKit
 
 extension PersonalDataRecord {
+  @Loggable
   public enum TransactionError: Error {
-    case cannotCreateUTF8DataFromXML
+    @LogPublicPrivacy
     case unknownContentType(_ type: String)
   }
 

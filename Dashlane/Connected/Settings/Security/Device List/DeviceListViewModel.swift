@@ -1,7 +1,7 @@
 import Combine
 import CoreNetworking
 import CoreSession
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 import LoginKit
@@ -40,13 +40,14 @@ class DeviceListViewModel: ObservableObject, SessionServicesInjecting {
   let currentDeviceId: String
 
   private let userDeviceAPIClient: UserDeviceAPIClient
-  private let reachability: NetworkReachability
+  private let reachability: NetworkReachabilityProtocol
   private var subscription: AnyCancellable?
   private var logoutAndDeleteHandler: (() -> Void)?
 
   init(
     userDeviceAPIClient: UserDeviceAPIClient,
-    session: Session, reachability: NetworkReachability, logoutHandler: SessionLifeCycleHandler?
+    session: Session, reachability: NetworkReachabilityProtocol,
+    logoutHandler: SessionLifeCycleHandler?
   ) {
     self.currentDeviceId = session.configuration.keys.serverAuthentication.deviceId
     self.reachability = reachability
@@ -60,7 +61,7 @@ class DeviceListViewModel: ObservableObject, SessionServicesInjecting {
   init(
     userDeviceAPIClient: UserDeviceAPIClient,
     currentDeviceId: String,
-    reachability: NetworkReachability
+    reachability: NetworkReachabilityProtocol
   ) {
     self.userDeviceAPIClient = userDeviceAPIClient
     self.currentDeviceId = currentDeviceId
@@ -89,7 +90,7 @@ class DeviceListViewModel: ObservableObject, SessionServicesInjecting {
       return
     }
 
-    subscription = reachability.$isConnected
+    subscription = reachability.isConnectedPublisher
       .receive(on: DispatchQueue.main)
       .filter { $0 }.sink { [weak self] _ in
         self?.fetch()
@@ -160,7 +161,7 @@ class DeviceListViewModel: ObservableObject, SessionServicesInjecting {
     return DeviceListViewModel(
       userDeviceAPIClient: UserDeviceAPIClient.fake,
       session: .mock,
-      reachability: NetworkReachability(),
+      reachability: .mock(),
       logoutHandler: nil)
   }
 

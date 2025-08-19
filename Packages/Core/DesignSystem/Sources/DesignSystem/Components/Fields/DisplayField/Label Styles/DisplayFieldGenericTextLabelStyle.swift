@@ -19,12 +19,13 @@ public struct DisplayFieldGenericTextLabelStyle: LabelStyle {
       configuration.title
         .textStyle(.body.standard.regular)
     }
-    ._foregroundStyle(
-      .text { environment, color in
-        guard environment.isEnabled, case .neutral = environment.style.mood
-        else { return color }
-
-        return .ds.text.neutral.catchy
+    .foregroundStyle(
+      .ds.text.overriding { @Sendable environment, color in
+        if environment.isEnabled, environment.style.mood == .neutral {
+          .ds.text.neutral.catchy
+        } else {
+          color
+        }
       }
     )
     .transformEnvironment(\.style) { style in

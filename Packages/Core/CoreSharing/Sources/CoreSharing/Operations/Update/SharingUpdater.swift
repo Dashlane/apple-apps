@@ -1,6 +1,7 @@
+import CoreTypes
 import CyrilKit
-import DashTypes
 import Foundation
+import LogFoundation
 
 @SharingActor
 struct SharingUpdater {
@@ -12,7 +13,6 @@ struct SharingUpdater {
   let cryptoProvider: SharingCryptoProvider
   let logger: Logger
   let personalDataDB: SharingPersonalDataDB
-  let autoRevokeUsersWithInvalidProposeSignature: Bool
 
   init(
     userId: UserId,
@@ -22,7 +22,6 @@ struct SharingUpdater {
     database: SharingOperationsDatabase,
     cryptoProvider: SharingCryptoProvider,
     personalDataDB: SharingPersonalDataDB,
-    autoRevokeUsersWithInvalidProposeSignature: Bool,
     logger: Logger
   ) {
     self.userId = userId
@@ -32,7 +31,6 @@ struct SharingUpdater {
     self.personalDataDB = personalDataDB
     self.groupKeyProvider = groupKeyProvider
     self.cryptoProvider = cryptoProvider
-    self.autoRevokeUsersWithInvalidProposeSignature = autoRevokeUsersWithInvalidProposeSignature
     self.logger = logger
   }
 
@@ -64,16 +62,13 @@ struct SharingUpdater {
     try database.deleteCollections(withIds: request.collections.idsToDelete)
     let allCollections = try database.fetchAllCollections()
 
-    let (insertedOrUpdatedItemGroups, invalidProposeSignatureItemGroups) = try verifyAndSave(
-      request.itemGroups.entitiesToUpdate)
+    let insertedOrUpdatedItemGroups = try verifyAndSave(request.itemGroups.entitiesToUpdate)
     try database.deleteItemGroups(withIds: request.itemGroups.idsToDelete)
     let allItemGroups = try database.fetchAllItemGroups()
 
     try await deleteItemGroupsWithoutCurrentUser(from: allItemGroups)
     try await deleteItemGroupsWithCurrentUserAloneAdmin(
       from: allItemGroups, nextRequest: &nextRequest)
-    try await autoRevokeUsersWithInvalidProposeSignature(
-      in: invalidProposeSignatureItemGroups, nextRequest: &nextRequest)
 
     let updateRequest = PersonalDataUpdateRequest(
       itemGroups: insertedOrUpdatedItemGroups,
@@ -97,6 +92,7 @@ struct SharingUpdater {
   }
 }
 
+@Loggable
 public enum SharingUpdaterError: Error {
   case unknownSharedItem
   case missingTimestampInServerResponse

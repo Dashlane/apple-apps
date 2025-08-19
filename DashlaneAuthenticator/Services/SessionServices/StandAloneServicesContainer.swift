@@ -2,15 +2,15 @@ import AuthenticatorKit
 import CoreCategorizer
 import CoreKeychain
 import CoreSession
+import CoreTypes
 import CoreUserTracking
-import DashTypes
 import DomainParser
 import Foundation
 import IconLibrary
 import Logger
 
 private final class NoOpDomainIconLibrary: DomainIconLibraryProtocol {
-  func icon(for domain: DashTypes.Domain) async throws -> Icon? {
+  func icon(for domain: CoreTypes.Domain) async throws -> Icon? {
     return nil
   }
 }
@@ -37,7 +37,7 @@ extension StandAloneServicesContainer: AuthenticatorServicesContainer {
     appServices.categorizer
   }
 
-  var logger: DashTypes.Logger {
+  var logger: CoreTypes.Logger {
     appServices.rootLogger
   }
 

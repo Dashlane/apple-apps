@@ -1,7 +1,7 @@
 import CoreLocalization
-import CoreUserTracking
 import Foundation
 import LoginKit
+import UserTrackingFoundation
 
 @MainActor
 class AccountRecoveryConfirmationViewModel: ObservableObject {
@@ -54,8 +54,7 @@ class AccountRecoveryConfirmationViewModel: ObservableObject {
       progressState = .completed(L10n.Localizable.recoveryKeyActivationSuccessMessage, completion)
       activityReporter.report(UserEvent.CreateAccountRecoveryKey(flowStep: .complete))
     } catch {
-      progressState = .failed(
-        CoreLocalization.L10n.Core.recoveryKeyActivationFailureMessage, completion)
+      progressState = .failed(CoreL10n.recoveryKeyActivationFailureMessage, completion)
       activityReporter.report(UserEvent.CreateAccountRecoveryKey(flowStep: .error))
     }
   }

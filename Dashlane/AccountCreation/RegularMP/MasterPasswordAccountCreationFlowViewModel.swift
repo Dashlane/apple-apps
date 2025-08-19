@@ -1,16 +1,20 @@
-import CoreUserTracking
-import DashTypes
+import CoreSession
+import CoreTypes
 import Foundation
 import LoginKit
+import StateMachine
 import SwiftTreats
+import UserTrackingFoundation
 
 @MainActor
-class MasterPasswordAccountCreationFlowViewModel: ObservableObject,
+class MasterPasswordAccountCreationFlowViewModel: StateMachineBasedObservableObject,
   AccountCreationFlowDependenciesInjecting
 {
+  var isPerformingEvent: Bool = false
+
   enum Step: Equatable {
     case fastLocalSetup(biometry: Biometry?)
-    case userConsent
+    case userConsent(email: String, password: String)
   }
 
   enum CompletionResult {
@@ -19,7 +23,7 @@ class MasterPasswordAccountCreationFlowViewModel: ObservableObject,
   }
 
   @Published
-  var steps: [Step] {
+  var steps: [Step] = [] {
     didSet {
       if steps.isEmpty {
         self.completion(.cancel)
@@ -30,35 +34,55 @@ class MasterPasswordAccountCreationFlowViewModel: ObservableObject,
   @Published
   var error: Error?
 
+  var stateMachine: MasterPasswordAccountCreationStateMachine
   let userConsentViewModelFactory: UserConsentViewModel.Factory
   let fastLocalSetupViewModelFactory: FastLocalSetupInAccountCreationViewModel.Factory
   let activityReporter: ActivityReporterProtocol
-  var configuration: AccountCreationConfiguration
-  let accountCreationService: AccountCreationService
+  let sessionServicesLoader: SessionServicesLoader
   let completion: @MainActor (MasterPasswordAccountCreationFlowViewModel.CompletionResult) -> Void
 
   init(
-    configuration: AccountCreationConfiguration,
+    sessionservicesLoader: SessionServicesLoader,
+    stateMachine: MasterPasswordAccountCreationStateMachine,
     activityReporter: ActivityReporterProtocol,
-    accountCreationService: AccountCreationService,
     userConsentViewModelFactory: UserConsentViewModel.Factory,
     fastLocalSetupViewModelFactory: FastLocalSetupInAccountCreationViewModel.Factory,
     completion: @escaping @MainActor (MasterPasswordAccountCreationFlowViewModel.CompletionResult)
       -> Void
   ) {
+    self.stateMachine = stateMachine
+    self.sessionServicesLoader = sessionservicesLoader
     self.completion = completion
-    self.configuration = configuration
-    self.accountCreationService = accountCreationService
     self.activityReporter = activityReporter
     self.userConsentViewModelFactory = userConsentViewModelFactory
     self.fastLocalSetupViewModelFactory = fastLocalSetupViewModelFactory
 
-    if let biometry = Device.biometryType {
-      steps = [.fastLocalSetup(biometry: biometry)]
-    } else if Device.isMac {
-      steps = [.fastLocalSetup(biometry: nil)]
-    } else {
-      steps = [.userConsent]
+    Task {
+      await self.perform(.start)
+    }
+  }
+
+  func update(
+    for event: MasterPasswordAccountCreationStateMachine.Event,
+    from oldState: MasterPasswordAccountCreationStateMachine.State,
+    to newState: MasterPasswordAccountCreationStateMachine.State
+  ) async {
+    switch (newState, event) {
+    case (.initial, _): break
+    case (let .fastLocalSetup(biometry), _):
+      self.steps = [.fastLocalSetup(biometry: biometry)]
+    case (let .waitingForUserConsent(email, password), _):
+      self.steps.append(.userConsent(email: email, password: password))
+    case (.cancelled, _):
+      guard case .waitingForUserConsent = oldState else {
+        self.completion(.cancel)
+        return
+      }
+      self.steps.removeLast()
+    case (let .accountCreated(session, localConfig), _):
+      await self.load(session, with: localConfig)
+    case (let .accountCreationFailed(error), _):
+      self.error = error.underlyingError
     }
   }
 
@@ -68,18 +92,15 @@ class MasterPasswordAccountCreationFlowViewModel: ObservableObject,
         return
       }
 
-      switch completion {
-      case let .next(
-        isBiometricAuthenticationEnabled, isMasterPasswordResetEnabled,
-        isRememberMasterPasswordEnabled):
-        self.configuration.local.isBiometricAuthenticationEnabled = isBiometricAuthenticationEnabled
-        self.configuration.local.isMasterPasswordResetEnabled = isMasterPasswordResetEnabled
-        self.configuration.local.isRememberMasterPasswordEnabled = isRememberMasterPasswordEnabled
-        self.steps.append(.userConsent)
-
-      case .back:
-        self.completion(.cancel)
+      Task {
+        switch completion {
+        case let .next(localConfig):
+          await self.perform(.fastLocalSetupCompleted(localConfig))
+        case .back:
+          await self.perform(.cancel)
+        }
       }
+
     }
   }
 
@@ -88,25 +109,25 @@ class MasterPasswordAccountCreationFlowViewModel: ObservableObject,
       guard let self = self else {
         return
       }
+      Task {
+        switch completion {
+        case .next(_, let hasUserAcceptedEmailMarketing):
+          await self.perform(
+            .userConsentCompleted(hasUserAcceptedEmailMarketing: hasUserAcceptedEmailMarketing))
 
-      switch completion {
-      case .next(_, let hasUserAcceptedEmailMarketing):
-        self.configuration.hasUserAcceptedEmailMarketing = hasUserAcceptedEmailMarketing
-        Task { @MainActor in
-          await self.load()
+        case .back(_, let hasUserAcceptedEmailMarketing):
+          await self.perform(.cancel)
         }
-
-      case .back(_, let hasUserAcceptedEmailMarketing):
-        self.configuration.hasUserAcceptedEmailMarketing = hasUserAcceptedEmailMarketing
-        self.steps.removeLast()
       }
     }
   }
 
-  private func load() async {
+  private func load(_ session: Session, with localConfig: LocalConfiguration) async {
     do {
-      let sessionServices = try await self.accountCreationService.createAccountAndLoad(
-        using: configuration)
+      let sessionServices = try await sessionServicesLoader.load(
+        for: session, context: .accountCreation)
+      sessionServices.activityReporter.logAccountCreationSuccessful()
+      sessionServices.apply(localConfig)
       self.completion(.finished(sessionServices))
     } catch {
       self.error = error

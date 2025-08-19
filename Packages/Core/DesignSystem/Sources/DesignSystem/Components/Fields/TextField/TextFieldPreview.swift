@@ -16,7 +16,7 @@ struct GroupedTextFieldPreview: View {
   var body: some View {
     List {
       DS.TextField("Firstname", placeholder: "Enter your firstname", text: $firstname)
-        .fieldLabelPersistencyDisabled()
+        .fieldLabelHiddenOnFocus()
 
       DS.TextField("Lastname", text: $lastname)
 
@@ -40,11 +40,9 @@ struct GroupedTextFieldPreview: View {
         placeholder: "Your favorite website",
         text: $website
       )
-      .textColorHighlightingMode(.url)
-      #if canImport(UIKit)
-        .textInputAutocapitalization(.never)
-        .keyboardType(.URL)
-      #endif
+      .textFieldColorHighlightingMode(.url)
+      .textInputAutocapitalization(.never)
+      .keyboardType(.URL)
       .autocorrectionDisabled()
 
       DS.TextField(
@@ -52,27 +50,25 @@ struct GroupedTextFieldPreview: View {
         placeholder: "Your favorite website",
         text: $website
       )
-      .textColorHighlightingMode(.url)
-      #if canImport(UIKit)
-        .textInputAutocapitalization(.never)
-        .keyboardType(.URL)
-      #endif
+      .textFieldColorHighlightingMode(.url)
+      .textInputAutocapitalization(.never)
+      .keyboardType(.URL)
       .autocorrectionDisabled()
       .style(.error)
 
       DS.TextField("OTP Code", text: .constant("48712"))
-        .editionDisabled()
+        .fieldEditionDisabled()
 
       DS.TextField(
         "Soft disabled edition mode",
         text: .constant("This is a really long value that should spawn on multiple lines.")
       )
-      .editionDisabled(appearance: .discrete)
+      .fieldEditionDisabled(appearance: .discrete)
 
       DS.TextField("Edition Disabled w/o value", placeholder: nil, text: .constant(""))
-        .editionDisabled()
+        .fieldEditionDisabled()
     }
-    .fieldAppearance(.grouped)
+    .listStyle(.ds.insetGrouped)
   }
 }
 
@@ -102,10 +98,8 @@ struct TextFieldPreview: View {
             FieldAction.ClearContent(text: $login)
           }
         )
-        #if canImport(UIKit)
-          .textInputAutocapitalization(.never)
-          .textContentType(.emailAddress)
-        #endif
+        .textInputAutocapitalization(.never)
+        .textContentType(.emailAddress)
         .autocorrectionDisabled()
 
         DS.TextField(
@@ -122,13 +116,13 @@ struct TextFieldPreview: View {
         DS.TextField("Simple", text: $firstname)
 
         DS.TextField("Read-only", text: .constant("static information"))
-          .editionDisabled()
+          .fieldEditionDisabled()
 
         DS.TextField("Label", text: .constant("This is my content"))
           .disabled(true)
       }
       .padding()
-      .backgroundColorIgnoringSafeArea(.ds.background.alternate)
+      .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
     }
   }
 }
@@ -136,11 +130,11 @@ struct TextFieldPreview: View {
 #Preview("Standalone") {
   TextFieldPreview()
     .ignoresSafeArea([.keyboard], edges: .bottom)
-    .backgroundColorIgnoringSafeArea(.ds.background.alternate)
+    .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
 }
 
 #Preview("Grouped") {
   GroupedTextFieldPreview()
     .ignoresSafeArea([.keyboard], edges: .bottom)
-    .backgroundColorIgnoringSafeArea(.ds.background.alternate)
+    .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
 }

@@ -89,25 +89,7 @@ extension OnboardingChecklistActionHandler {
   func ctaTapped(for action: OnboardingChecklistAction) {
     switch action {
     case .addFirstPasswordsManually:
-      startImportMethodFlow(mode: .firstPassword)
-    case .importFromBrowser:
-      startImportMethodFlow(mode: .browser)
-    case .fixBreachedAccounts:
-      showDarkWebMonitoring()
-    case .seeScanResult:
-      let settingsProvider = GuidedOnboardingSettingsProvider(
-        userSettings: sessionServices.spiegelUserSettings)
-
-      if let selectedAnswer = settingsProvider.storedAnswers[.howPasswordsHandled] {
-        switch selectedAnswer {
-        case .memorizePasswords, .somethingElse:
-          return startImportMethodFlow(mode: .firstPassword)
-        case .browser:
-          return startImportMethodFlow(mode: .browser)
-        default:
-          assertionFailure("Unacceptable answer")
-        }
-      }
+      presentFullCover(ImportView(importSource: .onboardingChecklist))
     case .activateAutofill:
       Task { @MainActor in
         let model = sessionServices.viewModelFactory.makeAutofillOnboardingFlowViewModel {
@@ -124,30 +106,12 @@ extension OnboardingChecklistActionHandler {
         case .success:
           settings.setUserHasFinishedM2W()
           fallthrough
-        default:
+        case .canceled:
           self?.dismissSheet()
         }
       }
       presentSheet(view)
     }
-  }
-
-  private func startImportMethodFlow(mode: ImportMethodMode) {
-    let viewModel = sessionServices.makeImportMethodFlowViewModel(mode: mode) {
-      [weak self] completion in
-      switch completion {
-      case .dismiss:
-        self?.genericFullCover = nil
-      }
-    }
-    presentFullCover(
-      ImportMethodFlow(viewModel: viewModel)
-        .embedInNavigationView(origin.shouldEmbedNavigationView)
-    )
-  }
-
-  private func showDarkWebMonitoring() {
-    sessionServices.appServices.deepLinkingService.handleLink(.tool(.darkWebMonitoring))
   }
 }
 

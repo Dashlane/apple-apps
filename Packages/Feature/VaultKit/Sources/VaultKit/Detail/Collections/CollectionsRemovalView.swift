@@ -36,39 +36,39 @@ public struct CollectionsRemovalView: View {
       content
         .toolbar {
           ToolbarItem(placement: .navigationBarLeading) {
-            Button(
-              action: {
-                if collectionsRemoved.isEmpty {
-                  completion(.cancel)
-                } else {
-                  showCancelConfirmationDialog = true
-                }
-              },
-              title: L10n.Core.cancel
-            )
+            Button(CoreL10n.cancel) {
+              if collectionsRemoved.isEmpty {
+                completion(.cancel)
+              } else {
+                showCancelConfirmationDialog = true
+              }
+            }
           }
 
           ToolbarItem(placement: .navigationBarTrailing) {
             if !collectionsRemoved.isEmpty {
-              Button(action: { completion(.done(collectionsRemoved)) }, title: L10n.Core.kwSave)
+              Button(CoreL10n.kwSave) {
+                completion(.done(collectionsRemoved))
+              }
             }
           }
         }
-        .backgroundColorIgnoringSafeArea(.ds.background.alternate)
+        .frame(maxHeight: .infinity, alignment: .top)
+        .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
         .navigationBarTitleDisplayMode(.inline)
-        .navigationTitle(L10n.Core.KWVaultItem.Collections.Removal.title)
+        .navigationTitle(CoreL10n.KWVaultItem.Collections.Removal.title)
         .confirmationDialog(
-          L10n.Core.KWVaultItem.UnsavedChanges.title,
+          CoreL10n.KWVaultItem.UnsavedChanges.title,
           isPresented: $showCancelConfirmationDialog,
           titleVisibility: .visible,
           actions: {
-            Button(L10n.Core.KWVaultItem.UnsavedChanges.leave, role: .destructive) {
+            Button(CoreL10n.KWVaultItem.UnsavedChanges.leave, role: .destructive) {
               completion(.cancel)
             }
-            Button(L10n.Core.KWVaultItem.UnsavedChanges.keepEditing, role: .cancel) {}
+            Button(CoreL10n.KWVaultItem.UnsavedChanges.keepEditing, role: .cancel) {}
           },
           message: {
-            Text(L10n.Core.KWVaultItem.UnsavedChanges.message)
+            Text(CoreL10n.KWVaultItem.UnsavedChanges.message)
           }
         )
     }
@@ -88,11 +88,11 @@ public struct CollectionsRemovalView: View {
       Image.ds.folder.outlined
         .resizable()
         .frame(width: 96, height: 96)
-        .foregroundColor(.ds.text.neutral.quiet)
+        .foregroundStyle(Color.ds.text.neutral.quiet)
 
-      Text(L10n.Core.KWVaultItem.Collections.Removal.EmptyState.message)
+      Text(CoreL10n.KWVaultItem.Collections.Removal.EmptyState.message)
         .font(.body)
-        .foregroundColor(.ds.text.neutral.quiet)
+        .foregroundStyle(Color.ds.text.neutral.quiet)
         .multilineTextAlignment(.center)
     }
     .padding(.horizontal, 24)
@@ -102,8 +102,7 @@ public struct CollectionsRemovalView: View {
     List(collections) { collection in
       row(for: collection)
     }
-    .listStyle(.insetGrouped)
-    .scrollContentBackground(.hidden)
+    .listStyle(.ds.insetGrouped)
   }
 
   private func row(for collection: VaultCollection) -> some View {
@@ -117,7 +116,7 @@ public struct CollectionsRemovalView: View {
         },
         label: {
           Image(systemName: "minus.circle.fill")
-            .foregroundColor(.ds.text.danger.quiet)
+            .foregroundStyle(Color.ds.text.danger.quiet)
         }
       )
       .buttonStyle(.plain)

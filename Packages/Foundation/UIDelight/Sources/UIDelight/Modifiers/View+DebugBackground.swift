@@ -18,6 +18,6 @@ extension View {
   }
 
   public func debugForegroundColor() -> some View {
-    self.foregroundColor(Color.random)
+    self.foregroundStyle(Color.random)
   }
 }

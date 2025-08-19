@@ -22,11 +22,11 @@ struct ChromeImportView: View {
     func image() -> Image {
       switch self {
       case .intro:
-        return Image(asset: FiberAsset.chromeImport)
+        return Image(.Onboarding.chromeImport)
       case .url:
-        return Image(asset: FiberAsset.m2wConnect)
+        return Image(.Onboarding.m2WConnect)
       case .navigationInExtension:
-        return Image(asset: FiberAsset.chromeInstructions)
+        return Image(.Onboarding.chromeInstructions)
       }
     }
   }
@@ -53,7 +53,7 @@ struct ChromeImportView: View {
 
       Spacer().frame(height: 30)
     }
-    .backgroundColorIgnoringSafeArea(.ds.background.default)
+    .background(Color.ds.background.default, ignoresSafeAreaEdges: .all)
     .navigationBarBackButtonHidden(true)
     .toolbar {
       ToolbarItem(placement: .navigationBarLeading) {
@@ -64,13 +64,13 @@ struct ChromeImportView: View {
       }
     }
     .alert(
-      CoreLocalization.L10n.Core.m2WImportFromChromeConfirmationPopupTitle,
+      CoreL10n.m2WImportFromChromeConfirmationPopupTitle,
       isPresented: $confirmationPopupShown,
       actions: {
-        Button(CoreLocalization.L10n.Core.m2WImportFromChromeConfirmationPopupYes) {
+        Button(CoreL10n.m2WImportFromChromeConfirmationPopupYes) {
           self.completion?(.importCompleted)
         }
-        Button(CoreLocalization.L10n.Core.m2WImportFromChromeConfirmationPopupNo) {
+        Button(CoreL10n.m2WImportFromChromeConfirmationPopupNo) {
           self.completion?(.importNotYetCompleted)
         }
       }
@@ -112,37 +112,37 @@ struct ChromeImportView: View {
     }
   }
 
-  private var cancelButton: NavigationBarButton<Text> {
-    NavigationBarButton(
-      CoreLocalization.L10n.Core.m2WImportFromChromeIntoScreenCancel,
+  private var cancelButton: Button<Text> {
+    Button(
+      CoreL10n.m2WImportFromChromeIntoScreenCancel,
       action: {
         self.completion?(.cancel)
       })
   }
 
-  private var backButton: NavigationBarButton<Text> {
-    NavigationBarButton(
-      CoreLocalization.L10n.Core.m2WImportFromChromeImportScreenBack,
+  private var backButton: Button<Text> {
+    Button(
+      CoreL10n.m2WImportFromChromeImportScreenBack,
       action: {
         self.completion?(.back)
       })
   }
 
-  private var doneButton: NavigationBarButton<Text> {
-    NavigationBarButton(
+  private var doneButton: Button<Text> {
+    Button(
       action: {
         self.completion?(.nextStep)
         self.confirmationPopupShown = true
       },
       label: {
-        Text(CoreLocalization.L10n.Core.m2WImportFromChromeImportScreenDone).bold()
+        Text(CoreL10n.m2WImportFromChromeImportScreenDone).bold()
       })
   }
 
   private var styledPrimaryTitle: some View {
     primaryTitle(for: step)
       .frame(maxWidth: 400)
-      .font(DashlaneFont.custom(26, .bold).font)
+      .textStyle(.specialty.spotlight.medium)
       .multilineTextAlignment(.center)
       .padding(.horizontal, 32)
   }
@@ -150,8 +150,8 @@ struct ChromeImportView: View {
   private var styledSecondaryTitle: some View {
     secondaryTitle(for: step)
       .frame(maxWidth: 400)
-      .font(DashlaneFont.custom(20, .medium).font)
-      .foregroundColor(.ds.text.neutral.catchy)
+      .textStyle(.body.standard.strong)
+      .foregroundStyle(Color.ds.text.neutral.catchy)
       .padding(.horizontal, 32)
       .multilineTextAlignment(.center)
   }
@@ -177,18 +177,18 @@ struct ChromeImportView: View {
     switch step {
     case .intro:
       return VStack {
-        Text(CoreLocalization.L10n.Core.m2WImportFromChromeIntoScreenPrimaryTitlePart1)
-          .foregroundColor(.ds.text.neutral.catchy)
-        Text(CoreLocalization.L10n.Core.m2WImportFromChromeIntoScreenPrimaryTitlePart2)
-          .foregroundColor(.ds.text.neutral.catchy)
+        Text(CoreL10n.m2WImportFromChromeIntoScreenPrimaryTitlePart1)
+          .foregroundStyle(Color.ds.text.neutral.catchy)
+        Text(CoreL10n.m2WImportFromChromeIntoScreenPrimaryTitlePart2)
+          .foregroundStyle(Color.ds.text.neutral.catchy)
       }.eraseToAnyView()
     case .url:
-      return Text(CoreLocalization.L10n.Core.m2WImportFromChromeURLScreenPrimaryTitle)
-        .foregroundColor(.ds.text.neutral.catchy)
+      return Text(CoreL10n.m2WImportFromChromeURLScreenPrimaryTitle)
+        .foregroundStyle(Color.ds.text.neutral.catchy)
         .eraseToAnyView()
     case .navigationInExtension:
-      return Text(CoreLocalization.L10n.Core.m2WImportFromChromeImportScreenPrimaryTitle)
-        .foregroundColor(.ds.text.neutral.catchy)
+      return Text(CoreL10n.m2WImportFromChromeImportScreenPrimaryTitle)
+        .foregroundStyle(Color.ds.text.neutral.catchy)
         .eraseToAnyView()
     }
   }
@@ -196,13 +196,11 @@ struct ChromeImportView: View {
   private func secondaryTitle(for step: Step) -> some View {
     switch step {
     case .intro:
-      return Text(CoreLocalization.L10n.Core.m2WImportFromChromeIntoScreenSecondaryTitle)
-        .eraseToAnyView()
+      return Text(CoreL10n.m2WImportFromChromeIntoScreenSecondaryTitle).eraseToAnyView()
     case .url:
       return EmptyView().eraseToAnyView()
     case .navigationInExtension:
-      return Text(CoreLocalization.L10n.Core.m2WImportFromChromeImportScreenSecondaryTitle)
-        .eraseToAnyView()
+      return Text(CoreL10n.m2WImportFromChromeImportScreenSecondaryTitle).eraseToAnyView()
     }
   }
 
@@ -219,9 +217,9 @@ struct ChromeImportView: View {
   private func buttonTitle(for step: Step) -> String? {
     switch step {
     case .intro:
-      return CoreLocalization.L10n.Core.m2WImportFromChromeIntoScreenCTA
+      return CoreL10n.m2WImportFromChromeIntoScreenCTA
     case .url:
-      return CoreLocalization.L10n.Core.m2WImportFromChromeURLScreenCTA
+      return CoreL10n.m2WImportFromChromeURLScreenCTA
     case .navigationInExtension:
       return nil
     }

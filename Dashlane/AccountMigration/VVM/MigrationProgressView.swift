@@ -2,6 +2,7 @@ import CoreLocalization
 import DesignSystem
 import Foundation
 import SwiftUI
+import SwiftUILottie
 import UIComponents
 
 struct MigrationProgressView: View {
@@ -14,7 +15,7 @@ struct MigrationProgressView: View {
   }
 
   var body: some View {
-    VStack(alignment: .center, spacing: 24) {
+    VStack(alignment: .center, spacing: 16) {
       Group {
         if model.isProgress {
           LottieView(.passwordChangerLoading)
@@ -27,22 +28,31 @@ struct MigrationProgressView: View {
         }
       }
       .frame(width: 64, height: 64, alignment: .center)
-      Text(model.progressionText)
-        .font(DashlaneFont.custom(26, .bold).font)
-      if model.isProgress {
-        Text(L10n.Localizable.changingMasterPasswordSubtitle)
-          .font(.body)
-          .foregroundColor(.ds.text.neutral.quiet)
-      }
-    }.alert(item: $model.currentAlert, content: makeAlert)
-      .frame(maxWidth: .infinity, maxHeight: .infinity)
-      .background(.ds.background.alternate)
-      .navigationBarStyle(.alternate)
-      .ignoresSafeArea()
-      .onChange(of: model.progressionText) { progression in
-        UIAccessibility.fiberPost(.announcement, argument: progression)
-      }
 
+      VStack(alignment: .center, spacing: 8) {
+        Text(model.progressionText)
+          .textStyle(.title.section.medium)
+          .foregroundStyle(Color.ds.text.neutral.catchy)
+        if model.isProgress {
+          Text(L10n.Localizable.changingMasterPasswordSubtitle)
+            .textStyle(.body.standard.regular)
+            .foregroundStyle(Color.ds.text.neutral.quiet)
+        }
+      }
+    }
+    .padding()
+    .multilineTextAlignment(.center)
+    .alert(item: $model.currentAlert, content: makeAlert)
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
+    .ignoresSafeArea()
+    .onChange(of: model.progressionText) { _, progression in
+      UIAccessibility.fiberPost(.announcement, argument: progression)
+    }
+    .toolbar(.hidden, for: .navigationBar)
+    .onAppear {
+      model.start()
+    }
   }
 
   private func makeAlert(_ alert: MigrationProgressViewModel.MigrationAlert) -> Alert {
@@ -58,29 +68,21 @@ struct MigrationProgressView: View {
     return Alert(
       title: Text(L10n.Localizable.changeMasterPasswordReaskPrompt),
       message: Text(""),
-      dismissButton: Alert.Button.default(
-        Text(CoreLocalization.L10n.Core.kwButtonOk), action: dismissAction))
+      dismissButton: Alert.Button.default(Text(CoreL10n.kwButtonOk), action: dismissAction))
   }
 
   private func makeFailureAlert(dismissAction: @escaping () -> Void) -> Alert {
     return Alert(
       title: Text(L10n.Localizable.changeMasterPasswordErrorTitle),
       message: Text(L10n.Localizable.changeMasterPasswordErrorMessage),
-      dismissButton: Alert.Button.default(
-        Text(CoreLocalization.L10n.Core.kwButtonOk), action: dismissAction))
+      dismissButton: Alert.Button.default(Text(CoreL10n.kwButtonOk), action: dismissAction))
   }
 }
 
-extension MigrationProgressView: NavigationBarStyleProvider {
-  var navigationBarStyle: NavigationBarStyle {
-    return .hidden()
-  }
+#Preview("In Progress") {
+  MigrationProgressView(model: .mock())
 }
 
-struct MigrationProgressView_Previews: PreviewProvider {
-  static var previews: some View {
-    MigrationProgressView(model: .mock())
-    MigrationProgressView(model: .mock(inProgress: false))
-    MigrationProgressView(model: .mock(inProgress: false, isSuccess: false))
-  }
+#Preview("Complete") {
+  MigrationProgressView(model: .mock(complete: true))
 }

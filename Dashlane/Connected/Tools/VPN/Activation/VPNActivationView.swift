@@ -1,7 +1,9 @@
 import CoreLocalization
 import DashlaneAPI
 import DesignSystem
+import DesignSystemExtra
 import SwiftUI
+import SwiftUILottie
 import UIComponents
 import UIDelight
 
@@ -41,18 +43,18 @@ struct VPNActivationView: View {
       Spacer()
       VStack(alignment: .leading, spacing: 0) {
         Text(L10n.Localizable.vpnActivationViewEmailTitle)
-          .font(.custom(GTWalsheimPro.bold.name, size: 26, relativeTo: .title).weight(.medium))
+          .textStyle(.title.section.medium)
 
         Text(L10n.Localizable.vpnActivationViewEmailSubtitle)
-          .font(.body)
-          .foregroundColor(.ds.text.neutral.quiet)
+          .textStyle(.body.standard.regular)
+          .foregroundStyle(Color.ds.text.neutral.quiet)
           .padding(.top, 8)
         Button(
           action: { model.contactSupport() },
           label: {
             Text(L10n.Localizable.shushDashlaneLearnMore)
               .underline()
-              .foregroundColor(.ds.text.brand.standard)
+              .foregroundStyle(Color.ds.text.brand.standard)
           }
         )
         .padding(.top, 4)
@@ -60,8 +62,7 @@ struct VPNActivationView: View {
       }.padding(16)
 
       VStack(alignment: .leading, spacing: 4) {
-        DS.TextField(CoreLocalization.L10n.Core.kwEmailIOS, text: $model.email)
-          .fieldAppearance(.grouped)
+        DS.TextField(CoreL10n.kwEmailIOS, text: $model.email)
           .focused($isEditingEmail)
           .keyboardType(.emailAddress)
           .autocapitalization(.none)
@@ -73,22 +74,21 @@ struct VPNActivationView: View {
 
         if !model.isEmailAddressValid {
           Text(L10n.Localizable.vpnActivationViewErrorWrongEmailFormat)
-            .foregroundColor(.ds.text.danger.quiet)
+            .foregroundStyle(Color.ds.text.danger.quiet)
             .font(.footnote)
             .padding(.horizontal, 16)
             .frame(maxWidth: .infinity, alignment: .leading)
         }
       }
       .padding(.bottom, 16)
+      .containerContext(.list(.insetGrouped))
 
       HStack(alignment: .center, spacing: 10) {
-        Image(
-          asset: model.hasUserAcceptedTermsAndConditions
-            ? FiberAsset.checkboxSelected : FiberAsset.checkboxUnselected
-        )
-        .onTapGesture {
-          model.hasUserAcceptedTermsAndConditions.toggle()
-        }
+        NativeCheckmarkIcon(isChecked: model.hasUserAcceptedTermsAndConditions)
+          .frame(width: 30, height: 30)
+          .onTapGesture {
+            model.hasUserAcceptedTermsAndConditions.toggle()
+          }
 
         Text(model.legalNoticeAttributedString)
 
@@ -96,7 +96,7 @@ struct VPNActivationView: View {
 
       Spacer()
 
-      Button(CoreLocalization.L10n.Core.kwConfirmButton) {
+      Button(CoreL10n.kwConfirmButton) {
         withAnimation { model.activateEmail() }
       }
       .buttonStyle(.designSystem(.titleOnly))
@@ -114,7 +114,7 @@ struct VPNActivationView: View {
       LottieView(.passwordChangerLoading)
         .frame(width: 64, height: 64, alignment: .center)
       Text(L10n.Localizable.vpnActivationViewFinalizing)
-        .font(.custom(GTWalsheimPro.bold.name, size: 26, relativeTo: .title).weight(.medium))
+        .textStyle(.specialty.spotlight.small)
         .padding(.top, 25)
     }
     .padding(.horizontal, 16)
@@ -126,7 +126,7 @@ struct VPNActivationView: View {
       LottieView(.passwordChangerSuccess, loopMode: .playOnce)
         .frame(width: 64, height: 64, alignment: .center)
       Text(L10n.Localizable.vpnActivationViewAccountCreated)
-        .font(.custom(GTWalsheimPro.bold.name, size: 26, relativeTo: .title).weight(.medium))
+        .textStyle(.specialty.spotlight.small)
         .padding(.top, 25)
     }.padding(.horizontal, 16)
   }
@@ -138,13 +138,13 @@ struct VPNActivationView: View {
 
       LottieView(.passwordChangerFail, loopMode: .playOnce)
         .frame(width: 64, height: 64, alignment: .center)
-      Text(model.errorTitle ?? CoreLocalization.L10n.Core.deviceUnlinkAlertTitle)
-        .font(.custom(GTWalsheimPro.bold.name, size: 26, relativeTo: .title).weight(.medium))
+      Text(model.errorTitle ?? CoreL10n.deviceUnlinkAlertTitle)
+        .textStyle(.title.section.medium)
         .padding(.top, 25)
 
       Text(model.errorDescription ?? L10n.Localizable.vpnActivationViewGenericErrorSubtitle)
-        .font(.body)
-        .foregroundColor(.ds.text.neutral.quiet)
+        .textStyle(.body.standard.regular)
+        .foregroundStyle(Color.ds.text.neutral.quiet)
         .padding(.top, 8)
         .multilineTextAlignment(.center)
 
@@ -161,8 +161,8 @@ struct VPNActivationView: View {
           Text(L10n.Localizable.vpnActivationViewErrorContactSupport)
         }
       )
-      .buttonStyle(BorderlessActionButtonStyle())
-      .foregroundColor(.ds.text.brand.standard)
+      .buttonStyle(.designSystem(.titleOnly))
+      .style(intensity: .supershy)
     }
     .padding(.horizontal, 16)
   }

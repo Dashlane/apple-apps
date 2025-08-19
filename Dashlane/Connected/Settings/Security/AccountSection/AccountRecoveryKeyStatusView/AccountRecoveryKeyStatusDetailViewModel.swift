@@ -1,17 +1,15 @@
 import CorePersonalData
 import CoreSession
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
+import UserTrackingFoundation
 
 @MainActor
 public class AccountRecoveryKeyStatusDetailViewModel: ObservableObject, SessionServicesInjecting {
   @Published
   var isEnabled: Bool
-
-  @Published
-  var inProgress: Bool = false
 
   @Published
   var presentedSheet: Sheet?
@@ -74,10 +72,8 @@ public class AccountRecoveryKeyStatusDetailViewModel: ObservableObject, SessionS
   }
 
   func fetchStatus() {
-    inProgress = true
     Task {
       isEnabled = try await accountRecoveryKeyService.fetchKeyStatus()
-      inProgress = false
     }
   }
 }
@@ -87,6 +83,6 @@ extension AccountRecoveryKeyStatusDetailViewModel {
     AccountRecoveryKeyStatusDetailViewModel(
       isEnabled: false, session: Session.mock, accountRecoveryKeyService: .mock,
       accountRecoveryActivationFlowModelFactory: .init({ _ in .mock }), activityReporter: .mock,
-      logger: LoggerMock())
+      logger: .mock)
   }
 }

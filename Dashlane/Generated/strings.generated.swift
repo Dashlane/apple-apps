@@ -104,9 +104,6 @@ internal enum L10n {
       "Localizable", "accessibilitySecureNoteLock", fallback: "Lock")
     internal static let accessibilitySecureNoteUnlock = L10n.tr(
       "Localizable", "accessibilitySecureNoteUnlock", fallback: "Unlock")
-    internal static func accessibilityTraitTab(_ p1: Any) -> String {
-      return L10n.tr("Localizable", "accessibilityTraitTab", String(describing: p1), fallback: "_")
-    }
     internal static func accessibilityVaultFilterItemSelected(_ p1: Any) -> String {
       return L10n.tr(
         "Localizable", "accessibilityVaultFilterItemSelected", String(describing: p1), fallback: "_"
@@ -185,6 +182,9 @@ internal enum L10n {
     internal static let actionItemSecureLockDetailFaceid = L10n.tr(
       "Localizable", "ACTION_ITEM_SECURE_LOCK_DETAIL_FACEID",
       fallback: "Access your account the safe and simple way by using FaceID.")
+    internal static let actionItemSecureLockDetailOpticid = L10n.tr(
+      "Localizable", "ACTION_ITEM_SECURE_LOCK_DETAIL_OPTICID",
+      fallback: "Access your account the safe and simple way by using Optic ID.")
     internal static let actionItemSecureLockDetailPin = L10n.tr(
       "Localizable", "ACTION_ITEM_SECURE_LOCK_DETAIL_PIN",
       fallback: "Access your account the safe and simple way by using PIN.")
@@ -212,7 +212,7 @@ internal enum L10n {
       fallback:
         "Based on app usage, our Essentials plan looks like a good fit for you. Upgrade today.")
     internal static let actionItemsCenterTitle = L10n.tr(
-      "Localizable", "ACTION_ITEMS_CENTER_TITLE", fallback: "Notification Center")
+      "Localizable", "ACTION_ITEMS_CENTER_TITLE", fallback: "Notifications")
     internal static let activateSSOButtonTitle = L10n.tr(
       "Localizable", "activateSSOButtonTitle", fallback: "Log in with SSO")
     internal static let addNewDeviceCompleted = L10n.tr(
@@ -251,8 +251,6 @@ internal enum L10n {
       "Localizable", "ANNOUNCE_PIN_CTA", fallback: "Set up secure PIN unlock")
     internal static let announcePremiumExpiringCta = L10n.tr(
       "Localizable", "ANNOUNCE_PREMIUM_EXPIRING_CTA", fallback: "Renew Premium")
-    internal static let announceWelcomeM2DNoItemCta = L10n.tr(
-      "Localizable", "ANNOUNCE_WELCOME_M2D_NO_ITEM_CTA", fallback: "Add an item")
     internal static let authenticationBiometricsReactivationDialogCancel = L10n.tr(
       "Localizable", "Authentication_BiometricsReactivationDialog_Cancel", fallback: "Close")
     internal static let authenticationBiometricsReactivationDialogCTA = L10n.tr(
@@ -520,20 +518,31 @@ internal enum L10n {
       "Localizable", "CredentialDetailView_AddDomain", fallback: "Add another website")
     internal static let credentialDetailViewDeleteDomain = L10n.tr(
       "Localizable", "CredentialDetailView_DeleteDomain", fallback: "Delete")
+    internal static let credentialProviderListTitleOtps = L10n.tr(
+      "Localizable", "CredentialProvider_ListTitle_otps", fallback: "Dashlane OTPs")
+    internal static let credentialProviderListTitlePasskeys = L10n.tr(
+      "Localizable", "CredentialProvider_ListTitle_passkeys", fallback: "Dashlane Passkeys")
+    internal static let credentialProviderListTitlePasswords = L10n.tr(
+      "Localizable", "CredentialProvider_ListTitle_passwords", fallback: "Dashlane Passwords")
     internal static let credentialProviderOnboardingActivatedBackButtonTitle = L10n.tr(
       "Localizable", "CredentialProviderOnboarding_ActivatedBackButtonTitle",
       fallback: "Back to Settings")
     internal static let credentialProviderOnboardingActivatedBody = L10n.tr(
       "Localizable", "CredentialProviderOnboarding_ActivatedBody",
-      fallback: "To make Dashlane your default password manager, uncheck Keychain.")
+      fallback: "To make Dashlane your default password manager, turn off Keychain.")
     internal static let credentialProviderOnboardingActivatedTitle = L10n.tr(
-      "Localizable", "CredentialProviderOnboarding_ActivatedTitle", fallback: "Uncheck Keychain")
+      "Localizable", "CredentialProviderOnboarding_ActivatedTitle", fallback: "Turn off Keychain")
     internal static let credentialProviderOnboardingIntroBody = L10n.tr(
       "Localizable", "CredentialProviderOnboarding_IntroBody",
       fallback: "Log in to your accounts with a tap—it's that easy!")
     internal static let credentialProviderOnboardingIntroCTA = L10n.tr(
       "Localizable", "CredentialProviderOnboarding_IntroCTA", fallback: "Activate Password AutoFill"
     )
+    internal static let credentialProviderOnboardingPasswordsAppActivatedBody = L10n.tr(
+      "Localizable", "CredentialProviderOnboarding_PasswordsAppActivatedBody",
+      fallback: "To make Dashlane your default password manager, turn off the Apple Passwords app.")
+    internal static let credentialProviderOnboardingPasswordsAppName = L10n.tr(
+      "Localizable", "CredentialProviderOnboarding_PasswordsAppName", fallback: "Passwords")
     internal static let cryptoDescriptionForBusinessAdmins = L10n.tr(
       "Localizable", "cryptoDescriptionForBusinessAdmins",
       fallback:
@@ -706,18 +715,23 @@ internal enum L10n {
     internal static let darkWebMonitoringPremiumViewTitleFreeUser = L10n.tr(
       "Localizable", "darkWebMonitoring_PremiumView_Title_FreeUser",
       fallback: "Upgrade to Premium to get Dark Web Monitoring")
-    internal static let darkWebMonitoringPremiumViewTitlePremiumUser = L10n.tr(
-      "Localizable", "darkWebMonitoring_PremiumView_Title_PremiumUser",
-      fallback: "Get alerts for breaches and hacks")
     internal static let darkWebMonitoringVerifyToBeginMonitoring = L10n.tr(
       "Localizable", "DarkWebMonitoring_VerifyToBeginMonitoring",
       fallback: "Pending your verification")
     internal static let dashExportCta = L10n.tr(
       "Localizable", "Dash_export_cta", fallback: "Export")
+    internal static let dashExportDescription = L10n.tr(
+      "Localizable", "Dash_export_description",
+      fallback:
+        "This password should be different from the Master Password for your Dashlane account. If you forgot the password for your DASH file, you won't be able to import the file to Dashlane."
+    )
     internal static let dashExportPlaceholder = L10n.tr(
       "Localizable", "Dash_export_placeholder", fallback: "Password")
     internal static let dashExportProgressLabel = L10n.tr(
       "Localizable", "Dash_export_progress_label", fallback: "Exporting Secure Archive…")
+    internal static let dashExportSubtitle = L10n.tr(
+      "Localizable", "Dash_export_subtitle",
+      fallback: "Create a password to lock your encrypted DASH file")
     internal static let dashExportTitle = L10n.tr(
       "Localizable", "Dash_export_title", fallback: "Enter a password")
     internal static let dataleakEmailDelete = L10n.tr(
@@ -1049,15 +1063,18 @@ internal enum L10n {
       "Localizable", "DWMOnboarding_MiniBrowser_Done", fallback: "Done")
     internal static let editMenuShowLargeCharacters = L10n.tr(
       "Localizable", "EDIT_MENU_SHOW_LARGE_CHARACTERS", fallback: "Large display")
-    internal static let emptySharingListText = L10n.tr(
-      "Localizable", "EMPTY_SHARING_LIST_TEXT",
-      fallback: "Share items securely with friends, family, or colleagues.")
     internal static let enterPasscode = L10n.tr(
       "Localizable", "EnterPasscode", fallback: "Enter PIN")
     internal static let entertainment = L10n.tr(
       "Localizable", "entertainment", fallback: "Entertainment")
     internal static let euro = L10n.tr("Localizable", "EURO", fallback: "Euro")
     internal static let export = L10n.tr("Localizable", "export", fallback: "Export")
+    internal static let exportDataHeader = L10n.tr(
+      "Localizable", "export_data_header", fallback: "Backup or transfer your data")
+    internal static let exportDataLabel = L10n.tr(
+      "Localizable", "export_data_label", fallback: "Backup or transfer your data")
+    internal static let exportDataToAppLabel = L10n.tr(
+      "Localizable", "export_data_to_app_label", fallback: "Export data to another app")
     internal static let exporterUnlockAlertWrongMpMessage = L10n.tr(
       "Localizable", "EXPORTER_UNLOCK_ALERT_WRONG_MP_MESSAGE",
       fallback: "You entered the wrong Master Password")
@@ -1155,6 +1172,9 @@ internal enum L10n {
     internal static let fastLocalSetupMasterPasswordResetDescription = L10n.tr(
       "Localizable", "FastLocalSetup_MasterPasswordReset_Description",
       fallback: "In case you forget it.")
+    internal static let fastLocalSetupOpticIDDescription = L10n.tr(
+      "Localizable", "FastLocalSetup_OpticID_Description",
+      fallback: "Unlock Dashlane with just a glance.")
     internal static let fastLocalSetupRememberMPDescription = L10n.tr(
       "Localizable", "FastLocalSetup_RememberMP_Description",
       fallback: "Unlock Dashlane automatically for 14 days.")
@@ -1190,79 +1210,10 @@ internal enum L10n {
       return L10n.tr(
         "Localizable", "GENERATED_PASSWORD_SAVED_ON", String(describing: p1), fallback: "_")
     }
-    internal static let guidedOnboardingAnotherManagerAltAction = L10n.tr(
-      "Localizable", "GuidedOnboarding_AnotherManager_AltAction",
-      fallback: "How secure is Dashlane?")
-    internal static let guidedOnboardingAnotherManagerDescription = L10n.tr(
-      "Localizable", "GuidedOnboarding_AnotherManager_Description",
-      fallback:
-        "Glad to have you here! We’ll start you off by helping you import your passwords and login details from your other password manager to Dashlane."
-    )
-    internal static let guidedOnboardingAnotherManagerTitle = L10n.tr(
-      "Localizable", "GuidedOnboarding_AnotherManager_Title", fallback: "I use a password manager")
-    internal static let guidedOnboardingAutofillDescription = L10n.tr(
-      "Localizable", "GuidedOnboarding_Autofill_Description",
-      fallback: "Gladly! Our Autofill feature will help you log in to sites and apps instantly.")
-    internal static let guidedOnboardingAutofillTitle = L10n.tr(
-      "Localizable", "GuidedOnboarding_Autofill_Title", fallback: "Type my logins for me")
-    internal static let guidedOnboardingBrowserAltAction = L10n.tr(
-      "Localizable", "GuidedOnboarding_Browser_AltAction", fallback: "Is Dashlane really better?")
-    internal static let guidedOnboardingBrowserDescription = L10n.tr(
-      "Localizable", "GuidedOnboarding_Browser_Description",
-      fallback:
-        "You’re in safe hands. We’ll start you off by helping you import your passwords and login details from your browser to Dashlane."
-    )
-    internal static let guidedOnboardingBrowserTitle = L10n.tr(
-      "Localizable", "GuidedOnboarding_Browser_Title", fallback: "My browser does it for me")
-    internal static let guidedOnboardingCreatingPlan = L10n.tr(
-      "Localizable", "GuidedOnboarding_CreatingPlan", fallback: "We’re building your setup plan")
-    internal static let guidedOnboardingFAQDashlaneHackedDescription = L10n.tr(
-      "Localizable", "GuidedOnboarding_FAQ_DashlaneHacked_Description",
-      fallback:
-        "Hackers won’t be able to see your passwords. We don’t save your Master Password in any form. Without it, your data remains safely indecipherable. This means that even in the unlikely event that Dashlane is hacked, everything in your account will remain securely encrypted."
-    )
-    internal static let guidedOnboardingFAQDashlaneHackedTitle = L10n.tr(
-      "Localizable", "GuidedOnboarding_FAQ_DashlaneHacked_Title",
-      fallback: "What if Dashlane gets hacked?")
-    internal static let guidedOnboardingFAQDashlaneMakeMoneyDescription = L10n.tr(
-      "Localizable", "GuidedOnboarding_FAQ_DashlaneMakeMoney_Description",
-      fallback:
-        "We have a Premium plan. We never sell or share any data. You can learn more about our plans in your account section in the app."
-    )
-    internal static let guidedOnboardingFAQDashlaneMakeMoneyTitle = L10n.tr(
-      "Localizable", "GuidedOnboarding_FAQ_DashlaneMakeMoney_Title",
-      fallback: "How does Dashlane make money?")
-    internal static let guidedOnboardingFAQDashlaneMoreSecureDescription = L10n.tr(
-      "Localizable", "GuidedOnboarding_FAQ_DashlaneMoreSecure_Description",
-      fallback:
-        "The simple answer is yes. We designed Dashlane to be decentralized, which means that every user’s account is completely separate. So, even in the highly unlikely event that someone broke into Dashlane’s server and an account was compromised, all others would remain safe.\n\nIn contrast, Login with Facebook and other similar features from Big Tech are centralized systems. Which means all accounts are at risk when they get hacked."
-    )
-    internal static let guidedOnboardingFAQDashlaneMoreSecureTitle = L10n.tr(
-      "Localizable", "GuidedOnboarding_FAQ_DashlaneMoreSecure_Title",
-      fallback: "Is Dashlane really more secure?")
     internal static let guidedOnboardingFAQDashlaneSeePasswordDescription = L10n.tr(
       "Localizable", "GuidedOnboarding_FAQ_DashlaneSeePassword_Description",
       fallback:
         "We can’t. Everything you store in Dashlane is encrypted (converted to a scrambled code). The key to access this data is your Master Password, and only you know that."
-    )
-    internal static let guidedOnboardingFAQDashlaneSeePasswordTitle = L10n.tr(
-      "Localizable", "GuidedOnboarding_FAQ_DashlaneSeePassword_Title",
-      fallback: "Can Dashlane see my passwords?")
-    internal static let guidedOnboardingFAQLeaveAndTakeDataDescription = L10n.tr(
-      "Localizable", "GuidedOnboarding_FAQ_LeaveAndTakeData_Description",
-      fallback:
-        "Yes, you can. We built a feature that allows you to export your data whenever you like.")
-    internal static let guidedOnboardingFAQLeaveAndTakeDataTitle = L10n.tr(
-      "Localizable", "GuidedOnboarding_FAQ_LeaveAndTakeData_Title",
-      fallback: "Can I leave and take my data?")
-    internal static let guidedOnboardingFAQTitle = L10n.tr(
-      "Localizable", "GuidedOnboarding_FAQ_Title",
-      fallback: "Here are the questions we get asked most often:")
-    internal static let guidedOnboardingHowDescription = L10n.tr(
-      "Localizable", "GuidedOnboarding_How_Description",
-      fallback: "Pick the main method you use today.")
-    internal static let guidedOnboardingHowTitle = L10n.tr(
-      "Localizable", "GuidedOnboarding_How_Title", fallback: "How do you keep track of your logins?"
     )
     internal static let guidedOnboardingImportMethodBest = L10n.tr(
       "Localizable", "GuidedOnboarding_ImportMethod_Best", fallback: "Best for you")
@@ -1271,8 +1222,6 @@ internal enum L10n {
     internal static let guidedOnboardingImportMethodDash = L10n.tr(
       "Localizable", "GuidedOnboarding_ImportMethod_Dash",
       fallback: "Import from a Dashlane backup file ")
-    internal static let guidedOnboardingImportMethodFastest = L10n.tr(
-      "Localizable", "GuidedOnboarding_ImportMethod_Fastest", fallback: "Fastest")
     internal static let guidedOnboardingImportMethodKeychain = L10n.tr(
       "Localizable", "GuidedOnboarding_ImportMethod_Keychain", fallback: "Add from Apple Keychain")
     internal static let guidedOnboardingImportMethodKeychainCSV = L10n.tr(
@@ -1282,71 +1231,8 @@ internal enum L10n {
       "Localizable", "GuidedOnboarding_ImportMethod_Manual", fallback: "Add manually")
     internal static let guidedOnboardingImportMethodOther = L10n.tr(
       "Localizable", "GuidedOnboarding_ImportMethod_Other", fallback: "Other methods")
-    internal static let guidedOnboardingMemorizePasswordsAltAction = L10n.tr(
-      "Localizable", "GuidedOnboarding_MemorizePasswords_AltAction", fallback: "What about hacks?")
-    internal static let guidedOnboardingMemorizePasswordsDescription = L10n.tr(
-      "Localizable", "GuidedOnboarding_MemorizePasswords_Description",
-      fallback:
-        "Allow us to free up some of your precious brain space! We’ll start you off by helping you transfer your passwords and login details from your memory to Dashlane."
-    )
-    internal static let guidedOnboardingMemorizePasswordsTitle = L10n.tr(
-      "Localizable", "GuidedOnboarding_MemorizePasswords_Title", fallback: "I memorize them")
-    internal static let guidedOnboardingNext = L10n.tr(
-      "Localizable", "GuidedOnboarding_Next", fallback: "Continue")
-    internal static func guidedOnboardingNumberingLabel(_ p1: Any, _ p2: Any) -> String {
-      return L10n.tr(
-        "Localizable", "GuidedOnboarding_NumberingLabel", String(describing: p1),
-        String(describing: p2), fallback: "_")
-    }
-    internal static let guidedOnboardingPlanReady = L10n.tr(
-      "Localizable", "GuidedOnboarding_PlanReady", fallback: "Your plan is ready!")
-    internal static let guidedOnboardingProtectAccountsDescription = L10n.tr(
-      "Localizable", "GuidedOnboarding_ProtectAccounts_Description",
-      fallback:
-        "You’ve come to the right place. We’ll give you a dedicated vault for all your stuff and help you make your passwords strong and unique."
-    )
-    internal static let guidedOnboardingProtectAccountsTitle = L10n.tr(
-      "Localizable", "GuidedOnboarding_ProtectAccounts_Title", fallback: "Protect my logins")
     internal static let guidedOnboardingSomethingElseAltAction = L10n.tr(
       "Localizable", "GuidedOnboarding_SomethingElse_AltAction", fallback: "What about hacks?")
-    internal static let guidedOnboardingSomethingElseDescription = L10n.tr(
-      "Localizable", "GuidedOnboarding_SomethingElse_Description",
-      fallback:
-        "Ok, nice! We’ll start you off by helping you transfer the passwords and login details from your memory to Dashlane. You can always try the other import methods too."
-    )
-    internal static let guidedOnboardingSomethingElseTitle = L10n.tr(
-      "Localizable", "GuidedOnboarding_SomethingElse_Title", fallback: "I do something else")
-    internal static let guidedOnboardingStoreAccountsSecurelyDescription = L10n.tr(
-      "Localizable", "GuidedOnboarding_StoreAccountsSecurely_Description",
-      fallback:
-        "Consider it done. We’ll help you bring all your logins under one roof, and only you have the key."
-    )
-    internal static let guidedOnboardingStoreAccountsSecurelyTitle = L10n.tr(
-      "Localizable", "GuidedOnboarding_StoreAccountsSecurely_Title",
-      fallback: "Store my logins securely")
-    internal static let guidedOnboardingSwipeToReveal = L10n.tr(
-      "Localizable", "GuidedOnboarding_SwipeToReveal", fallback: "Swipe up to reveal")
-    internal static let guidedOnboardingSyncPasswordsDescription = L10n.tr(
-      "Localizable", "GuidedOnboarding_SyncPasswords_Description",
-      fallback:
-        "Consider it done. We’ll help you install Dashlane everywhere you use the internet so you'll always have access to your passwords and login details."
-    )
-    internal static let guidedOnboardingSyncPasswordsTitle = L10n.tr(
-      "Localizable", "GuidedOnboarding_SyncPasswords_Title",
-      fallback: "Sync logins across my devices")
-    internal static let guidedOnboardingWarnAboutHacksDescription = L10n.tr(
-      "Localizable", "GuidedOnboarding_WarnAboutHacks_Description",
-      fallback:
-        "We’ve got your back. We’ll notify you when a website you have an account with gets hacked, and then help you protect your account."
-    )
-    internal static let guidedOnboardingWarnAboutHacksTitle = L10n.tr(
-      "Localizable", "GuidedOnboarding_WarnAboutHacks_Title", fallback: "Warn me about hacks")
-    internal static let guidedOnboardingWhyDashlaneDescription = L10n.tr(
-      "Localizable", "GuidedOnboarding_WhyDashlane_Description",
-      fallback: "Pick the thing you want most. ")
-    internal static let guidedOnboardingWhyDashlaneTitle = L10n.tr(
-      "Localizable", "GuidedOnboarding_WhyDashlane_Title",
-      fallback: "How can we make your life easier?")
     internal static let health = L10n.tr("Localizable", "health", fallback: "Health")
     internal static let helpCenterDeleteAccountTitle = L10n.tr(
       "Localizable", "HELP_CENTER_DELETE_ACCOUNT_TITLE", fallback: "Delete my account")
@@ -1383,6 +1269,24 @@ internal enum L10n {
     internal static let identityRestorationErrorLink = L10n.tr(
       "Localizable", "IDENTITY_RESTORATION_ERROR_LINK",
       fallback: "Unable to retrieve Dashboard. Please try again.")
+    internal static let importButtonCancel = L10n.tr(
+      "Localizable", "import_button_cancel", fallback: "Cancel")
+    internal static let importSourceAnotherManager = L10n.tr(
+      "Localizable", "import_source_another_manager", fallback: "from another password manager")
+    internal static let importSourceDashlaneBackupSubtitle = L10n.tr(
+      "Localizable", "import_source_dashlane_backup_subtitle", fallback: "Import your DASH file")
+    internal static let importSourceDashlaneBackupTitle = L10n.tr(
+      "Localizable", "import_source_dashlane_backup_title", fallback: "Dashlane backup")
+    internal static let importSourceDataTitle = L10n.tr(
+      "Localizable", "import_source_data_title", fallback: "Where are you importing data from?")
+    internal static let importSourceManuallyTitle = L10n.tr(
+      "Localizable", "import_source_manually_title", fallback: "Add logins manually")
+    internal static let importSourceOther = L10n.tr(
+      "Localizable", "import_source_other", fallback: "other")
+    internal static let importSourceOtherManagersSubtitle = L10n.tr(
+      "Localizable", "import_source_other_managers_subtitle", fallback: "Import manually")
+    internal static let importSourceOtherManagersTitle = L10n.tr(
+      "Localizable", "import_source_other_managers_title", fallback: "Other password managers")
     internal static let importerImporting = L10n.tr(
       "Localizable", "IMPORTER_IMPORTING", fallback: "Importing your data...")
     internal static let importerSuccessCta = L10n.tr(
@@ -1434,7 +1338,7 @@ internal enum L10n {
     internal static let itemsPersonalInfoFilterPlaceholder = L10n.tr(
       "Localizable", "ITEMS_PERSONAL_INFO_FILTER_PLACEHOLDER", fallback: "Search personal info")
     internal static let itemsTabSearchPlaceholder = L10n.tr(
-      "Localizable", "ITEMS_TAB_SEARCH_PLACEHOLDER", fallback: "Search all items")
+      "Localizable", "ITEMS_TAB_SEARCH_PLACEHOLDER", fallback: "Search in your vault")
     internal static let keyboardShortcutDashlaneHelp = L10n.tr(
       "Localizable", "KEYBOARD_SHORTCUT_DASHLANE_HELP", fallback: "Dashlane Help")
     internal static func keyboardShortcutLastSync(_ p1: Any) -> String {
@@ -1811,9 +1715,6 @@ internal enum L10n {
       return L10n.tr(
         "Localizable", "KW_SHARING_COLLECTIONS_SINGULAR", p1, fallback: "%1$d collection")
     }
-    internal static let kwSharingComposeMessageToFieldPlaceholder = L10n.tr(
-      "Localizable", "KW_SHARING_COMPOSE_MESSAGE_TO_FIELD_PLACEHOLDER",
-      fallback: "Dashlane email address or Group")
     internal static let kwSharingDataLoading = L10n.tr(
       "Localizable", "KW_SHARING_DATA_LOADING", fallback: "Loading your contacts...")
     internal static func kwSharingFrom(_ p1: Any) -> String {
@@ -2218,23 +2119,6 @@ internal enum L10n {
     internal static let minimalisticOnboardingRecapTitle = L10n.tr(
       "Localizable", "MinimalisticOnboarding_Recap_Title", fallback: "That’s it! Here’s your recap:"
     )
-    internal static let mobileVpnNewProviderInfoboxDismiss = L10n.tr(
-      "Localizable", "Mobile_vpn_new_provider_infobox_dismiss", fallback: "Dismiss")
-    internal static let mobileVpnNewProviderInfoboxHeaderTitle = L10n.tr(
-      "Localizable", "Mobile_vpn_new_provider_infobox_header_title",
-      fallback: "Your Dashlane VPN is now provided by Hotspot Shield")
-    internal static let mobileVpnNewProviderInfoboxLearnMore = L10n.tr(
-      "Localizable", "Mobile_vpn_new_provider_infobox_learnMore", fallback: "Learn more")
-    internal static let mobileVpnNewProviderInfoModalButtonTitle = L10n.tr(
-      "Localizable", "Mobile_vpn_new_provider_infoModal_button_title", fallback: "Ok, got it")
-    internal static let mobileVpnNewProviderInfoModalDescription = L10n.tr(
-      "Localizable", "Mobile_vpn_new_provider_infoModal_description",
-      fallback:
-        "We’ve partnered with Hotspot Shield to offer Premium users the fastest virtual private network (VPN) on the market."
-    )
-    internal static let mobileVpnNewProviderInfoModalTitle = L10n.tr(
-      "Localizable", "Mobile_vpn_new_provider_infoModal_title",
-      fallback: "Your Dashlane VPN is now provided by Hotspot Shield")
     internal static let mobileVpnPageFaqGeneralDetails = L10n.tr(
       "Localizable", "Mobile_vpn_page_faq_general_details",
       fallback:
@@ -2333,7 +2217,7 @@ internal enum L10n {
     internal static let mplessRecoveryIntroMessage = L10n.tr(
       "Localizable", "MPLESS_RECOVERY_INTRO_MESSAGE",
       fallback:
-        "This is a single-use spare key to your vault. If you lose your device or forget your PIN, you can use it to access your account."
+        "This is a spare key to your vault. If you lose your device or forget your PIN, you can use it to access your account."
     )
     internal static let mplessRecoverySkipAlertCta = L10n.tr(
       "Localizable", "MPLESS_RECOVERY_SKIP_ALERT_CTA", fallback: "Yes, skip")
@@ -3989,21 +3873,13 @@ internal enum L10n {
       "Localizable", "vpnActivationView_termsOfService", fallback: "Terms of Service")
     internal static let vpnMainViewButtonActivated = L10n.tr(
       "Localizable", "vpnMainView_button_activated", fallback: "Launch Hotspot Shield")
-    internal static let vpnMainViewButtonActivationNeeded = L10n.tr(
-      "Localizable", "vpnMainView_button_activationNeeded", fallback: "Activate account")
     internal static let vpnMainViewSubtitleActivated = L10n.tr(
       "Localizable", "vpnMainView_subtitle_activated",
       fallback:
         "You can now log in to your Hotspot Shield account with the following username and password."
     )
-    internal static let vpnMainViewSubtitleActivationNeeded = L10n.tr(
-      "Localizable", "vpnMainView_subtitle_activationNeeded",
-      fallback: "You’ll need to use this account info to log in to the VPN for the first time.")
     internal static let vpnMainViewTitleActivated = L10n.tr(
       "Localizable", "vpnMainView_title_activated", fallback: "You're all set!")
-    internal static let vpnMainViewTitleActivationNeeded = L10n.tr(
-      "Localizable", "vpnMainView_title_activationNeeded",
-      fallback: "Activate your Hotspot Shield account")
     internal static let widgetDescription = L10n.tr(
       "Localizable", "widgetDescription",
       fallback: "This widget will display the health of your passwords.")
@@ -4242,12 +4118,52 @@ internal enum L10n {
         internal static let upgradeButton = L10n.tr(
           "Localizable", "settings.activePlan.upgradeButton", fallback: "Upgrade")
       }
+      internal enum Export {
+        internal static let exportButton = L10n.tr(
+          "Localizable", "settings.export.exportButton", fallback: "Export data")
+        internal enum Csv {
+          internal static let exportButton = L10n.tr(
+            "Localizable", "settings.export.csv.exportButton", fallback: "Export data to CSV")
+          internal static let footer = L10n.tr(
+            "Localizable", "settings.export.csv.footer",
+            fallback: "Backup your Dashlane data to a readable format.")
+          internal enum ExportView {
+            internal static let description = L10n.tr(
+              "Localizable", "settings.export.csv.exportView.description",
+              fallback:
+                "CSV files aren't encrypted, and others can read them. Delete the CSV file from your device after you're done using it."
+            )
+            internal static let errorTitle = L10n.tr(
+              "Localizable", "settings.export.csv.exportView.errorTitle", fallback: "Export failed")
+            internal static let exportButton = L10n.tr(
+              "Localizable", "settings.export.csv.exportView.exportButton",
+              fallback: "Export to CSV")
+            internal static let helpLink = L10n.tr(
+              "Localizable", "settings.export.csv.exportView.helpLink",
+              fallback: "Learn more on how to export")
+            internal static let successToast = L10n.tr(
+              "Localizable", "settings.export.csv.exportView.successToast",
+              fallback: "File exported")
+            internal static let title = L10n.tr(
+              "Localizable", "settings.export.csv.exportView.title",
+              fallback: "Move your Dashlane data using a CSV file")
+          }
+        }
+        internal enum DashArchive {
+          internal static let exportButton = L10n.tr(
+            "Localizable", "settings.export.dashArchive.exportButton",
+            fallback: "Export data to DASH file")
+          internal static let footer = L10n.tr(
+            "Localizable", "settings.export.dashArchive.footer",
+            fallback: "Backup your Dashlane data to an encrypted DASH file.")
+        }
+      }
       internal enum Security {
         internal static let richIconsDescription = L10n.tr(
           "Localizable", "settings.security.richIconsDescription",
           fallback: "Dashlane will download and display rich icons on your logins and contacts.")
         internal static let richIconsToggle = L10n.tr(
-          "Localizable", "settings.security.richIconsToggle", fallback: "Show Rich Icons")
+          "Localizable", "settings.security.richIconsToggle", fallback: "Show rich icons")
       }
     }
   }

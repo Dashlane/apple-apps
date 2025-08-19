@@ -2,7 +2,7 @@ import CoreFeature
 import CoreLocalization
 import CorePasswords
 import CorePersonalData
-import DashTypes
+import CoreTypes
 import DesignSystem
 import IconLibrary
 import SwiftTreats
@@ -27,7 +27,7 @@ public struct SecretDetailView: View {
 
       SharingDetailSection(
         model: model.sharingDetailSectionModelFactory.make(item: model.item),
-        ctaLabel: CoreLocalization.L10n.Core.Secrets.Sharing.ctaLabel,
+        ctaLabel: CoreL10n.Secrets.Sharing.ctaLabel,
         canShare: !model.service.isFrozen
       )
     }
@@ -42,7 +42,7 @@ public struct SecretDetailView: View {
 extension View {
   fileprivate func makeShortcuts(model: SecretDetailViewModel) -> some View {
     self.mainMenuShortcut(
-      .copyPrimary(title: CoreLocalization.L10n.Core.secretCopyActionCTA),
+      .copyPrimary(title: CoreL10n.secretCopyActionCTA),
       enabled: !model.mode.isEditing && !model.item.content.isEmpty,
       action: { model.copy(model.item.content, fieldType: .note) }
     )

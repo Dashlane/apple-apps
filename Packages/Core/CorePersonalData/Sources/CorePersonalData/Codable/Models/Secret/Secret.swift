@@ -1,7 +1,9 @@
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 import SwiftTreats
 
+@Loggable
 @PersonalData
 public struct Secret: Equatable, Identifiable, DatedPersonalData {
   public static let searchCategory: SearchCategory = .credential
@@ -33,7 +35,8 @@ public struct Secret: Equatable, Identifiable, DatedPersonalData {
     content: String,
     secured: Bool = false,
     creationDatetime: Date? = nil,
-    userModificationDatetime: Date? = nil
+    userModificationDatetime: Date? = nil,
+    spaceId: String? = nil
   ) {
     self.id = id
     _attachments = .init(nil)
@@ -43,6 +46,7 @@ public struct Secret: Equatable, Identifiable, DatedPersonalData {
     self.secured = secured
     self.creationDatetime = creationDatetime
     self.userModificationDatetime = userModificationDatetime
+    self.spaceId = spaceId
   }
 
   public func validate() throws {

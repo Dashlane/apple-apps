@@ -1,5 +1,5 @@
+import CoreTypes
 import CyrilKit
-import DashTypes
 import DashlaneAPI
 import Foundation
 
@@ -66,13 +66,14 @@ extension SharingUpdater {
       return
     }
 
-    let userUpdates = try await makeUserUpdates(users: users, groupKey: groupKey)
+    let validUsers = validProposeSignatureUsers(from: users, in: group, groupKey: groupKey)
+
+    let userUpdates = try await makeUserUpdates(users: validUsers, groupKey: groupKey)
 
     nextRequest += try await sharingClientAPI.updateOnItemGroup(
       withId: group.id,
       users: userUpdates,
       userGroups: nil,
-      userAuditLogDetails: nil,
       revision: group.info.revision)
   }
 
@@ -91,7 +92,10 @@ extension SharingUpdater {
       return
     }
 
-    let userUpdates = try await makeUserCollectionUpdates(users: users, collectionKey: groupKey)
+    let validUsers = validProposeSignatureUsers(from: users, in: collection, groupKey: groupKey)
+
+    let userUpdates = try await makeUserCollectionUpdates(
+      users: validUsers, collectionKey: groupKey)
 
     nextRequest += try await sharingClientAPI.updateOnCollection(
       withId: collection.id,
@@ -114,12 +118,32 @@ extension SharingUpdater {
       return
     }
 
-    let userUpdates = try await makeUserUpdates(users: users, groupKey: groupKey)
+    let validUsers = validProposeSignatureUsers(from: users, in: group, groupKey: groupKey)
+
+    let userUpdates = try await makeUserUpdates(users: validUsers, groupKey: groupKey)
 
     nextRequest += try await sharingClientAPI.updateOnUserGroup(
       withId: group.id,
       users: userUpdates,
       revision: group.info.revision)
+  }
+
+  private func validProposeSignatureUsers<Group: SharingGroup>(
+    from users: [User<Group>],
+    in group: Group,
+    groupKey: SharingSymmetricKey<Group>
+  ) -> [User<Group>] {
+    let proposeSignatureProducer = cryptoProvider.proposeSignatureProducer(using: groupKey)
+
+    return users.filter { user -> Bool in
+      do {
+        try user.verifyProposeSignature(using: proposeSignatureProducer)
+        return true
+      } catch {
+        logger.fatal("User invite for \(user.id) is not valid in \(group.info.id): \(error)")
+        return false
+      }
+    }
   }
 
   private func makeUserUpdates<Group: SharingGroup>(
@@ -242,6 +266,6 @@ extension SharingUpdater {
 
 extension User {
   fileprivate var needKeyUpdate: Bool {
-    return rsaStatus == .publicKey
+    return rsaStatus == .publicKey && status == .pending
   }
 }

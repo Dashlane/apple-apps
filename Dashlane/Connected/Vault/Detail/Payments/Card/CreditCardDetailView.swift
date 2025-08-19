@@ -16,15 +16,12 @@ struct CreditCardDetailView: View {
     DetailContainerView(service: model.service) {
       Section {
         if model.mode.isEditing {
-          TextDetailField(
-            title: CoreLocalization.L10n.Core.KWPaymentMeanCreditCardIOS.name,
-            text: $model.item.name
-          )
-          .textInputAutocapitalization(.words)
+          TextDetailField(title: CoreL10n.KWPaymentMeanCreditCardIOS.name, text: $model.item.name)
+            .textInputAutocapitalization(.words)
         }
 
         PickerDetailField(
-          title: CoreLocalization.L10n.Core.KWPaymentMeanCreditCardIOS.localeFormat,
+          title: CoreL10n.KWPaymentMeanCreditCardIOS.localeFormat,
           selection: $model.selectedCountry,
           elements: CountryCodeNamePair.countries
         ) { country in
@@ -32,17 +29,15 @@ struct CreditCardDetailView: View {
         }
 
         TextDetailField(
-          title: CoreLocalization.L10n.Core.KWPaymentMeanCreditCardIOS.ownerName,
-          text: $model.item.ownerName
+          title: CoreL10n.KWPaymentMeanCreditCardIOS.ownerName, text: $model.item.ownerName
         )
         .textInputAutocapitalization(.words)
 
         SecureDetailField(
-          title: CoreLocalization.L10n.Core.KWPaymentMeanCreditCardIOS.cardNumber,
+          title: CoreL10n.KWPaymentMeanCreditCardIOS.cardNumber,
           text: $model.item.cardNumber,
           onRevealAction: model.sendUsageLog,
-          formatter: CreditCardNumberFormatter(),
-          obfuscatingFormatter: CreditCardNumberFormatter(obfuscate: true),
+          format: .cardNumber,
           actions: [.copy(model.copy)]
         )
         .actions([.copy(model.copy), .largeDisplay])
@@ -51,12 +46,10 @@ struct CreditCardDetailView: View {
 
         if model.mode.isEditing || !model.item.securityCode.isEmpty {
           SecureDetailField(
-            title: CoreLocalization.L10n.Core.KWPaymentMeanCreditCardIOS.securityCode,
+            title: CoreL10n.KWPaymentMeanCreditCardIOS.securityCode,
             text: $model.item.securityCode,
             onRevealAction: model.sendUsageLog,
-            hasDisplayEmptyIndicator: false,
-            formatter: .uppercase,
-            obfuscatingFormatter: .obfuscatedCode,
+            format: .obfuscated(),
             actions: [.copy(model.copy)]
           )
           .actions([.copy(model.copy), .largeDisplay])
@@ -66,11 +59,10 @@ struct CreditCardDetailView: View {
 
         if model.mode.isEditing || !model.item.note.isEmpty {
           SecureDetailField(
-            title: CoreLocalization.L10n.Core.KWPaymentMeanCreditCardIOS.ccNote,
+            title: CoreL10n.KWPaymentMeanCreditCardIOS.ccNote,
             text: $model.item.note,
             onRevealAction: model.sendUsageLog,
-            hasDisplayEmptyIndicator: false,
-            obfuscatingFormatter: .obfuscatedCode(max: 4),
+            format: .obfuscated(maxLength: 4),
             actions: [.copy(model.copy)]
           )
           .actions([.copy(model.copy), .largeDisplay])
@@ -78,15 +70,15 @@ struct CreditCardDetailView: View {
         }
 
         DateDetailField(
-          title: CoreLocalization.L10n.Core.KWPaymentMeanCreditCardIOS.expiryDateForUi,
+          title: CoreL10n.KWPaymentMeanCreditCardIOS.expiryDateForUi,
           date: $model.item.editableExpireDate,
-          formatter: CreditCard.expireDateFormatter,
-          range: DateRange.future,
-          mode: .monthAndYear)
+          range: .future
+        )
+        .dateFieldStyle(.monthYear)
 
         if !model.banks.isEmpty {
           PickerDetailField(
-            title: CoreLocalization.L10n.Core.KWPaymentMeanCreditCardIOS.bank,
+            title: CoreL10n.KWPaymentMeanCreditCardIOS.bank,
             selection: $model.selectedBank,
             elements: model.banks
           ) { bank in
@@ -96,7 +88,7 @@ struct CreditCardDetailView: View {
         }
 
         PickerDetailField(
-          title: CoreLocalization.L10n.Core.KWPaymentMeanCreditCardIOS.color,
+          title: CoreL10n.KWPaymentMeanCreditCardIOS.color,
           selection: $model.item.color,
           elements: CreditCardColor.allCases,
           content: { color in
@@ -110,7 +102,7 @@ struct CreditCardDetailView: View {
         )
 
         PickerDetailField(
-          title: CoreLocalization.L10n.Core.KWPaymentMeanCreditCardIOS.linkedBillingAddress,
+          title: CoreL10n.KWPaymentMeanCreditCardIOS.linkedBillingAddress,
           selection: $model.selectedAddress,
           elements: model.addresses,
           allowEmptySelection: true

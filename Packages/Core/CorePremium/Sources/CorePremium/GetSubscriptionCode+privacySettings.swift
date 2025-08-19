@@ -1,8 +1,10 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 
 extension UserDeviceAPIClient.Premium {
+  @Loggable
   public enum PrivacySettingsError: Swift.Error {
     case invalidSubscriptionCodeReceived
   }

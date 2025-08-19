@@ -1,10 +1,14 @@
 import Combine
 import CorePersonalData
-import DashTypes
+import CoreTypes
 import Foundation
 import SecurityDashboard
-import WidgetKit
 
+#if canImport(WidgetKit)
+  import WidgetKit
+#endif
+
+@available(visionOS, unavailable)
 class IdentityDashboardWidgetService {
   func refresh(withReport report: SecurityDashboard.PasswordHealthReport) {
     let weakItems = report.allCredentialsReport.countsByFilter[.weak]
@@ -20,7 +24,9 @@ class IdentityDashboardWidgetService {
     ApplicationGroup.userDefaults.set(report.score, forKey: DashlaneWidgetConstant.score)
     ApplicationGroup.userDefaults.synchronize()
 
-    WidgetCenter.shared.reloadTimelines(ofKind: DashlaneWidgetConstant.kind)
+    #if canImport(WidgetKit)
+      WidgetCenter.shared.reloadTimelines(ofKind: DashlaneWidgetConstant.kind)
+    #endif
   }
 
   static func clear() {
@@ -31,6 +37,8 @@ class IdentityDashboardWidgetService {
     ApplicationGroup.userDefaults.set(nil, forKey: DashlaneWidgetConstant.score)
     ApplicationGroup.userDefaults.synchronize()
 
-    WidgetCenter.shared.reloadTimelines(ofKind: DashlaneWidgetConstant.kind)
+    #if canImport(WidgetKit)
+      WidgetCenter.shared.reloadTimelines(ofKind: DashlaneWidgetConstant.kind)
+    #endif
   }
 }

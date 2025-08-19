@@ -1,7 +1,7 @@
 import Combine
 import CorePersonalData
 import CoreSettings
-import DashTypes
+import CoreTypes
 import Foundation
 import MobileCoreServices
 import UIKit

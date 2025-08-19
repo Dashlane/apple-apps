@@ -1,5 +1,7 @@
 import Foundation
+import LogFoundation
 
+@Loggable
 public enum SSOAccountError: Error {
   case userNotFound(_ ssoToken: String, _ serviceProviderKey: String)
   case userDataNotFetched

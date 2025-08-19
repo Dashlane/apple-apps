@@ -1,6 +1,5 @@
 import DesignSystem
 import ImportKit
-import MacrosKit
 import SwiftUI
 import UIDelight
 
@@ -23,8 +22,6 @@ struct SettingsFlowView: View {
             GeneralSettingsView(viewModel: viewModel.generalSettingsViewModelFactory.make())
           case .helpCenter:
             HelpCenterSettingsView(viewModel: viewModel.helpCenterSettingsViewModelFactory.make())
-          case .labs:
-            LabsSettingsView(viewModel: viewModel.makeLabsViewModel())
           case .accountSummary:
             AccountSummaryView(model: viewModel.makeAccountSummaryViewModel())
           }

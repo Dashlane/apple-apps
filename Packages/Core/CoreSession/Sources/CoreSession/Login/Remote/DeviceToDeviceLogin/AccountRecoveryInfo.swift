@@ -1,4 +1,4 @@
-import DashTypes
+import CoreTypes
 import Foundation
 
 public struct AccountRecoveryInfo: Identifiable, Hashable, Sendable {

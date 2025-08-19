@@ -1,5 +1,5 @@
 import CoreLocalization
-import DashTypes
+import CoreTypes
 import DesignSystem
 import MessageUI
 import SwiftTreats
@@ -27,7 +27,7 @@ struct UpdateOperatingSystemAlertModifier: ViewModifier {
       Text(title),
       isPresented: $isPresented,
       actions: {
-        Button(L10n.Core.Announcement.UpdateSystem.notNow) {
+        Button(CoreL10n.Announcement.UpdateSystem.notNow) {
           cache.dismiss()
         }
         Button(openSettings, role: .cancel) {
@@ -36,13 +36,13 @@ struct UpdateOperatingSystemAlertModifier: ViewModifier {
         }
       },
       message: {
-        Text(L10n.Core.Announcement.UpdateSystem.message)
+        Text(CoreL10n.Announcement.UpdateSystem.message)
       })
   }
 
   func openSettingsApp() {
     let url: URL
-    if Device.isMac {
+    if Device.is(.mac) {
       url = URL(fileURLWithPath: "/System/Library/PreferencePanes/SoftwareUpdate.prefPane")
     } else {
       url = URL(string: "App-prefs:root=General")!
@@ -53,19 +53,19 @@ struct UpdateOperatingSystemAlertModifier: ViewModifier {
 
 extension UpdateOperatingSystemAlertModifier {
   fileprivate var title: String {
-    Device.isMac
-      ? L10n.Core.Announcement.UpdateSystem.MacOS.title
-      : L10n.Core.Announcement.UpdateSystem.Ios.title
+    Device.is(.mac)
+      ? CoreL10n.Announcement.UpdateSystem.MacOS.title
+      : CoreL10n.Announcement.UpdateSystem.Ios.title
   }
 
   fileprivate var message: String {
-    L10n.Core.Announcement.UpdateSystem.message
+    CoreL10n.Announcement.UpdateSystem.message
   }
 
   fileprivate var openSettings: String {
-    Device.isMac
-      ? L10n.Core.Announcement.UpdateSystem.MacOS.openSettings
-      : L10n.Core.Announcement.UpdateSystem.Ios.openSettings
+    Device.is(.mac)
+      ? CoreL10n.Announcement.UpdateSystem.MacOS.openSettings
+      : CoreL10n.Announcement.UpdateSystem.Ios.openSettings
   }
 }
 

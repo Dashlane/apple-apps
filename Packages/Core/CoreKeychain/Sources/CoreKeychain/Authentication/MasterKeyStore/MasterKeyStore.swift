@@ -1,32 +1,8 @@
-import DashTypes
+import CoreTypes
 import Foundation
 import LocalAuthentication
 
 public typealias ExpirationDate = Date
-
-public enum MasterKeyStoredStatus: Equatable {
-  case available(accessMode: KeychainAccessMode)
-  case expired(accessMode: KeychainAccessMode)
-  case notAvailable
-
-  init(keychainItemStatus: KeychainItemStatus, expired: Bool) {
-    switch keychainItemStatus {
-    case .found(accessible: let accessMode):
-      switch (accessMode, expired) {
-      case (.afterBiometricAuthentication, true):
-        self = .expired(accessMode: .afterBiometricAuthentication)
-      case (.afterBiometricAuthentication, false):
-        self = .available(accessMode: .afterBiometricAuthentication)
-      case (.whenDeviceUnlocked, true):
-        self = .expired(accessMode: .whenDeviceUnlocked)
-      case (.whenDeviceUnlocked, false):
-        self = .available(accessMode: .whenDeviceUnlocked)
-      }
-    case .notFound:
-      self = .notAvailable
-    }
-  }
-}
 
 final public class MasterKeyStore: KeychainManager {
 
@@ -83,7 +59,7 @@ final public class MasterKeyStore: KeychainManager {
 
   @discardableResult
   public func storeMasterKey(
-    _ masterKey: DashTypes.MasterKey,
+    _ masterKey: CoreTypes.MasterKey,
     expiringIn expirationTimeInterval: TimeInterval,
     accessMode: KeychainAccessMode
   ) throws -> MasterKeyContainer {

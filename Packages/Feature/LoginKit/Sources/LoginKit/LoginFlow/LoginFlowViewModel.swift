@@ -4,13 +4,14 @@ import CoreLocalization
 import CoreNetworking
 import CoreSession
 import CoreSettings
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import Logger
 import SwiftTreats
 import UIDelight
+import UserTrackingFoundation
 
 @MainActor
 public class LoginFlowViewModel: ObservableObject, LoginKitServicesInjecting {
@@ -33,39 +34,37 @@ public class LoginFlowViewModel: ObservableObject, LoginKitServicesInjecting {
   @Published
   var staticErrorPublisher: Error?
 
-  let loginHandler: LoginHandler
+  let loginHandler: LoginStateMachine
   let completion: (Completion) -> Void
   let login: Login?
   let deviceId: String?
   private let tokenPublisher: AnyPublisher<String, Never>
   private let localLoginViewModelFactory: LocalLoginFlowViewModel.Factory
   private let remoteLoginViewModelFactory: RemoteLoginFlowViewModel.Factory
-  private let loginViewModelFactory: LoginViewModel.Factory
+  private let loginViewModelFactory: LoginInputViewModel.Factory
   private let spiegelSettingsManager: LocalSettingsFactory
   private let keychainService: AuthenticationKeychainServiceProtocol
+  private let cryptoEngineProvider: CryptoEngineProvider
   private let sessionLogger: Logger
-  private let versionValidityAlertProvider: AlertContent
   private let purchasePlanFlowProvider: PurchasePlanFlowProvider
   private let sessionActivityReporterProvider: SessionActivityReporterProvider
-  private let loginMetricsReporter: LoginMetricsReporterProtocol
-  private let context: LocalLoginFlowContext
+  private let context: UnlockOriginProcess
 
   public init(
     login: Login?,
     deviceId: String?,
     logger: Logger,
-    loginHandler: LoginHandler,
-    loginMetricsReporter: LoginMetricsReporterProtocol,
+    loginHandler: LoginStateMachine,
     keychainService: AuthenticationKeychainServiceProtocol,
+    cryptoEngineProvider: CryptoEngineProvider,
     spiegelSettingsManager: LocalSettingsFactory,
     localLoginViewModelFactory: LocalLoginFlowViewModel.Factory,
     remoteLoginViewModelFactory: RemoteLoginFlowViewModel.Factory,
-    loginViewModelFactory: LoginViewModel.Factory,
+    loginViewModelFactory: LoginInputViewModel.Factory,
     purchasePlanFlowProvider: PurchasePlanFlowProvider,
     sessionActivityReporterProvider: SessionActivityReporterProvider,
     tokenPublisher: AnyPublisher<String, Never>,
-    versionValidityAlertProvider: AlertContent,
-    context: LocalLoginFlowContext,
+    context: UnlockOriginProcess,
     completion: @escaping (LoginFlowViewModel.Completion) -> Void
   ) {
     self.deviceId = deviceId
@@ -74,13 +73,12 @@ public class LoginFlowViewModel: ObservableObject, LoginKitServicesInjecting {
     self.purchasePlanFlowProvider = purchasePlanFlowProvider
     self.sessionActivityReporterProvider = sessionActivityReporterProvider
     self.keychainService = keychainService
-    self.loginMetricsReporter = loginMetricsReporter
+    self.cryptoEngineProvider = cryptoEngineProvider
     self.loginViewModelFactory = loginViewModelFactory
     self.remoteLoginViewModelFactory = remoteLoginViewModelFactory
     self.localLoginViewModelFactory = localLoginViewModelFactory
     self.loginHandler = loginHandler
     self.spiegelSettingsManager = spiegelSettingsManager
-    self.versionValidityAlertProvider = versionValidityAlertProvider
     self.login = login
     self.completion = completion
     self.context = context
@@ -106,31 +104,28 @@ public class LoginFlowViewModel: ObservableObject, LoginKitServicesInjecting {
     }
   }
 
-  func makeLoginViewModel(email: String? = nil) -> LoginViewModel {
+  func makeLoginViewModel(email: String? = nil) -> LoginInputViewModel {
     loginViewModelFactory.make(
       email: email,
       loginHandler: loginHandler,
-      staticErrorPublisher: self.$staticErrorPublisher.eraseToAnyPublisher(),
-      versionValidityAlertProvider: versionValidityAlertProvider
+      staticErrorPublisher: self.$staticErrorPublisher.eraseToAnyPublisher()
     ) { [weak self] result in
       guard let self = self else { return }
       self.connect(using: result)
     }
   }
 
-  func connect(using loginResult: LoginHandler.LoginResult?) {
+  func connect(using loginResult: LoginStateMachine.LoginResult?) {
     guard let result = loginResult else {
       completion(.logout)
       return
     }
     switch result {
-    case let .localLoginRequired(localLoginHandler):
-      self.steps.append(.login(.localLogin(localLoginHandler)))
+    case let .localLoginRequired(localLoginStateMachine):
+      self.steps.append(.login(.localLogin(localLoginStateMachine)))
     case let .remoteLoginRequired(login, method, deviceInfo):
       self.steps.append(
-        .login(
-          .remoteLogin(
-            .regularRemoteLogin(login, deviceRegistrationMethod: method, deviceInfo: deviceInfo))))
+        .login(.remoteLogin(.regularRemoteLogin(login, deviceRegistrationMethod: method))))
     case let .ssoAccountCreation(login, info):
       completion(.ssoAccountCreation(login, info))
     case let .deviceToDeviceRemoteLogin(login, deviceInfo):
@@ -143,15 +138,19 @@ public class LoginFlowViewModel: ObservableObject, LoginKitServicesInjecting {
     guard let deviceId = deviceId else {
       fatalError("Device Id Not available")
     }
-    loginMetricsReporter.markAsLoadingSessionFromSavedLogin()
-    let handler = try await loginHandler.createLocalLoginHandler(using: login, deviceId: deviceId)
-    self.steps.append(.loginInput(login.email))
-    self.steps.append(.login(.localLogin(handler)))
+
+    let handler = try loginHandler.createLocalLoginStateMachine(using: login, deviceId: deviceId)
+    self.steps
+      .append(contentsOf: [
+        .loginInput(login.email),
+        .login(.localLogin(handler)),
+      ])
   }
 }
 
 extension LoginFlowViewModel {
-  func makeLocalLoginFlowViewModel(using loginHandler: LocalLoginHandler) -> LocalLoginFlowViewModel
+  func makeLocalLoginFlowViewModel(using loginHandler: LocalLoginStateMachine)
+    -> LocalLoginFlowViewModel
   {
     guard
       let userSecuritySettings = try? spiegelSettingsManager.fetchOrCreateUserSettings(
@@ -170,11 +169,8 @@ extension LoginFlowViewModel {
       login: loginHandler.login, settings: userSettings, keychainService: keychainService)
 
     return localLoginViewModelFactory.make(
-      localLoginHandler: loginHandler,
-      resetMasterPasswordService: resetMasterPasswordService,
-      userSettings: userSecuritySettings,
-      email: loginHandler.login.email,
-      context: context
+      stateMachine: loginHandler, resetMasterPasswordService: resetMasterPasswordService,
+      userSettings: userSecuritySettings, login: loginHandler.login, context: context
     ) { [weak self] result in
       guard let self = self else { return }
       switch result {
@@ -208,7 +204,9 @@ extension LoginFlowViewModel {
 
   func makeRemoteLoginFlowViewModel(using type: RemoteLoginType) -> RemoteLoginFlowViewModel {
     remoteLoginViewModelFactory.make(
-      type: type, deviceInfo: loginHandler.deviceInfo,
+      type: type,
+      deviceInfo: loginHandler.deviceInfo,
+      stateMachine: loginHandler.makeRemoteLoginStateMachine(type: type),
       purchasePlanFlowProvider: purchasePlanFlowProvider,
       sessionActivityReporterProvider: sessionActivityReporterProvider,
       tokenPublisher: tokenPublisher

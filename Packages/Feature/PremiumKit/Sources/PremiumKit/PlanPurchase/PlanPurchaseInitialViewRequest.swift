@@ -2,7 +2,12 @@ import CorePremium
 import Foundation
 
 public enum PlanPurchaseInitialViewRequest {
-  case paywall(trigger: PaywallViewModel.Trigger)
+  public enum Trigger {
+    case capability(key: CapabilityKey)
+    case frozenAccount
+  }
+
+  case paywall(trigger: Trigger)
   case list
   case plan(kind: PurchasePlan.Kind)
 }

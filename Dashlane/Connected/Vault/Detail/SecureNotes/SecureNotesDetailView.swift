@@ -34,7 +34,7 @@ struct SecureNotesDetailView: View {
   private var mainSection: some View {
     Section {
       NotesDetailField(
-        title: CoreLocalization.L10n.Core.KWSecureNoteIOS.title,
+        title: CoreL10n.KWSecureNoteIOS.title,
         text: $model.item.title
       )
       .limitedRights(model: .init(item: model.item, isFrozen: model.isFrozen, hasInfoButton: false))
@@ -43,12 +43,12 @@ struct SecureNotesDetailView: View {
         MarkdownDetailField(model.item.content)
           .actions([.copy(model.copy)], hasAccessory: false)
           .lineLimit(nil)
-          .labeled(CoreLocalization.L10n.Core.KWSecureNoteIOS.content)
+          .labeled(CoreL10n.KWSecureNoteIOS.content)
           .limitedRights(
             model: .init(item: model.item, isFrozen: model.isFrozen, hasInfoButton: false))
       } else {
         NotesDetailField(
-          title: CoreLocalization.L10n.Core.KWSecureNoteIOS.content,
+          title: CoreL10n.KWSecureNoteIOS.content,
           text: $model.item.content
         )
         .actions([.copy(model.copy)], hasAccessory: false)
@@ -69,7 +69,7 @@ struct SecureNotesDetailView: View {
   private var colorSection: some View {
     Section {
       PickerDetailField(
-        title: CoreLocalization.L10n.Core.KWSecureNoteIOS.colorTitle,
+        title: CoreL10n.KWSecureNoteIOS.colorTitle,
         selection: $model.item.color,
         elements: SecureNoteColor.allCases,
         content: { color in
@@ -85,13 +85,20 @@ struct SecureNotesDetailView: View {
   }
 }
 
-#Preview {
-  MultiContextPreview {
-    SecureNotesDetailView(
-      model: MockVaultConnectedContainer().makeSecureNotesDetailViewModel(
-        item: PersonalDataMock.SecureNotes.thinkDifferent, mode: .viewing))
-    SecureNotesDetailView(
-      model: MockVaultConnectedContainer().makeSecureNotesDetailViewModel(
-        item: PersonalDataMock.SecureNotes.thinkDifferent, mode: .updating))
-  }
+#Preview("Secure Note - Viewing") {
+  SecureNotesDetailView(
+    model: MockVaultConnectedContainer().makeSecureNotesDetailViewModel(
+      item: PersonalDataMock.SecureNotes.thinkDifferent,
+      mode: .viewing
+    )
+  )
+}
+
+#Preview("Secure Note - Updating") {
+  SecureNotesDetailView(
+    model: MockVaultConnectedContainer().makeSecureNotesDetailViewModel(
+      item: PersonalDataMock.SecureNotes.thinkDifferent,
+      mode: .updating
+    )
+  )
 }

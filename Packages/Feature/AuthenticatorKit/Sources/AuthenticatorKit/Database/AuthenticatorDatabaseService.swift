@@ -1,7 +1,8 @@
 import Combine
 import CoreIPC
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 import TOTPGenerator
 
 public protocol AuthenticatorDatabaseServiceProtocol {

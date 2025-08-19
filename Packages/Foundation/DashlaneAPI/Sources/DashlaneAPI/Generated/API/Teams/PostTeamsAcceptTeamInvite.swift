@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppAPIClient.Teams {
-  public struct AcceptTeamInvite: APIRequest {
+  public struct AcceptTeamInvite: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/teams/AcceptTeamInvite"
 
     public let api: AppAPIClient
@@ -24,7 +24,7 @@ extension AppAPIClient.Teams {
 }
 
 extension AppAPIClient.Teams.AcceptTeamInvite {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case inviteToken = "inviteToken"
     }
@@ -43,7 +43,7 @@ extension AppAPIClient.Teams.AcceptTeamInvite {
 }
 
 extension AppAPIClient.Teams.AcceptTeamInvite {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case isAccountCreated = "isAccountCreated"
       case teamName = "teamName"
@@ -53,16 +53,28 @@ extension AppAPIClient.Teams.AcceptTeamInvite {
       case ssoStatus = "ssoStatus"
     }
 
+    public enum SsoStatus: String, Sendable, Hashable, Codable, CaseIterable {
+      case activated = "activated"
+      case pendingActivation = "pending_activation"
+      case pendingDeactivation = "pending_deactivation"
+      case undecodable
+      public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let rawValue = try container.decode(String.self)
+        self = Self(rawValue: rawValue) ?? .undecodable
+      }
+    }
+
     public let isAccountCreated: Bool
     public let teamName: String?
     public let login: String
     public let ssoIsNitroProvider: Bool?
     public let ssoServiceProviderUrl: String?
-    public let ssoStatus: TeamsSsoStatus?
+    public let ssoStatus: SsoStatus?
 
     public init(
       isAccountCreated: Bool, teamName: String?, login: String, ssoIsNitroProvider: Bool? = nil,
-      ssoServiceProviderUrl: String? = nil, ssoStatus: TeamsSsoStatus? = nil
+      ssoServiceProviderUrl: String? = nil, ssoStatus: SsoStatus? = nil
     ) {
       self.isAccountCreated = isAccountCreated
       self.teamName = teamName

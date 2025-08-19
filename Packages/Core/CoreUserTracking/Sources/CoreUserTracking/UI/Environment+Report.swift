@@ -1,6 +1,7 @@
-import DashTypes
+import CoreTypes
 import Foundation
 import SwiftUI
+import UserTrackingFoundation
 
 public struct ReportAction {
   let reporter: ActivityReporterProtocol

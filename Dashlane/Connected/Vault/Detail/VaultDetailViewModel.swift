@@ -1,6 +1,6 @@
 import Combine
 import CorePersonalData
-import DashTypes
+import CoreTypes
 import SwiftUI
 import UIComponents
 import VaultKit
@@ -31,6 +31,7 @@ struct VaultDetailViewModel: SessionServicesInjecting {
   private let bankAccountFactory: BankAccountDetailViewModel.Factory
   private let secureNoteFactory: SecureNotesDetailViewModel.Factory
   private let passkeyFactory: PasskeyDetailViewModel.Factory
+  private let wifiFactory: WifiDetailViewModel.Factory
 
   public init(
     credentialFactory: CredentialDetailViewModel.Factory,
@@ -49,7 +50,8 @@ struct VaultDetailViewModel: SessionServicesInjecting {
     creditCardFactory: CreditCardDetailViewModel.Factory,
     bankAccountFactory: BankAccountDetailViewModel.Factory,
     secureNoteFactory: SecureNotesDetailViewModel.Factory,
-    passkeyFactory: PasskeyDetailViewModel.Factory
+    passkeyFactory: PasskeyDetailViewModel.Factory,
+    wifiFactory: WifiDetailViewModel.Factory
   ) {
     self.credentialFactory = credentialFactory
     self.identityFactory = identityFactory
@@ -68,6 +70,7 @@ struct VaultDetailViewModel: SessionServicesInjecting {
     self.bankAccountFactory = bankAccountFactory
     self.secureNoteFactory = secureNoteFactory
     self.passkeyFactory = passkeyFactory
+    self.wifiFactory = wifiFactory
   }
 
   @MainActor
@@ -178,6 +181,11 @@ struct VaultDetailViewModel: SessionServicesInjecting {
   func makeSecretDetailViewModel(secret: Secret, mode: DetailMode) -> SecretDetailViewModel {
     secretFactory.make(item: secret, mode: mode)
   }
+
+  @MainActor
+  func makeWifiDetailViewModel(wifi: WiFi, mode: DetailMode) -> WifiDetailViewModel {
+    wifiFactory.make(item: wifi, mode: mode)
+  }
 }
 
 @MainActor
@@ -218,6 +226,8 @@ extension VaultDetailViewModel {
       service: .mock(item: Passkey(), mode: .viewing))
     let secretsViewModel = MockVaultConnectedContainer().makeSecretDetailViewModel(
       service: .mock(item: Secret(), mode: .viewing))
+    let wifiViewModel = MockVaultConnectedContainer().makeWifiDetailViewModel(
+      service: .mock(item: WiFi(), mode: .viewing))
 
     return .init(
       credentialFactory: .init { _, _, _, _, _, _ in credentialViewModel },
@@ -236,6 +246,7 @@ extension VaultDetailViewModel {
       creditCardFactory: .init { _, _, _ in creditCardViewModel },
       bankAccountFactory: .init { _, _ in bankAccountViewModel },
       secureNoteFactory: .init { _, _ in secureNoteViewModel },
-      passkeyFactory: .init { _, _, _ in passKeyViewModel })
+      passkeyFactory: .init { _, _, _ in passKeyViewModel },
+      wifiFactory: .init { _, _ in wifiViewModel })
   }
 }

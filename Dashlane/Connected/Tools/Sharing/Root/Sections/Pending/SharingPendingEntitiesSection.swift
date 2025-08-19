@@ -16,7 +16,7 @@ struct SharingPendingEntitiesSection: View {
 
   var body: some View {
     if !model.pendingItemGroups.isEmpty || !model.pendingCollections.isEmpty {
-      LargeHeaderSection(title: L10n.Localizable.kwSharingCenterSectionPendingItems) {
+      Section(L10n.Localizable.kwSharingCenterSectionPendingItems) {
         ForEach(model.pendingItemGroups) { pendingGroup in
           PendingSharingRow { action in
             try await model.perform(action, on: pendingGroup)
@@ -24,9 +24,8 @@ struct SharingPendingEntitiesSection: View {
             row(for: pendingGroup)
           }
         }.confirmationDialog(
-          CoreLocalization.L10n.Core.teamSpacesSharingAcceptPrompt,
-          isPresented: $model.isSpaceSelectionRequired, titleVisibility: .visible,
-          actions: spacePickerDialog)
+          CoreL10n.teamSpacesSharingAcceptPrompt, isPresented: $model.isSpaceSelectionRequired,
+          titleVisibility: .visible, actions: spacePickerDialog)
 
         ForEach(model.pendingCollections) { collection in
           PendingSharingRow { action in
@@ -66,7 +65,7 @@ struct SharingPendingEntitiesSection: View {
       }
     }
 
-    Button(CoreLocalization.L10n.Core.cancel, role: .cancel) {
+    Button(CoreL10n.cancel, role: .cancel) {
       model.select(nil)
     }
   }
@@ -130,7 +129,7 @@ struct SharingPendingEntitiesSection_Previews: PreviewProvider {
       )
     }
     .previewDisplayName("Two Pending Groups")
-    .listStyle(.insetGrouped)
+    .listStyle(.ds.insetGrouped)
 
     List {
       SharingPendingEntitiesSection(
@@ -141,7 +140,7 @@ struct SharingPendingEntitiesSection_Previews: PreviewProvider {
       )
     }
     .previewDisplayName("Select Space Before Accept")
-    .listStyle(.insetGrouped)
+    .listStyle(.ds.insetGrouped)
 
     List {
       SharingPendingEntitiesSection(
@@ -152,6 +151,6 @@ struct SharingPendingEntitiesSection_Previews: PreviewProvider {
       )
     }
     .previewDisplayName("Empty")
-    .listStyle(.insetGrouped)
+    .listStyle(.ds.insetGrouped)
   }
 }

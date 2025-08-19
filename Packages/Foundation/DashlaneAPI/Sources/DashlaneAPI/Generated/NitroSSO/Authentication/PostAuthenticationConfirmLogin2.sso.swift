@@ -1,7 +1,7 @@
 import Foundation
 
 extension SecureNitroSSOAPIClient.Authentication {
-  public struct ConfirmLogin2: APIRequest {
+  public struct ConfirmLogin2: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/authentication/ConfirmLogin2"
 
     public let api: SecureNitroSSOAPIClient
@@ -24,7 +24,7 @@ extension SecureNitroSSOAPIClient.Authentication {
 }
 
 extension SecureNitroSSOAPIClient.Authentication.ConfirmLogin2 {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case teamUuid = "teamUuid"
       case domainName = "domainName"
@@ -51,7 +51,7 @@ extension SecureNitroSSOAPIClient.Authentication.ConfirmLogin2 {
 }
 
 extension SecureNitroSSOAPIClient.Authentication.ConfirmLogin2 {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case ssoToken = "ssoToken"
       case userServiceProviderKey = "userServiceProviderKey"

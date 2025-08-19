@@ -20,7 +20,7 @@ struct MarkdownDetailField: View, CopiableDetailField {
   }
 
   public var title: String {
-    CoreLocalization.L10n.Core.KWSecureNoteIOS.content
+    CoreL10n.KWSecureNoteIOS.content
   }
 
   var fiberFieldType: VaultKit.DetailFieldType {

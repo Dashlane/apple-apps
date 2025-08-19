@@ -1,8 +1,8 @@
 import Foundation
 
-public struct AlertSection {
+public struct AlertSection: Sendable {
 
-  public struct Title {
+  public struct Title: Sendable {
     public internal(set) var data: String
 
     init(_ string: String) {
@@ -17,42 +17,38 @@ public struct AlertSection {
     return String(format: title.data, arguments: contents as [CVarArg])
   }
 
-  public func attributedString(withContentAttributes attributes: [NSAttributedString.Key: Any])
-    -> NSMutableAttributedString
+  public func attributedString(withContentAttributes attributes: AttributeContainer)
+    -> AttributedString
   {
-
-    let mutableAttributedString = NSMutableAttributedString(string: self.string())
-    let nsstring = mutableAttributedString.string as NSString
-
+    var attributedString = AttributedString(self.string())
     for content in contents {
-      let contentRange = nsstring.range(of: content)
-      guard contentRange.isValidIn(string: nsstring) else { break }
-      mutableAttributedString.addAttributes(attributes, range: contentRange)
+      guard let contentRange = attributedString.range(of: content) else {
+        continue
+      }
+      attributedString[contentRange].mergeAttributes(attributes, mergePolicy: .keepNew)
     }
 
-    return mutableAttributedString
+    return attributedString
   }
 
   public func attributedString(
-    withContentJoinedBy separator: String, attributes: [NSAttributedString.Key: Any]
-  ) -> NSMutableAttributedString {
-
+    withContentJoinedBy separator: String, attributes: AttributeContainer
+  ) -> AttributedString {
     let content = contents.joined(separator: ", ")
-    let mutableAttributedString = NSMutableAttributedString(
-      string: String(format: title.data, content))
-    let nsstring = mutableAttributedString.string as NSString
+    var attributedString = AttributedString(String(format: title.data, content))
 
-    let contentRange = nsstring.range(of: content)
-    if contentRange.isValidIn(string: nsstring) {
-      mutableAttributedString.addAttributes(attributes, range: contentRange)
+    guard let contentRange = attributedString.range(of: content) else {
+      return attributedString
     }
 
-    return mutableAttributedString
+    attributedString[contentRange].mergeAttributes(attributes, mergePolicy: .keepNew)
+
+    return attributedString
   }
 
   public func attributedString(
-    withContentAttributes attributes: [NSAttributedString.Key: Any], splittedBy delimiter: String
-  ) -> NSAttributedString {
+    withContentAttributes attributes: AttributeContainer, splittedBy delimiter: String
+  ) -> AttributedString {
 
     var reversedContents: [String] = contents.reversed()
     let components = title.data.components(separatedBy: delimiter)
@@ -63,21 +59,16 @@ public struct AlertSection {
       return result.appending(str.appending(content))
     }
 
-    let mutableAttributedString = NSMutableAttributedString(string: filledTitle)
-    let nsstring = mutableAttributedString.string as NSString
+    var attributedString = AttributedString(filledTitle)
 
     for content in contents {
-      let contentRange = nsstring.range(of: content)
-      guard contentRange.isValidIn(string: nsstring) else { break }
-      mutableAttributedString.addAttributes(attributes, range: contentRange)
+      guard let contentRange = attributedString.range(of: content) else {
+        continue
+      }
+
+      attributedString[contentRange].mergeAttributes(attributes, mergePolicy: .keepNew)
     }
 
-    return mutableAttributedString
-  }
-}
-
-extension NSRange {
-  fileprivate func isValidIn(string: NSString) -> Bool {
-    return self.location != NSNotFound && self.location + self.length <= string.length
+    return attributedString
   }
 }

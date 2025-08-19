@@ -3,13 +3,13 @@ import PackageDescription
 let package = Package(
   name: "CoreSync",
   platforms: [
-    .iOS(.v16)
+    .iOS(.v17)
   ],
   products: [
     .library(name: "CoreSync", targets: ["CoreSync"])
   ],
   dependencies: [
-    .package(path: "../../Foundation/DashTypes"),
+    .package(path: "../../Core/CoreTypes"),
     .package(path: "../../Foundation/CyrilKit"),
     .package(path: "../../Foundation/DashlaneAPI"),
     .package(path: "../../Core/CorePersonalData"),
@@ -19,13 +19,19 @@ let package = Package(
     .target(
       name: "CoreSync",
       dependencies: [
-        "DashTypes",
+        "CoreTypes",
         "CyrilKit",
         "DashlaneAPI",
       ]
     ),
     .testTarget(
       name: "CoreSyncTests",
+      dependencies: [
+        "CoreSync"
+      ]
+    ),
+    .testTarget(
+      name: "CoreSyncLegacyTests",
       dependencies: [
         "CoreSync",
         "CoreCrypto",

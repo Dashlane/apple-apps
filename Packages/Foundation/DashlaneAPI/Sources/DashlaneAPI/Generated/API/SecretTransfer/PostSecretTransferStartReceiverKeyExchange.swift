@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppAPIClient.SecretTransfer {
-  public struct StartReceiverKeyExchange: APIRequest {
+  public struct StartReceiverKeyExchange: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/secretTransfer/StartReceiverKeyExchange"
 
     public let api: AppAPIClient
@@ -24,7 +24,7 @@ extension AppAPIClient.SecretTransfer {
 }
 
 extension AppAPIClient.SecretTransfer.StartReceiverKeyExchange {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case transferId = "transferId"
       case receiverHashedPublicKey = "receiverHashedPublicKey"
@@ -47,7 +47,7 @@ extension AppAPIClient.SecretTransfer.StartReceiverKeyExchange {
 }
 
 extension AppAPIClient.SecretTransfer.StartReceiverKeyExchange {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case senderPublicKey = "senderPublicKey"
     }

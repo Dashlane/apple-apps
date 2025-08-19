@@ -1,7 +1,7 @@
 import DesignSystem
 import Lottie
 import SwiftUI
-import UIComponents
+import SwiftUILottie
 import UIDelight
 
 struct M2WStartView: View {
@@ -26,7 +26,8 @@ struct M2WStartView: View {
 
       ctaButton
     }
-    .backgroundColorIgnoringSafeArea(.ds.background.alternate)
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
     .navigationBarBackButtonHidden(true)
     .toolbar {
       toolbarContent
@@ -36,8 +37,10 @@ struct M2WStartView: View {
   @ToolbarContentBuilder
   private var toolbarContent: some ToolbarContent {
     ToolbarItem(placement: .navigationBarLeading) {
-      Button(action: { completion(.didTapSkip) }, title: L10n.Localizable.m2WStartScreenSkip)
-        .foregroundColor(.ds.text.brand.standard)
+      Button(L10n.Localizable.m2WStartScreenSkip) {
+        completion(.didTapSkip)
+      }
+      .foregroundStyle(Color.ds.text.brand.standard)
     }
   }
 
@@ -46,8 +49,8 @@ struct M2WStartView: View {
     VStack {
       Text(L10n.Localizable.m2WStartScreenTitle)
         .frame(maxWidth: 400)
-        .font(DashlaneFont.custom(28, .medium).font)
-        .foregroundColor(.ds.text.neutral.catchy)
+        .textStyle(.specialty.spotlight.medium)
+        .foregroundStyle(Color.ds.text.neutral.catchy)
         .multilineTextAlignment(.center)
 
       Spacer()
@@ -62,8 +65,8 @@ struct M2WStartView: View {
 
       Text(L10n.Localizable.m2WStartScreenSubtitle)
         .frame(maxWidth: 400)
-        .font(.body.weight(.light))
-        .foregroundColor(.ds.text.neutral.standard)
+        .textStyle(.body.standard.regular)
+        .foregroundStyle(Color.ds.text.neutral.standard)
         .multilineTextAlignment(.center)
     }
     .padding(.horizontal, 32)
@@ -77,5 +80,11 @@ struct M2WStartView: View {
     .buttonStyle(.designSystem(.titleOnly))
     .padding(.horizontal, 16)
     .padding(.bottom, 30)
+  }
+}
+
+#Preview {
+  M2WStartView { _ in
+
   }
 }

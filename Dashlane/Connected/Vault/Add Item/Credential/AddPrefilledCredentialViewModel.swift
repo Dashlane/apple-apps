@@ -2,7 +2,7 @@ import Combine
 import CoreCategorizer
 import CorePersonalData
 import CoreSession
-import DashTypes
+import CoreTypes
 import DomainParser
 import Foundation
 import UIKit

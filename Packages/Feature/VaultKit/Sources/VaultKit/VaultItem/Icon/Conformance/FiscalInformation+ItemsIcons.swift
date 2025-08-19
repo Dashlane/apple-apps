@@ -4,15 +4,11 @@ import Foundation
 import SwiftUI
 
 extension FiscalInformation {
-  public var listIcon: VaultItemIcon {
-    .bankAccount
-  }
-
   public var icon: VaultItemIcon {
-    .bankAccount
+    .fiscalInformation
   }
 
   public static var addIcon: SwiftUI.Image {
-    .ds.item.bankAccount.outlined
+    .ds.item.taxNumber.outlined
   }
 }

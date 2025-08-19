@@ -1,5 +1,6 @@
-import DashTypes
+import CoreTypes
 import Foundation
+import UserTrackingFoundation
 
 public struct UserTrackingSessionActivityReporter: ActivityReporterProtocol {
 

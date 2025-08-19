@@ -1,6 +1,6 @@
 import CorePersonalData
 import CoreSharing
-import DashTypes
+import CoreTypes
 import SwiftUI
 import UIComponents
 import VaultKit
@@ -21,30 +21,19 @@ struct SharingItemsUserDetailView: View {
   @State
   var selectedItem: VaultItem?
 
-  @State
-  var titleHeight: CGFloat? = DetailDimension.defaultNavigationBarHeight
-
   init(model: @escaping @autoclosure () -> SharingItemsUserDetailViewModel) {
     self._model = .init(wrappedValue: model())
   }
 
   var body: some View {
-    ZStack(alignment: .top) {
-      DetailList(offsetEnabled: true, titleHeight: $titleHeight) {
-        items
-      }
-      NavigationBar(
-        leading: leadingButton,
-        title: title,
-        titleAccessory: iconView,
-        trailing: EmptyView(),
-        height: titleHeight)
-
+    DetailList(title: title) {
+      items
+    } titleAccessory: {
+      iconView
     }
     .alert(item: $model.alertMessage) { message in
       Alert(title: Text(message))
     }
-    .navigationBarHidden(true)
     .reportPageAppearance(.sharingMemberDetails)
     .navigation(item: $selectedItem) { vaultItem in
       VaultDetailView(
@@ -53,17 +42,8 @@ struct SharingItemsUserDetailView: View {
     }
   }
 
-  var leadingButton: some View {
-    BackButton(label: L10n.Localizable.tabContactsTitle, color: .ds.text.brand.standard) {
-      dismiss()
-    }
-    .accentColor(.ds.text.brand.standard)
-  }
-
-  var title: some View {
+  var title: Text {
     Text(model.user.id)
-      .lineLimit(1)
-      .foregroundColor(.ds.text.neutral.catchy)
   }
 
   var iconView: some View {

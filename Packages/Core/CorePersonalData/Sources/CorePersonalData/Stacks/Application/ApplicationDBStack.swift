@@ -1,5 +1,6 @@
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 
 public struct ApplicationDBStack: ApplicationDatabase {
   public let driver: DatabaseDriver
@@ -111,7 +112,7 @@ extension ApplicationDatabase where Self == ApplicationDBStack {
         platform: "server_iphone", deviceName: "iPhone", user: "Dominique"),
       codeDecoder: nil,
       personalDataURLDecoder: nil,
-      logger: LoggerMock())
+      logger: .mock)
     items.forEach { item in
       try! database.save(item)
     }

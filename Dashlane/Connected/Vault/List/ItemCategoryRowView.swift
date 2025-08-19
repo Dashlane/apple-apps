@@ -35,7 +35,7 @@ struct ItemCategoryRowView: View {
       icon
         .frame(width: 24)
       Text(title)
-        .foregroundColor(.ds.text.neutral.catchy)
+        .foregroundStyle(Color.ds.text.neutral.catchy)
         .lineLimit(1)
       if !tagMessageViewModel.isHidden {
         Badge(tagMessageViewModel.message)
@@ -48,7 +48,7 @@ struct ItemCategoryRowView: View {
             .id(countString)
           Image(systemName: "chevron.right")
         }
-        .foregroundColor(.ds.text.inverse.standard)
+        .foregroundStyle(Color.ds.text.inverse.standard)
       }
     }
     .frame(maxWidth: .infinity, alignment: .leading)

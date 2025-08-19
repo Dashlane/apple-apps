@@ -51,12 +51,12 @@ where Value: Hashable & Identifiable, Content: View {
         label: {
           HStack(spacing: 0) {
             self.content(selection)
-              .foregroundColor(.ds.text.neutral.standard)
+              .foregroundStyle(Color.ds.text.neutral.standard)
               .labeled(title)
             if detailMode.isEditing {
               Spacer()
               Image(systemName: "chevron.right")
-                .foregroundColor(.ds.text.neutral.quiet)
+                .foregroundStyle(Color.ds.text.neutral.quiet)
             }
           }
 
@@ -64,6 +64,7 @@ where Value: Hashable & Identifiable, Content: View {
       )
       .disabled(!detailMode.isEditing)
     )
+    .listRowInsets(EdgeInsets(top: 8, leading: 16, bottom: 8, trailing: 16))
   }
 
   @ViewBuilder
@@ -80,7 +81,6 @@ where Value: Hashable & Identifiable, Content: View {
             allowEmptySelection: allowEmptySelection,
             content: content
           )
-          .navigationBarTitleDisplayMode(.inline)
         }
     }
   }

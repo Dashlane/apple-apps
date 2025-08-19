@@ -3,10 +3,11 @@ import CoreFeature
 import CoreLocalization
 import CorePersonalData
 import CorePremium
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DesignSystem
 import Foundation
+import LogFoundation
+import UserTrackingFoundation
 
 @MainActor
 public final class CollectionQuickActionsMenuViewModel: ObservableObject, VaultKitServicesInjecting
@@ -103,7 +104,7 @@ public final class CollectionQuickActionsMenuViewModel: ObservableObject, VaultK
       do {
         try await vaultCollectionEditionService.delete()
         toast(
-          L10n.Core.KWVaultItem.Collections.deleted(collection.name),
+          CoreL10n.KWVaultItem.Collections.deleted(collection.name),
           image: .ds.feedback.success.outlined)
       } catch {
         if collection.isShared {
@@ -142,7 +143,7 @@ extension CollectionQuickActionsMenuViewModel {
   public static func mock(collection: VaultCollection) -> CollectionQuickActionsMenuViewModel {
     .init(
       collection: collection,
-      logger: LoggerMock(),
+      logger: .mock,
       activityReporter: .mock,
       vaultCollectionsStore: MockVaultKitServicesContainer().vaultCollectionsStore,
       userSpacesService: MockVaultKitServicesContainer().userSpacesService,

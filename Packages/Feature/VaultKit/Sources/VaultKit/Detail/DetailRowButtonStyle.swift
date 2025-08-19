@@ -30,7 +30,7 @@ public struct DetailRowButtonStyle: PrimitiveButtonStyle {
 
     Button(action: configuration.trigger) {
       configuration.label
-        .foregroundColor(color)
+        .foregroundStyle(color)
         .frame(maxWidth: .infinity, alignment: .leading)
         .contentShape(Rectangle())
     }

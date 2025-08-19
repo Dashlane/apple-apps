@@ -1,20 +1,22 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import StateMachine
 import SwiftTreats
 
-@MainActor
 public struct SSORemoteStateMachine: StateMachine {
 
-  public enum State: Hashable {
+  @Loggable
+  public enum State: Hashable, Sendable {
     case waitingForUserInput
     case failed(StateMachineError)
     case cancelled
     case completed(RemoteLoginSession)
   }
 
-  public enum Event {
+  @Loggable
+  public enum Event: Sendable {
     case receivedSSOCallback(Result<SSOCompletion, Error>)
     case cancel
   }
@@ -26,33 +28,38 @@ public struct SSORemoteStateMachine: StateMachine {
   private let deviceInfo: DeviceInfo
   private let ssoAuthenticationInfo: SSOAuthenticationInfo
   private let logger: Logger
+  private let remoteLogger: RemoteLogger
 
   public init(
     ssoAuthenticationInfo: SSOAuthenticationInfo,
     deviceInfo: DeviceInfo,
     apiClient: AppAPIClient,
     cryptoEngineProvider: CryptoEngineProvider,
-    logger: Logger
+    logger: Logger,
+    remoteLogger: RemoteLogger
   ) {
     self.ssoAuthenticationInfo = ssoAuthenticationInfo
     self.apiClient = apiClient
     self.deviceInfo = deviceInfo
     self.cryptoEngineProvider = cryptoEngineProvider
     self.logger = logger
+    self.remoteLogger = remoteLogger
   }
 
-  public mutating func transition(with event: Event) async {
-    logger.logInfo("Received event \(event)")
+  public mutating func transition(with event: Event) async throws {
+    logger.info("Received event \(event)")
     switch (state, event) {
     case (.waitingForUserInput, let .receivedSSOCallback(result)):
       await handleSSOCallbackResult(result)
     case (_, .cancel):
       state = .cancelled
     default:
-      let errorMessage = "Unexpected \(event) event for the state \(state)"
-      logger.error(errorMessage)
+      let errorMessage: LogMessage = "Unexpected \(event) event for the state \(state)"
+      logger.fatal(errorMessage)
+      throw InvalidTransitionError<Self>(event: event, state: state)
     }
-    logger.logInfo("Transition to state: \(state)")
+    let state = state
+    logger.info("Transition to state: \(state)")
   }
 
   private mutating func handleSSOCallbackResult(_ result: Result<SSOCompletion, Error>) async {
@@ -91,6 +98,7 @@ public struct SSORemoteStateMachine: StateMachine {
         remoteKeys: deviceRegistrationResponse.remoteKeys,
         ssoServerKey: deviceRegistrationResponse.ssoServerKey
       )
+      remoteLogger.configureReportedDeviceId(deviceRegistrationResponse.deviceAccessKey)
       let (encryptedRemoteKey, ssoKey) = try deviceRegistrationResponse.encryptedRemoteKeyAndSSOKey(
         usingKey: serviceProviderKey)
       let cryptoEngine = try cryptoEngineProvider.cryptoEngine(forKey: ssoKey)
@@ -98,9 +106,9 @@ public struct SSORemoteStateMachine: StateMachine {
       let ssoKeys = SSOKeys(
         remoteKey: decryptedRemoteKey, ssoKey: ssoKey,
         authTicket: AuthTicket(value: verificationResponse.authTicket))
-      logger.logInfo("SSO token validated")
+      logger.info("SSO token validated")
       try await validateSSOKey(
-        ssoKeys.ssoKey, authTicket: AuthTicket(value: verificationResponse.authTicket),
+        ssoKeys.keys.ssoKey, authTicket: AuthTicket(value: verificationResponse.authTicket),
         remoteKey: decryptedRemoteKey, data: deviceRegistrationData)
     } catch {
       state = .failed(StateMachineError(underlyingError: error))
@@ -143,7 +151,6 @@ public struct SSORemoteStateMachine: StateMachine {
       shouldEnableBiometry: false,
       isBackupCode: false)
     self.state = .completed(remoteLoginSession)
-    logger.logInfo("Transition to state: \(state)")
 
   }
 
@@ -165,5 +172,13 @@ extension AppAPIClient.Authentication.CompleteDeviceRegistrationWithAuthTicket.R
     }
     let ssoKey = serverKeyData ^ serviceProviderKeyData
     return (remoteKeyData, ssoKey)
+  }
+}
+
+extension SSORemoteStateMachine {
+  public static var mock: SSORemoteStateMachine {
+    SSORemoteStateMachine(
+      ssoAuthenticationInfo: .mock(), deviceInfo: .mock, apiClient: .mock({}),
+      cryptoEngineProvider: .mock(), logger: .mock, remoteLogger: .mock)
   }
 }

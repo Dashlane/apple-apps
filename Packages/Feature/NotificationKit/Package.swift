@@ -3,7 +3,7 @@ import PackageDescription
 let package = Package(
   name: "NotificationKit",
   platforms: [
-    .iOS(.v16)
+    .iOS(.v17)
   ],
   products: [
     .library(
@@ -13,7 +13,9 @@ let package = Package(
   dependencies: [
     .package(url: "_", from: "9.0.0"),
     .package(path: "../../Foundation/SwiftTreats"),
-    .package(path: "../../Foundation/DashTypes"),
+    .package(path: "../../Foundation/SwiftUILottie"),
+    .package(path: "../../Foundation/LogFoundation"),
+    .package(path: "../../Core/CoreTypes"),
     .package(path: "../../Core/CoreNetworking"),
     .package(path: "../../Core/CoreSettings"),
     .package(path: "../../Foundation/UIDelight"),
@@ -35,18 +37,21 @@ let package = Package(
         .product(name: "BrazeKit", package: "braze-swift-sdk-prebuilt-dynamic"),
         .product(name: "BrazeUI", package: "braze-swift-sdk-prebuilt-dynamic"),
         .product(name: "SwiftTreats", package: "SwiftTreats"),
-        .product(name: "DashTypes", package: "DashTypes"),
+        .product(name: "SwiftUILottie", package: "SwiftUILottie"),
+        .product(name: "CoreTypes", package: "CoreTypes"),
         .product(name: "CoreNetworking", package: "CoreNetworking"),
         .product(name: "CoreSettings", package: "CoreSettings"),
         .product(name: "UIDelight", package: "UIDelight"),
         .product(name: "CoreLocalization", package: "CoreLocalization"),
         .product(name: "DesignSystem", package: "DesignSystem"),
+        .product(name: "DesignSystemExtra", package: "DesignSystem"),
         .product(name: "CorePremium", package: "CorePremium"),
         .product(name: "CoreUserTracking", package: "CoreUserTracking"),
         .product(name: "CoreFeature", package: "CoreFeature"),
         .product(name: "UIComponents", package: "UIComponents"),
         .product(name: "CorePersonalData", package: "CorePersonalData"),
         .product(name: "CoreSession", package: "CoreSession"),
+        .product(name: "LogFoundation", package: "LogFoundation"),
 
       ],
       resources: [.process("Resources")]),

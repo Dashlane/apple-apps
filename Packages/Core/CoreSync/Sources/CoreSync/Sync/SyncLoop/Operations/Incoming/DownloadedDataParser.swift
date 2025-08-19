@@ -1,15 +1,12 @@
 import CoreData
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
+import SwiftTreats
 
+@Loggable
 public enum DownloadedDataParserError: Error, Equatable {
   case invalidData(transactionId: Identifier)
-}
-
-public enum ValidationError: Error, Equatable {
-  case noSettingsTransactionFound
-  case invalidSettingsData
-  case couldNotDecode
 }
 
 public struct IncomingDataResult<Item> {
@@ -65,7 +62,7 @@ struct DownloadedDataParser<Database: SyncableDatabase> {
       )
 
       if !results.errors.isEmpty {
-        logger.fatal("Parsing transaction failed \(results.errors)")
+        logger.fatal("Parsing transaction failed \(results.errors, privacy: .public)")
       }
 
       return IncomingDataResult(
@@ -119,29 +116,13 @@ struct DownloadedDataParser<Database: SyncableDatabase> {
 }
 
 private struct ParsingResult<Database: SyncableDatabase> {
-  static func += (result1: inout Self, result12: Self) {
-    result1.errors.merge(result12.errors) { errors, _ in
+  static func += (result1: inout Self, result2: Self) {
+    result1.errors.merge(result2.errors) { errors, _ in
       errors
     }
-    result1.items += result12.items
+    result1.items += result2.items
   }
 
   var items: [Database.Item] = []
   var errors: [Identifier: Error] = [:]
-}
-
-extension RandomAccessCollection where Index == Int {
-  func chunked(into size: Int) -> [[Element]] {
-    guard size > 0 else {
-      return []
-    }
-
-    guard size <= count else {
-      return [Array(self)]
-    }
-
-    return stride(from: 0, to: count, by: size).map {
-      Array(self[$0..<Swift.min($0 + size, count)])
-    }
-  }
 }

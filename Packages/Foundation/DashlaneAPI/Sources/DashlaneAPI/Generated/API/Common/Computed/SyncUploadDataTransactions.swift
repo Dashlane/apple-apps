@@ -1,6 +1,6 @@
 import Foundation
 
-public struct SyncUploadDataTransactions: Codable, Equatable, Sendable {
+public struct SyncUploadDataTransactions: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case identifier = "identifier"
     case time = "time"

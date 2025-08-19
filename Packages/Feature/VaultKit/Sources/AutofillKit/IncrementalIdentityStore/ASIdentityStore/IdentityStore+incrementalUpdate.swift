@@ -1,5 +1,5 @@
 import AuthenticationServices
-import DashTypes
+import CoreTypes
 import Foundation
 
 struct IncrementalStoreUpdate<Identity: Codable & Hashable> {
@@ -28,28 +28,15 @@ extension IdentityStore {
   func incrementalUpdate(with update: IncrementalStoreUpdate<SnapshotSummary.CredentialIdentity>)
     async throws
   {
-    if #available(iOS 17, macOS 14, *) {
-      if update.deleted.count > 0 {
-        try await self.removeCredentialIdentities(
-          update.deleted.makeIdentities().map { $0 as ASCredentialIdentity })
-      }
+    if update.deleted.count > 0 {
+      try await self.removeCredentialIdentities(update.deleted.makeIdentities())
+    }
 
-      if update.saved.count > 0 {
-        try await self.saveCredentialIdentities(
-          update.saved.makeIdentities().map { $0 as ASCredentialIdentity })
-      }
-    } else {
-      if update.deleted.count > 0 {
-        try await self.removeCredentialIdentities(update.deleted.makeIdentities())
-      }
-
-      if update.saved.count > 0 {
-        try await self.saveCredentialIdentities(update.saved.makeIdentities())
-      }
+    if update.saved.count > 0 {
+      try await self.saveCredentialIdentities(update.saved.makeIdentities())
     }
   }
 
-  @available(iOS 17.0, macOS 14.0, *)
   func incrementalUpdate(with update: IncrementalStoreUpdate<SnapshotSummary.PasskeyIdentity>)
     async throws
   {

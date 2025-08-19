@@ -25,11 +25,11 @@ struct AddOTPSecretKeyView: View {
     VStack(alignment: .leading) {
       Spacer()
 
-      Text(L10n.Localizable._2faSetupIntroTitle(model.credential.title)).font(
-        .custom(GTWalsheimPro.regular.name, size: 26, relativeTo: .title))
+      Text(L10n.Localizable._2faSetupIntroTitle(model.credential.title)).textStyle(
+        .title.section.large)
       textField
       Spacer()
-      Button(CoreLocalization.L10n.Core.kwNext, action: model.validate)
+      Button(CoreL10n.kwNext, action: model.validate)
         .buttonStyle(.designSystem(.titleOnly))
         .disabled(model.otpSecretKey.isEmpty)
     }

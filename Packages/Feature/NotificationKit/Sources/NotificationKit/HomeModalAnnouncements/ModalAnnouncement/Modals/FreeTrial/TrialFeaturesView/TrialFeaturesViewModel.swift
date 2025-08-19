@@ -1,10 +1,10 @@
 import CoreLocalization
 import CorePremium
-import CoreUserTracking
 import DesignSystem
 import SwiftTreats
 import UIComponents
 import UIDelight
+import UserTrackingFoundation
 
 public struct TrialFeaturesViewModel: HomeAnnouncementsServicesInjecting {
 

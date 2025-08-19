@@ -3,7 +3,7 @@ import PackageDescription
 let package = Package(
   name: "AppleWebAuthn",
   platforms: [
-    .iOS(.v16)
+    .iOS(.v17)
   ],
   products: [
     .library(
@@ -11,7 +11,7 @@ let package = Package(
       targets: ["WebAuthn"])
   ],
   dependencies: [
-    .package(url: "_", from: "0.4.6")
+    .package(url: "_", from: "0.5.0")
   ],
   targets: [
     .target(

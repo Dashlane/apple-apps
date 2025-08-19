@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Authenticator {
-  public struct GetPendingRequests: APIRequest {
+  public struct GetPendingRequests: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/authenticator/GetPendingRequests"
 
     public let api: UserDeviceAPIClient
@@ -26,12 +26,12 @@ extension UserDeviceAPIClient.Authenticator.GetPendingRequests {
 }
 
 extension UserDeviceAPIClient.Authenticator.GetPendingRequests {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case requests = "requests"
     }
 
-    public struct RequestsElement: Codable, Equatable, Sendable {
+    public struct RequestsElement: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case id = "id"
         case login = "login"
@@ -40,7 +40,7 @@ extension UserDeviceAPIClient.Authenticator.GetPendingRequests {
         case location = "location"
       }
 
-      public struct Validity: Codable, Equatable, Sendable {
+      public struct Validity: Codable, Hashable, Sendable {
         public enum CodingKeys: String, CodingKey {
           case startDate = "startDate"
           case expireDate = "expireDate"
@@ -61,7 +61,7 @@ extension UserDeviceAPIClient.Authenticator.GetPendingRequests {
         }
       }
 
-      public struct Device: Codable, Equatable, Sendable {
+      public struct Device: Codable, Hashable, Sendable {
         public enum CodingKeys: String, CodingKey {
           case name = "name"
           case platform = "platform"
@@ -86,13 +86,13 @@ extension UserDeviceAPIClient.Authenticator.GetPendingRequests {
         }
       }
 
-      public struct Location: Codable, Equatable, Sendable {
+      public struct Location: Codable, Hashable, Sendable {
         public enum CodingKeys: String, CodingKey {
           case coordinate = "coordinate"
           case countryCode = "countryCode"
         }
 
-        public struct Coordinate: Codable, Equatable, Sendable {
+        public struct Coordinate: Codable, Hashable, Sendable {
           public enum CodingKeys: String, CodingKey {
             case longitude = "longitude"
             case latitude = "latitude"

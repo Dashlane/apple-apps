@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppAPIClient.Mpless {
-  public struct StartTransfer: APIRequest {
+  public struct StartTransfer: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/mpless/StartTransfer"
 
     public let api: AppAPIClient
@@ -24,7 +24,7 @@ extension AppAPIClient.Mpless {
 }
 
 extension AppAPIClient.Mpless.StartTransfer {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case transferId = "transferId"
       case cryptography = "cryptography"
@@ -47,7 +47,7 @@ extension AppAPIClient.Mpless.StartTransfer {
 }
 
 extension AppAPIClient.Mpless.StartTransfer {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case encryptedData = "encryptedData"
       case publicKey = "publicKey"

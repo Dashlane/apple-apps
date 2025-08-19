@@ -1,5 +1,5 @@
 import CoreSession
-import DashTypes
+import CoreTypes
 import Foundation
 
 protocol AccountInfo: Codable {

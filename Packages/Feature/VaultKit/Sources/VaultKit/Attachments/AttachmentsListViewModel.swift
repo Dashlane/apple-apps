@@ -1,12 +1,13 @@
 import Combine
 import CorePersonalData
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DocumentServices
 import Foundation
 import PDFKit
+import SwiftTreats
 import SwiftUI
 import UIDelight
+import UserTrackingFoundation
 
 public class AttachmentsListViewModel: ObservableObject, VaultKitServicesInjecting {
 
@@ -15,6 +16,15 @@ public class AttachmentsListViewModel: ObservableObject, VaultKitServicesInjecti
 
   @Published
   var attachments: [Attachment] = []
+
+  @Published var showRenameDocument: Bool = false
+  @Published var selectedAttachment: Attachment?
+  @Published var newAttachmentName: String = ""
+  @Published var showDeleteConfirmation: Bool = false
+  @Published var showQuickLookPreview: Bool = false
+  @Published var error: String?
+  @Published var exportURLMac: URL?
+  var previewDataSource: PreviewDataSource?
 
   let addAttachmentButtonViewModel: AddAttachmentButtonViewModel
   private let documentStorageService: DocumentStorageService
@@ -80,32 +90,138 @@ public class AttachmentsListViewModel: ObservableObject, VaultKitServicesInjecti
   }
 
   func rowViewModel(_ attachment: Attachment) -> AttachmentRowViewModel {
-    let attachmentPublisher =
+    let fileNamePublisher =
       $editingItem
       .compactMap {
-        $0.attachments?.filter { $0.id == attachment.id }.first ?? nil
+        $0.attachments?.filter { $0.id == attachment.id }.first?.filename ?? nil
       }
       .eraseToAnyPublisher()
     return .init(
-      attachment: attachment,
-      attachmentPublisher: attachmentPublisher,
-      editingItem: editingItem,
-      database: database,
-      documentStorageService: documentStorageService,
-      deleteAction: self.delete(_:))
+      id: attachment.id,
+      name: attachment.filename,
+      fileNamePublisher: fileNamePublisher,
+      creationDate: attachment.creationDatetime,
+      fileSize: attachment.localSize,
+      state: documentStorageService.state(for: attachment),
+      userAction: { action in
+        switch action {
+        case .delete:
+          self.showDeleteDialog(attachment)
+        case .rename:
+          self.showRenameDialog(attachment)
+        case .preview:
+          Task {
+            await self.presentQuickLookPreview(attachment)
+          }
+        case .download:
+          Task.detached {
+            await self.download(attachment)
+          }
+        }
+      })
+  }
+
+  func showDeleteDialog(_ attachment: Attachment) {
+    selectedAttachment = attachment
+    showDeleteConfirmation = true
   }
 
   func delete(_ attachment: Attachment) {
     Task {
       do {
         try await self.documentStorageService
-          .documentDeleteService
+          .documentUpdateService
           .deleteAttachment(attachment, on: self.editingItem)
         self.logUpdateAction(.delete)
       } catch {
         print(error)
       }
     }
+  }
+
+  func download(_ attachment: Attachment) async {
+    let progress = Progress(totalUnitCount: 1)
+    do {
+      let url = try await documentStorageService.download(attachment, progress: progress)
+
+      await MainActor.run {
+        if Device.is(.mac) {
+          exportURLMac = url
+        }
+        self.impactGenerator.impactOccurred()
+      }
+
+    } catch {
+      await MainActor.run {
+        self.error = error.localizedDescription
+      }
+    }
+  }
+
+  func showRenameDialog(_ attachment: Attachment) {
+    selectedAttachment = attachment
+    newAttachmentName = attachment.filename
+    showRenameDocument = true
+  }
+
+  func renameAttachment() async {
+    guard let attachment = selectedAttachment else { return }
+    guard !self.newAttachmentName.pathPrefixIsEmpty else {
+      self.error = AttachmentError.incorrectName.localizedDescription
+      return
+    }
+    let oldExtension = attachment.filename.fileExtension
+    let newFileName = self.newAttachmentName
+      .trimmingCharacters(in: .whitespacesAndNewlines)
+      .replaceExtension(with: oldExtension)
+    do {
+      try await self.rename(attachment, withName: newFileName)
+    } catch {
+      self.error = error.localizedDescription
+    }
+  }
+
+  private func rename(_ attachment: Attachment, withName newFileName: String) async throws {
+    try await self.documentStorageService
+      .documentUpdateService
+      .renameAttachment(attachment, withName: newFileName, on: self.editingItem)
+    self.logUpdateAction(.edit)
+  }
+
+  @MainActor
+  private func presentQuickLookPreview(_ attachment: Attachment) async {
+    do {
+      let url = try await documentStorageService.download(attachment)
+      let fileURL = try self.documentStorageService.documentCache.move(
+        url,
+        to: .decryptedDirectory,
+        filename: attachment.filename,
+        isUnique: true)
+      #if targetEnvironment(macCatalyst)
+        await UIApplication.shared.open(fileURL)
+      #else
+        previewDataSource = PreviewDataSource(url: fileURL)
+        showQuickLookPreview = true
+      #endif
+    } catch {}
+  }
+}
+
+extension String {
+  fileprivate var fileExtension: String {
+    let nsString = NSString(string: self)
+    return nsString.pathExtension
+  }
+
+  fileprivate var pathPrefixIsEmpty: Bool {
+    guard !isEmpty else { return true }
+    let pathPrefix = NSString(string: self).deletingPathExtension
+    return pathPrefix.isEmpty
+  }
+
+  fileprivate func replaceExtension(with newExtension: String) -> String {
+    let pathPrefix = NSString(string: self).deletingPathExtension
+    return "\(pathPrefix).\(newExtension)"
   }
 }
 
@@ -122,5 +238,37 @@ extension AttachmentsListViewModel {
       editingItem: item,
       makeAddAttachmentButtonViewModel: .init { _, _, _ in AddAttachmentButtonViewModel.mock },
       itemPublisher: Just(item).eraseToAnyPublisher())
+  }
+}
+
+extension DocumentStorageService {
+  func state(for attachment: Attachment) -> AnyPublisher<AttachmentState, Never> {
+    $uploads
+      .combineLatest($downloads)
+      .map { [attachment, self] uploads, downloads -> AttachmentState in
+        if let progress = uploads.attachmentProgress(withId: attachment.id) {
+          return .loading(progress: progress, type: .upload)
+        } else if let progress = downloads.attachmentProgress(withId: attachment.id) {
+          return .loading(progress: progress, type: .download)
+        } else if (try? isFileAvailableLocally(for: attachment)) ?? false {
+          return .downloaded
+        } else {
+          return .idle
+        }
+      }
+      .receive(on: DispatchQueue.main)
+      .eraseToAnyPublisher()
+  }
+}
+
+extension Sequence where Element == DocumentUpload {
+  fileprivate func attachmentProgress(withId id: String) -> Progress? {
+    first { $0.secureFileInfo.id.rawValue == id }?.progress
+  }
+}
+
+extension Sequence where Element == DocumentDownload {
+  fileprivate func attachmentProgress(withId id: String) -> Progress? {
+    first { $0.attachment.id == id }?.progress
   }
 }

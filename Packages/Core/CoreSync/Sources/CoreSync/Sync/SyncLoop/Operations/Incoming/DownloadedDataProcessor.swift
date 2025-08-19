@@ -1,6 +1,7 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 
 struct DownloadedDataProcessor<Database: SyncableDatabase> {
   struct Output {

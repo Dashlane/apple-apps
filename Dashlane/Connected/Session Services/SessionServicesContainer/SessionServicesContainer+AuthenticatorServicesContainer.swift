@@ -2,18 +2,19 @@ import AuthenticatorKit
 import CoreCategorizer
 import CoreKeychain
 import CoreSession
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DomainParser
 import Foundation
 import IconLibrary
+import LogFoundation
+import UserTrackingFoundation
 
 extension SessionServicesContainer: AuthenticatorServicesContainer {
   var domainParser: DomainParserProtocol {
     appServices.domainParser
   }
 
-  var keychainService: CoreKeychain.AuthenticationKeychainServiceProtocol {
+  var keychainService: AuthenticationKeychainServiceProtocol {
     appServices.keychainService
   }
 
@@ -25,7 +26,7 @@ extension SessionServicesContainer: AuthenticatorServicesContainer {
     otpDatabaseService
   }
 
-  var authenticatorActivityReporter: CoreUserTracking.ActivityReporterProtocol {
+  var authenticatorActivityReporter: UserTrackingFoundation.ActivityReporterProtocol {
     self.activityReporter
   }
 
@@ -37,7 +38,7 @@ extension SessionServicesContainer: AuthenticatorServicesContainer {
     self.iconService.domain
   }
 
-  var logger: DashTypes.Logger {
+  var logger: LogFoundation.Logger {
     self.rootLogger
   }
 }

@@ -3,48 +3,23 @@ import CoreNetworking
 import CorePasswords
 import CoreSession
 import CoreSettings
+import CoreTypes
 import CoreUserTracking
-import DashTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import Logger
+import UserTrackingFoundation
 
-public struct LoginKitServicesContainer: DependenciesContainer {
-  public let loginMetricsReporter: LoginMetricsReporterProtocol
-  public let activityReporter: ActivityReporterProtocol
-  public let keychainService: AuthenticationKeychainServiceProtocol
-  public let sessionCleaner: SessionCleaner
-  public let sessionCryptoEngineProvider: CryptoEngineProvider
-  public let sessionContainer: SessionsContainerProtocol
-  public let rootLogger: Logger
-  public let settingsManager: LocalSettingsFactory
-  public let appAPIClient: AppAPIClient
-  public let nitroClient: NitroSSOAPIClient
-  public let passwordEvaluator: PasswordEvaluatorProtocol
-
-  public init(
-    loginMetricsReporter: LoginMetricsReporterProtocol,
-    activityReporter: ActivityReporterProtocol,
-    sessionCleaner: SessionCleaner,
-    settingsManager: LocalSettingsFactory,
-    keychainService: AuthenticationKeychainServiceProtocol,
-    appAPIClient: AppAPIClient,
-    sessionCryptoEngineProvider: CryptoEngineProvider,
-    sessionContainer: SessionsContainerProtocol,
-    rootLogger: Logger,
-    nitroClient: NitroSSOAPIClient,
-    passwordEvaluator: PasswordEvaluatorProtocol
-  ) {
-    self.loginMetricsReporter = loginMetricsReporter
-    self.settingsManager = settingsManager
-    self.activityReporter = activityReporter
-    self.keychainService = keychainService
-    self.sessionCleaner = sessionCleaner
-    self.appAPIClient = appAPIClient
-    self.sessionCryptoEngineProvider = sessionCryptoEngineProvider
-    self.sessionContainer = sessionContainer
-    self.rootLogger = rootLogger
-    self.nitroClient = nitroClient
-    self.passwordEvaluator = passwordEvaluator
-  }
+public protocol LoginKitServicesContainer: DependenciesContainer {
+  var activityReporter: ActivityReporterProtocol { get }
+  var keychainService: AuthenticationKeychainServiceProtocol { get }
+  var sessionCleaner: SessionCleanerProtocol { get }
+  var cryptoEngineProvider: CryptoEngineProvider { get }
+  var sessionContainer: SessionsContainerProtocol { get }
+  var rootLogger: Logger { get }
+  var settingsManager: LocalSettingsFactory { get }
+  var appAPIClient: AppAPIClient { get }
+  var nitroClient: NitroSSOAPIClient { get }
+  var passwordEvaluator: PasswordEvaluatorProtocol { get }
 }

@@ -15,7 +15,7 @@ extension URLRequest {
     let request: String
   }
 
-  static var headersToIgnore = [
+  static let headersToIgnore = [
     "origin",
     "content-length",
     "content-encoding",

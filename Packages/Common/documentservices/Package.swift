@@ -3,7 +3,7 @@ import PackageDescription
 let package = Package(
   name: "DocumentServices",
   platforms: [
-    .iOS(.v16)
+    .iOS(.v17)
   ],
   products: [
     .library(
@@ -11,7 +11,7 @@ let package = Package(
       targets: ["DocumentServices"])
   ],
   dependencies: [
-    .package(path: "../../Foundation/DashTypes"),
+    .package(path: "../../Core/CoreTypes"),
     .package(path: "../../Core/CoreNetworking"),
     .package(name: "CorePersonalData", path: "../../Core/CorePersonalData"),
     .package(path: "../../Foundation/SwiftTreats"),
@@ -20,7 +20,7 @@ let package = Package(
     .target(
       name: "DocumentServices",
       dependencies: [
-        .product(name: "DashTypes", package: "DashTypes"),
+        .product(name: "CoreTypes", package: "CoreTypes"),
         .product(name: "SwiftTreats", package: "SwiftTreats"),
         .product(name: "CoreNetworking", package: "CoreNetworking"),
         .product(name: "CorePersonalData", package: "CorePersonalData"),

@@ -1,13 +1,13 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 
 struct SyncUploader<Database: SyncableDatabase> {
   struct Output {
     let timestamp: Timestamp
     let remoteTransactionsTimestamp: [TimestampIdPair]?
   }
-  typealias UploadTransaction = UserDeviceAPIClient.Sync.UploadContent.Body.TransactionsElement
 
   let database: Database
   let apiClient: UserDeviceAPIClient.Sync
@@ -62,7 +62,7 @@ struct SyncUploader<Database: SyncableDatabase> {
   }
 }
 
-struct SyncUploadConflictError: Error {
+struct SyncUploadConflictError: Error, Equatable {
   let timestamp: Timestamp
 }
 

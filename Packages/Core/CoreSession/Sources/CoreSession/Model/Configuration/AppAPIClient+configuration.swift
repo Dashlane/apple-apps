@@ -1,4 +1,4 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 
@@ -18,5 +18,15 @@ extension AppAPIClient {
         login: login.email,
         deviceAccessKey: signedAuthentication.deviceAccessKey,
         deviceSecretKey: signedAuthentication.deviceSecretKey))
+  }
+}
+
+extension UserCredentials {
+  public init(configuration: SessionConfiguration) {
+    let signedAuthentication = configuration.keys.serverAuthentication.signedAuthentication
+    self.init(
+      login: configuration.login.email,
+      deviceAccessKey: signedAuthentication.deviceAccessKey,
+      deviceSecretKey: signedAuthentication.deviceSecretKey)
   }
 }

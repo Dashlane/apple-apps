@@ -28,7 +28,7 @@ struct LoginContainerView<TopView: View, CenterView: View, BottomView: View>: Vi
 
   var body: some View {
     Group {
-      if Device.isIpadOrMac {
+      if Device.is(.pad, .mac, .vision) {
         ipadMacLayout
       } else {
         iphoneLayout
@@ -63,44 +63,35 @@ struct LoginContainerView<TopView: View, CenterView: View, BottomView: View>: Vi
   }
 }
 
-struct LoginViewLayout_Previews: PreviewProvider {
-  struct PreviewContent: View {
-    var body: some View {
-      LoginContainerView(
-        topView: {
-          VStack(spacing: 38) {
-            LoginLogo(login: .init("_"))
-            Button(
-              action: {},
-              label: {
-                Image(asset: Asset.faceId)
-                  .resizable()
-                  .frame(width: 40, height: 40)
-                  .foregroundColor(.ds.text.brand.standard)
-              }
-            )
+#Preview {
+  LoginContainerView(
+    topView: {
+      VStack(spacing: 38) {
+        LoginLogo(login: .init("_"))
+        Button(
+          action: {},
+          label: {
+            Image.ds.faceId.outlined
+              .resizable()
+              .frame(width: 40, height: 40)
+              .foregroundStyle(Color.ds.text.brand.standard)
           }
-        },
-        centerView: {
-          DS.PasswordField("Master Password", text: .constant("_Pa33w0rd"))
-        },
-        bottomView: {
-          VStack(spacing: 8) {
-            if Device.isIpadOrMac {
-              Button("Login", action: {})
-            }
-            Button("Forgot Password?", action: {})
-              .style(intensity: .supershy)
-              .padding(.bottom, 12)
-          }
-          .buttonStyle(.designSystem(.titleOnly))
+        )
+      }
+    },
+    centerView: {
+      DS.PasswordField("Master Password", text: .constant("_Pa33w0rd"))
+    },
+    bottomView: {
+      VStack(spacing: 8) {
+        if Device.is(.pad, .mac, .vision) {
+          Button("Login", action: {})
         }
-      )
+        Button("Forgot Password?", action: {})
+          .style(intensity: .supershy)
+          .padding(.bottom, 12)
+      }
+      .buttonStyle(.designSystem(.titleOnly))
     }
-  }
-  static var previews: some View {
-    MultiDevicesPreview {
-      PreviewContent()
-    }
-  }
+  )
 }

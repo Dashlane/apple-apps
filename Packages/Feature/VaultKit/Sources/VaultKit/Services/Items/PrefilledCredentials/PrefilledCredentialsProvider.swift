@@ -1,5 +1,5 @@
 import CorePersonalData
-import DashTypes
+import CoreTypes
 
 public protocol PrefilledCredentialsProviderProtocol {
   var prefilledCredentials: [Credential] { get }

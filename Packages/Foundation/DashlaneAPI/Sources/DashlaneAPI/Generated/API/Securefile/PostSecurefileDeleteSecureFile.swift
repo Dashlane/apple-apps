@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Securefile {
-  public struct DeleteSecureFile: APIRequest {
+  public struct DeleteSecureFile: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/securefile/DeleteSecureFile"
 
     public let api: UserDeviceAPIClient
@@ -24,7 +24,7 @@ extension UserDeviceAPIClient.Securefile {
 }
 
 extension UserDeviceAPIClient.Securefile.DeleteSecureFile {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case secureFileInfoId = "secureFileInfoId"
     }

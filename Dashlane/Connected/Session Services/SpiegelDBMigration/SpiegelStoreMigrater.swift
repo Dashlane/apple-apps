@@ -2,7 +2,7 @@ import Combine
 import CoreData
 import CoreSession
 import CoreSync
-import DashTypes
+import CoreTypes
 import Foundation
 import SwiftTreats
 

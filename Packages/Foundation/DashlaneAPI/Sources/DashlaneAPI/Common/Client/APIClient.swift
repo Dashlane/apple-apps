@@ -12,7 +12,7 @@ extension APIClient {
 }
 
 extension APIClient {
-  func post<Response: Decodable, Body: Encodable>(
+  func post<Response: Decodable & Sendable, Body: Encodable & Sendable>(
     _ endpoint: Endpoint,
     body: Body,
     timeout: TimeInterval? = nil
@@ -20,8 +20,8 @@ extension APIClient {
     return try await engine.post(endpoint, body: body, timeout: timeout, signer: signer)
   }
 
-  func get<Response: Decodable>(_ endpoint: Endpoint, timeout: TimeInterval? = nil) async throws
-    -> Response
+  func get<Response: Decodable & Sendable>(_ endpoint: Endpoint, timeout: TimeInterval? = nil)
+    async throws -> Response
   {
     return try await engine.get(endpoint, timeout: timeout, signer: signer)
   }

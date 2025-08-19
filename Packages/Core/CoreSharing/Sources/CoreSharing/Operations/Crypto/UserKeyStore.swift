@@ -1,8 +1,10 @@
 import CyrilKit
 import Foundation
+import LogFoundation
 
 @SharingActor
 class UserKeyStore {
+  @Loggable
   enum UserKeyError: Error {
     case notDefinedYet
   }

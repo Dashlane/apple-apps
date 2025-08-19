@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppAPIClient.File {
-  public struct UpdatedFile: APIRequest {
+  public struct UpdatedFile: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/file/UpdatedFile"
 
     public let api: AppAPIClient
@@ -28,7 +28,7 @@ extension AppAPIClient.File {
 }
 
 extension AppAPIClient.File.UpdatedFile {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case fileName = "fileName"
       case url = "url"

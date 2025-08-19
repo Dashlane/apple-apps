@@ -12,7 +12,7 @@ struct LinkButtonLabelStyle: LabelStyle {
       configuration.icon
     }
     .textStyle(.linkButtonLabel(in: environment))
-    ._foregroundStyle(.text)
+    .foregroundStyle(.ds.text)
     .transformEnvironment(\.style) { style in
       style = Style(mood: style.mood, intensity: .quiet, priority: style.priority)
     }

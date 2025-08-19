@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Invitation {
-  public struct GetInvitationsHistory: APIRequest {
+  public struct GetInvitationsHistory: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/invitation/GetInvitationsHistory"
 
     public let api: UserDeviceAPIClient
@@ -26,13 +26,13 @@ extension UserDeviceAPIClient.Invitation.GetInvitationsHistory {
 }
 
 extension UserDeviceAPIClient.Invitation.GetInvitationsHistory {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case received = "received"
       case sent = "sent"
     }
 
-    public struct ReceivedElement: Codable, Equatable, Sendable {
+    public struct ReceivedElement: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case id = "id"
         case referrerUserId = "referrerUserId"
@@ -67,7 +67,7 @@ extension UserDeviceAPIClient.Invitation.GetInvitationsHistory {
       }
     }
 
-    public struct SentElement: Codable, Equatable, Sendable {
+    public struct SentElement: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case id = "id"
         case inviteeUserId = "inviteeUserId"

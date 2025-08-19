@@ -1,6 +1,7 @@
 import Combine
 import CorePersonalData
 import CorePremium
+import CoreTeamAuditLogs
 import Foundation
 import SecurityDashboard
 import UIKit
@@ -25,6 +26,7 @@ final class PasswordHealthListViewModel: ObservableObject, SessionServicesInject
   let origin: PasswordHealthFlowViewModel.Origin
   let vaultItemDatabase: VaultItemDatabaseProtocol
   let userSpacesService: UserSpacesService
+  let teamAuditLogsService: TeamAuditLogsServiceProtocol
 
   @Published
   var credentials: [Credential] = []
@@ -51,6 +53,7 @@ final class PasswordHealthListViewModel: ObservableObject, SessionServicesInject
     origin: PasswordHealthFlowViewModel.Origin,
     vaultItemDatabase: VaultItemDatabaseProtocol,
     userSpacesService: UserSpacesService,
+    teamAuditLogsService: TeamAuditLogsServiceProtocol,
     rowViewFactory: PasswordHealthListRowView.Factory
   ) {
     self.kind = kind
@@ -60,6 +63,7 @@ final class PasswordHealthListViewModel: ObservableObject, SessionServicesInject
     self.origin = origin
     self.vaultItemDatabase = vaultItemDatabase
     self.userSpacesService = userSpacesService
+    self.teamAuditLogsService = teamAuditLogsService
     self.rowViewFactory = rowViewFactory
 
     registerHandlers()
@@ -139,6 +143,10 @@ final class PasswordHealthListViewModel: ObservableObject, SessionServicesInject
   func exclude(credential: Credential) {
     var credential = credential
     credential.disabledForPasswordAnalysis.toggle()
+    try? teamAuditLogsService.report(
+      credential.generateReportableInfo(
+        with: credential.disabledForPasswordAnalysis ? .userExcludedItemPH : .userIncludedItemPH)
+    )
     _ = try? vaultItemDatabase.save(credential)
   }
 
@@ -173,6 +181,7 @@ extension PasswordHealthListViewModel {
       origin: .identityDashboard,
       vaultItemDatabase: MockVaultKitServicesContainer().vaultItemDatabase,
       userSpacesService: .mock(),
+      teamAuditLogsService: .mock(),
       rowViewFactory: .init { item, _, _, _ in .mock(item: item) }
     )
   }

@@ -1,4 +1,4 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 import SwiftTreats
@@ -36,7 +36,7 @@ extension DeviceInfo {
   public static let `default` = DeviceInfo(
     deviceName: Device.localizedName(),
     appVersion: Application.version(),
-    platform: Platform(rawValue: DashTypes.Platform.passwordManager.rawValue) ?? .serverIphone,
+    platform: Platform(rawValue: CoreTypes.Platform.passwordManager.rawValue) ?? .serverIphone,
     osCountry: System.country,
     osLanguage: System.language,
     temporary: false)

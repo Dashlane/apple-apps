@@ -1,5 +1,5 @@
-import CoreUserTracking
 import Foundation
+import UserTrackingFoundation
 
 public struct LoginFlowLogInfo {
   public let loginMode: Definition.Mode

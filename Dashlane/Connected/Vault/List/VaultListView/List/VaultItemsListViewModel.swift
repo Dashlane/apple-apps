@@ -1,13 +1,14 @@
 import AutofillKit
 import Combine
 import CoreFeature
+import CorePersonalData
 import CorePremium
 import CoreSettings
 import CoreSharing
-import CoreUserTracking
 import Foundation
 import ImportKit
 import NotificationKit
+import UserTrackingFoundation
 import VaultKit
 
 class VaultItemsListViewModel: ObservableObject, SessionServicesInjecting {
@@ -15,6 +16,9 @@ class VaultItemsListViewModel: ObservableObject, SessionServicesInjecting {
 
   @Published
   var activeFilter: ItemCategory?
+
+  @Published
+  var isLoading: Bool = true
 
   var isSecureNoteDisabled: Bool {
     featureService.isEnabled(.disableSecureNotes)
@@ -30,8 +34,8 @@ class VaultItemsListViewModel: ObservableObject, SessionServicesInjecting {
   private let featureService: FeatureServiceProtocol
   private let sharingService: SharedVaultHandling
   private let userSettings: UserSettings
-  private let suggestedItemsMaxCount = 6
   private let activeFilterPublisher: AnyPublisher<ItemCategory?, Never>
+  private var subscriptions: Set<AnyCancellable> = []
 
   init(
     vaultItemsStore: VaultItemsStore,
@@ -70,28 +74,16 @@ class VaultItemsListViewModel: ObservableObject, SessionServicesInjecting {
       }
       .switchToLatest()
       .receive(on: queue)
-      .map { [weak self] sections -> [DataSection] in
-        guard let self else { return [] }
-        var allSections = sections
-        let allItems = sections.flatMap(\.items)
-        if allItems.count > self.suggestedItemsMaxCount {
-          let suggestedItems =
-            allItems
-            .suggestedItems()
-            .prefix(self.suggestedItemsMaxCount)
-
-          let suggestedSection = DataSection(
-            name: L10n.Localizable.suggested,
-            type: .suggestedItems,
-            items: Array(suggestedItems)
-          )
-          allSections = [suggestedSection] + allSections
-        }
-        return allSections
+      .map { sections -> [DataSection] in
+        return sections.addingSuggestedSection(name: L10n.Localizable.suggested)
       }
       .filterEmpty()
       .receive(on: DispatchQueue.main)
-      .assign(to: &$sections)
+      .sink { [weak self] sections in
+        self?.sections = sections
+        self?.isLoading = false
+      }
+      .store(in: &subscriptions)
   }
 
   func count(for vaultSelectionOrigin: VaultSelectionOrigin) -> Int {

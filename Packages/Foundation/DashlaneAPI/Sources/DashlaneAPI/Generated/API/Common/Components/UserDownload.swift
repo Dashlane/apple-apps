@@ -1,6 +1,6 @@
 import Foundation
 
-public struct UserDownload: Codable, Equatable, Sendable {
+public struct UserDownload: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case userId = "userId"
     case alias = "alias"
@@ -14,7 +14,7 @@ public struct UserDownload: Codable, Equatable, Sendable {
     case status = "status"
   }
 
-  public enum RsaStatus: String, Sendable, Equatable, CaseIterable, Codable {
+  public enum RsaStatus: String, Sendable, Hashable, Codable, CaseIterable {
     case noKey = "noKey"
     case publicKey = "publicKey"
     case sharingKeys = "sharingKeys"

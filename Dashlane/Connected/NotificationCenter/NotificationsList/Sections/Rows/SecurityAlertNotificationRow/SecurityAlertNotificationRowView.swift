@@ -1,5 +1,4 @@
 import SwiftUI
-import UIDelight
 
 struct SecurityAlertNotificationRowView: View {
   let model: SecurityAlertNotificationRowViewModel
@@ -10,12 +9,10 @@ struct SecurityAlertNotificationRowView: View {
   var body: some View {
     BaseNotificationRowView(
       icon: model.notification.icon,
-      iconBackgroundColor: Color.red,
       title: model.notification.title,
-      description: model.notification.description
-    ) {
-      self.model.openUnresolvedAlert()
-    }
+      description: model.notification.description,
+      notificationState: model.notification.state
+    ) { self.model.openUnresolvedAlert() }
   }
 }
 

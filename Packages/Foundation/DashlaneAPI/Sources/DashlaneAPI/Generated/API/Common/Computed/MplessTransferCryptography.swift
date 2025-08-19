@@ -1,6 +1,6 @@
 import Foundation
 
-public struct MplessTransferCryptography: Codable, Equatable, Sendable {
+public struct MplessTransferCryptography: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case algorithm = "algorithm"
     case ellipticCurve = "ellipticCurve"

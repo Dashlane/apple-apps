@@ -1,7 +1,6 @@
 import AuthenticatorKit
 import AutofillKit
 import Combine
-import CoreActivityLogs
 import CoreCrypto
 import CoreFeature
 import CoreNetworking
@@ -12,16 +11,20 @@ import CoreSession
 import CoreSettings
 import CoreSharing
 import CoreSync
+import CoreTeamAuditLogs
+import CoreTypes
 import CoreUserTracking
-import DashTypes
 import DashlaneAPI
 import DocumentServices
 import Foundation
+import IconLibrary
+import LogFoundation
 import Logger
 import LoginKit
 import NotificationKit
 import SwiftTreats
 import UIKit
+import UserTrackingFoundation
 import VaultKit
 import ZXCVBN
 
@@ -36,7 +39,6 @@ struct SessionServicesContainer: DependenciesContainer {
 
   let userDeviceAPIClient: UserDeviceAPIClient
   let resetMasterPasswordService: ResetMasterPasswordService
-  let dwmOnboardingSettings: DWMOnboardingSettings
 
   let databaseDriver: DatabaseDriver
   let database: ApplicationDatabase
@@ -46,13 +48,13 @@ struct SessionServicesContainer: DependenciesContainer {
   let syncedSettings: SyncedSettingsService
   let sessionCryptoUpdater: SessionCryptoUpdater
   let vaultServicesSuit: VaultServicesSuit
-  let autofillService: AutofillService
+  let autofillService: AutofillStateService
   let lockService: LockService
   let accessControlService: AccessControlService
   let documentStorageService: DocumentStorageService
   let identityDashboardService: IdentityDashboardService
   let todayExtensionCommunicator: AppTodayExtensionCommunicator
-  let watchAppCommunicator: AppWatchAppCommunicator
+  let watchAppCommunicator: AppWatchAppCommunicator?
   let notificationService: SessionNotificationService
   let vpnService: VPNService
   let authenticatedABTestingService: AuthenticatedABTestingService
@@ -60,16 +62,14 @@ struct SessionServicesContainer: DependenciesContainer {
   let vaultStateService: VaultStateService
   let sharingService: SharingService
   let onboardingService: OnboardingService
-  let dwmOnboardingService: DWMOnboardingService
   let darkWebMonitoringService: DarkWebMonitoringService
-  let toolsService: ToolsService
   let sessionReporterService: SessionReporterService
   let otpDatabaseService: OTPDatabaseService
-  let activityLogsService: ActivityLogsServiceProtocol
+  let teamAuditLogsService: TeamAuditLogsServiceProtocol
   let pasteboardService: PasteboardServiceProtocol
   let teamRulesEnforcer: TeamRulesEnforcer
 
-  var rootLogger: DashTypes.Logger {
+  var rootLogger: LogFoundation.Logger {
     appServices.rootLogger
   }
 
@@ -78,7 +78,7 @@ struct SessionServicesContainer: DependenciesContainer {
     session: Session,
     loadingContext: SessionLoadingContext
   ) async throws {
-    await appServices.crashReporter.associate(to: session.login)
+    await appServices.crashReporter.configureScope(for: session, loadingContext: loadingContext)
     appServices.remoteLogger.configureReportedDeviceId(
       session.configuration.keys.serverAuthentication.deviceId)
     self.loadingContext = loadingContext
@@ -87,9 +87,12 @@ struct SessionServicesContainer: DependenciesContainer {
     let logger = appServices.rootLogger
     logger[.session].info("Services loading begin")
 
-    self.userDeviceAPIClient = appServices.appAPIClient.makeUserClient(
-      sessionConfiguration: session.configuration)
-
+    let userCredentials = UserCredentials(configuration: session.configuration)
+    self.userDeviceAPIClient = appServices.appAPIClient.makeUserClient(credentials: userCredentials)
+    let encryptedAPIClient = try appServices.appAPIClient.makeAppNitroEncryptionAPIClient()
+      .makeSecureNitroEncryptionAPIClient(
+        secureTunnelCreatorType: NitroSecureTunnelCreatorImpl.self,
+        userCredentials: userCredentials)
     self.iconService = await IconService(
       session: session,
       userDeviceAPIClient: appServices.appAPIClient.makeUserClient(
@@ -99,7 +102,7 @@ struct SessionServicesContainer: DependenciesContainer {
     )
 
     let activityReporter = UserTrackingSessionActivityReporter(
-      appReporter: appServices.activityReporter,
+      appReporter: appServices.userTrackingAppActivityReporter,
       login: session.login,
       analyticsIdentifiers: session.configuration.keys.analyticsIds)
     self.spiegelLocalSettingsStore = try appServices.spiegelSettingsManager.fetchOrCreateSettings(
@@ -107,7 +110,6 @@ struct SessionServicesContainer: DependenciesContainer {
     self.spiegelUserSettings = spiegelLocalSettingsStore.keyed(by: UserSettingsKey.self)
     self.spiegelUserEncryptedSettings = spiegelLocalSettingsStore.keyed(
       by: UserEncryptedSettingsKey.self)
-    dwmOnboardingSettings = spiegelLocalSettingsStore.keyed(by: DWMOnboardingSettingsKey.self)
 
     self.resetMasterPasswordService = ResetMasterPasswordService(
       login: session.login, settings: spiegelLocalSettingsStore,
@@ -127,6 +129,9 @@ struct SessionServicesContainer: DependenciesContainer {
       refreshTrigger: NotificationCenter.default.publisher(
         for: UIApplication.didBecomeActiveNotification
       ).map { _ in },
+      onStatusChange: { _ in
+        appServices.autofillExtensionCommunicationCenter.write(message: .premiumStatusDidUpdate)
+      },
       logger: appServices.rootLogger[.session])
 
     self.appStoreServicesSuit = try await AppStoreServicesSuit(
@@ -136,12 +141,14 @@ struct SessionServicesContainer: DependenciesContainer {
       receiptHashStore: spiegelUserEncryptedSettings,
       logger: appServices.rootLogger[.inAppPurchase])
 
-    self.activityLogsService = ActivityLogsService(
+    self.teamAuditLogsService = try TeamAuditLogsService(
       premiumStatusProvider: premiumStatusServicesSuit.statusProvider,
       featureService: featureService,
-      apiClient: userDeviceAPIClient.teams.storeActivityLogs,
+      logsAPIClient: encryptedAPIClient.logs,
       cryptoEngine: session.localCryptoEngine,
-      logger: appServices.rootLogger[.activityLogs])
+      session: session,
+      target: .current,
+      logger: appServices.rootLogger[.teamAuditLogs])
 
     let sharingKeysStore = await SharingKeysStore(
       session: session, logger: appServices.rootLogger[.sync])
@@ -160,17 +167,14 @@ struct SessionServicesContainer: DependenciesContainer {
       personalDataURLDecoder: appServices.personalDataURLDecoder,
       databaseDriver: databaseDriver,
       sharingKeysStore: sharingKeysStore,
-      activityLogsService: activityLogsService,
+      teamAuditLogsService: teamAuditLogsService,
       logger: logger[.sharing],
       activityReporter: activityReporter,
-      autoRevokeUsersWithInvalidProposeSignature: featureService.isEnabled(
-        .autoRevokeInvalidSharingSignatureEnabled),
       applicationDatabase: database,
       buildTarget: .app)
 
     self.syncService = try await SyncService(
       apiClient: userDeviceAPIClient,
-      activityReporter: activityReporter,
       sharingKeysStore: sharingKeysStore,
       databaseDriver: databaseDriver,
       sharingHandler: sharingService,
@@ -216,7 +220,6 @@ struct SessionServicesContainer: DependenciesContainer {
     self.vaultServicesSuit = await VaultServicesSuit(
       logger: logger[.personalData],
       login: session.login,
-      context: loadingContext,
       spotlightIndexer: appServices.spotlightIndexer,
       userSettings: spiegelUserSettings,
       categorizer: appServices.categorizer,
@@ -227,7 +230,8 @@ struct SessionServicesContainer: DependenciesContainer {
       userSpacesService: premiumStatusServicesSuit.userSpacesService,
       featureService: featureService,
       capabilityService: premiumStatusServicesSuit.capabilityService,
-      activityLogsService: activityLogsService,
+      teamAuditLogsService: teamAuditLogsService,
+      cloudPasskeyService: encryptedAPIClient.passkeys,
       activityReporter: activityReporter
     )
 
@@ -243,13 +247,15 @@ struct SessionServicesContainer: DependenciesContainer {
       userSpacesService: premiumStatusServicesSuit.userSpacesService,
       featureService: featureService,
       keychainService: appServices.keychainService,
+      deeplinkService: appServices.deepLinkingService,
       resetMasterPasswordService: resetMasterPasswordService,
       sessionLifeCycleHandler: appServices.sessionLifeCycleHandler,
       logger: logger[.session])
 
     self.accessControlService = AccessControlService(
       session: session,
-      secureLockModeProvider: lockService.secureLockProvider)
+      secureLockModeProvider: lockService.secureLockProvider,
+      userSettings: spiegelUserSettings)
 
     self.pasteboardService = PasteboardService(userSettings: spiegelUserSettings)
 
@@ -283,7 +289,7 @@ struct SessionServicesContainer: DependenciesContainer {
       notificationService: notificationService,
       logger: logger[.identityDashboard])
 
-    self.autofillService = AutofillService(
+    self.autofillService = AutofillStateService(
       vaultItemsStore: vaultServicesSuit.vaultItemsStore,
       cryptoEngine: session.localCryptoEngine,
       vaultStateService: vaultStateService,
@@ -313,23 +319,12 @@ struct SessionServicesContainer: DependenciesContainer {
       userSettings: spiegelUserSettings
     )
 
-    self.dwmOnboardingService = DWMOnboardingService(
-      settings: dwmOnboardingSettings,
-      identityDashboardService: identityDashboardService,
-      personalDataURLDecoder: appServices.personalDataURLDecoder,
-      vaultItemsStore: vaultServicesSuit.vaultItemsStore,
-      darkWebMonitoringService: darkWebMonitoringService,
-      logger: logger[.dwmOnboarding]
-    )
-
     self.onboardingService = OnboardingService(
       session: session,
       loadingContext: loadingContext,
       accountType: session.configuration.info.accountType,
       userSettings: spiegelUserSettings,
       vaultItemsStore: vaultServicesSuit.vaultItemsStore,
-      dwmOnboardingSettings: dwmOnboardingSettings,
-      dwmOnboardingService: dwmOnboardingService,
       syncedSettings: syncedSettings,
       abTestService: authenticatedABTestingService,
       lockService: lockService,
@@ -359,9 +354,10 @@ struct SessionServicesContainer: DependenciesContainer {
       userSettings: spiegelUserSettings,
       vaultItemsStore: vaultServicesSuit.vaultItemsStore,
       vaultCollectionsStore: vaultServicesSuit.vaultCollectionsStore,
-      apiClient: userDeviceAPIClient.useractivity,
+      apiClient: userDeviceAPIClient,
       userSpacesService: premiumStatusServicesSuit.userSpacesService,
-      activityReporter: activityReporter)
+      activityReporter: activityReporter,
+      encryptedAPIClient: encryptedAPIClient)
     let reportService = ReportUserSettingsService(
       userSettings: spiegelUserSettings,
       resetMPService: resetMasterPasswordService,
@@ -371,7 +367,6 @@ struct SessionServicesContainer: DependenciesContainer {
     self.sessionReporterService = SessionReporterService(
       activityReporter: activityReporter,
       deviceInformation: deviceInformationReporting,
-      loginMetricsReporter: appServices.loginMetricsReporter,
       syncService: syncService,
       settings: spiegelLocalSettingsStore,
       vaultReportService: vaultReportService,
@@ -392,32 +387,24 @@ struct SessionServicesContainer: DependenciesContainer {
       vaultItemsStore: vaultServicesSuit.vaultItemsStore,
       vaultItemDatabase: vaultServicesSuit.vaultItemDatabase,
       apiClient: userDeviceAPIClient.teams,
+      cloudPasskeysService: encryptedAPIClient.passkeys,
       logger: logger[.session]
     )
-
-    self.toolsService = ToolsService(
-      featureService: featureService,
-      capabilityService: premiumStatusServicesSuit.capabilityService)
 
     appServices.rootLogger[.session].info("Session Services loaded")
   }
   func postLoad() async {
-    sessionReporterService.postLoadReport(for: loadingContext)
+    vaultServicesSuit.defaultVaultItemsService.createItemsIfNeeded(for: loadingContext)
     sessionReporterService.configureReportOnSync()
     configureBraze()
     authenticatedABTestingService.reportClientControlledTests()
-    appServices.crashReporter.enableSentry(featureService.isEnabled(.sentryIsEnabled))
+    await appServices.crashReporter.setEnabled(featureService.isEnabled(.sentryIsEnabled))
     Task {
       if loadingContext.isAccountRecoveryLogin
-        && session.configuration.info.accountType != .masterPassword
+        && session.configuration.info.accountType == .invisibleMasterPassword
       {
         sessionReporterService.activityReporter.report(
           UserEvent.UseAccountRecoveryKey(flowStep: .complete))
-        do {
-          try await accountRecoveryKeyService.deactivateAccountRecoveryKey(for: .keyUsed)
-        } catch {
-          logger.fatal("Account Recovery Key auto disabling failed", error: error)
-        }
       }
 
       if featureService.isEnabled(.postLaunchReceiptVerificationEnabled) {
@@ -450,12 +437,12 @@ extension SessionServicesContainer {
 }
 
 extension AddAttachmentButtonViewModel: SessionServicesInjecting {}
-extension AttachmentRowViewModel: SessionServicesInjecting {}
 extension AttachmentsListViewModel: SessionServicesInjecting {}
 extension AttachmentsSectionViewModel: SessionServicesInjecting {}
 extension PasswordGeneratorViewModel: SessionServicesInjecting {}
 extension PremiumAnnouncementsViewModel: SessionServicesInjecting {}
-extension LabsSettingsViewModel: SessionServicesInjecting {}
 extension VaultItemIconViewModel: SessionServicesInjecting {}
 extension VaultItemRow: SessionServicesInjecting {}
 extension VaultCollectionEditionService: SessionServicesInjecting {}
+extension AccessControlRequestViewModifierModel: SessionServicesInjecting {}
+extension AccessControlViewModel: SessionServicesInjecting {}

@@ -5,11 +5,12 @@ import CorePersonalData
 import CorePremium
 import CoreSession
 import CoreSync
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import SwiftTreats
+import UserTrackingFoundation
 import VaultKit
 
 class SessionCryptoUpdater {
@@ -147,8 +148,10 @@ class SessionCryptoUpdater {
         switch state {
         case let .inProgress(progression):
           self.didProgress(progression)
-        case let .finished(result):
-          self.didFinish(with: result)
+        case .completed:
+          self.didComplete()
+        case .failed(let error):
+          self.didFail(with: error)
         }
       }.store(in: &subscriptions)
       activeAccountCryptoChanger.start()
@@ -189,14 +192,14 @@ extension SessionCryptoUpdater {
     logger.debug("Migration progress: \(progression)")
   }
 
-  func didFinish(with result: Result<Session, AccountCryptoChangerError>) {
+  func didComplete() {
     self.activeAccountCryptoChanger = nil
-    switch result {
-    case .success:
-      logger.info("Session Crypto Migration is successful")
-    case let .failure(error):
-      logger.fatal("Session Crypto Migration has failed", error: error)
-    }
+    logger.info("Session Crypto Migration is successful")
+  }
+
+  func didFail(with error: Error) {
+    self.activeAccountCryptoChanger = nil
+    logger.fatal("Session Crypto Migration has failed", error: error)
   }
 }
 
@@ -205,7 +208,7 @@ extension SessionCryptoUpdater {
   static var mock: SessionCryptoUpdater {
     SessionCryptoUpdater(
       session: .mock,
-      sessionsContainer: SessionsContainer<InMemorySessionStoreProvider>.mock,
+      sessionsContainer: .mock,
       syncService: .mock(),
       databaseDriver: InMemoryDatabaseDriver(),
       activityReporter: .mock,
@@ -213,7 +216,7 @@ extension SessionCryptoUpdater {
       userSpacesService: .mock(),
       featureService: .mock(),
       settings: .mock,
-      logger: LoggerMock(),
+      logger: .mock,
       userDeviceApiClient: .fake)
   }
 }

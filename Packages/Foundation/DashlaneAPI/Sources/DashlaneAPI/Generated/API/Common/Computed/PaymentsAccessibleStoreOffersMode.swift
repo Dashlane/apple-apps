@@ -1,6 +1,6 @@
 import Foundation
 
-public enum PaymentsAccessibleStoreOffersMode: String, Sendable, Equatable, CaseIterable, Codable {
+public enum PaymentsAccessibleStoreOffersMode: String, Sendable, Hashable, Codable, CaseIterable {
   case deferred = "DEFERRED"
   case immediateAndChargeProratedPrice = "IMMEDIATE_AND_CHARGE_PRORATED_PRICE"
   case immediateWithoutProration = "IMMEDIATE_WITHOUT_PRORATION"

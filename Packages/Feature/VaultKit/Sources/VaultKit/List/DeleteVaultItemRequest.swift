@@ -14,14 +14,17 @@ private struct DeleteItemAlertModifier: ViewModifier {
         isPresented: $request.isPresented,
         actions: {
           if request.itemDeleteBehavior.hasPrimaryButton {
-            Button(L10n.Core.kwYes, role: .destructive, action: deleteAction)
+            Button(CoreL10n.kwYes, role: .destructive) {
+              deleteAction()
+            }
           } else {
-            Button(L10n.Core.kwButtonOk) {}
+            Button(CoreL10n.kwButtonOk) {}
           }
         },
         message: {
           if let message = request.itemDeleteBehavior.alertMessage {
             Text(message)
+              .foregroundStyle(Color.ds.text.neutral.standard)
           }
         })
   }
@@ -31,22 +34,22 @@ extension ItemDeleteBehaviour {
   fileprivate var alertTitle: String {
     switch self {
     case .normal:
-      return L10n.Core.kwDeleteConfirm
+      return CoreL10n.kwDeleteConfirm
     case .canDeleteByLeavingItemGroup:
-      return L10n.Core.kwDeleteConfirmAutoGroupTitle
+      return CoreL10n.kwDeleteConfirmAutoGroupTitle
     case .cannotDeleteWhenNoOtherAdmin:
-      return L10n.Core.kwDeleteConfirmOnlyAdminMsg
+      return CoreL10n.kwDeleteConfirmOnlyAdminMsg
     case .cannotDeleteUserInvolvedInUserGroup:
-      return L10n.Core.kwDeleteConfirmGroup
+      return CoreL10n.kwDeleteConfirmGroup
     case .cannotDeleteItemInCollection:
-      return L10n.Core.KWVaultItem.Sharing.Deletion.Error.message
+      return CoreL10n.KWVaultItem.Sharing.Deletion.Error.message
     }
   }
 
   fileprivate var alertMessage: String? {
     switch self {
     case .canDeleteByLeavingItemGroup:
-      return L10n.Core.kwDeleteConfirmAutoGroup
+      return CoreL10n.kwDeleteConfirmAutoGroup
     default:
       return nil
     }

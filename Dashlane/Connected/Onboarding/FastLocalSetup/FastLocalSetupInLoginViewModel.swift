@@ -1,6 +1,6 @@
 import Combine
 import CoreSettings
-import DashTypes
+import CoreTypes
 import Foundation
 import LoginKit
 import SwiftTreats

@@ -1,57 +1,59 @@
 import CoreLocalization
 import CoreSession
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import SwiftTreats
 
-extension L10n {
+extension CoreL10n {
   public static func errorMessage(for error: Error) -> String {
     switch error {
     case let urlError as URLError where urlError.code == .notConnectedToInternet:
-      return L10n.Core.kwNoInternet
-    case LoginHandler.Error.loginDoesNotExist:
-      return L10n.Core.accountDoesNotExist
+      return CoreL10n.kwNoInternet
+    case LoginStateMachine.Error.loginDoesNotExist:
+      return CoreL10n.accountDoesNotExist
     case let error as DashlaneAPI.APIError
     where error.hasAuthenticationCodes([
       .verificationFailed, .invalidOTPAlreadyUsed, .verificationRequiresRequest,
       .accountBlockedContactSupport,
     ]):
-      return L10n.Core.badToken
+      return CoreL10n.badToken
     case ThirdPartyOTPError.wrongOTP:
-      return L10n.Core.badToken
+      return CoreL10n.badToken
     case ThirdPartyOTPError.duoChallengeFailed:
-      return L10n.Core.duoChallengeFailedMessage
-    case RemoteLoginStateMachine.Error.wrongMasterKey, LocalLoginHandler.Error.wrongMasterKey:
-      return L10n.Core.kwWrongMasterPasswordTryAgain
+      return CoreL10n.duoChallengeFailedMessage
+    case RemoteLoginStateMachine.Error.wrongMasterKey, LocalLoginStateMachine.Error.wrongMasterKey,
+      MasterPasswordLocalLoginStateMachine.Error.wrongMasterKey:
+      return CoreL10n.kwWrongMasterPasswordTryAgain
     case let error as DashlaneAPI.APIError where error.hasAccountCode(.accountAlreadyExists):
-      return L10n.Core.kwAccountCreationExistingAccount
+      return CoreL10n.kwAccountCreationExistingAccount
     case AccountError.userNotFound:
-      return L10n.Core.accountDoesNotExist
+      return CoreL10n.accountDoesNotExist
     case let error as DashlaneAPI.APIError where error.hasInvalidRequestCode(.requestMalformed):
-      return L10n.Core.kwEmailInvalid
+      return CoreL10n.kwEmailInvalid
     case AccountError.invalidEmail,
       AccountCreationError.invalidEmail,
       AccountError.invalidInput,
       AccountExistsError.invalidValue,
       AccountExistsError.unlikelyValue:
-      return L10n.Core.kwEmailInvalid
+      return CoreL10n.kwEmailInvalid
     case let error as DashlaneAPI.APIError where error.hasAuthenticationCode(.verificationTimeout):
-      return L10n.Core.kwAccountErrorTimeOut
+      return CoreL10n.kwAccountErrorTimeOut
     case let error as DashlaneAPI.APIError where error.hasAuthenticationCode(.invalidOTPBlocked):
-      return L10n.Core.kwThrottleMsg
+      return CoreL10n.kwThrottleMsg
     case let error as DashlaneAPI.APIError
     where error.hasAuthenticationCode(.accountBlockedContactSupport):
-      return L10n.Core.kwpasswordchangererrorAccountLocked
+      return CoreL10n.kwpasswordchangererrorAccountLocked
     case let error as DashlaneAPI.APIError where error.hasAccountCode(.ssoBlocked):
-      return L10n.Core.ssoBlockedError
+      return CoreL10n.ssoBlockedError
     case let error as DashlaneAPI.APIError where error.hasAccountCode(.phoneValidationFailed):
-      return L10n.Core.invalidRecoveryPhoneNumberErrorMessage
+      return CoreL10n.invalidRecoveryPhoneNumberErrorMessage
     default:
       if DiagnosticMode.isEnabled {
         return error.debugDescription
       } else {
-        return L10n.Core.kwExtSomethingWentWrong
+        return CoreL10n.kwExtSomethingWentWrong
       }
     }
   }

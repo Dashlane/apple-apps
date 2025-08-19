@@ -3,6 +3,7 @@ import CoreFeature
 import CoreLocalization
 import CorePersonalData
 import CorePremium
+import CoreTypes
 import DesignSystem
 import Foundation
 import PremiumKit
@@ -38,6 +39,7 @@ public class CollectionsFlowViewModel: ObservableObject, SessionServicesInjectin
   let collectionShareFlowViewModelFactory: CollectionShareFlowViewModel.Factory
   let sharingCollectionMembersViewModelFactory: SharingCollectionMembersDetailViewModel.Factory
 
+  private let accessControl: AccessControlHandler
   private let vaultCollectionsStore: VaultCollectionsStore
   private let database: ApplicationDatabase
   private let vaultStateService: VaultStateServiceProtocol
@@ -49,6 +51,7 @@ public class CollectionsFlowViewModel: ObservableObject, SessionServicesInjectin
     initialStep: CollectionsFlowViewModel.Step = .list,
     vaultCollectionsStore: VaultCollectionsStore,
     database: ApplicationDatabase,
+    accessControl: AccessControlHandler,
     vaultStateService: VaultStateServiceProtocol,
     deeplinkingService: DeepLinkingServiceProtocol,
     detailViewModelFactory: VaultDetailViewModel.Factory,
@@ -65,6 +68,7 @@ public class CollectionsFlowViewModel: ObservableObject, SessionServicesInjectin
     self.sharingCollectionMembersViewModelFactory = sharingCollectionMembersViewModelFactory
     self.steps = [initialStep]
     self.database = database
+    self.accessControl = accessControl
     self.vaultStateService = vaultStateService
     self.deeplinkingService = deeplinkingService
     self.registerPublishers()
@@ -109,7 +113,12 @@ public class CollectionsFlowViewModel: ObservableObject, SessionServicesInjectin
   func handleCollectionDetailAction(_ action: CollectionDetailView.Action) {
     switch action {
     case .selected(let item):
-      steps.append(.itemDetail(item))
+      accessControl.requestAccess(to: item) { [weak self] (success: Bool) in
+        guard success else {
+          return
+        }
+        self?.steps.append(.itemDetail(item))
+      }
     case .share(let collection):
       collectionToShare = collection
     case .changeSharingAccess(let collection):
@@ -124,9 +133,7 @@ public class CollectionsFlowViewModel: ObservableObject, SessionServicesInjectin
     case .done(let accessChanged):
       collectionAccessToChange = nil
       if accessChanged {
-        toast(
-          CoreLocalization.L10n.Core.kwSharedAccessUpdatedToast,
-          image: .ds.feedback.success.outlined)
+        toast(CoreL10n.kwSharedAccessUpdatedToast, image: .ds.feedback.success.outlined)
       }
     }
   }
@@ -166,7 +173,8 @@ extension CollectionsFlowViewModel {
     .init(
       vaultCollectionsStore: MockVaultConnectedContainer().vaultCollectionsStore,
       database: MockVaultConnectedContainer().database,
-      vaultStateService: .mock,
+      accessControl: MockVaultConnectedContainer().accessControl,
+      vaultStateService: .mock(),
       deeplinkingService: DeepLinkingService.fakeService,
       detailViewModelFactory: .init { .mock() },
       collectionsListViewModelFactory: .init { .mock },

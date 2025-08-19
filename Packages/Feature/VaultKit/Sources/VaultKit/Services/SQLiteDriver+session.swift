@@ -1,7 +1,7 @@
 import Combine
 import CorePersonalData
 import CoreSession
-import DashTypes
+import CoreTypes
 import Foundation
 import Logger
 

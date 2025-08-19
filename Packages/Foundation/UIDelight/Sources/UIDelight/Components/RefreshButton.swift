@@ -28,7 +28,9 @@ public struct RefreshButton: View {
     .rotationEffect(.degrees(animationAmount))
     .animation(
       .interpolatingSpring(mass: 0.7, stiffness: 50, damping: 5, initialVelocity: 0),
-      value: animationAmount)
+      value: animationAmount
+    )
+    .hoverEffect()
   }
 
   private func performAction() {

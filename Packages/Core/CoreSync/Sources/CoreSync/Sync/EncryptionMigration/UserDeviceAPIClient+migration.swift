@@ -1,10 +1,10 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 
-public enum MigrationUploadMode: String {
-  case masterKeyChange = "UploadDataForMasterPasswordChange"
-  case cryptoConfigChange = "UploadDataForCryptoUpdate"
+public enum MigrationUploadMode: Sendable {
+  case masterKeyChange
+  case cryptoConfigChange
 }
 
 extension UserDeviceAPIClient.Sync {
@@ -15,6 +15,7 @@ extension UserDeviceAPIClient.Sync {
     let timestamp = Int(content.timestamp.millisecondsSince1970)
     let transactions = content.transactions
     let sharingKeys = content.sharingKeys
+    let remoteKeys = content.remoteKeys.map { [$0] }
 
     switch mode {
     case .masterKeyChange:
@@ -23,7 +24,7 @@ extension UserDeviceAPIClient.Sync {
         transactions: transactions,
         sharingKeys: sharingKeys,
         authTicket: content.authTicket,
-        remoteKeys: (content.remoteKeys ?? []),
+        remoteKeys: remoteKeys ?? [],
         updateVerification: content.updateVerification,
         uploadReason: .masterPasswordMobileReset)
     case .cryptoConfigChange:
@@ -31,7 +32,7 @@ extension UserDeviceAPIClient.Sync {
         timestamp: timestamp,
         transactions: transactions,
         sharingKeys: sharingKeys,
-        remoteKeys: content.remoteKeys)
+        remoteKeys: remoteKeys)
     }
   }
 }

@@ -12,10 +12,10 @@ struct PasswordGeneratorSliderView: View {
         .accessibilityHidden(true)
       Slider(value: $viewModel.preferences.doubleLength, in: 4...40, step: 1)
         .accessibility(identifier: "Generator length")
-        .fiberAccessibilityLabel(Text(L10n.Core.kwPadExtensionGeneratorLengthAccessibility))
+        .fiberAccessibilityLabel(Text(CoreL10n.kwPadExtensionGeneratorLengthAccessibility))
       Text("40")
         .accessibilityHidden(true)
-    }.foregroundColor(.ds.text.neutral.standard)
+    }.foregroundStyle(Color.ds.text.neutral.standard)
   }
 }
 

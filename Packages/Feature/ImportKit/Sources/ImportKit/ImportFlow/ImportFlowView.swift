@@ -50,7 +50,6 @@ public struct ImportFlowView<Model: ImportFlowViewModel>: View {
         ImportErrorView(model: model, action: viewModel.handleErrorAction)
       }
     }
-    .navigationBarStyle(.transparent(tintColor: .ds.text.brand.standard, titleColor: nil))
     .sheet(isPresented: $viewModel.showPasswordView) {
       DashImportPasswordView(
         model: viewModel.makeImportPasswordViewModel(), action: viewModel.handlePasswordAction)

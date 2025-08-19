@@ -1,5 +1,5 @@
 import CoreLocalization
-import DashTypes
+import CoreTypes
 import DesignSystem
 import Foundation
 import LoginKit
@@ -22,16 +22,15 @@ struct SSOUserConsentView: View {
           .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
       }
     }
-    .listAppearance(.insetGrouped)
+    .listStyle(.ds.insetGrouped)
     .navigationBarBackButtonHidden(true)
     .navigationTitle(L10n.Localizable.kwTitle)
-    .navigationBarStyle(.alternate)
     .toolbar {
       ToolbarItem(placement: .navigationBarLeading) {
-        NavigationBarButton(action: model.cancel, title: CoreLocalization.L10n.Core.cancel)
+        Button(CoreL10n.cancel, action: model.cancel)
       }
       ToolbarItem(placement: .navigationBarTrailing) {
-        NavigationBarButton(action: model.signup, title: L10n.Localizable.kwSignupButton)
+        Button(L10n.Localizable.kwSignupButton, action: model.signup)
           .disabled(model.isAccountCreationRequestInProgress)
       }
     }
@@ -64,13 +63,13 @@ struct SSOUserConsentView: View {
       )
       .accessibility(identifier: "Send emails for tips checkbox")
 
-      Button(CoreLocalization.L10n.Core.createaccountPrivacysettingsTermsConditions) {
+      Button(CoreL10n.createaccountPrivacysettingsTermsConditions) {
         openURL(DashlaneURLFactory.Endpoint.tos.url)
       }
       .buttonStyle(.externalLink)
       .controlSize(.small)
 
-      Button(CoreLocalization.L10n.Core.kwCreateAccountPrivacy) {
+      Button(CoreL10n.kwCreateAccountPrivacy) {
         openURL(DashlaneURLFactory.Endpoint.privacy.url)
       }
       .buttonStyle(.externalLink)
@@ -80,7 +79,7 @@ struct SSOUserConsentView: View {
       L10n.Localizable.createaccountprivacysettingsError,
       isPresented: $model.shouldDisplayMissingRequiredConsentAlert,
       actions: {
-        Button(CoreLocalization.L10n.Core.kwButtonOk) {}
+        Button(CoreL10n.kwButtonOk) {}
       }
     )
   }

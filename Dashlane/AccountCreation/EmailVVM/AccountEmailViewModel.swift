@@ -1,20 +1,19 @@
 import Combine
 import CoreLocalization
 import CoreSession
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 import LoginKit
 import SwiftTreats
 import UIDelight
+import UserTrackingFoundation
 
 @MainActor
 class AccountEmailViewModel: ObservableObject, AccountCreationFlowDependenciesInjecting {
 
   enum CompletionResult {
     case next(Email, isB2BAccount: Bool)
-    case login(Login)
     case sso(Email, SSOLoginInfo)
     case cancel
   }
@@ -27,7 +26,7 @@ class AccountEmailViewModel: ObservableObject, AccountCreationFlowDependenciesIn
   }
 
   @Published
-  var currentAlert: AlertContent?
+  var showVersionInvalidAlert = false
 
   @Published
   var bubbleErrorMessage: String? {
@@ -55,10 +54,6 @@ class AccountEmailViewModel: ObservableObject, AccountCreationFlowDependenciesIn
     self.completion = completion
   }
 
-  func showLoginView() {
-    completion(.login(Login(email)))
-  }
-
   func cancel() {
     completion(.cancel)
   }
@@ -78,12 +73,12 @@ class AccountEmailViewModel: ObservableObject, AccountCreationFlowDependenciesIn
         for: Login(email))
       handleAccountCreationMethodAvailibility(method, for: login)
     } catch let error as DashlaneAPI.APIError where error.hasAccountCode(.expiredVersion) {
-      self.currentAlert = VersionValidityAlert.errorAlert()
+      showVersionInvalidAlert = true
     } catch let error as AccountExistsError where error == .unlikelyValue {
       self.activityReporter.logAccountCreation(.errorNotValidEmail)
-      self.bubbleErrorMessage = CoreLocalization.L10n.errorMessage(for: error)
+      self.bubbleErrorMessage = CoreL10n.errorMessage(for: error)
     } catch {
-      self.bubbleErrorMessage = CoreLocalization.L10n.errorMessage(for: error)
+      self.bubbleErrorMessage = CoreL10n.errorMessage(for: error)
     }
   }
 
@@ -101,7 +96,7 @@ class AccountEmailViewModel: ObservableObject, AccountCreationFlowDependenciesIn
     let email = Email(input)
 
     guard email.isValid else {
-      self.bubbleErrorMessage = CoreLocalization.L10n.errorMessage(for: AccountError.invalidEmail)
+      self.bubbleErrorMessage = CoreL10n.errorMessage(for: AccountError.invalidEmail)
       self.activityReporter.logAccountCreation(.errorNotValidEmail)
       return nil
     }
@@ -114,7 +109,7 @@ class AccountEmailViewModel: ObservableObject, AccountCreationFlowDependenciesIn
   ) {
     switch method {
     case .none:
-      self.bubbleErrorMessage = CoreLocalization.L10n.Core.kwAccountCreationExistingAccount
+      self.bubbleErrorMessage = CoreL10n.kwAccountCreationExistingAccount
       self.activityReporter.logAccountCreation(.errorAccountAlreadyExists)
     case let .sso(info):
       self.completion(.sso(login, info))

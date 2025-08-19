@@ -4,7 +4,6 @@ import Foundation
 import SwiftUI
 
 extension CreditCard {
-
   public var icon: VaultItemIcon {
     .creditCard(self)
   }

@@ -1,5 +1,5 @@
 import CorePersonalData
-import DashTypes
+import CoreTypes
 import Foundation
 import SwiftUI
 
@@ -20,17 +20,17 @@ extension CreditCard {
     }
     switch type {
     case .amex:
-      return Image(asset: Asset.amex)
+      return Image(.CreditCardsTypes.amex)
     case .dinersClub:
-      return Image(asset: Asset.dinersclub)
+      return Image(.CreditCardsTypes.dinersclub)
     case .visa:
-      return Image(asset: Asset.visa)
+      return Image(.CreditCardsTypes.visa)
     case .discover:
-      return Image(asset: Asset.discover)
+      return Image(.CreditCardsTypes.discover)
     case .masterCard:
-      return Image(asset: Asset.mastercard)
+      return Image(.CreditCardsTypes.mastercard)
     case .jcb:
-      return Image(asset: Asset.jcb)
+      return Image(.CreditCardsTypes.jcb)
     case .chinaUnionPay,
       .visaElectron,
       .maestro,

@@ -1,6 +1,6 @@
 import Combine
 import CoreSession
-import DashTypes
+import CoreTypes
 import Foundation
 import StateMachine
 
@@ -31,11 +31,13 @@ public class RemoteLoginFlowViewModel: StateMachineBasedObservableObject, LoginK
   let completion: @MainActor (Result<RemoteLoginFlowViewModel.Completion, Error>) -> Void
   let deviceToDeviceLoginFlowViewModelFactory: DeviceTransferQRCodeFlowModel.Factory
   let deviceTransferLoginFlowModelFactory: DeviceTransferLoginFlowModel.Factory
-  public var stateMachine: RemoteLoginStateMachine
+  @Published public var stateMachine: RemoteLoginStateMachine
+  @Published public var isPerformingEvent: Bool = false
 
   public init(
     type: RemoteLoginType,
     deviceInfo: DeviceInfo,
+    stateMachine: RemoteLoginStateMachine,
     purchasePlanFlowProvider: PurchasePlanFlowProvider,
     remoteLoginViewModelFactory: RegularRemoteLoginFlowViewModel.Factory,
     sessionActivityReporterProvider: SessionActivityReporterProvider,
@@ -43,10 +45,9 @@ public class RemoteLoginFlowViewModel: StateMachineBasedObservableObject, LoginK
     deviceTransferLoginFlowModelFactory: DeviceTransferLoginFlowModel.Factory,
     tokenPublisher: AnyPublisher<String, Never>,
     deviceUnlinkingFactory: DeviceUnlinkingFlowViewModel.Factory,
-    remoteLoginStateMachineFactory: RemoteLoginStateMachine.Factory,
     completion: @escaping @MainActor (Result<RemoteLoginFlowViewModel.Completion, Error>) -> Void
   ) {
-    self.stateMachine = remoteLoginStateMachineFactory.make(type: type, deviceInfo: deviceInfo)
+    self.stateMachine = stateMachine
     self.purchasePlanFlowProvider = purchasePlanFlowProvider
     self.sessionActivityReporterProvider = sessionActivityReporterProvider
     self.completion = completion
@@ -88,13 +89,14 @@ public class RemoteLoginFlowViewModel: StateMachineBasedObservableObject, LoginK
 extension RemoteLoginFlowViewModel {
   func makeRegularRemoteLoginFlowViewModel(
     login: Login,
-    deviceRegistrationMethod: LoginMethod,
-    deviceInfo: DeviceInfo
+    deviceRegistrationMethod: LoginMethod
   ) -> RegularRemoteLoginFlowViewModel {
     return remoteLoginViewModelFactory.make(
       login: login,
       deviceRegistrationMethod: deviceRegistrationMethod,
-      deviceInfo: deviceInfo, tokenPublisher: tokenPublisher
+      stateMachine: stateMachine.makeRegularRemoteLoginStateMachine(
+        login: login, deviceRegistrationMethod: deviceRegistrationMethod),
+      tokenPublisher: tokenPublisher
     ) { [weak self] result in
       guard let self = self else {
         return
@@ -118,8 +120,10 @@ extension RemoteLoginFlowViewModel {
   func makeDeviceTransferLoginFlowModel(login: Login?, deviceInfo: DeviceInfo)
     -> DeviceTransferLoginFlowModel
   {
-    return deviceTransferLoginFlowModelFactory.make(login: login, deviceInfo: deviceInfo) {
-      [weak self] result in
+    return deviceTransferLoginFlowModelFactory.make(
+      login: login, deviceInfo: deviceInfo,
+      stateMachine: stateMachine.makeDeviceTransferLoginFlowStateMachine(login: login)
+    ) { [weak self] result in
       guard let self = self else {
         return
       }
@@ -152,7 +156,10 @@ extension RemoteLoginFlowViewModel {
       session: session,
       purchasePlanFlowProvider: purchasePlanFlowProvider,
       sessionActivityReporterProvider: sessionActivityReporterProvider
-    ) { completion in
+    ) { [weak self] completion in
+      guard let self = self else {
+        return
+      }
       Task {
         switch completion {
         case .logout:

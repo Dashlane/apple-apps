@@ -14,10 +14,10 @@
   import CoreSync
 #endif
 #if canImport(CoreUserTracking)
-  import CoreUserTracking
+  import UserTrackingFoundation
 #endif
-#if canImport(DashTypes)
-  import DashTypes
+#if canImport(CoreTypes)
+  import CoreTypes
 #endif
 #if canImport(Foundation)
   import Foundation

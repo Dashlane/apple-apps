@@ -43,7 +43,7 @@ public struct HOTPView: View {
       },
       label: {
         Image(systemName: "arrow.clockwise")
-          .foregroundColor(.white.opacity(0.8))
+          .foregroundStyle(.white.opacity(0.8))
       }
     )
     .buttonStyle(BorderlessButtonStyle())

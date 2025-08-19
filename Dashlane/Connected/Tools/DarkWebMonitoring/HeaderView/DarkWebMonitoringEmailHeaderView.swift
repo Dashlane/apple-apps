@@ -30,21 +30,23 @@ struct DarkWebMonitoringEmailHeaderView: View {
       },
       label: {
         HStack {
-          VStack(alignment: .leading) {
-            Text(emailMonitoredLabel).font(.body)
+          VStack(alignment: .leading, spacing: 2) {
+            Text(emailMonitoredLabel)
+              .textStyle(.title.block.medium)
+              .foregroundStyle(Color.ds.text.neutral.standard)
             statusBadge
           }
           Spacer()
           chevronIndicator
         }
+        .padding(.vertical, 8)
         .accessibilityElement(children: .combine)
         .fiberAccessibilityLabel(
           Text(
             "\(emailMonitoredLabel) \(statusText) \(isUnrolled ? L10n.Localizable.accessibilityCollapse : L10n.Localizable.accessibilityExpand)"
           )
         )
-        .padding(16)
-        .frame(height: 75)
+        .contentShape(Rectangle())
       }
     )
     .buttonStyle(PlainButtonStyle())
@@ -56,10 +58,10 @@ struct DarkWebMonitoringEmailHeaderView: View {
     HStack {
       Circle()
         .frame(width: 8, height: 8)
-        .foregroundColor(indicatorColor)
+        .foregroundStyle(indicatorColor)
       Text(statusText)
-        .font(.callout)
-        .foregroundColor(.ds.text.neutral.quiet)
+        .textStyle(.body.reduced.regular)
+        .foregroundStyle(indicatorColor)
     }
   }
 
@@ -111,7 +113,7 @@ struct DarkWebMonitoringEmailHeaderView: View {
     Image(systemName: "chevron.down")
       .resizable()
       .frame(width: 16, height: 10, alignment: .center)
-      .foregroundColor(.ds.text.inverse.quiet)
+      .foregroundStyle(Color.ds.text.brand.quiet)
       .rotationEffect(Angle.degrees(isUnrolled ? 180 : 0))
       .animation(.easeOut, value: isUnrolled)
   }

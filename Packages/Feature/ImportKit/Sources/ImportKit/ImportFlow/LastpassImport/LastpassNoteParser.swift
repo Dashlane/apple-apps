@@ -1,7 +1,6 @@
 import CSVParser
 import CorePersonalData
 import Foundation
-import VaultKit
 
 struct LastpassNoteParser {
 

@@ -15,28 +15,28 @@ extension BankAccount: VaultItem {
         return bank.name
       }
 
-      return L10n.Core.kwBankStatementIOS
+      return CoreL10n.kwBankStatementIOS
     }
     return name
   }
 
   public var localizedSubtitle: String {
     guard !owner.isEmpty else {
-      return L10n.Core.KWBankStatementIOS.bankAccountOwner
+      return CoreL10n.KWBankStatementIOS.bankAccountOwner
     }
     return owner
   }
 
   public static var localizedName: String {
-    L10n.Core.kwBankStatementIOS
+    CoreL10n.kwBankStatementIOS
   }
 
   public static var addTitle: String {
-    L10n.Core.kwadddatakwBankStatementIOS
+    CoreL10n.kwadddatakwBankStatementIOS
   }
 
   public static var nativeMenuAddTitle: String {
-    L10n.Core.addBankAccount
+    CoreL10n.addBankAccount
   }
 }
 

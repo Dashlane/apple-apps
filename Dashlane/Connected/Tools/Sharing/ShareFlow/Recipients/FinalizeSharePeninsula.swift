@@ -1,4 +1,4 @@
-import DashTypes
+import CoreTypes
 import DesignSystem
 import SwiftUI
 
@@ -16,7 +16,7 @@ struct FinalizeSharePeninsula: View {
       if showPermissionLevelSelector {
         HStack {
           Text(L10n.Localizable.kwSharePermissionLabel)
-            .foregroundColor(Color.ds.text.neutral.standard)
+            .foregroundStyle(Color.ds.text.neutral.standard)
             .accessibilityHidden(true)
 
           Picker(L10n.Localizable.kwSharePermissionLabel, selection: $permission) {

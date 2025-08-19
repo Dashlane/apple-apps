@@ -1,6 +1,6 @@
 import Foundation
 
-public enum SyncContentAction: String, Sendable, Equatable, CaseIterable, Codable {
+public enum SyncContentAction: String, Sendable, Hashable, Codable, CaseIterable {
   case backupEdit = "BACKUP_EDIT"
   case backupRemove = "BACKUP_REMOVE"
   case undecodable

@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.SharingUserdevice {
-  public struct RemoveItemGroupsFromCollection: APIRequest {
+  public struct RemoveItemGroupsFromCollection: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/sharing-userdevice/RemoveItemGroupsFromCollection"
 
     public let api: UserDeviceAPIClient
@@ -27,7 +27,7 @@ extension UserDeviceAPIClient.SharingUserdevice {
 }
 
 extension UserDeviceAPIClient.SharingUserdevice.RemoveItemGroupsFromCollection {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case revision = "revision"
       case collectionUUID = "collectionUUID"
@@ -35,7 +35,7 @@ extension UserDeviceAPIClient.SharingUserdevice.RemoveItemGroupsFromCollection {
       case itemGroupAuditLogs = "itemGroupAuditLogs"
     }
 
-    public struct ItemGroupAuditLogsElement: Codable, Equatable, Sendable {
+    public struct ItemGroupAuditLogsElement: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case uuid = "uuid"
         case auditLogDetails = "auditLogDetails"

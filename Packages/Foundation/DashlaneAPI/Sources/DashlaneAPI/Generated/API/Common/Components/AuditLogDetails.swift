@@ -1,13 +1,14 @@
 import Foundation
 
-public struct AuditLogDetails: Codable, Equatable, Sendable {
+public struct AuditLogDetails: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case type = "type"
     case captureLog = "captureLog"
     case domain = "domain"
+    case encryptedDetails = "encryptedDetails"
   }
 
-  public enum `Type`: String, Sendable, Equatable, CaseIterable, Codable {
+  public enum `Type`: String, Sendable, Hashable, Codable, CaseIterable {
     case authentifiant = "AUTHENTIFIANT"
     case securenote = "SECURENOTE"
     case secret = "SECRET"
@@ -22,11 +23,15 @@ public struct AuditLogDetails: Codable, Equatable, Sendable {
   public let type: `Type`
   public let captureLog: Bool?
   public let domain: String?
+  public let encryptedDetails: String?
 
-  public init(type: `Type`, captureLog: Bool? = nil, domain: String? = nil) {
+  public init(
+    type: `Type`, captureLog: Bool? = nil, domain: String? = nil, encryptedDetails: String? = nil
+  ) {
     self.type = type
     self.captureLog = captureLog
     self.domain = domain
+    self.encryptedDetails = encryptedDetails
   }
 
   public func encode(to encoder: Encoder) throws {
@@ -34,5 +39,6 @@ public struct AuditLogDetails: Codable, Equatable, Sendable {
     try container.encode(type, forKey: .type)
     try container.encodeIfPresent(captureLog, forKey: .captureLog)
     try container.encodeIfPresent(domain, forKey: .domain)
+    try container.encodeIfPresent(encryptedDetails, forKey: .encryptedDetails)
   }
 }

@@ -9,31 +9,32 @@ struct MasterPasswordMigrationView: View {
   let subtitle: String
   let migrateButtonTitle: String
   let cancelButtonTitle: String
-  let completion: (MigrationCompletionType) -> Void
+  let completion: (MigrationDecision) -> Void
 
   var body: some View {
     ScrollView {
       mainView
     }
     .overlay(overlayButtons)
-    .backgroundColorIgnoringSafeArea(.ds.background.alternate)
+    .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
   }
 
   var mainView: some View {
     VStack {
-      Image(asset: FiberAsset.multidevices)
+      Image(.multidevices)
         .accessibilityHidden(true)
 
       VStack(spacing: 24) {
         Text(title)
           .font(.title)
+          .foregroundStyle(Color.ds.text.neutral.catchy)
           .bold()
           .multilineTextAlignment(.center)
           .fixedSize(horizontal: false, vertical: true)
 
         Text(subtitle)
           .font(.subheadline)
-          .foregroundColor(.ds.text.neutral.quiet)
+          .foregroundStyle(Color.ds.text.neutral.quiet)
           .multilineTextAlignment(.center)
           .fixedSize(horizontal: false, vertical: true)
 
@@ -46,6 +47,7 @@ struct MasterPasswordMigrationView: View {
     .padding(.top, 48)
     .padding(.horizontal, 24)
     .loginAppearance()
+    .toolbar(.hidden, for: .navigationBar)
   }
 
   var overlayButtons: some View {
@@ -59,6 +61,7 @@ struct MasterPasswordMigrationView: View {
           label: {
             Text(migrateButtonTitle)
               .fixedSize(horizontal: false, vertical: true)
+              .frame(maxWidth: .infinity)
           })
         Button(
           action: {
@@ -67,6 +70,7 @@ struct MasterPasswordMigrationView: View {
           label: {
             Text(cancelButtonTitle)
               .fixedSize(horizontal: false, vertical: true)
+              .frame(maxWidth: .infinity)
           }
         )
         .style(mood: .brand, intensity: .quiet)
@@ -74,12 +78,6 @@ struct MasterPasswordMigrationView: View {
       .buttonStyle(.designSystem(.titleOnly))
     }
     .padding(24)
-  }
-}
-
-extension MasterPasswordMigrationView: NavigationBarStyleProvider {
-  var navigationBarStyle: NavigationBarStyle {
-    return .hidden()
   }
 }
 

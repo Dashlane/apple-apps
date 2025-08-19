@@ -1,5 +1,5 @@
+import CoreTypes
 import CryptoKit
-import DashTypes
 import Foundation
 
 public struct ECDH {
@@ -17,7 +17,7 @@ public struct ECDH {
 }
 
 extension ECDH: ECDHProtocol {
-  public var publicKeyString: DashTypes.Base64EncodedString {
+  public var publicKeyString: CoreTypes.Base64EncodedString {
     publicKey.base64EncodedString()
   }
 

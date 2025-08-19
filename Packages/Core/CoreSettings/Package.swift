@@ -3,7 +3,7 @@ import PackageDescription
 let package = Package(
   name: "CoreSettings",
   platforms: [
-    .iOS(.v16)
+    .iOS(.v17)
   ],
   products: [
     .library(
@@ -11,15 +11,17 @@ let package = Package(
       targets: ["CoreSettings"])
   ],
   dependencies: [
-    .package(path: "../../Foundation/DashTypes"),
+    .package(path: "../../Core/CoreTypes"),
     .package(path: "../../Foundation/SwiftTreats"),
+    .package(path: "../../Foundation/LogFoundation"),
   ],
   targets: [
     .target(
       name: "CoreSettings",
       dependencies: [
-        .product(name: "DashTypes", package: "DashTypes"),
+        .product(name: "CoreTypes", package: "CoreTypes"),
         .product(name: "SwiftTreats", package: "SwiftTreats"),
+        .product(name: "LogFoundation", package: "LogFoundation"),
       ],
       resources: [
         .process("Resources"),

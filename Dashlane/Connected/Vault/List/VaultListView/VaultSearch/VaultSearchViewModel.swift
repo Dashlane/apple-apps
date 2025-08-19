@@ -1,8 +1,9 @@
 import Combine
 import CoreFeature
 import CoreLocalization
-import CoreUserTracking
+import CorePersonalData
 import Foundation
+import UserTrackingFoundation
 import VaultKit
 
 @MainActor
@@ -58,12 +59,6 @@ class VaultSearchViewModel: ObservableObject, SessionServicesInjecting {
   func displaySearch(for query: String) {
     searchCriteria = query
     isSearchActive = true
-  }
-}
-
-extension VaultSearchViewModel {
-  func onAddItemDropdown() {
-    activityReporter.reportPageShown(.homeAddItemDropdown)
   }
 }
 

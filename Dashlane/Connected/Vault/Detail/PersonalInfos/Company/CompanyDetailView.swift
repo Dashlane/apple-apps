@@ -16,15 +16,12 @@ struct CompanyDetailView: View {
     DetailContainerView(service: model.service) {
       Section {
         if model.mode.isEditing {
-          TextDetailField(
-            title: CoreLocalization.L10n.Core.KWCompanyIOS.name, text: $model.item.name
-          )
-          .textInputAutocapitalization(.words)
+          TextDetailField(title: CoreL10n.KWCompanyIOS.name, text: $model.item.name)
+            .textInputAutocapitalization(.words)
+            .fieldRequired()
         }
-        TextDetailField(
-          title: CoreLocalization.L10n.Core.KWCompanyIOS.jobTitle, text: $model.item.jobTitle
-        )
-        .textInputAutocapitalization(.words)
+        TextDetailField(title: CoreL10n.KWCompanyIOS.jobTitle, text: $model.item.jobTitle)
+          .textInputAutocapitalization(.words)
       }
     }
   }

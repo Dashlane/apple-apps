@@ -1,6 +1,7 @@
 import CoreLocalization
 import CorePersonalData
 import DesignSystem
+import DesignSystemExtra
 import SwiftUI
 import UIComponents
 import UIDelight
@@ -28,7 +29,7 @@ struct AddItemView: View {
 
   @ViewBuilder
   var backButton: some View {
-    BackButton(action: dismiss.callAsFunction)
+    NativeNavigationBarBackButton(action: dismiss.callAsFunction)
   }
 
   var body: some View {

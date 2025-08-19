@@ -1,5 +1,5 @@
 import Combine
-import DashTypes
+import CoreTypes
 
 extension DetailService {
 
@@ -8,6 +8,7 @@ extension DetailService {
     pasteboardService.copy(value)
     self.eventPublisher.send(.copy(true))
     self.sendCopyUsageLog(fieldType: fieldType)
+    self.sendCopyAuditLog(for: fieldType)
   }
 
   private func updateLastLocalUseDate() {

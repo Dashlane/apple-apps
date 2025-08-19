@@ -1,10 +1,10 @@
-import DashTypes
+import CoreTypes
 import Foundation
 import SwiftTreats
 
 public final class ConfigurableCryptoEngineImpl: ConfigurableCryptoEngine, @unchecked Sendable {
   @Atomic
-  public private(set) var config: DashTypes.CryptoRawConfig
+  public private(set) var config: CoreTypes.CryptoRawConfig
   @Atomic
   public private(set) var parsedConfiguration: CryptoConfiguration
 
@@ -33,7 +33,7 @@ public final class ConfigurableCryptoEngineImpl: ConfigurableCryptoEngine, @unch
   public let secret: EncryptionSecret
   private var engine: CryptoEngine
 
-  public init(secret: EncryptionSecret, config: DashTypes.CryptoRawConfig) throws {
+  public init(secret: EncryptionSecret, config: CoreTypes.CryptoRawConfig) throws {
     self.secret = secret
     self.config = config
     let parsedConfiguration = try CryptoConfiguration(rawConfigMarker: config.marker)
@@ -63,7 +63,7 @@ public final class ConfigurableCryptoEngineImpl: ConfigurableCryptoEngine, @unch
       .makeCryptoEngine(secret: secret, fixedSalt: fixedSalt)
   }
 
-  public func update(to rawConfig: DashTypes.CryptoRawConfig) throws {
+  public func update(to rawConfig: CoreTypes.CryptoRawConfig) throws {
     self.parsedConfiguration = try CryptoConfiguration(rawConfigMarker: rawConfig.marker)
     self.engine = try parsedConfiguration.makeCryptoEngine(
       secret: secret, fixedSalt: rawConfig.fixedSalt)

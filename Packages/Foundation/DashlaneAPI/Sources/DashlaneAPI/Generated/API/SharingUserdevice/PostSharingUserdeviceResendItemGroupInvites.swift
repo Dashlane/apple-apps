@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.SharingUserdevice {
-  public struct ResendItemGroupInvites: APIRequest {
+  public struct ResendItemGroupInvites: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/sharing-userdevice/ResendItemGroupInvites"
 
     public let api: UserDeviceAPIClient
@@ -26,7 +26,7 @@ extension UserDeviceAPIClient.SharingUserdevice {
 }
 
 extension UserDeviceAPIClient.SharingUserdevice.ResendItemGroupInvites {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case revision = "revision"
       case groupId = "groupId"
@@ -60,7 +60,7 @@ extension UserDeviceAPIClient.SharingUserdevice.ResendItemGroupInvites {
 }
 
 extension UserDeviceAPIClient.SharingUserdevice.ResendItemGroupInvites {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case result = "result"
     }

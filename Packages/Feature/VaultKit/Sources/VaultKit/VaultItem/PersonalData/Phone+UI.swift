@@ -10,7 +10,7 @@ extension Phone: VaultItem {
 
   public var localizedTitle: String {
     guard !name.isEmpty else {
-      return L10n.Core.KWAddressIOS.linkedPhone
+      return CoreL10n.KWAddressIOS.linkedPhone
     }
     return name
   }
@@ -20,32 +20,21 @@ extension Phone: VaultItem {
   }
 
   public static var localizedName: String {
-    L10n.Core.kwPhoneIOS
+    CoreL10n.kwPhoneIOS
   }
 
   public static var addTitle: String {
-    L10n.Core.kwadddatakwPhoneIOS
+    CoreL10n.kwadddatakwPhoneIOS
   }
 
   public static var nativeMenuAddTitle: String {
-    L10n.Core.addPhoneNumber
-  }
-}
-
-extension Phone {
-  public var displayPhone: String {
-    if !interNationalNumber.isEmpty {
-      return interNationalNumber
-    } else if !nationalNumber.isEmpty {
-      return nationalNumber
-    }
-    return number
+    CoreL10n.addPhoneNumber
   }
 }
 
 extension Phone.NumberType {
 
-  typealias KWPhoneIOSTypeL10n = L10n.Core.KWPhoneIOS.`Type`
+  typealias KWPhoneIOSTypeL10n = CoreL10n.KWPhoneIOS.`Type`
   public var localizedString: String {
     switch self {
     case .mobile:
@@ -61,14 +50,14 @@ extension Phone.NumberType {
     case .workFax:
       return KWPhoneIOSTypeL10n.phoneTypeWorkFax
     case .none:
-      return L10n.Core.kwLinkedDefaultOther
+      return CoreL10n.kwLinkedDefaultOther
     }
   }
 }
 
 extension CountryCodeNamePair {
   public static let countries: [CountryCodeNamePair] = {
-    Locale.Region.isoRegions
+    Locale.Region.isoRegions.filter { $0.subRegions.isEmpty }
       .compactMap { code -> CountryCodeNamePair? in
         guard let name = Locale.current.localizedString(forRegionCode: code.identifier) else {
           return nil

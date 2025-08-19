@@ -1,8 +1,10 @@
 import Combine
-import DashTypes
+import CorePersonalData
+import CoreTypes
 import Foundation
+import LogFoundation
 
-final class VaultCollectionsStoreImpl:
+public final class VaultCollectionsStoreImpl:
   VaultCollectionsPublishersStore,
   VaultCollectionsStore
 {
@@ -39,9 +41,9 @@ final class VaultCollectionsStoreImpl:
 }
 
 extension VaultCollectionsStore where Self == VaultCollectionsStoreImpl {
-  static func mock(database: VaultCollectionDatabase = .mock()) -> VaultCollectionsStore {
+  public static func mock(database: VaultCollectionDatabase = .mock()) -> VaultCollectionsStore {
     VaultCollectionsStoreImpl(
-      logger: LoggerMock(),
+      logger: .mock,
       vaultCollectionDatabase: database
     )
   }

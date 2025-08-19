@@ -1,5 +1,5 @@
 import Foundation
-import UIComponents
+import SwiftUILottie
 
 extension LottieAsset {
 

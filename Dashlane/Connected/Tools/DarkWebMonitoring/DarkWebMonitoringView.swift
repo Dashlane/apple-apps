@@ -1,9 +1,7 @@
-import Combine
-import CorePersonalData
+import CoreLocalization
 import DesignSystem
-import SecurityDashboard
 import SwiftUI
-import UIDelight
+import VaultKit
 
 struct DarkWebMonitoringView: View {
 
@@ -15,60 +13,88 @@ struct DarkWebMonitoringView: View {
   }
 
   var body: some View {
-    Group {
-      if model.shouldShowIntroScreen == true {
-        premiumBody
-      } else {
-        dwmBody
-      }
-    }
-    .navigationBarTitleDisplayMode(.inline)
-    .navigationTitle(L10n.Localizable.dataleakNotificationTitle)
-    .reportPageAppearance(.toolsDarkWebMonitoring)
+    landingView
+      .frame(maxHeight: .infinity, alignment: .top)
+      .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
+      .navigationBarTitleDisplayMode(.inline)
+      .navigationTitle(L10n.Localizable.dataleakNotificationTitle)
+      .reportPageAppearance(.toolsDarkWebMonitoring)
   }
 
   @ViewBuilder
+  private var landingView: some View {
+    switch model.viewState {
+    case .loading:
+      EmptyView()
+    case .premium:
+      premiumBody
+    case .intro:
+      introBody
+    case .enabled:
+      dwmBody
+    }
+  }
+
+  private var introBody: some View {
+    ToolIntroView(
+      icon: ExpressiveIcon(.ds.feature.darkWebMonitoring.outlined),
+      title: CoreL10n.DarkWebMonitoringIntro.title
+    ) {
+      FeatureCard {
+        FeatureRow(
+          asset: ExpressiveIcon(.ds.web.outlined),
+          title: CoreL10n.DarkWebMonitoringIntro.subtitle1,
+          description: CoreL10n.DarkWebMonitoringIntro.description1
+        )
+
+        FeatureRow(
+          asset: ExpressiveIcon(.ds.notification.outlined),
+          title: CoreL10n.DarkWebMonitoringIntro.subtitle2,
+          description: CoreL10n.DarkWebMonitoringIntro.description2
+        )
+
+        FeatureRow(
+          asset: ExpressiveIcon(.ds.protection.outlined),
+          title: CoreL10n.DarkWebMonitoringIntro.subtitle3,
+          description: CoreL10n.DarkWebMonitoringIntro.description3
+        )
+      }
+
+      Button(CoreL10n.DarkWebMonitoringIntro.cta) {
+        model.addEmail()
+      }
+      .buttonStyle(.designSystem(.titleOnly(.sizeToFit)))
+    }
+  }
+
   private var premiumBody: some View {
     DarkWebMonitoringPremiumListView(
       dwmService: model.darkWebMonitoringService,
-      actionPublisher: model.actionPublisher
-    ) {
-      model.addEmail()
-    }
+      actionPublisher: model.actionPublisher)
   }
 
   @ViewBuilder
   private var dwmBody: some View {
-    VStack(alignment: .leading, spacing: 0) {
+    List {
       DarkWebMonitoringMonitoredEmailsView(
         model: model.headerViewModelFactory.make(actionPublisher: model.actionPublisher)
       )
-      .layoutPriority(1)
-
-      Text(L10n.Localizable.darkWebMonitoringListViewSectionHeaderTitle.uppercased())
-        .font(.system(.body))
-        .fontWeight(.medium)
-        .padding(.leading, 16)
-        .padding(.top, 24)
-        .foregroundColor(.ds.text.neutral.quiet)
+      .listSectionSpacing(24)
 
       DarkWebMonitoringBreachListView(
         viewModel: model.listViewModelFactory.make(actionPublisher: model.actionPublisher))
-    }.background(.ds.background.default.edgesIgnoringSafeArea(.top))
+
+    }
+    .listStyle(.ds.insetGrouped)
   }
 }
 
-struct DarkWebMonitoringView_Previews: PreviewProvider {
-  static var previews: some View {
-
-    MultiContextPreview {
-      TabView {
-        NavigationView {
-          DarkWebMonitoringView(model: .mock)
-            .navigationTitle("Preview")
-            .navigationBarTitleDisplayMode(.inline)
-        }
-      }
+#Preview {
+  TabView {
+    NavigationView {
+      DarkWebMonitoringView(model: .mock)
+        .navigationTitle("Preview")
+        .navigationBarTitleDisplayMode(.inline)
     }
   }
 }

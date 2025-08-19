@@ -1,10 +1,9 @@
+import CoreLocalization
 import CorePremium
 import CoreSharing
 import DesignSystem
-import IconLibrary
 import SwiftTreats
 import SwiftUI
-import UIComponents
 import VaultKit
 
 struct SharingToolView: View {
@@ -20,14 +19,14 @@ struct SharingToolView: View {
       switch model.state {
       case let .loading(serviceIsLoading):
         if serviceIsLoading {
-          loadingPlaceholder
+          loadingPlaceholderView
         } else {
           Color.ds.background.default
         }
-      case .empty:
-        emptyPlaceholder
+      case let .empty(isVaultEmpty):
+        emptyView(isVaultEmpty: isVaultEmpty)
       case .ready:
-        list
+        sharingListView
       }
     }
     .toolbar { toolbarContent }
@@ -35,30 +34,23 @@ struct SharingToolView: View {
     .navigationBarBackButtonHidden(displaySpaceSwitchOnLeadingButton)
     .reportPageAppearance(.sharingList)
     .animation(.easeInOut, value: model.state)
-    .listAppearance(.insetGrouped)
+    .listStyle(.ds.insetGrouped)
+    .headerProminence(.increased)
   }
 
-  private var loadingPlaceholder: some View {
-    VStack(alignment: .center, spacing: 32) {
-      Image(asset: FiberAsset.emptySharing)
+  private var loadingPlaceholderView: some View {
+    VStack(alignment: .center, spacing: 24) {
       Text(L10n.Localizable.kwSharingDataLoading)
-        .font(.body)
+        .textStyle(.title.section.large)
+        .foregroundStyle(Color.ds.text.neutral.catchy)
+
       ProgressView()
-        .controlSize(.large)
+        .progressViewStyle(.indeterminate)
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
   }
 
-  private var emptyPlaceholder: some View {
-    VStack(alignment: .center, spacing: 32) {
-      SharingEmptyView()
-    }
-    .frame(maxHeight: .infinity)
-    .padding(.horizontal, 40)
-    .background(Color.ds.background.default)
-  }
-
-  private var list: some View {
+  private var sharingListView: some View {
     List {
       SharingPendingUserGroupsSection(model: model.pendingUserGroupsSectionViewModel)
         .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
@@ -69,13 +61,44 @@ struct SharingToolView: View {
       SharingUsersSection(model: model.usersSectionViewModel)
         .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
     }
-    .listStyle(.insetGrouped)
+  }
+
+  private func emptyView(isVaultEmpty: Bool) -> some View {
+    ToolIntroView(
+      icon: ExpressiveIcon(.ds.shared.outlined),
+      title: CoreL10n.SharingIntro.title
+    ) {
+      FeatureCard {
+        FeatureRow(
+          asset: ExpressiveIcon(.ds.action.share.outlined),
+          title: CoreL10n.SharingIntro.subtitle1,
+          description: CoreL10n.SharingIntro.description1
+        )
+      }
+
+      if isVaultEmpty {
+        Button {
+          model.addPassword()
+        } label: {
+          Label(
+            CoreL10n.SharingIntro.Cta.v1,
+            icon: .ds.arrowRight.outlined
+          )
+        }
+        .buttonStyle(.designSystem(.iconTrailing(.sizeToFit)))
+      } else {
+        ShareButton(model: model.shareButtonViewModelFactory.make()) {
+          Text(CoreL10n.SharingIntro.Cta.v2)
+        }
+        .buttonStyle(.designSystem(.titleOnly(.sizeToFit)))
+      }
+    }
   }
 }
 
 extension SharingToolView {
   var displaySpaceSwitchOnLeadingButton: Bool {
-    Device.isIpadOrMac
+    Device.is(.pad, .mac, .vision)
   }
 
   @ToolbarContentBuilder
@@ -100,7 +123,7 @@ extension SharingToolView {
 
   private var navigationBarTitleView: some View {
     Text(L10n.Localizable.tabContactsTitle)
-      .foregroundColor(.ds.text.neutral.catchy)
+      .foregroundStyle(Color.ds.text.neutral.catchy)
       .font(.headline)
       .lineLimit(1)
       .fixedSize(horizontal: true, vertical: false)
@@ -118,9 +141,10 @@ extension SharingToolView {
 
   @ViewBuilder
   private var trailingButton: some View {
-    if model.state == .ready || model.state == .empty {
+    if model.state == .ready || model.state == .empty(isVaultEmpty: false) {
       ShareButton(model: model.shareButtonViewModelFactory.make()) {
         Image(systemName: "plus.circle.fill")
+          .foregroundStyle(Color.ds.text.brand.quiet)
       }
     }
   }

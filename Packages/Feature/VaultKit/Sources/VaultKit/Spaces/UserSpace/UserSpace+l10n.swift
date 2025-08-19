@@ -6,9 +6,9 @@ extension UserSpace {
   public var teamName: String {
     switch self {
     case .personal:
-      return L10n.Core.teamSpacesPersonalSpaceName
+      return CoreL10n.teamSpacesPersonalSpaceName
     case .both:
-      return L10n.Core.teamSpacesAllSpaces
+      return CoreL10n.teamSpacesAllSpaces
     case let .team(space):
       return space.teamInfo.name ?? ""
     }
@@ -17,7 +17,7 @@ extension UserSpace {
   public var letter: String? {
     switch self {
     case .personal:
-      return L10n.Core.teamSpacesPersonalSpaceInitial
+      return CoreL10n.teamSpacesPersonalSpaceInitial
     case .both:
       return ""
     case let .team(team):

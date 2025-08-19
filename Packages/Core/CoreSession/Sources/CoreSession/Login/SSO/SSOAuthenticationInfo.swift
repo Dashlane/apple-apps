@@ -1,8 +1,8 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 
-public struct SSOAuthenticationInfo: Hashable {
+public struct SSOAuthenticationInfo: Hashable, Sendable {
   public let login: Login
   public let serviceProviderUrl: URL
   public let isNitroProvider: Bool

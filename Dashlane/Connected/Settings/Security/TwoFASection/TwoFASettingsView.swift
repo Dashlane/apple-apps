@@ -2,7 +2,7 @@ import CoreLocalization
 import CoreNetworking
 import CoreSession
 import CoreSync
-import DashTypes
+import CoreTypes
 import DesignSystem
 import LoginKit
 import SwiftTreats
@@ -45,27 +45,25 @@ struct TwoFASettingsView: View {
     VStack {
       switch model.status {
       case .loaded:
-        DS.Toggle(L10n.Localizable.twofaSettingsTitle, isOn: $model.isTFAEnabled)
-          .onTapGesture {
-            model.update()
-          }
+        DS.Toggle(L10n.Localizable.twofaSettingsTitle, isOn: model.checkTFA())
       case .noInternet:
         TwoFASettingsStatus {
           Image.ds.noNetwork.outlined
             .resizable()
             .frame(width: 16, height: 16)
-            .foregroundColor(.ds.text.danger.quiet)
+            .foregroundStyle(Color.ds.text.danger.quiet)
         }
       case .error:
         TwoFASettingsStatus {
           Image.ds.feedback.fail.outlined
             .resizable()
             .frame(width: 16, height: 16)
-            .foregroundColor(.ds.text.danger.quiet)
+            .foregroundStyle(Color.ds.text.danger.quiet)
         }
       case .loading:
         TwoFASettingsStatus {
           ProgressView()
+            .progressViewStyle(.indeterminate)
         }
       }
     }
@@ -89,7 +87,7 @@ struct TwoFASettingsView: View {
       L10n.Localizable.twofaDeactivationAlertTitle,
       isPresented: $model.showDeactivationAlert,
       actions: {
-        Button(CoreLocalization.L10n.Core.cancel) {
+        Button(CoreL10n.cancel) {
           Task {
             await model.fetch()
           }
@@ -131,8 +129,8 @@ struct TwoFASettingsView: View {
               model.sheet = nil
             },
             label: {
-              Text(CoreLocalization.L10n.Core.cancel)
-                .foregroundColor(.ds.text.neutral.standard)
+              Text(CoreL10n.cancel)
+                .foregroundStyle(Color.ds.text.neutral.standard)
             })
         }
       })
@@ -150,7 +148,7 @@ private struct TwoFASettingsStatus<Content: View>: View {
   var body: some View {
     HStack {
       Text(L10n.Localizable.twofaSettingsTitle)
-        .foregroundColor(.ds.text.neutral.standard)
+        .foregroundStyle(Color.ds.text.neutral.standard)
       Spacer()
       content()
     }

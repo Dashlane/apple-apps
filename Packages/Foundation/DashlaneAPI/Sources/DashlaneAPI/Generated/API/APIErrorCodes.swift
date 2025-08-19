@@ -4,7 +4,7 @@ public enum APIErrorCodes {
 }
 
 extension APIErrorCodes {
-  public enum Abtesting: String, Sendable, Equatable, CaseIterable, Codable {
+  public enum Abtesting: String, Sendable, Hashable, Codable, CaseIterable {
     case abtestInvalidDeviceKey = "abtest_invalid_device_key"
 
     case abtestInvalidParameters = "abtest_invalid_parameters"
@@ -23,7 +23,7 @@ extension APIError {
 }
 
 extension APIErrorCodes {
-  public enum Account: String, Sendable, Equatable, CaseIterable, Codable {
+  public enum Account: String, Sendable, Hashable, Codable, CaseIterable {
     case accountAlreadyExists = "account_already_exists"
 
     case contactEmailRequired = "contact_email_required"
@@ -48,15 +48,23 @@ extension APIErrorCodes {
 
     case missingContactPhone = "missing_contact_phone"
 
+    case noSecurityKeyRegistrationRequested = "no_security_key_registration_requested"
+
     case notAccepted = "not_accepted"
 
     case notMember = "not_member"
 
     case phoneValidationFailed = "phone_validation_failed"
 
+    case registrationValidationFailed = "registration_validation_failed"
+
+    case securityKeyCredentialAlreadyExists = "security_key_credential_already_exists"
+
     case ssoBlocked = "sso_blocked"
 
     case teamHasNotEnabledSSO = "team_has_not_enabled_sso"
+
+    case unsupportedAccountType = "unsupported_account_type"
 
     case unsupportedVersion = "unsupported_version"
 
@@ -72,7 +80,7 @@ extension APIError {
 }
 
 extension APIErrorCodes {
-  public enum Accountrecovery: String, Sendable, Equatable, CaseIterable, Codable {
+  public enum Accountrecovery: String, Sendable, Hashable, Codable, CaseIterable {
     case invalidAuthenticationTicket = "invalid_authentication_ticket"
 
     case invalidRecoveryId = "invalid_recovery_id"
@@ -95,7 +103,7 @@ extension APIError {
 }
 
 extension APIErrorCodes {
-  public enum Analytics: String, Sendable, Equatable, CaseIterable, Codable {
+  public enum Analytics: String, Sendable, Hashable, Codable, CaseIterable {
     case prodUserNotRequestable = "prod_user_not_requestable"
 
     case userNotFound = "user not found"
@@ -110,7 +118,7 @@ extension APIError {
 }
 
 extension APIErrorCodes {
-  public enum Authentication: String, Sendable, Equatable, CaseIterable, Codable {
+  public enum Authentication: String, Sendable, Hashable, Codable, CaseIterable {
     case accountBlockedContactSupport = "account_blocked_contact_support"
 
     case b2bSSOUserNotFound = "b2b_sso_user_not_found"
@@ -189,7 +197,7 @@ extension APIError {
 }
 
 extension APIErrorCodes {
-  public enum AuthenticationQA: String, Sendable, Equatable, CaseIterable, Codable {
+  public enum AuthenticationQA: String, Sendable, Hashable, Codable, CaseIterable {
     case noTokenFound = "no_token_found"
 
     case notATestLogin = "not_a_test_login"
@@ -206,7 +214,7 @@ extension APIError {
 }
 
 extension APIErrorCodes {
-  public enum Authenticator: String, Sendable, Equatable, CaseIterable, Codable {
+  public enum Authenticator: String, Sendable, Hashable, Codable, CaseIterable {
     case authenticatorAlreadyRegistered = "authenticator_already_registered"
 
     case authenticatorDoesNotExist = "authenticator_does_not_exist"
@@ -223,7 +231,7 @@ extension APIError {
 }
 
 extension APIErrorCodes {
-  public enum Breaches: String, Sendable, Equatable, CaseIterable, Codable {
+  public enum Breaches: String, Sendable, Hashable, Codable, CaseIterable {
     case invalidBreachDefinitionJson = "invalid_breach_definition_json"
 
   }
@@ -236,7 +244,7 @@ extension APIError {
 }
 
 extension APIErrorCodes {
-  public enum Country: String, Sendable, Equatable, CaseIterable, Codable {
+  public enum Country: String, Sendable, Hashable, Codable, CaseIterable {
     case noCountry = "no_country"
 
   }
@@ -249,7 +257,7 @@ extension APIError {
 }
 
 extension APIErrorCodes {
-  public enum Darkwebmonitoring: String, Sendable, Equatable, CaseIterable, Codable {
+  public enum Darkwebmonitoring: String, Sendable, Hashable, Codable, CaseIterable {
     case anotherUserHasAlreadyAnActiveSubscription =
       "another_user_has_already_an_active_subscription"
 
@@ -273,7 +281,7 @@ extension APIError {
 }
 
 extension APIErrorCodes {
-  public enum DarkwebmonitoringQA: String, Sendable, Equatable, CaseIterable, Codable {
+  public enum DarkwebmonitoringQA: String, Sendable, Hashable, Codable, CaseIterable {
     case breachIsNotAccessible = "breach_is_not_accessible"
 
     case breachNotFound = "breach_not_found"
@@ -294,12 +302,16 @@ extension APIError {
 }
 
 extension APIErrorCodes {
-  public enum Devices: String, Sendable, Equatable, CaseIterable, Codable {
+  public enum Devices: String, Sendable, Hashable, Codable, CaseIterable {
     case clientDeviceNotFound = "client_device_not_found"
 
     case clientDevicesNotFound = "client_devices_not_found"
 
     case deviceNotFound = "device_not_found"
+
+    case jsonParsingError = "json_parsing_error"
+
+    case jsonValidationError = "json_validation_error"
 
     case pairingGroupsNotFound = "pairing_groups_not_found"
 
@@ -313,7 +325,7 @@ extension APIError {
 }
 
 extension APIErrorCodes {
-  public enum Features: String, Sendable, Equatable, CaseIterable, Codable {
+  public enum Features: String, Sendable, Hashable, Codable, CaseIterable {
     case invalidClientAgent = "invalid_client_agent"
 
   }
@@ -326,7 +338,7 @@ extension APIError {
 }
 
 extension APIErrorCodes {
-  public enum File: String, Sendable, Equatable, CaseIterable, Codable {
+  public enum File: String, Sendable, Hashable, Codable, CaseIterable {
     case encryptionKeyExpected = "encryption_key_expected"
 
     case invalidRequest = "invalid request"
@@ -349,7 +361,7 @@ extension APIError {
 }
 
 extension APIErrorCodes {
-  public enum InvalidRequest: String, Sendable, Equatable, CaseIterable, Codable {
+  public enum InvalidRequest: String, Sendable, Hashable, Codable, CaseIterable {
     case invalidAuthentication = "invalid_authentication"
 
     case invalidEndpoint = "invalid_endpoint"
@@ -370,7 +382,7 @@ extension APIError {
 }
 
 extension APIErrorCodes {
-  public enum Mpless: String, Sendable, Equatable, CaseIterable, Codable {
+  public enum Mpless: String, Sendable, Hashable, Codable, CaseIterable {
     case failedToCreateTransfer = "failed_to_create_transfer"
 
     case transferInvalid = "transfer_invalid"
@@ -385,7 +397,7 @@ extension APIError {
 }
 
 extension APIErrorCodes {
-  public enum Pairing: String, Sendable, Equatable, CaseIterable, Codable {
+  public enum Pairing: String, Sendable, Hashable, Codable, CaseIterable {
     case invalidPlatform = "invalid_platform"
 
     case platformIsntSupportedByPairing = "platform_isnt_supported_by_pairing"
@@ -400,7 +412,7 @@ extension APIError {
 }
 
 extension APIErrorCodes {
-  public enum Payments: String, Sendable, Equatable, CaseIterable, Codable {
+  public enum Payments: String, Sendable, Hashable, Codable, CaseIterable {
     case doubleReceiptForTransactionList = "double_receipt_for_transaction_list"
 
     case invalidReceipt = "invalid_receipt"
@@ -419,7 +431,7 @@ extension APIError {
 }
 
 extension APIErrorCodes {
-  public enum Platforms: String, Sendable, Equatable, CaseIterable, Codable {
+  public enum Platforms: String, Sendable, Hashable, Codable, CaseIterable {
     case invalidVersionName = "invalid_version_name"
 
   }
@@ -432,7 +444,7 @@ extension APIError {
 }
 
 extension APIErrorCodes {
-  public enum Premium: String, Sendable, Equatable, CaseIterable, Codable {
+  public enum Premium: String, Sendable, Hashable, Codable, CaseIterable {
     case noKeyForUser = "no_key_for_user"
 
     case offerIdentifierNotFound = "offer_identifier_not_found"
@@ -449,7 +461,7 @@ extension APIError {
 }
 
 extension APIErrorCodes {
-  public enum SecretTransfer: String, Sendable, Equatable, CaseIterable, Codable {
+  public enum SecretTransfer: String, Sendable, Hashable, Codable, CaseIterable {
     case failedToCreateTransfer = "failed_to_create_transfer"
 
     case failedToUpdateTransfer = "failed_to_update_transfer"
@@ -480,7 +492,7 @@ extension APIError {
 }
 
 extension APIErrorCodes {
-  public enum Securefile: String, Sendable, Equatable, CaseIterable, Codable {
+  public enum Securefile: String, Sendable, Hashable, Codable, CaseIterable {
     case deletedSecureFile = "deleted_secure_file"
 
     case hardQuotaExceeded = "hard_quota_exceeded"
@@ -494,6 +506,8 @@ extension APIErrorCodes {
     case keyNotFound = "key_not_found"
 
     case maxContentLengthExceeded = "max_content_length_exceeded"
+
+    case missingSecurefilesCapability = "missing_securefiles_capability"
 
     case softQuotaExceeded = "soft_quota_exceeded"
 
@@ -509,7 +523,7 @@ extension APIError {
 }
 
 extension APIErrorCodes {
-  public enum SharingUserdevice: String, Sendable, Equatable, CaseIterable, Codable {
+  public enum SharingUserdevice: String, Sendable, Hashable, Codable, CaseIterable {
     case aliasDoesNotBelongToAuthor = "alias_does_not_belong_to_author"
 
     case atLeastOneItemGroupAlreadyAcceptedInCollection =
@@ -622,7 +636,7 @@ extension APIErrorCodes {
 
     case pi20211231Killswitch = "pi_20211231_killswitch"
 
-    case providedCollectionUuidDoesNotExist = "provided_collection_uuid_does_not_exist"
+    case providedCollectionUUIDDoesNotExist = "provided_collection_uuid_does_not_exist"
 
     case providedUserIdDoesNotExist = "provided_user_id_does_not_exist"
 
@@ -694,7 +708,7 @@ extension APIError {
 }
 
 extension APIErrorCodes {
-  public enum Sync: String, Sendable, Equatable, CaseIterable, Codable {
+  public enum Sync: String, Sendable, Hashable, Codable, CaseIterable {
     case twofaServerKeyNotProvided = "2fa_server_key_not_provided"
 
     case twofaServerKeyProvidedIncorrectly = "2fa_server_key_provided_incorrectly"
@@ -759,7 +773,7 @@ extension APIError {
 }
 
 extension APIErrorCodes {
-  public enum Teams: String, Sendable, Equatable, CaseIterable, Codable {
+  public enum Teams: String, Sendable, Hashable, Codable, CaseIterable {
     case alreadyInTeam = "already_in_team"
 
     case alreadyMemberOtherTeam = "already_member_other_team"
@@ -770,7 +784,7 @@ extension APIErrorCodes {
 
     case cannotCreateTeam = "cannot_create_team"
 
-    case cannotExceedTenSeatsForStarterPlans = "cannot_exceed_ten_seats_for_starter_plans"
+    case duplicateNewLoginFound = "duplicate_new_login_found"
 
     case forbiddenTeamMemberEmailDomain = "forbidden_team_member_email_domain"
 
@@ -778,9 +792,26 @@ extension APIErrorCodes {
 
     case invalidCreatorEmail = "invalid_creator_email"
 
+    case invalidLogin = "invalid_login"
+
     case invalidOrigin = "invalid_origin"
 
+    case loginChangeNotSupportedForMplessUsers = "login_change_not_supported_for_mpless_users"
+
+    case loginChangeNotSupportedForSelfHostedTeam =
+      "login_change_not_supported_for_self_hosted_team"
+
+    case loginChangeUnauthorized = "login_change_unauthorized"
+
+    case loginChangeUnavailable = "login_change_unavailable"
+
+    case loginDomainUnauthorized = "login_domain_unauthorized"
+
+    case loginUnavailable = "login_unavailable"
+
     case mailDomainIsAlreadyUsedByAnotherTeam = "mail_domain_is_already_used_by_another_team"
+
+    case missingServiceProviderKey = "missing_service_provider_key"
 
     case noFreeSlot = "no_free_slot"
 
@@ -789,6 +820,10 @@ extension APIErrorCodes {
     case notBillingAdmin = "not_billing_admin"
 
     case paymentFailed = "payment_failed"
+
+    case serviceProviderKeyNewLoginMismatch = "service_provider_key_new_login_mismatch"
+
+    case serviceProviderKeyTeamMismatch = "service_provider_key_team_mismatch"
 
     case teamIsDiscontinued = "team_is_discontinued"
 
@@ -800,9 +835,19 @@ extension APIErrorCodes {
 
     case tokenUsedOrNotfound = "token_used_or_notfound"
 
+    case unauthorizedForSSOUser = "unauthorized_for_sso_user"
+
+    case unavailableLogins = "unavailable_logins"
+
+    case unknownUser = "unknown_user"
+
     case unsupportedPaymentMean = "unsupported_payment_mean"
 
     case userDoesntExist = "user_doesnt_exist"
+
+    case userIsNotTeamMember = "user_is_not_team_member"
+
+    case userNotPartOfTeam = "user_not_part_of_team"
 
     case userTeamInviteTokenNotFound = "user_team_invite_token_not_found"
 
@@ -816,7 +861,30 @@ extension APIError {
 }
 
 extension APIErrorCodes {
-  public enum Vpn: String, Sendable, Equatable, CaseIterable, Codable {
+  public enum User: String, Sendable, Hashable, Codable, CaseIterable {
+    case loginChangeFailed = "login_change_failed"
+
+    case loginChangeNotSupportedForMplessUsers = "login_change_not_supported_for_mpless_users"
+
+    case loginChangeUnauthorized = "login_change_unauthorized"
+
+    case loginUnavailable = "login_unavailable"
+
+    case noPendingChangeLoginRequest = "no_pending_change_login_request"
+
+    case tokenValidationFailed = "token_validation_failed"
+
+  }
+}
+
+extension APIError {
+  public func hasUserCode(_ errorCode: APIErrorCodes.User) -> Bool {
+    self.has(errorCode.rawValue)
+  }
+}
+
+extension APIErrorCodes {
+  public enum Vpn: String, Sendable, Hashable, Codable, CaseIterable {
     case userAlreadyHasAnAccount = "user_already_has_an_account"
 
     case userAlreadyHasAnAccountForProvider = "user_already_has_an_account_for_provider"

@@ -1,31 +1,8 @@
 import Combine
-import DashTypes
+import CoreTypes
 import Foundation
 import LocalAuthentication
-
-public protocol AuthenticationKeychainServiceProtocol {
-  nonisolated var masterKeyStatusChanged:
-    PassthroughSubject<AuthenticationKeychainService.MasterKeyStatusChange, Never>
-  { get }
-
-  func masterKeyStatus(for login: Login) -> MasterKeyStoredStatus
-  func masterKey(for login: Login, using context: LAContext?) throws -> MasterKey
-  func save(
-    _ masterKey: MasterKey, for login: Login, expiresAfter timeInterval: TimeInterval,
-    accessMode: KeychainAccessMode) throws
-  func removeMasterKey(for login: Login) throws
-
-  func pincode(for login: Login) throws -> String
-  func setPincode(_ pincode: String?, for login: Login) throws
-
-  func serverKey(for login: Login) -> String?
-  func saveServerKey(_ serverKey: String, for login: Login) throws
-  func removeServerKey(for login: Login) throws
-
-  func removeAllLocalData() throws
-  func masterPasswordEquals(_ masterPassword: String, for login: Login) throws -> Bool
-  func makeResetContainerKeychainManager(userLogin: UserLogin) -> ResetContainerKeychainManager
-}
+import LogFoundation
 
 extension AuthenticationKeychainServiceProtocol {
   public func masterKey(for login: Login) throws -> MasterKey {
@@ -48,7 +25,7 @@ extension AuthenticationKeychainServiceProtocol {
   }
 
   public func save(
-    _ masterKey: DashTypes.MasterKey,
+    _ masterKey: CoreTypes.MasterKey,
     for login: Login,
     expiresAfter timeInterval: TimeInterval,
     accessMode: KeychainAccessMode = .afterBiometricAuthentication
@@ -62,26 +39,21 @@ public protocol KeychainSettingsDataProvider {
 }
 
 public struct AuthenticationKeychainService: AuthenticationKeychainServiceProtocol {
-  public static let defaultPasswordValidityPeriod: TimeInterval = 60 * 60 * 24 * 14
-  public static let defaultRemoteKeyValidityPeriod: TimeInterval = TimeInterval.infinity
 
   public let cryptoEngine: AuthenticationKeychainCryptoEngine
   public let accessGroup: String
   let keychainSettingsDataProvider: KeychainSettingsDataProvider
 
-  public enum MasterKeyStatusChange {
-    case update(MasterKey)
-    case removal
-  }
-
   public let masterKeyStatusChanged = PassthroughSubject<MasterKeyStatusChange, Never>()
 
+  @Loggable
   enum PinCodeRetrievalError: Error {
     case decodingError
     case noPinCodeFoundForThisUser
     case status(code: OSStatus)
   }
 
+  @Loggable
   enum PinCodeSavingError: Error {
     case cantAccessKeychain
   }
@@ -116,7 +88,7 @@ public struct AuthenticationKeychainService: AuthenticationKeychainServiceProtoc
     }
   }
 
-  public func masterKey(for login: Login, using context: LAContext?) throws -> DashTypes.MasterKey {
+  public func masterKey(for login: Login, using context: LAContext?) throws -> CoreTypes.MasterKey {
     let settings = try settingsDataProvider(for: login)
     let store = MasterKeyStore(
       cryptoEngine: cryptoEngine,
@@ -127,7 +99,7 @@ public struct AuthenticationKeychainService: AuthenticationKeychainServiceProtoc
   }
 
   public func save(
-    _ masterKey: DashTypes.MasterKey,
+    _ masterKey: CoreTypes.MasterKey,
     for login: Login,
     expiresAfter timeInterval: TimeInterval,
     accessMode: KeychainAccessMode

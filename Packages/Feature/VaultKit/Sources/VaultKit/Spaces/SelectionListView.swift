@@ -44,7 +44,7 @@ public struct SelectionListView<Value, Content>: View where Value: Identifiable,
             if item.id == self.selection.id {
               Spacer()
               Image.ds.checkmark.outlined
-                .foregroundColor(.ds.text.brand.quiet)
+                .foregroundStyle(Color.ds.text.brand.quiet)
             }
           }
         }

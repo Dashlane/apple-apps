@@ -1,6 +1,6 @@
 import Foundation
 
-public struct CollectionUpdate: Codable, Equatable, Sendable {
+public struct CollectionUpdate: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case collectionUUID = "collectionUUID"
     case permission = "permission"

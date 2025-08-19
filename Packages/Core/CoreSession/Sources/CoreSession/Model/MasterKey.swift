@@ -1,4 +1,4 @@
-import DashTypes
+import CoreTypes
 import Foundation
 
 public enum MasterKey: Equatable, Codable, Sendable, Hashable {
@@ -42,6 +42,17 @@ public enum MasterKey: Equatable, Codable, Sendable, Hashable {
       return lhsData == rhsData
     default:
       return false
+    }
+  }
+}
+
+extension CoreSession.MasterKey {
+  public var keyChainMasterKey: CoreTypes.MasterKey {
+    switch self {
+    case .masterPassword(let password, _):
+      return .masterPassword(password)
+    case .ssoKey(let data):
+      return .key(data)
     }
   }
 }

@@ -1,7 +1,8 @@
 import Combine
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 
 public protocol PremiumStatusProvider {
   var status: Status { get }
@@ -50,6 +51,7 @@ public class PremiumStatusAPIProvider: PremiumStatusProvider {
   let client: UserDeviceAPIClient
   let cache: PremiumStatusCache?
   let logger: Logger
+  let onStatusChange: (Status) -> Void
 
   @Published
   public private(set) var status: Status
@@ -62,11 +64,13 @@ public class PremiumStatusAPIProvider: PremiumStatusProvider {
     client: UserDeviceAPIClient,
     cache: PremiumStatusCache? = nil,
     refreshTrigger: any Publisher<Void, Never> = Just.init(Void()),
+    onStatusChange: @escaping (Status) -> Void = { _ in },
     logger: Logger
   ) async throws {
     self.client = client
     self.cache = cache
     self.logger = logger
+    self.onStatusChange = onStatusChange
 
     if let status = try? cache?.retrievePremiumStatus() {
       self.status = status
@@ -85,7 +89,12 @@ public class PremiumStatusAPIProvider: PremiumStatusProvider {
   public func refresh() async throws {
     Task {
       do {
-        status = Status(apiStatus: try await client.premium.getPremiumStatus())
+        let status = Status(apiStatus: try await client.premium.getPremiumStatus())
+        guard status != self.status else {
+          return
+        }
+        self.status = status
+        onStatusChange(status)
         try cache?.savePremiumStatus(status)
       } catch {
         logger.error("Cannot refresh status", error: error)

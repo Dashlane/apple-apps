@@ -1,9 +1,10 @@
 import CoreSession
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 import StateMachine
 import SwiftTreats
+import UserTrackingFoundation
 
 @MainActor
 public class SSORemoteLoginViewModel: StateMachineBasedObservableObject, LoginKitServicesInjecting {
@@ -17,19 +18,18 @@ public class SSORemoteLoginViewModel: StateMachineBasedObservableObject, LoginKi
   let ssoViewModelFactory: SSOViewModel.Factory
   let completion: Completion<SSORemoteLoginViewModel.CompletionType>
 
-  public var stateMachine: SSORemoteStateMachine
+  @Published public var stateMachine: SSORemoteStateMachine
+  @Published public var isPerformingEvent: Bool = false
 
   public init(
     ssoAuthenticationInfo: SSOAuthenticationInfo,
-    deviceInfo: DeviceInfo,
+    stateMachine: SSORemoteStateMachine,
     ssoViewModelFactory: SSOViewModel.Factory,
-    ssoRemoteStateMachineFactory: SSORemoteStateMachine.Factory,
     completion: @escaping Completion<SSORemoteLoginViewModel.CompletionType>
   ) {
     self.ssoAuthenticationInfo = ssoAuthenticationInfo
     self.ssoViewModelFactory = ssoViewModelFactory
-    stateMachine = ssoRemoteStateMachineFactory.make(
-      ssoAuthenticationInfo: ssoAuthenticationInfo, deviceInfo: deviceInfo)
+    self.stateMachine = stateMachine
     self.completion = completion
   }
 
@@ -63,16 +63,11 @@ public class SSORemoteLoginViewModel: StateMachineBasedObservableObject, LoginKi
 extension SSORemoteLoginViewModel {
   static var mock: SSORemoteLoginViewModel {
     SSORemoteLoginViewModel(
-      ssoAuthenticationInfo: .mock(), deviceInfo: .mock,
+      ssoAuthenticationInfo: .mock(),
+      stateMachine: .mock,
       ssoViewModelFactory: .init({ _, _ in
         .mock
       }),
-      ssoRemoteStateMachineFactory: .init({ ssoAuthenticationInfo, deviceInfo in
-        .init(
-          ssoAuthenticationInfo: ssoAuthenticationInfo, deviceInfo: deviceInfo,
-          apiClient: .mock({}),
-          cryptoEngineProvider: SessionCryptoEngineProvider(logger: LoggerMock()),
-          logger: LoggerMock())
-      }), completion: { _ in })
+      completion: { _ in })
   }
 }

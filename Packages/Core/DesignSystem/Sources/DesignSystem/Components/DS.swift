@@ -1,8 +1,9 @@
 import Foundation
 
-public enum DS {
+public enum DS: Sendable {
   public typealias Badge = DesignSystem.Badge
   public typealias DisplayField = DesignSystem.DisplayField
+  public typealias ExpressiveIcon = DesignSystem.ExpressiveIcon
   public typealias FieldAction = DesignSystem.FieldAction
   public typealias Infobox = DesignSystem.Infobox
   public typealias ListItem = DesignSystem.ListItem
@@ -13,6 +14,7 @@ public enum DS {
   public typealias ListItemLabelDescription = DesignSystem.ListItemLabelDescription
   public typealias ListItemLabelTitle = DesignSystem.ListItemLabelTitle
   public typealias ObfuscatedDisplayField = DesignSystem.ObfuscatedDisplayField
+  public typealias ObfuscatedInputField = DesignSystem.ObfuscatedInputField
   public typealias PasswordDisplayField = DesignSystem.PasswordDisplayField
   public typealias PasswordField = DesignSystem.PasswordField
   public typealias Select = DesignSystem.Select

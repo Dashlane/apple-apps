@@ -1,4 +1,4 @@
-import DashTypes
+import CoreTypes
 import DesignSystem
 import IconLibrary
 import SwiftUI
@@ -23,7 +23,7 @@ struct GravatarIconView: View {
         image = (try? await model.icon()?.image).flatMap(Image.init(uiImage:))
       }
       .id(model.email)
-      .controlSize(isLarge ? .large : .small)
+      .controlSize(isLarge ? .large : .regular)
   }
 }
 

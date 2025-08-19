@@ -4,7 +4,7 @@ import PackageDescription
 let package = Package(
   name: "CorePersonalData",
   platforms: [
-    .iOS(.v16), .macOS(.v13),
+    .iOS(.v17), .macOS(.v14),
   ],
   products: [
     .library(
@@ -14,10 +14,13 @@ let package = Package(
   ],
   dependencies: [
     .package(path: "PersonalDataSpec"),
-    .package(path: "../../Foundation/DashTypes"),
+    .package(path: "../../Core/CoreTypes"),
     .package(path: "../../Foundation/SwiftTreats"),
     .package(path: "../../Foundation/DatabaseFoundation"),
     .package(path: "../../Foundation/CyrilKit"),
+    .package(path: "../../Foundation/CodableCSV"),
+    .package(path: "../../Foundation/DashlaneAPI"),
+    .package(path: "../../Foundation/LogFoundation"),
     .package(url: "_", branch: "master"),
     .package(url: "_", from: "510.0.0"),
   ],
@@ -33,10 +36,13 @@ let package = Package(
       name: "CorePersonalData",
       dependencies: [
         .product(name: "DatabaseFoundation", package: "DatabaseFoundation"),
-        .product(name: "DashTypes", package: "DashTypes"),
+        .product(name: "CoreTypes", package: "CoreTypes"),
         .product(name: "SwiftTreats", package: "SwiftTreats"),
         .product(name: "DomainParser", package: "swiftdomainparser"),
         .product(name: "CyrilKit", package: "CyrilKit"),
+        .product(name: "CodableCSV", package: "CodableCSV"),
+        .product(name: "DashlaneAPI", package: "DashlaneAPI"),
+        .product(name: "LogFoundation", package: "LogFoundation"),
         "PersonalDataMacros",
       ]),
     .testTarget(

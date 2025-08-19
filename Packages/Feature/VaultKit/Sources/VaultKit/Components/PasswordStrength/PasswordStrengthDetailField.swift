@@ -18,7 +18,7 @@ struct PasswordStrengthDetailField: View {
       }
 
       Text(passwordStrength.funFact)
-        .foregroundColor(.ds.text.inverse.standard)
+        .foregroundStyle(Color.ds.text.inverse.standard)
         .font(passwordStrengthFont)
         .transition(AnyTransition.scale(scale: 1.1).combined(with: .opacity))
         .id(passwordStrength.funFact)
@@ -30,15 +30,22 @@ struct PasswordStrengthDetailField: View {
   }
 }
 
-struct PasswordStrengthDetailField_Previews: PreviewProvider {
-  static var previews: some View {
-    MultiContextPreview {
-      PasswordStrengthDetailField(passwordStrength: .safelyUnguessable)
-      PasswordStrengthDetailField(passwordStrength: .somewhatGuessable)
-      PasswordStrengthDetailField(passwordStrength: .tooGuessable)
-      PasswordStrengthDetailField(passwordStrength: .veryGuessable)
-      PasswordStrengthDetailField(passwordStrength: .veryUnguessable)
+#Preview("Safely Unguessable", traits: .sizeThatFitsLayout) {
+  PasswordStrengthDetailField(passwordStrength: .safelyUnguessable)
+}
 
-    }.previewLayout(.sizeThatFits)
-  }
+#Preview("Somewhat Guessable", traits: .sizeThatFitsLayout) {
+  PasswordStrengthDetailField(passwordStrength: .somewhatGuessable)
+}
+
+#Preview("Too Guessable", traits: .sizeThatFitsLayout) {
+  PasswordStrengthDetailField(passwordStrength: .tooGuessable)
+}
+
+#Preview("Very Guessable", traits: .sizeThatFitsLayout) {
+  PasswordStrengthDetailField(passwordStrength: .veryGuessable)
+}
+
+#Preview("Very Unguessable", traits: .sizeThatFitsLayout) {
+  PasswordStrengthDetailField(passwordStrength: .veryUnguessable)
 }

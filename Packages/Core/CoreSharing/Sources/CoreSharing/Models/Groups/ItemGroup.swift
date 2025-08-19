@@ -1,8 +1,10 @@
+import CoreTypes
 import CyrilKit
-import DashTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 
+@Loggable
 public struct ItemGroup: Codable, Hashable, Identifiable, SharingGroup, Sendable {
   public var info: ItemGroupInfo
   public var itemKeyPairs: [ItemKeyPair]
@@ -68,6 +70,7 @@ extension Collection where Element == ItemGroup {
   }
 }
 
+@Loggable
 public struct ItemGroupInfo: Codable, Hashable, Identifiable, Sendable {
   public let id: Identifier
   public var revision: SharingRevision

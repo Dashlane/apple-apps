@@ -1,7 +1,8 @@
 import Combine
 import CoreSpotlight
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 import Logger
 
 enum SpotlightDomainIdentifier: String {

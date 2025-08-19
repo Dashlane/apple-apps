@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppAPIClient.Authentication {
-  public struct CompleteDeviceRegistrationWithAuthTicket: APIRequest {
+  public struct CompleteDeviceRegistrationWithAuthTicket: APIRequest, Sendable {
     public static let endpoint: Endpoint =
       "/authentication/CompleteDeviceRegistrationWithAuthTicket"
 
@@ -25,14 +25,14 @@ extension AppAPIClient.Authentication {
 }
 
 extension AppAPIClient.Authentication.CompleteDeviceRegistrationWithAuthTicket {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case device = "device"
       case login = "login"
       case authTicket = "authTicket"
     }
 
-    public struct Device: Codable, Equatable, Sendable {
+    public struct Device: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case deviceName = "deviceName"
         case appVersion = "appVersion"
@@ -43,7 +43,7 @@ extension AppAPIClient.Authentication.CompleteDeviceRegistrationWithAuthTicket {
         case sdkVersion = "sdkVersion"
       }
 
-      public enum Platform: String, Sendable, Equatable, CaseIterable, Codable {
+      public enum Platform: String, Sendable, Hashable, Codable, CaseIterable {
         case serverCli = "server_cli"
         case serverMacosx = "server_macosx"
         case serverWin = "server_win"
@@ -128,7 +128,7 @@ extension AppAPIClient.Authentication.CompleteDeviceRegistrationWithAuthTicket {
 }
 
 extension AppAPIClient.Authentication.CompleteDeviceRegistrationWithAuthTicket {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case deviceAccessKey = "deviceAccessKey"
       case deviceSecretKey = "deviceSecretKey"
@@ -144,7 +144,7 @@ extension AppAPIClient.Authentication.CompleteDeviceRegistrationWithAuthTicket {
       case ssoServerKey = "ssoServerKey"
     }
 
-    public struct Settings: Codable, Equatable, Sendable {
+    public struct Settings: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case backupDate = "backupDate"
         case identifier = "identifier"
@@ -154,7 +154,7 @@ extension AppAPIClient.Authentication.CompleteDeviceRegistrationWithAuthTicket {
         case action = "action"
       }
 
-      public enum `Type`: String, Sendable, Equatable, CaseIterable, Codable {
+      public enum `Type`: String, Sendable, Hashable, Codable, CaseIterable {
         case settings = "SETTINGS"
         case undecodable
         public init(from decoder: Decoder) throws {
@@ -164,7 +164,7 @@ extension AppAPIClient.Authentication.CompleteDeviceRegistrationWithAuthTicket {
         }
       }
 
-      public enum Action: String, Sendable, Equatable, CaseIterable, Codable {
+      public enum Action: String, Sendable, Hashable, Codable, CaseIterable {
         case backupEdit = "BACKUP_EDIT"
         case undecodable
         public init(from decoder: Decoder) throws {
@@ -204,7 +204,7 @@ extension AppAPIClient.Authentication.CompleteDeviceRegistrationWithAuthTicket {
       }
     }
 
-    public struct SharingKeys: Codable, Equatable, Sendable {
+    public struct SharingKeys: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case privateKey = "privateKey"
         case publicKey = "publicKey"

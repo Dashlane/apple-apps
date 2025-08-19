@@ -7,7 +7,7 @@ import SwiftUI
 extension View {
   @ViewBuilder
   public func draggableItem(_ item: VaultItem) -> some View {
-    if Device.isIpadOrMac, let transferableItem = item as? Credential {
+    if Device.is(.pad, .mac, .vision), let transferableItem = item as? Credential {
       self.draggable(transferableItem) {
         DraggableView(item: item)
       }
@@ -55,7 +55,7 @@ extension View {
     action: @escaping (_ items: [T], _ location: CGPoint) -> Bool,
     isTargeted: @escaping (Bool) -> Void = { _ in }
   ) -> some View {
-    if Device.isIpadOrMac {
+    if Device.is(.pad, .mac, .vision) {
       self.dropDestination(for: payloadType, action: action, isTargeted: isTargeted)
     } else {
       self

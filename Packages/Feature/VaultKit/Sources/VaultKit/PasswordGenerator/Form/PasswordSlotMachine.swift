@@ -18,11 +18,12 @@ public struct PasswordSlotMachine: View {
       HStack(alignment: .center, spacing: 22) {
         SlotMachineText(password: password)
           .frame(maxWidth: .infinity, minHeight: 110, alignment: .leading)
-          .accessibilityLabel(L10n.Core.generatedPassword)
+          .accessibilityLabel(CoreL10n.generatedPassword)
           .accessibility(identifier: password)
+
         RefreshButton(action: refreshAction)
-          .accessibility(label: Text(L10n.Core.kwPadExtensionGeneratorRefresh))
-          .foregroundColor(.ds.text.brand.standard)
+          .accessibility(label: Text(CoreL10n.kwPadExtensionGeneratorRefresh))
+          .foregroundStyle(Color.ds.text.brand.standard)
 
       }.frame(maxHeight: .infinity)
 

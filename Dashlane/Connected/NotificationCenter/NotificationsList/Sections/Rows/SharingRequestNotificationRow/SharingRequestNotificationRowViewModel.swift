@@ -1,5 +1,5 @@
 import CorePersonalData
-import DashTypes
+import CoreTypes
 import Foundation
 
 class SharingRequestNotificationRowViewModel: SessionServicesInjecting {

@@ -1,10 +1,9 @@
 import CoreLocalization
-import CoreUserTracking
 import DesignSystem
-import LoginKit
 import SwiftUI
 import UIComponents
 import UIDelight
+import UserTrackingFoundation
 
 public struct DashImportPasswordView: View {
   public enum Action {
@@ -54,13 +53,13 @@ public struct DashImportPasswordView: View {
           ctaButton
         }
       }
-      .backgroundColorIgnoringSafeArea(.ds.background.alternate)
+      .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
       .toolbar {
         ToolbarItem(placement: .navigationBarLeading) {
-          Button(L10n.Core.cancel) {
+          Button(CoreL10n.cancel) {
             action(.cancel)
           }
-          .foregroundColor(.ds.text.brand.standard)
+          .foregroundStyle(Color.ds.text.brand.standard)
         }
       }
       .reportPageAppearance(.importBackupfileEnterPassword)
@@ -70,20 +69,20 @@ public struct DashImportPasswordView: View {
   }
 
   private var title: some View {
-    Text(L10n.Core.m2WImportFromDashPasswordScreenPrimaryTitle)
+    Text(CoreL10n.m2WImportFromDashPasswordScreenPrimaryTitle)
       .frame(maxWidth: 400, alignment: .leading)
-      .font(DashlaneFont.custom(28, .medium).font)
-      .foregroundColor(.ds.text.neutral.catchy)
+      .textStyle(.title.section.large)
+      .foregroundStyle(Color.ds.text.neutral.catchy)
       .multilineTextAlignment(.leading)
       .padding(.horizontal, 16)
       .padding(.bottom, 8)
   }
 
   private var description: some View {
-    Text(L10n.Core.m2WImportFromDashPasswordScreenSecondaryTitle)
+    Text(CoreL10n.m2WImportFromDashPasswordScreenSecondaryTitle)
       .frame(maxWidth: 400, alignment: .leading)
       .font(.body.weight(.light))
-      .foregroundColor(.ds.text.neutral.standard)
+      .foregroundStyle(Color.ds.text.neutral.standard)
       .multilineTextAlignment(.leading)
       .padding(.horizontal, 16)
       .padding(.bottom, 24)
@@ -92,12 +91,12 @@ public struct DashImportPasswordView: View {
   private var passwordField: some View {
     VStack(alignment: .leading, spacing: 8) {
       DS.PasswordField(
-        L10n.Core.KWAuthentifiantIOS.password,
-        placeholder: L10n.Core.m2WImportFromDashPasswordScreenFieldPlaceholder,
+        CoreL10n.KWAuthentifiantIOS.password,
+        placeholder: CoreL10n.m2WImportFromDashPasswordScreenFieldPlaceholder,
         text: $model.password,
         feedback: {
           if showWrongPasswordError {
-            FieldTextualFeedback(L10n.Core.m2WImportFromDashPasswordScreenWrongPassword)
+            FieldTextualFeedback(CoreL10n.m2WImportFromDashPasswordScreenWrongPassword)
               .transition(.opacity)
           }
         }
@@ -112,7 +111,7 @@ public struct DashImportPasswordView: View {
     }
     .padding(.horizontal, 16)
     .padding(.vertical, 26)
-    .onChange(of: model.showWrongPasswordError) { newValue in
+    .onChange(of: model.showWrongPasswordError) { _, newValue in
       withAnimation(.easeOut(duration: 0.2)) {
         showWrongPasswordError = newValue
       }
@@ -128,7 +127,7 @@ public struct DashImportPasswordView: View {
         .font(.system(.subheadline).weight(.light))
         .multilineTextAlignment(.leading)
     } icon: {
-      Image(asset: Asset.infoCircleOutlined)
+      Image.ds.feedback.info.outlined
         .resizable()
         .renderingMode(.template)
         .frame(width: 20, height: 20)
@@ -136,7 +135,7 @@ public struct DashImportPasswordView: View {
     .frame(maxWidth: .infinity)
     .padding(16)
     .background(.ds.container.expressive.neutral.quiet.idle)
-    .foregroundColor(.ds.text.neutral.standard)
+    .foregroundStyle(Color.ds.text.neutral.standard)
     .cornerRadius(4)
     .padding(.horizontal, 24)
     .fiberAccessibilityElement(children: .combine)
@@ -144,7 +143,7 @@ public struct DashImportPasswordView: View {
   }
 
   private var ctaButton: some View {
-    Button(L10n.Core.m2WImportFromDashPasswordScreenUnlockImport, action: validate)
+    Button(CoreL10n.m2WImportFromDashPasswordScreenUnlockImport, action: validate)
       .buttonDisplayProgressIndicator(model.inProgress)
       .buttonStyle(.designSystem(.titleOnly))
       .disabled(disableUnlockButton || model.showWrongPasswordError)
@@ -177,8 +176,8 @@ public struct DashImportPasswordView: View {
 extension DashImportPasswordView {
 
   fileprivate var attributedDescription: AttributedString {
-    let learnMoreString = L10n.Core.m2WImportFromDashPasswordScreenTroubleshootingLink
-    let descriptionString = L10n.Core.m2WImportFromDashPasswordScreenTroubleshooting
+    let learnMoreString = CoreL10n.m2WImportFromDashPasswordScreenTroubleshootingLink
+    let descriptionString = CoreL10n.m2WImportFromDashPasswordScreenTroubleshooting
 
     return attributedString(for: descriptionString, hyperlinks: [learnMoreString: learnMoreURL])
   }
@@ -203,10 +202,6 @@ extension DashImportPasswordView {
 
 }
 
-struct DashImportPasswordView_Previews: PreviewProvider {
-  static var previews: some View {
-    MultiContextPreview(deviceRange: .some([.iPhone8, .iPhone11, .iPadPro])) {
-      DashImportPasswordView(model: .mock, action: { _ in })
-    }
-  }
+#Preview {
+  DashImportPasswordView(model: .mock) { _ in }
 }

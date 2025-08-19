@@ -18,21 +18,16 @@ struct AddOTPSuccessView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 32) {
       Spacer()
-      Image.ds.feedback.success.outlined
-        .resizable()
-        .foregroundColor(.ds.text.brand.standard)
-        .aspectRatio(contentMode: .fit)
-        .frame(width: 62)
-        .fiberAccessibilityHidden(true)
+      DS.ExpressiveIcon(.ds.feedback.success.outlined)
+        .style(mood: .brand, intensity: .quiet)
+        .controlSize(.extraLarge)
 
-      VStack(alignment: .center, spacing: 16) {
+      Text(L10n.Localizable._2faSetupSuccessTitle(domainName)).textStyle(.title.section.large)
+        .foregroundStyle(Color.ds.text.neutral.catchy)
 
-        Text(L10n.Localizable._2faSetupSuccessTitle(domainName)).font(
-          .custom(GTWalsheimPro.bold.name, size: 26, relativeTo: .title).weight(.medium))
-      }
       Text(description)
-        .font(.body)
-        .foregroundColor(.ds.text.neutral.standard)
+        .textStyle(.body.standard.regular)
+        .foregroundStyle(Color.ds.text.neutral.standard)
 
       Spacer()
 

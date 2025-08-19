@@ -1,22 +1,23 @@
 import Combine
-import DashTypes
+import CoreTypes
 import Foundation
+import IconLibrary
 import SecurityDashboard
 import VaultKit
 
 class DarkWebMonitoringViewModel: ObservableObject, SessionServicesInjecting {
+  enum ViewState {
+    case loading
+    case intro
+    case premium
+    case enabled
+  }
 
   let headerViewModelFactory: DarkWebMonitoringMonitoredEmailsViewModel.Factory
   let listViewModelFactory: DarkWebMonitoringBreachListViewModel.Factory
 
-  var shouldShowIntroScreen: Bool {
-    return (registeredEmails.count == 0 && darkWebMonitoringService.isDwmEnabled)
-      || darkWebMonitoringService.isDwmEnabled == false
-  }
-
-  @Published private(set) var registeredEmails: [DataLeakEmail] = []
-
-  @Published private(set) var monitoredEmails: [DataLeakEmail] = []
+  @Published
+  var viewState: ViewState = .loading
 
   private let iconService: IconServiceProtocol
   let darkWebMonitoringService: DarkWebMonitoringServiceProtocol
@@ -38,15 +39,20 @@ class DarkWebMonitoringViewModel: ObservableObject, SessionServicesInjecting {
 
     self.darkWebMonitoringService.monitoredEmailsPublisher
       .receive(on: RunLoop.main)
-      .assign(to: \.registeredEmails, on: self)
-      .store(in: &cancellables)
+      .sink { [weak self] emailsList in
+        guard let self else {
+          return
+        }
 
-    self.darkWebMonitoringService.monitoredEmailsPublisher
-      .receive(on: RunLoop.main)
-      .sink { [weak self] emails in
-        self?.monitoredEmails =
-          emails
-          .filter({ DataLeakEmail.State(rawValue: $0.state) == .active })
+        if emailsList.isEmpty {
+          if self.darkWebMonitoringService.isDwmEnabled {
+            self.viewState = .intro
+          } else {
+            self.viewState = .premium
+          }
+        } else {
+          self.viewState = .enabled
+        }
       }
       .store(in: &cancellables)
   }

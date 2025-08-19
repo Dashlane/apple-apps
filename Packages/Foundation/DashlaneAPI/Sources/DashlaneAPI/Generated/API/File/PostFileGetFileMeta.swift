@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.File {
-  public struct GetFileMeta: APIRequest {
+  public struct GetFileMeta: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/file/GetFileMeta"
 
     public let api: UserDeviceAPIClient
@@ -28,7 +28,7 @@ extension UserDeviceAPIClient.File.GetFileMeta {
 }
 
 extension UserDeviceAPIClient.File.GetFileMeta {
-  public struct ResponseValue: Codable, Equatable, Sendable {
+  public struct ResponseValue: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case status = "status"
       case key = "key"
@@ -37,7 +37,7 @@ extension UserDeviceAPIClient.File.GetFileMeta {
       case url = "url"
     }
 
-    public enum Status: String, Sendable, Equatable, CaseIterable, Codable {
+    public enum Status: String, Sendable, Hashable, Codable, CaseIterable {
       case updateAvailable = "update_available"
       case notUpdated = "not_updated"
       case notFound = "not_found"

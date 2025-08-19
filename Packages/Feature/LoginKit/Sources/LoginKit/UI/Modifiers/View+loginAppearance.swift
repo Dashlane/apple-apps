@@ -16,9 +16,13 @@ struct LoginViewStyle: ViewModifier {
 
   func body(content: Content) -> some View {
     ZStack {
+      let limitSize = Device.is(.pad, .mac, .vision)
       backgroundColor.edgesIgnoringSafeArea(.all)
       content
-        .frame(maxWidth: Device.isIpadOrMac ? 550 : nil, maxHeight: Device.isIpadOrMac ? 890 : nil)
+        .frame(
+          maxWidth: limitSize ? 550 : nil,
+          maxHeight: limitSize ? 890 : nil
+        )
     }.frame(maxWidth: .infinity, maxHeight: .infinity)
   }
 }

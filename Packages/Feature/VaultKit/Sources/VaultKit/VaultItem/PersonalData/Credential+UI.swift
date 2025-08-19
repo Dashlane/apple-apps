@@ -1,7 +1,7 @@
 import CoreLocalization
 import CorePersonalData
 import CorePremium
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 import SwiftUI
@@ -20,15 +20,15 @@ extension Credential: VaultItem {
   }
 
   public static var localizedName: String {
-    L10n.Core.KWAuthentifiantIOS.password
+    CoreL10n.KWAuthentifiantIOS.password
   }
 
   public static var addTitle: String {
-    L10n.Core.kwadddatakwAuthentifiantIOS
+    CoreL10n.kwadddatakwAuthentifiantIOS
   }
 
   public static var nativeMenuAddTitle: String {
-    L10n.Core.addPassword
+    CoreL10n.addPassword
   }
 
   public func isAssociated(to team: PremiumStatusTeamInfo) -> Bool {

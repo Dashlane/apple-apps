@@ -7,11 +7,11 @@ struct SettingsCryptographySectionContent: View {
   var body: some View {
     HStack(alignment: .center, spacing: 16) {
       Text(L10n.Localizable.kwKeyDerivationAlgo)
-        .foregroundColor(.ds.text.neutral.standard)
+        .foregroundStyle(Color.ds.text.neutral.standard)
         .textStyle(.body.standard.regular)
         .frame(maxWidth: .infinity, alignment: .leading)
       Text(derivationKey)
-        .foregroundColor(.ds.text.neutral.quiet)
+        .foregroundStyle(Color.ds.text.neutral.quiet)
         .textStyle(.body.standard.regular)
     }
   }

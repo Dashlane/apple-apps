@@ -1,11 +1,12 @@
 import Combine
-import CoreActivityLogs
 import CorePersonalData
 import CorePremium
 import CoreSharing
-import CoreUserTracking
-import DashTypes
+import CoreTeamAuditLogs
+import CoreTypes
 import Foundation
+import LogFoundation
+import UserTrackingFoundation
 
 public final class VaultCollectionDatabase: VaultKitServicesInjecting,
   VaultCollectionDatabaseProtocol
@@ -18,7 +19,7 @@ public final class VaultCollectionDatabase: VaultKitServicesInjecting,
   private let sharingService: SharingServiceProtocol
   private let userSpacesService: UserSpacesService
   private let activityReporter: ActivityReporterProtocol
-  private let activityLogsService: ActivityLogsServiceProtocol
+  private let teamAuditLogsService: TeamAuditLogsServiceProtocol
   private let vaultTipDonator: VaultTipDonator
 
   public init(
@@ -27,14 +28,14 @@ public final class VaultCollectionDatabase: VaultKitServicesInjecting,
     sharingService: SharingServiceProtocol,
     userSpacesService: UserSpacesService,
     activityReporter: ActivityReporterProtocol,
-    activityLogsService: ActivityLogsServiceProtocol
+    teamAuditLogsService: TeamAuditLogsServiceProtocol
   ) {
     self.logger = logger
     self.database = database
     self.sharingService = sharingService
     self.userSpacesService = userSpacesService
     self.activityReporter = activityReporter
-    self.activityLogsService = activityLogsService
+    self.teamAuditLogsService = teamAuditLogsService
     self.vaultTipDonator = .init()
 
     configurePublishers()
@@ -93,7 +94,7 @@ public final class VaultCollectionDatabase: VaultKitServicesInjecting,
 
     switch collection.type {
     case .private(let collection):
-      activityLogsService.logCreate(collection)
+      teamAuditLogsService.logCreate(collection)
       return VaultCollection(collection: try database.save(collection))
     case .shared(let collectionItems, _):
       return VaultCollection(
@@ -164,7 +165,7 @@ public final class VaultCollectionDatabase: VaultKitServicesInjecting,
     do {
       try database.delete(collection)
       if !wasShared {
-        activityLogsService.logDelete(collection)
+        teamAuditLogsService.logDelete(collection)
         activityReporter.report(
           UserEvent.UpdateCollection(
             action: .delete,

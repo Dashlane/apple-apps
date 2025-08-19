@@ -1,16 +1,17 @@
 import Combine
-import CoreActivityLogs
 import CoreFeature
 import CorePersonalData
 import CorePremium
 import CoreSettings
 import CoreSharing
-import CoreUserTracking
-import DashTypes
+import CoreTeamAuditLogs
+import CoreTypes
 import DocumentServices
+import LogFoundation
 import Logger
 import SwiftUI
 import UIComponents
+import UserTrackingFoundation
 
 public enum DetailViewAlert: String, Identifiable {
   case errorWhileDeletingFiles
@@ -20,8 +21,9 @@ public enum DetailViewAlert: String, Identifiable {
 public enum DetailServiceEvent {
   case copy(_ success: Bool)
   case save
-  case cancel
+  case askConfirmationCancel
   case domainsUpdate
+  case wifiConnection
 }
 
 public final class DetailService<Item: VaultItem & Equatable>: ObservableObject {
@@ -97,19 +99,18 @@ public final class DetailService<Item: VaultItem & Equatable>: ObservableObject 
   public let userSpacesService: UserSpacesService
   public let sharingService: SharedVaultHandling
   public let activityReporter: ActivityReporterProtocol
+  public let teamAuditLogsService: TeamAuditLogsServiceProtocol
   public let deepLinkService: DeepLinkingServiceProtocol
   public let logger: Logger
   private let documentStorageService: DocumentStorageService
   let pasteboardService: PasteboardServiceProtocol
   public let userSettings: UserSettings
-  public let canLock: Bool
 
   private let iconViewModelProvider: (VaultItem) -> VaultItemIconViewModel
   let attachmentSectionFactory: AttachmentsSectionViewModel.Factory
 
   public init(
     item: Item,
-    canLock: Bool,
     mode: DetailMode = .viewing,
     vaultItemDatabase: VaultItemDatabaseProtocol,
     vaultItemsStore: VaultItemsStore,
@@ -121,7 +122,7 @@ public final class DetailService<Item: VaultItem & Equatable>: ObservableObject 
     documentStorageService: DocumentStorageService,
     deepLinkService: DeepLinkingServiceProtocol,
     activityReporter: ActivityReporterProtocol,
-    activityLogsService: ActivityLogsServiceProtocol,
+    teamAuditLogsService: TeamAuditLogsServiceProtocol,
     iconViewModelProvider: @escaping (VaultItem) -> VaultItemIconViewModel,
     attachmentSectionFactory: AttachmentsSectionViewModel.Factory,
     logger: Logger,
@@ -130,7 +131,6 @@ public final class DetailService<Item: VaultItem & Equatable>: ObservableObject 
   ) {
     self.documentStorageService = documentStorageService
     self.iconViewModel = iconViewModelProvider(item)
-    self.canLock = canLock
     self.mode = mode
     self.vaultItemsStore = vaultItemsStore
     self.vaultItemDatabase = vaultItemDatabase
@@ -143,6 +143,7 @@ public final class DetailService<Item: VaultItem & Equatable>: ObservableObject 
     self.userSettings = userSettings
     self.logger = logger
     self.activityReporter = activityReporter
+    self.teamAuditLogsService = teamAuditLogsService
     self.shouldReveal = mode.isAdding
     self.pasteboardService = pasteboardService
     self.vaultItemEditionService = .init(
@@ -160,7 +161,7 @@ public final class DetailService<Item: VaultItem & Equatable>: ObservableObject 
       vaultCollectionDatabase: vaultCollectionDatabase,
       vaultCollectionsStore: vaultCollectionsStore,
       activityReporter: activityReporter,
-      activityLogsService: activityLogsService
+      teamAuditLogsService: teamAuditLogsService
     )
 
     plugModeBindingOnEditionServices()
@@ -197,9 +198,10 @@ public final class DetailService<Item: VaultItem & Equatable>: ObservableObject 
   }
 
   public func cancel() {
-    if vaultItemEditionService.itemDidChange || vaultCollectionEditionService.collectionsDidChange()
+    if vaultItemEditionService.itemHasChanged
+      || vaultCollectionEditionService.collectionsDidChange()
     {
-      eventPublisher.send(.cancel)
+      eventPublisher.send(.askConfirmationCancel)
     } else {
       confirmCancel()
     }

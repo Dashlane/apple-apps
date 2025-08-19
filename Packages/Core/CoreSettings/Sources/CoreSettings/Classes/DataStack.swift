@@ -1,4 +1,4 @@
-import CoreData
+@preconcurrency import CoreData
 
 extension NSManagedObjectContext {
   func recursiveSave() throws {
@@ -28,7 +28,7 @@ extension NSManagedObjectContext {
   }
 }
 
-final class DataStack {
+final class DataStack: Sendable {
 
   private let persistentStore: NSPersistentStoreCoordinator
 

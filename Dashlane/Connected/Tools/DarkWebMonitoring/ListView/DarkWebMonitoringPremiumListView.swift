@@ -8,16 +8,13 @@ struct DarkWebMonitoringPremiumListView: View {
 
   private let isDwmEnabled: Bool
   private let actionPublisher: PassthroughSubject<DarkWebToolsFlowViewModel.Action, Never>
-  let completion: () -> Void
 
   init(
     isDwmEnabled: Bool,
-    actionPublisher: PassthroughSubject<DarkWebToolsFlowViewModel.Action, Never>,
-    completion: @escaping () -> Void = {}
+    actionPublisher: PassthroughSubject<DarkWebToolsFlowViewModel.Action, Never>
   ) {
     self.isDwmEnabled = isDwmEnabled
     self.actionPublisher = actionPublisher
-    self.completion = completion
   }
 
   init(
@@ -25,9 +22,7 @@ struct DarkWebMonitoringPremiumListView: View {
     actionPublisher: PassthroughSubject<DarkWebToolsFlowViewModel.Action, Never>,
     completion: @escaping () -> Void = {}
   ) {
-    self.init(
-      isDwmEnabled: dwmService.isDwmEnabled, actionPublisher: actionPublisher,
-      completion: completion)
+    self.init(isDwmEnabled: dwmService.isDwmEnabled, actionPublisher: actionPublisher)
   }
 
   var body: some View {
@@ -38,17 +33,17 @@ struct DarkWebMonitoringPremiumListView: View {
           premiumBenefitItem(
             title: L10n.Localizable.dataleakmonitoringNoEmailBenefitsSurveillanceTitle,
             content: L10n.Localizable.dataleakmonitoringNoEmailBenefitsSurveillanceDescription,
-            icon: Image(asset: FiberAsset.dwmMonitor))
+            icon: Image(.DarkWeb.PremiumBenefits.dwmMonitor))
           Divider()
           premiumBenefitItem(
             title: L10n.Localizable.dataleakmonitoringNoEmailBenefitsFirstTitle,
             content: L10n.Localizable.dataleakmonitoringNoEmailBenefitsFirstDescription,
-            icon: Image(asset: FiberAsset.dwmAlert))
+            icon: Image(.DarkWeb.PremiumBenefits.dwmAlert))
           Divider()
           premiumBenefitItem(
             title: L10n.Localizable.dataleakmonitoringNoEmailBenefitsExpertTitle,
             content: L10n.Localizable.dataleakmonitoringNoEmailBenefitsExpertDescription,
-            icon: Image(asset: FiberAsset.dwmExpert))
+            icon: Image(.DarkWeb.PremiumBenefits.dwmExpert))
         }
         premiumButton
           .padding(.bottom, 12)
@@ -60,28 +55,23 @@ struct DarkWebMonitoringPremiumListView: View {
 
   @ViewBuilder
   private var title: some View {
-    Group {
-      if isDwmEnabled {
-        Text(L10n.Localizable.darkWebMonitoringPremiumViewTitlePremiumUser)
-      } else {
-        Text(L10n.Localizable.darkWebMonitoringPremiumViewTitleFreeUser)
-      }
-    }
-    .font(DashlaneFont.custom(26.0, .bold).font)
-    .padding(.bottom, 10)
-    .padding(.top, 16)
-    .fiberAccessibilityAddTraits(.isHeader)
+    Text(L10n.Localizable.darkWebMonitoringPremiumViewTitleFreeUser)
+      .textStyle(.title.section.large)
+      .foregroundStyle(Color.ds.text.neutral.standard)
+      .padding(.bottom, 10)
+      .padding(.top, 16)
+      .fiberAccessibilityAddTraits(.isHeader)
   }
 
   private func premiumBenefitItem(title: String, content: String, icon: Image) -> some View {
     HStack(alignment: .top, spacing: 0) {
       icon
-        .foregroundColor(.ds.text.brand.quiet)
+        .foregroundStyle(Color.ds.text.brand.quiet)
         .fiberAccessibilityHidden(true)
       VStack(alignment: .leading) {
         Text(title)
           .font(.body)
-          .foregroundColor(.ds.text.neutral.standard)
+          .foregroundStyle(Color.ds.text.neutral.standard)
           .bold()
           .padding(.bottom, 4)
           .minimumScaleFactor(1)
@@ -89,7 +79,7 @@ struct DarkWebMonitoringPremiumListView: View {
         Text(content)
           .font(.callout)
           .minimumScaleFactor(1)
-          .foregroundColor(.ds.text.neutral.quiet)
+          .foregroundStyle(Color.ds.text.neutral.quiet)
       }
       .padding(.leading, 20)
     }
@@ -97,16 +87,8 @@ struct DarkWebMonitoringPremiumListView: View {
 
   @ViewBuilder
   private var premiumButton: some View {
-    Button(
-      isDwmEnabled
-        ? L10n.Localizable.dataleakmonitoringNoEmailStartCta
-        : L10n.Localizable.kwFreeUserPremiumPromptYes
-    ) {
-      if isDwmEnabled {
-        completion()
-      } else {
-        upgradeToPremium()
-      }
+    Button(L10n.Localizable.kwFreeUserPremiumPromptYes) {
+      upgradeToPremium()
     }
     .buttonStyle(.designSystem(.titleOnly))
   }

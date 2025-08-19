@@ -1,12 +1,13 @@
 import AuthenticatorKit
 import CoreLocalization
-import CoreUserTracking
 import DesignSystem
 import IconLibrary
+import SwiftTreats
 import SwiftUI
 import TOTPGenerator
 import UIComponents
 import UIDelight
+import UserTrackingFoundation
 import VaultKit
 
 struct OTPTokenListView: View {
@@ -40,9 +41,9 @@ struct OTPTokenListView: View {
   var expansionLabel: some View {
     HStack(spacing: 3) {
       Text(isListExpanded ? L10n.Localizable.otpToolSeeLess : L10n.Localizable.otpToolSeeAll)
-        .foregroundColor(.ds.text.brand.standard)
+        .foregroundStyle(Color.ds.text.brand.standard)
       Image(systemName: isListExpanded ? "chevron.up" : "chevron.down")
-        .foregroundColor(.ds.text.brand.quiet)
+        .foregroundStyle(Color.ds.text.brand.quiet)
     }
     .frame(height: 50)
     .font(.headline)
@@ -53,7 +54,7 @@ struct OTPTokenListView: View {
       ExpandableForEach(
         viewModel.tokens,
         id: \.id,
-        threshold: isEditing ? .max : 5,
+        threshold: isEditing || Device.is(.pad, .mac, .vision) ? .max : 5,
         expanded: $isListExpanded,
         label: { expansionLabel },
         content: { token in
@@ -64,13 +65,15 @@ struct OTPTokenListView: View {
             .cornerRadius(isEditing ? 8 : 0)
         })
     }.background(
-      RoundedRectangle(cornerRadius: 8).foregroundColor(.ds.container.agnostic.neutral.supershy))
+      RoundedRectangle(cornerRadius: 8).foregroundStyle(
+        Color.ds.container.agnostic.neutral.supershy))
 
   }
 
   var header: some View {
     Text(L10n.Localizable.otptool2faLoginsHeader)
-      .font(.custom(GTWalsheimPro.regular.name, size: 20, relativeTo: .largeTitle).weight(.medium))
+      .textStyle(.title.section.medium)
+      .foregroundStyle(Color.ds.text.neutral.catchy)
       .frame(alignment: .leading)
   }
 
@@ -85,9 +88,11 @@ struct OTPTokenListView: View {
         if !isListExpanded && !isEditing {
           actionButtons
         }
-      }.padding()
+      }
+      .padding()
+      .frame(maxWidth: .infinity)
     }
-    .backgroundColorIgnoringSafeArea(.ds.background.default)
+    .background(Color.ds.background.default, ignoresSafeAreaEdges: .all)
     .alert(item: $itemToDelete) { item in
       deletionAlert(for: item)
     }
@@ -96,11 +101,8 @@ struct OTPTokenListView: View {
         Button(
           action: { isEditing.toggle() },
           label: {
-            Text(
-              isEditing
-                ? CoreLocalization.L10n.Core.kwDoneButton : CoreLocalization.L10n.Core.kwEdit
-            )
-            .foregroundColor(.ds.text.neutral.standard)
+            Text(isEditing ? CoreL10n.kwDoneButton : CoreL10n.kwEdit)
+              .foregroundStyle(Color.ds.text.neutral.standard)
           })
       }
     })
@@ -124,8 +126,8 @@ struct OTPTokenListView: View {
       Button(L10n.Localizable.otpToolExploreAuthenticator) {
         viewModel.startExplorer()
       }
-      .buttonStyle(BorderlessActionButtonStyle())
-      .foregroundColor(.ds.text.neutral.standard)
+      .buttonStyle(.designSystem(.titleOnly))
+      .style(intensity: .supershy)
     }
   }
 
@@ -182,8 +184,10 @@ struct OTPTokenListView: View {
     switch action {
     case let .copy(code, otpInfo):
       viewModel.copy(code, for: otpInfo)
-      toast(CoreLocalization.L10n.Core.kwCopied, image: .ds.action.copy.outlined)
-      UINotificationFeedbackGenerator().notificationOccurred(.success)
+      toast(CoreL10n.kwCopied, image: .ds.action.copy.outlined)
+      #if os(iOS)
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+      #endif
     case let .delete(token):
       self.itemToDelete = token
     }
@@ -193,7 +197,9 @@ struct OTPTokenListView: View {
 struct OTPTokenListView_Previews: PreviewProvider {
   static var previews: some View {
     MultiContextPreview {
-      OTPTokenListView(viewModel: .mock, expandedToken: .constant(nil))
+      NavigationStack {
+        OTPTokenListView(viewModel: .mock, expandedToken: .constant(nil))
+      }
     }
   }
 }

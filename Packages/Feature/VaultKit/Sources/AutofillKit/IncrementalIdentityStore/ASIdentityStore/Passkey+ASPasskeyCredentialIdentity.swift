@@ -3,7 +3,6 @@ import Combine
 import CorePersonalData
 import Foundation
 
-@available(iOS 17, macOS 14, *)
 extension ASPasskeyCredentialIdentity {
   convenience init?(_ passkey: Passkey, rank: Int) {
     guard let decodedCredentialId = Data(base64URLEncoded: passkey.credentialId),

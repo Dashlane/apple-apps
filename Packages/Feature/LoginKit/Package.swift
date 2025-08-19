@@ -9,7 +9,7 @@ if ProcessInfo.processInfo.environment["BUILD_TYPE"] == "nightly" {
 let package = Package(
   name: "LoginKit",
   platforms: [
-    .iOS(.v16)
+    .iOS(.v17)
   ],
   products: [
     .library(
@@ -21,6 +21,8 @@ let package = Package(
   ],
   dependencies: [
     .package(path: "../../Foundation/SwiftTreats"),
+    .package(path: "../../Foundation/StateMachine"),
+    .package(path: "../../Foundation/SwiftUILottie"),
     .package(path: "../../Core/DesignSystem"),
     .package(path: "../../Core/UIComponents"),
     .package(path: "../../Core/CoreSession"),
@@ -37,17 +39,19 @@ let package = Package(
     .package(path: "../../Core/CoreFeature"),
     .package(path: "../../Core/CoreSettings"),
     .package(path: "../../Core/CoreCrypto"),
-    .package(path: "../../Foundation/StateMachine"),
     .package(name: "CoreUserTracking", path: "../../Core/CoreUserTracking"),
-    .package(url: "_", from: "8.13.0"),
+    .package(path: "../../Foundation/UIDelight"),
+    .package(url: "_", branch: "main"),
   ],
   targets: [
     .target(
       name: "LoginKit",
       dependencies: [
-        .product(name: "Logger", package: "Logger"),
         .product(name: "SwiftTreats", package: "SwiftTreats"),
+        .product(name: "SwiftUILottie", package: "SwiftUILottie"),
+        .product(name: "Logger", package: "Logger"),
         .product(name: "DesignSystem", package: "DesignSystem"),
+        .product(name: "DesignSystemExtra", package: "DesignSystem"),
         .product(name: "UIComponents", package: "UIComponents"),
         .product(name: "CoreSession", package: "CoreSession"),
         .product(name: "CorePersonalData", package: "CorePersonalData"),
@@ -61,8 +65,9 @@ let package = Package(
         .product(name: "CorePremium", package: "CorePremium"),
         .product(name: "CoreFeature", package: "CoreFeature"),
         .product(name: "CoreCrypto", package: "CoreCrypto"),
-        .product(name: "Sentry", package: "sentry-cocoa"),
+        .product(name: "Sentry-Dynamic", package: "sentry-cocoa"),
         .product(name: "StateMachine", package: "StateMachine"),
+        .product(name: "UIDelight", package: "UIDelight"),
       ],
       resources: [.process("Resources")],
       swiftSettings: swiftSettings

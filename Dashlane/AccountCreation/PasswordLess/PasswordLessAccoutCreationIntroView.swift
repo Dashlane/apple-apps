@@ -1,7 +1,7 @@
 import CoreLocalization
 import DesignSystem
+import LoginKit
 import SwiftUI
-import UIComponents
 
 struct PasswordLessAccountCreationIntroView: View {
   let l10n = L10n.Localizable.PasswordlessAccountCreation.Intro.self
@@ -31,7 +31,6 @@ struct PasswordLessAccountCreationIntroView: View {
     .loginAppearance()
     .navigationTitle(L10n.Localizable.kwTitle)
     .safariSheet(isPresented: $isLearnMoreDisplayed, url: URL(string: "_")!)
-    .navigationBarStyle(.alternate)
   }
 
   var actions: some View {

@@ -1,5 +1,6 @@
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 
 struct SyncProblemsTreater<Database: SyncableDatabase> {
   struct Output {
@@ -35,7 +36,7 @@ struct SyncProblemsTreater<Database: SyncableDatabase> {
         logger.info("No problems found")
         return Output(remotelyMissingTransactions: [], locallyMissingTransactions: [])
       }
-      logger.fatal("Problems found \(newProblems)")
+      logger.fatal("Problems found \(newProblems, privacy: .public)")
 
       let solutions = newProblems.compactMap(SyncSolution.init)
       report.update(with: solutions)

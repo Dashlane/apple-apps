@@ -2,12 +2,12 @@ import CoreData
 import CoreKeychain
 import CorePersonalData
 import CoreSession
-import DashTypes
+import CoreTypes
 import Foundation
 import LoginKit
 import VaultKit
 
-final class PostMasterKeyChangerHandler: PostAccountCryptoChangeHandler {
+final class PostMasterKeyChangerHandler: SessionServicesInjecting, PostAccountCryptoChangeHandler {
 
   let keychainService: AuthenticationKeychainServiceProtocol
   let resetMasterPasswordService: ResetMasterPasswordServiceProtocol
@@ -28,7 +28,7 @@ final class PostMasterKeyChangerHandler: PostAccountCryptoChangeHandler {
       try? keychainService.save(
         session.authenticationMethod.sessionKey.keyChainMasterKey,
         for: session.login,
-        expiresAfter: AuthenticationKeychainService.defaultPasswordValidityPeriod,
+        expiresAfter: keychainService.defaultPasswordValidityPeriod,
         accessMode: accessMode)
     }
 
@@ -41,13 +41,12 @@ final class PostMasterKeyChangerHandler: PostAccountCryptoChangeHandler {
   }
 }
 
-extension CoreSession.MasterKey {
-  var keyChainMasterKey: DashTypes.MasterKey {
-    switch self {
-    case .masterPassword(let password, _):
-      return .masterPassword(password)
-    case .ssoKey(let data):
-      return .key(data)
-    }
+extension PostMasterKeyChangerHandler {
+  static var mock: PostMasterKeyChangerHandler {
+    PostMasterKeyChangerHandler(
+      keychainService: .mock,
+      resetMasterPasswordService: .mock,
+      syncService: .mock()
+    )
   }
 }

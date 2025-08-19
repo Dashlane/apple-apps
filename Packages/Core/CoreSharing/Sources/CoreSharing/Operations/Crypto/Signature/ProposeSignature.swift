@@ -34,12 +34,12 @@ extension SharingGroupMember {
   }
 
   func verifyProposeSignature(using producer: ProposeSignatureProducer<Group>) throws {
-    guard status.isAcceptedOrPending else {
+    guard status == .pending else {
       return
     }
 
     guard let signature = proposeSignature else {
-      throw SharingGroupError.invalidSignature(.propose, reason: .emptyOrInvalidBase64)
+      throw SharingGroupError.invalidSignature(.propose, reason: .empty)
     }
 
     let expected = try createProposeSignature(using: producer)

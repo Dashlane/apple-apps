@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.SharingUserdevice {
-  public struct AcceptItemGroup: APIRequest {
+  public struct AcceptItemGroup: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/sharing-userdevice/AcceptItemGroup"
 
     public let api: UserDeviceAPIClient
@@ -30,7 +30,7 @@ extension UserDeviceAPIClient.SharingUserdevice {
 }
 
 extension UserDeviceAPIClient.SharingUserdevice.AcceptItemGroup {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case revision = "revision"
       case groupId = "groupId"

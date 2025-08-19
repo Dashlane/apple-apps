@@ -1,8 +1,9 @@
 import CoreCrypto
 import CoreSession
-import CoreUserTracking
-import DashTypes
+import CoreSync
+import CoreTypes
 import Foundation
+import UserTrackingFoundation
 
 struct AccountCryptoChangeActivityReporter {
   let activityReporter: ActivityReporterProtocol
@@ -34,13 +35,15 @@ struct AccountCryptoChangeActivityReporter {
     self.newCrypto = .make(cryptoConfig: newConfig)
   }
 
-  func report(_ result: AccountMigrationResult) {
+  func report(_ error: AccountCryptoChangerError) {
     let status: Definition.CryptoMigrationStatus
-    switch result {
-    case .success:
-      status = .success
-    case let .failure(error):
+    switch error {
+    case .encryptionError(let error):
       status = .init(error: error)
+    case .syncFailed:
+      status = .errorDownload
+    case .finalizationFailed:
+      status = .errorUpdateLocalData
     }
 
     self.report(status)
@@ -57,18 +60,16 @@ struct AccountCryptoChangeActivityReporter {
 }
 
 extension Definition.CryptoMigrationStatus {
-  fileprivate init(error: AccountMigraterError) {
-    switch error.step {
+  fileprivate init(error: EncryptionMigrater.MigrationError) {
+    switch error.progression {
     case .downloading:
       self = .errorDownload
-    case .reEncrypting:
+    case .decrypting, .encrypting:
       self = .errorReencryption
     case .uploading:
       self = .errorUpload
-    case .delegateCompleting:
+    case .finalizing:
       self = .errorUpdateLocalData
-    case .notifyingMasterKeyDone:
-      self = .errorUpload
     }
   }
 }

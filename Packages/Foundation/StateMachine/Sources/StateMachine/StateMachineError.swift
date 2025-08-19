@@ -1,9 +1,8 @@
 import Foundation
 
-public struct StateMachineError: Error, Hashable {
+public struct StateMachineError: Hashable, Sendable {
 
-  public enum ErrorType: Error {
-    case invalidTransition
+  private enum ErrorType: Error {
     case unknown
   }
 
@@ -19,5 +18,9 @@ public struct StateMachineError: Error, Hashable {
 
   public init(underlyingError: Error) {
     self.underlyingError = underlyingError
+  }
+
+  public static var unknown: StateMachineError {
+    StateMachineError(underlyingError: ErrorType.unknown)
   }
 }

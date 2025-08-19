@@ -1,5 +1,5 @@
+import CoreTypes
 import CyrilKit
-import DashTypes
 import DashlaneAPI
 import Foundation
 
@@ -17,7 +17,8 @@ extension SharingEngine {
     teamId: Int?,
     recipients: [String],
     userGroupIds: [Identifier],
-    permission: SharingPermission
+    permission: SharingPermission,
+    userAuditLogDetails: [Identifier: AuditLogDetails]
   ) async throws {
     try await execute { updateRequest in
       let recipients = recipients.map { $0.sanitizedRecipients() }
@@ -58,7 +59,7 @@ extension SharingEngine {
   public func addItemsToCollection(
     withId collectionId: Identifier,
     itemIds: [Identifier],
-    makeActivityLogDetails: @escaping ([Identifier]) -> [Identifier: AuditLogDetails]
+    userAuditLogDetails: [Identifier: AuditLogDetails]
   ) async throws {
     try await execute { updateRequest in
       guard !itemIds.isEmpty else { return }
@@ -73,7 +74,6 @@ extension SharingEngine {
         publicKey: try collection.publicKey(using: cryptoProvider), privateKey: collectionPrivateKey
       )
 
-      let auditLogDetails = makeActivityLogDetails(itemIds)
       let existingItemGroups = try operationDatabase.fetchItemGroups(withItemIds: itemIds)
 
       var itemIds = Set(itemIds)
@@ -98,7 +98,7 @@ extension SharingEngine {
       var itemGroupAuditLogs: [Identifier: AuditLogDetails] = [:]
       for itemGroup in existingItemGroups {
         itemGroupAuditLogs[itemGroup.id] =
-          auditLogDetails.first(where: { auditLogDetail in
+          userAuditLogDetails.first(where: { auditLogDetail in
             itemGroup.itemKeyPairs.contains(where: { itemKeyPair in
               auditLogDetail.key == itemKeyPair.id
             })
@@ -106,7 +106,7 @@ extension SharingEngine {
       }
       for newItemGroup in newItemGroups {
         itemGroupAuditLogs[newItemGroup.groupId] =
-          auditLogDetails.first(where: { auditLogDetail in
+          userAuditLogDetails.first(where: { auditLogDetail in
             newItemGroup.itemGroup.items.contains(where: { item in
               auditLogDetail.key.rawValue == item.itemId
             })
@@ -184,7 +184,7 @@ extension SharingEngine {
   public func removeItemsFromCollection(
     withId collectionId: Identifier,
     itemIds: [Identifier],
-    makeActivityLogDetails: @escaping ([Identifier]) -> [Identifier: AuditLogDetails]
+    auditLogDetails: [Identifier: AuditLogDetails]
   ) async throws {
     try await execute { updateRequest in
       guard let collection = try operationDatabase.fetchCollection(withId: collectionId) else {
@@ -202,15 +202,13 @@ extension SharingEngine {
         [UserDeviceAPIClient.SharingUserdevice.RemoveItemGroupsFromCollection.Body
           .ItemGroupAuditLogsElement] = []
       for itemGroup in itemGroups {
-        guard
-          let activityLogDetails = makeActivityLogDetails(itemGroup.itemKeyPairs.map(\.id)).map(
-            \.value
-          ).first
+        guard let itemId = itemGroup.itemKeyPairs.map(\.id).first,
+          let auditLogDetails = auditLogDetails[itemId]
         else {
           continue
         }
         itemGroupAuditLogs.append(
-          .init(uuid: itemGroup.id.rawValue, auditLogDetails: activityLogDetails))
+          .init(uuid: itemGroup.id.rawValue, auditLogDetails: auditLogDetails))
       }
 
       updateRequest += try await sharingClientAPI.removeItemGroupsFromCollection(

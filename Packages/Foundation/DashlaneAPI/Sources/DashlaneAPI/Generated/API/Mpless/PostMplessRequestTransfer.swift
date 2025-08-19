@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppAPIClient.Mpless {
-  public struct RequestTransfer: APIRequest {
+  public struct RequestTransfer: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/mpless/RequestTransfer"
 
     public let api: AppAPIClient
@@ -26,7 +26,7 @@ extension AppAPIClient.Mpless.RequestTransfer {
 }
 
 extension AppAPIClient.Mpless.RequestTransfer {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case transferId = "transferId"
       case expireDateUnix = "expireDateUnix"

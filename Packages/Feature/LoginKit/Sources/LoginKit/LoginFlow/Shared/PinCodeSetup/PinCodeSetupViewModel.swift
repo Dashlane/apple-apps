@@ -1,5 +1,5 @@
 import CoreKeychain
-import DashTypes
+import CoreTypes
 import Foundation
 
 class PinCodeSetupViewModel: ObservableObject {

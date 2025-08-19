@@ -1,6 +1,6 @@
 import Foundation
 
-public struct PremiumSubscriptionInfoBillingInformation: Codable, Equatable, Sendable {
+public struct PremiumSubscriptionInfoBillingInformation: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case billingType = "billingType"
     case addressCity = "address_city"

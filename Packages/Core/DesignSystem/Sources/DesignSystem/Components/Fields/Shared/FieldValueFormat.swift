@@ -8,4 +8,5 @@ public enum FieldValueFormat: Equatable {
   }
   case accountIdentifier(AccountIdentifier)
   case cardNumber
+  case obfuscated(maxLength: Int? = nil)
 }

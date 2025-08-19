@@ -2,11 +2,12 @@ import AutofillKit
 import CoreFeature
 import CorePasswords
 import CorePersonalData
-import DashTypes
+import CoreTypes
 import DesignSystem
 import IconLibrary
 import SwiftTreats
 import SwiftUI
+import SwiftUILottie
 import UIComponents
 import UIDelight
 import VaultKit
@@ -155,12 +156,8 @@ private struct AutoFillOnboardingSheetHeaderView: View {
 
 extension CredentialDetailView {
   fileprivate func addedDomainsList(isAdditionMode: Bool = false) -> some View {
-    var addedDomains = model.addedDomains
-    if isAdditionMode {
-      addedDomains.append(LinkedServices.AssociatedDomain(domain: "", source: .manual))
-    }
-    return CredentialDomainsView(
-      model: model.makeDomainsViewModel(from: isAdditionMode), addedDomains: addedDomains)
+
+    return CredentialDomainsView(model: model.makeDomainsViewModel(from: isAdditionMode))
   }
 }
 

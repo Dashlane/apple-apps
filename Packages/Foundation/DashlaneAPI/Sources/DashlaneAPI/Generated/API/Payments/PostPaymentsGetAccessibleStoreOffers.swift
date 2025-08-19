@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Payments {
-  public struct GetAccessibleStoreOffers: APIRequest {
+  public struct GetAccessibleStoreOffers: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/payments/GetAccessibleStoreOffers"
 
     public let api: UserDeviceAPIClient
@@ -24,12 +24,12 @@ extension UserDeviceAPIClient.Payments {
 }
 
 extension UserDeviceAPIClient.Payments.GetAccessibleStoreOffers {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case platform = "platform"
     }
 
-    public enum Platform: String, Sendable, Equatable, CaseIterable, Codable {
+    public enum Platform: String, Sendable, Hashable, Codable, CaseIterable {
       case playstore = "playstore"
       case ios = "ios"
       case playstoreSubscription = "playstore_subscription"
@@ -58,7 +58,7 @@ extension UserDeviceAPIClient.Payments.GetAccessibleStoreOffers {
 }
 
 extension UserDeviceAPIClient.Payments.GetAccessibleStoreOffers {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case freeOffers = "freeOffers"
       case essentialsOffers = "essentialsOffers"
@@ -69,7 +69,7 @@ extension UserDeviceAPIClient.Payments.GetAccessibleStoreOffers {
       case purchaseToken = "purchaseToken"
     }
 
-    public enum CurrentSubscriptionType: String, Sendable, Equatable, CaseIterable, Codable {
+    public enum CurrentSubscriptionType: String, Sendable, Hashable, Codable, CaseIterable {
       case amazon = "amazon"
       case freeTrial = "free_trial"
       case invoice = "invoice"

@@ -1,8 +1,10 @@
 import Combine
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import SwiftTreats
+import UserTrackingFoundation
 
 public struct UserTrackingAppActivityReporter: ActivityReporterProtocol {
   let logEngine: UserTrackingLogEngine

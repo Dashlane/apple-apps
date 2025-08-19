@@ -1,7 +1,7 @@
 import CoreLocalization
 import CorePersonalData
 import CoreSharing
-import DashTypes
+import CoreTypes
 import DesignSystem
 import SwiftUI
 import UIComponents
@@ -12,27 +12,23 @@ struct SharingMembersDetailView: View {
   var model: SharingMembersDetailViewModel
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 0) {
+    List {
       if model.anyMemberSharedThroughCollection {
         Infobox(
-          CoreLocalization.L10n.Core.kwSharingCenterRecipientsPermissionTitle,
-          description: CoreLocalization.L10n.Core.kwSharingCenterRecipientsPermissionText
+          CoreL10n.kwSharingCenterRecipientsPermissionTitle,
+          description: CoreL10n.kwSharingCenterRecipientsPermissionText
         )
-        .padding()
       }
 
-      List {
-        if !model.members.collectionMembers.isEmpty {
-          collectionsList
-        }
-        if !model.members.userGroupMembers.isEmpty || !model.members.users.isEmpty {
-          peopleList
-        }
+      if !model.members.collectionMembers.isEmpty {
+        collectionsList
       }
-      .scrollContentBackground(.hidden)
-      .listStyle(.insetGrouped)
+      if !model.members.userGroupMembers.isEmpty || !model.members.users.isEmpty {
+        peopleList
+      }
     }
-    .background(.ds.background.alternate)
+    .listStyle(.ds.insetGrouped)
+    .headerProminence(.increased)
     .toolbar { toolbarContent }
     .navigationBarTitleDisplayMode(.inline)
     .navigationTitle(L10n.Localizable.tabContactsTitle)
@@ -53,6 +49,7 @@ struct SharingMembersDetailView: View {
     if model.isSharingReady, model.permission == .admin {
       ShareButton(model: model.makeShareButtonModelFactory()) {
         Image(systemName: "plus.circle.fill")
+          .foregroundStyle(Color.ds.text.brand.standard)
       }
     } else {
       Spacer()
@@ -60,18 +57,17 @@ struct SharingMembersDetailView: View {
   }
 
   var collectionsList: some View {
-    LargeHeaderSection(title: L10n.Localizable.kwSharingCenterSectionCollections) {
+    Section(L10n.Localizable.kwSharingCenterSectionCollections) {
       ForEach(model.members.collectionMembers) { collection in
         SharingToolRecipientRow(title: collection.name, subtitle: collection.localizedStatus) {
           Thumbnail.collection
-            .controlSize(.small)
         }
       }
     }
   }
 
   var peopleList: some View {
-    LargeHeaderSection(title: L10n.Localizable.kwSharingCenterSectionUsersAndGroups) {
+    Section(L10n.Localizable.kwSharingCenterSectionUsersAndGroups) {
       usersList
       userGroupsList
     }
@@ -83,7 +79,6 @@ struct SharingMembersDetailView: View {
         let isAdmin = model.permission == .admin
         SharingToolRecipientRow(title: userGroup.name, subtitle: userGroup.localizedStatus) {
           Thumbnail.User.group
-            .controlSize(.small)
         }
         .contextMenu {
           if isAdmin {
@@ -162,7 +157,7 @@ struct SharingMembersDetailView: View {
   }
 }
 
-#Preview {
+#Preview("Admin Permission") {
   NavigationView {
     SharingMembersDetailView(
       model: .init(
@@ -182,10 +177,9 @@ struct SharingMembersDetailView: View {
     )
 
   }
-  .previewDisplayName("Admin Permission")
 }
 
-#Preview {
+#Preview("Limited Permission") {
   NavigationView {
     SharingMembersDetailView(
       model: .init(
@@ -204,7 +198,6 @@ struct SharingMembersDetailView: View {
       )
     )
   }
-  .previewDisplayName("Limited Permission")
 }
 
 extension [User<ItemGroup>] {

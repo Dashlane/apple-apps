@@ -1,212 +1,204 @@
-#if canImport(UIKit)
-  import Foundation
-  import SwiftUI
-  import Combine
-  import CoreSession
-  import UIDelight
-  import SwiftTreats
-  import DashTypes
-  import CoreNetworking
-  import UIComponents
-  import DesignSystem
-  import CoreLocalization
+import Combine
+import CoreLocalization
+import CoreNetworking
+import CoreSession
+import CoreTypes
+import DesignSystem
+import DesignSystemExtra
+import Foundation
+import SwiftTreats
+import SwiftUI
+import UIComponents
+import UIDelight
 
-  struct TOTPVerificationView: View {
+struct TOTPVerificationView: View {
 
-    @ObservedObject var model: TOTPVerificationViewModel
+  @ObservedObject var model: TOTPVerificationViewModel
 
-    @Environment(\.dismiss)
-    private var dismiss
+  @Environment(\.dismiss)
+  private var dismiss
 
-    @FocusState
-    var isTextFieldFocused: Bool
+  @FocusState
+  var isTextFieldFocused: Bool
 
-    @State
-    var isLostOTPSheetDisplayed = false
+  @State
+  var isLostOTPSheetDisplayed = false
 
-    var body: some View {
-      ZStack {
-        if model.showDuoPush {
-          duoPushView.navigationBarHidden(true)
-        } else {
-          totpView
-            .loginAppearance()
-            .navigationTitle(L10n.Core.kwLoginVcLoginButton)
-            .navigationBarTitleDisplayMode(.inline)
-            .loading(isLoading: model.inProgress, loadingIndicatorOffset: true)
-            .onAppear {
-              self.model.logOnAppear()
-            }
-        }
-      }
-      .animation(.default, value: model.showDuoPush)
-    }
-
-    @ViewBuilder
-    var backButton: some View {
-      switch model.context {
-      case .passwordApp:
-        BackButton(
-          label: L10n.Core.kwBack,
-          color: .ds.text.neutral.catchy,
-          action: dismiss.callAsFunction)
-      case let .autofillExtension(cancelAction):
-        Button(
-          action: {
-            cancelAction()
-          }, title: L10n.Core.cancel
-        )
-        .foregroundColor(.ds.text.neutral.standard)
-      }
-    }
-
-    private var duoPushView: some View {
-      GravityAreaVStack(
-        top: LoginLogo(login: nil),
-        center: Text(L10n.Core.duoChallengePrompt),
-        bottom: Spacer(),
-        spacing: 0
-      )
-      .loginAppearance()
-      .onAppear {
-        Task {
-          await self.model.sendPush(.duo)
-        }
-      }
-      .loading(isLoading: true, loadingIndicatorOffset: true)
-    }
-
-    @ViewBuilder
-    private var totpView: some View {
-      Group {
-        if Device.isIpadOrMac {
-          vStackIpadMac
-        } else {
-          vStackIphone
-        }
-      }
-      .modifier(
-        LostOTPSheetModifier(
-          isLostOTPSheetDisplayed: $isLostOTPSheetDisplayed,
-          useBackupCode: { model.useBackupCode($0) },
-          lostOTPSheetViewModel: model.lostOTPSheetViewModel))
-    }
-
-    private var vStackIphone: some View {
-      GravityAreaVStack(
-        top: LoginLogo(login: self.model.login),
-        center: self.calloutAndCodeField,
-        bottom: VStack {
-          if self.model.hasDuoPush {
-            self.sendDuoPushButton
+  var body: some View {
+    ZStack {
+      if model.showDuoPush {
+        duoPushView.navigationBarHidden(true)
+      } else {
+        totpView
+          .loginAppearance()
+          .navigationTitle(CoreL10n.kwLoginVcLoginButton)
+          .navigationBarTitleDisplayMode(.inline)
+          .onAppear {
+            self.model.logOnAppear()
           }
-        },
-        spacing: 0
-      )
-      .toolbar {
-        ToolbarItem(placement: .navigationBarTrailing) {
-          NavigationBarButton(
-            action: self.validate,
-            title: L10n.Core.kwNext
-          )
-          .disabled(!self.model.canLogin)
-        }
       }
     }
+    .animation(.default, value: model.showDuoPush)
+    .loading(model.inProgress)
+  }
 
-    private var vStackIpadMac: some View {
-      VStack(alignment: .center, spacing: 0) {
-        LoginLogo(login: self.model.login)
+  @ViewBuilder
+  var backButton: some View {
+    switch model.context {
+    case .passwordApp:
+      NativeNavigationBarBackButton(
+        CoreL10n.kwBack,
+        action: dismiss.callAsFunction)
+    case let .autofillExtension(cancelAction):
+      Button(CoreL10n.cancel, action: cancelAction)
+    }
+  }
 
-        calloutAndCodeField
+  private var duoPushView: some View {
+    GravityAreaVStack(
+      top: LoginLogo(login: nil),
+      center: Text(CoreL10n.duoChallengePrompt),
+      bottom: Spacer(),
+      spacing: 0
+    )
+    .loginAppearance()
+    .onAppear {
+      Task {
+        await self.model.sendPush(.duo)
+      }
+    }
+  }
 
-        HStack {
-          Spacer()
+  @ViewBuilder
+  private var totpView: some View {
+    Group {
+      if Device.is(.pad, .mac, .vision) {
+        vStackIpadMac
+      } else {
+        vStackIphone
+      }
+    }
+    .modifier(
+      LostOTPSheetModifier(
+        isLostOTPSheetDisplayed: $isLostOTPSheetDisplayed,
+        useBackupCode: { model.useBackupCode($0) },
+        lostOTPSheetViewModel: model.lostOTPSheetViewModel))
+  }
 
-          Button(action: validate, title: L10n.Core.kwNext)
-            .buttonStyle(.login)
-            .frame(alignment: .center)
-            .disabled(!self.model.canLogin)
-
-          Spacer()
+  private var vStackIphone: some View {
+    GravityAreaVStack(
+      top: LoginLogo(login: self.model.login),
+      center: self.calloutAndCodeField,
+      bottom: VStack {
+        if self.model.hasDuoPush {
+          self.sendDuoPushButton
         }
-        .padding(.top, 40)
+      },
+      spacing: 0
+    )
+    .toolbar {
+      ToolbarItem(placement: .navigationBarTrailing) {
+        Button(CoreL10n.kwNext, action: self.validate)
+          .disabled(!self.model.canLogin)
+      }
+    }
+  }
+
+  private var vStackIpadMac: some View {
+    VStack(alignment: .center, spacing: 0) {
+      LoginLogo(login: self.model.login)
+
+      calloutAndCodeField
+
+      HStack {
+        Spacer()
+
+        Button(CoreL10n.kwNext, action: validate)
+          .buttonStyle(.designSystem(.titleOnly))
+          .frame(alignment: .center)
+          .disabled(!self.model.canLogin)
 
         Spacer()
-          .frame(maxHeight: .infinity)
       }
+      .padding(.top, 40)
+
+      Spacer()
+        .frame(maxHeight: .infinity)
     }
+  }
 
-    private var calloutAndCodeField: some View {
-      VStack {
-        HStack {
-          Text(L10n.Core.kwOtpMessage)
-            .font(.callout)
-            .multilineTextAlignment(.leading)
-            .lineLimit(nil)
-          Spacer()
+  private var calloutAndCodeField: some View {
+    VStack {
+      HStack {
+        Text(CoreL10n.kwOtpMessage)
+          .font(.callout)
+          .multilineTextAlignment(.leading)
+          .lineLimit(nil)
+        Spacer()
+      }
+
+      DS.TextField(
+        CoreL10n.kwOtpPlaceholderText, text: $model.otp,
+        actions: {
+          DS.FieldAction.ClearContent(text: $model.otp)
+        },
+        feedback: {
+          if let errorMessage = model.errorMessage {
+            FieldTextualFeedback(errorMessage)
+              .style(.error)
+          }
         }
+      )
+      .fieldLabelHiddenOnFocus()
+      .focused($isTextFieldFocused)
+      .onSubmit {
+        self.validate()
+      }
+      .keyboardType(.numberPad)
+      .textInputAutocapitalization(.never)
+      .submitLabel(.continue)
+      .disabled(model.inProgress)
+      .copyErrorMessageAction(errorMessage: model.errorMessage)
 
-        DS.TextField(
-          L10n.Core.kwOtpPlaceholderText, text: $model.otp,
-          actions: {
-            DS.FieldAction.ClearContent(text: $model.otp)
+      HStack {
+        Button(
+          action: { isLostOTPSheetDisplayed = true },
+          label: {
+            Text(CoreL10n.otpRecoveryCannotAccessCodes)
+              .font(.subheadline.weight(.medium))
+              .foregroundStyle(Color.ds.text.neutral.standard)
+              .underline()
           }
         )
-        .fieldLabelPersistencyDisabled()
-        .focused($isTextFieldFocused)
-        .onSubmit {
-          self.validate()
-        }
-        .keyboardType(.numberPad)
-        .textInputAutocapitalization(.never)
-        .submitLabel(.continue)
-        .disabled(model.inProgress)
-        .bubbleErrorMessage(text: $model.errorMessage)
-        .copyErrorMessageAction(errorMessage: model.errorMessage)
-
-        HStack {
-          Button(
-            action: { isLostOTPSheetDisplayed = true },
-            label: {
-              Text(L10n.Core.otpRecoveryCannotAccessCodes)
-                .font(.subheadline.weight(.medium))
-                .foregroundColor(.ds.text.neutral.standard)
-                .underline()
-            }
-          )
-          Spacer()
-        }
-        .padding(.horizontal)
-        .onAppear {
-          self.isTextFieldFocused = true
-        }
+        Spacer()
       }
       .padding(.horizontal)
-    }
-
-    private var sendDuoPushButton: some View {
-      Button(
-        action: {
-          self.model.showDuoPush = true
-        }, title: L10n.Core.duoChallengeButton
-      )
-      .foregroundColor(.ds.text.brand.standard)
-      .padding(5)
-    }
-
-    private func validate() {
-      UIApplication.shared.endEditing()
-      model.validate()
-    }
-
-  }
-
-  struct TOTPVerificationView_Previews: PreviewProvider {
-    static var previews: some View {
-      NavigationView {
-        TOTPVerificationView(model: .mock)
+      .onAppear {
+        self.isTextFieldFocused = true
       }
     }
+    .padding(.horizontal)
   }
-#endif
+
+  private var sendDuoPushButton: some View {
+    Button(CoreL10n.duoChallengeButton) {
+      self.model.showDuoPush = true
+    }
+    .foregroundStyle(Color.ds.text.brand.standard)
+    .padding(5)
+  }
+
+  private func validate() {
+    UIApplication.shared.endEditing()
+    model.validate()
+  }
+
+}
+
+struct TOTPVerificationView_Previews: PreviewProvider {
+  static var previews: some View {
+    NavigationView {
+      TOTPVerificationView(model: .mock)
+    }.navigationViewStyle(.stack)
+  }
+}

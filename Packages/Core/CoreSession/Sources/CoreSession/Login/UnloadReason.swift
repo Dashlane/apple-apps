@@ -5,4 +5,5 @@ public enum SessionServicesUnloadReason: Sendable {
   case restoreSpiegelDataBase
   case userLogsOut
   case masterPasswordChangedForARK
+  case loginEmailChanged
 }

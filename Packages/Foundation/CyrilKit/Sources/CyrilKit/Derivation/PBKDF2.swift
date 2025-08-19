@@ -28,9 +28,9 @@ public struct PBKDF2: DerivationFunction {
     -> Data
   {
     var derivedKey = [UInt8](repeating: 0, count: derivedKeyLength)
-    derivedKey.withUnsafeMutableBytes { bytes -> Void in
-      password.withUnsafeBytes { passwordBytes -> Void in
-        salt.withUnsafeBytes { saltBytes -> Void in
+    derivedKey.withUnsafeMutableBytes { bytes in
+      password.withUnsafeBytes { passwordBytes in
+        salt.withUnsafeBytes { saltBytes in
           CCKeyDerivationPBKDF(
             CCPBKDFAlgorithm(kCCPBKDF2),
             passwordBytes.bindMemory(to: CChar.self).baseAddress,

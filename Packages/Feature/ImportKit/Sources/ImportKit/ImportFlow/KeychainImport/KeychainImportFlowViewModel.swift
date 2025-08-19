@@ -1,9 +1,9 @@
 import Combine
 import CorePersonalData
 import CorePremium
-import CoreUserTracking
 import Foundation
-import VaultKit
+import IconLibrary
+import UserTrackingFoundation
 
 @MainActor
 public class KeychainImportFlowViewModel: ImportFlowViewModel, ImportKitServicesInjecting {

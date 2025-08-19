@@ -18,7 +18,7 @@ struct CollectionRow: View {
       Image.ds.caretRight.outlined
         .resizable()
         .frame(width: 20, height: 20, alignment: .trailing)
-        .foregroundColor(.ds.text.neutral.quiet)
+        .foregroundStyle(Color.ds.text.neutral.quiet)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
     .padding(.vertical, 4)
@@ -29,7 +29,7 @@ struct CollectionRow: View {
       HStack(spacing: 6) {
         Text(viewModel.collection.name)
           .font(.body.weight(.medium))
-          .foregroundColor(.ds.text.neutral.catchy)
+          .foregroundStyle(Color.ds.text.neutral.catchy)
           .lineLimit(1)
 
         if viewModel.shouldShowSpace, let space = viewModel.space {
@@ -41,7 +41,7 @@ struct CollectionRow: View {
           Image.ds.shared.outlined
             .resizable()
             .frame(width: sharedIconSize, height: sharedIconSize)
-            .foregroundColor(.ds.text.neutral.quiet)
+            .foregroundStyle(Color.ds.text.neutral.quiet)
         }
       }
       .animation(.default, value: viewModel.space)
@@ -56,11 +56,11 @@ struct CollectionRow: View {
     let count = viewModel.collection.itemIds.count
     Text(
       count > 1
-        ? L10n.Core.KWVaultItem.Collections.ItemsCount.plural(count)
-        : L10n.Core.KWVaultItem.Collections.ItemsCount.singular(count)
+        ? CoreL10n.KWVaultItem.Collections.ItemsCount.plural(count)
+        : CoreL10n.KWVaultItem.Collections.ItemsCount.singular(count)
     )
     .font(.footnote)
-    .foregroundColor(.ds.text.neutral.quiet)
+    .foregroundStyle(Color.ds.text.neutral.quiet)
     .lineLimit(1)
   }
 }

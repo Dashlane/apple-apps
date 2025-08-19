@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Teams {
-  public struct StoreActivityLogs: APIRequest {
+  public struct StoreActivityLogs: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/teams/StoreActivityLogs"
 
     public let api: UserDeviceAPIClient
@@ -24,12 +24,12 @@ extension UserDeviceAPIClient.Teams {
 }
 
 extension UserDeviceAPIClient.Teams.StoreActivityLogs {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case activityLogs = "activityLogs"
     }
 
-    public struct ActivityLogsElement: Codable, Equatable, Sendable {
+    public struct ActivityLogsElement: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case schemaVersion = "schema_version"
         case uuid = "uuid"
@@ -38,7 +38,7 @@ extension UserDeviceAPIClient.Teams.StoreActivityLogs {
         case properties = "properties"
       }
 
-      public enum SchemaVersion: String, Sendable, Equatable, CaseIterable, Codable {
+      public enum SchemaVersion: String, Sendable, Hashable, Codable, CaseIterable {
         case one00 = "1.0.0"
         case undecodable
         public init(from decoder: Decoder) throws {
@@ -48,22 +48,41 @@ extension UserDeviceAPIClient.Teams.StoreActivityLogs {
         }
       }
 
-      public enum LogType: String, Sendable, Equatable, CaseIterable, Codable {
+      public enum LogType: String, Sendable, Hashable, Codable, CaseIterable {
+        case userAddedCredentialToCollection = "user_added_credential_to_collection"
+        case userAddedSecureNoteToCollection = "user_added_secure_note_to_collection"
+        case userAuthenticatedWithPasskey = "user_authenticated_with_passkey"
+        case userCopiedBankAccountField = "user_copied_bank_account_field"
+        case userCopiedCredentialField = "user_copied_credential_field"
+        case userCopiedCreditCardField = "user_copied_credit_card_field"
+        case userCopiedSecretField = "user_copied_secret_field"
+        case userCopiedSecureNoteField = "user_copied_secure_note_field"
+        case userCreatedCollection = "user_created_collection"
         case userCreatedCredential = "user_created_credential"
         case userCreatedSecureNote = "user_created_secure_note"
+        case userDeletedCollection = "user_deleted_collection"
         case userDeletedCredential = "user_deleted_credential"
         case userDeletedSecureNote = "user_deleted_secure_note"
+        case userExcludedItemFromPasswordHealth = "user_excluded_item_from_password_health"
+        case userImportedCollection = "user_imported_collection"
         case userImportedCredentials = "user_imported_credentials"
+        case userIncludedItemInPasswordHealth = "user_included_item_in_password_health"
         case userModifiedCredential = "user_modified_credential"
         case userModifiedSecureNote = "user_modified_secure_note"
-        case userCreatedCollection = "user_created_collection"
-        case userImportedCollection = "user_imported_collection"
-        case userAddedCredentialToCollection = "user_added_credential_to_collection"
+        case userPerformedAutofillCredential = "user_performed_autofill_credential"
+        case userPerformedAutofillPayment = "user_performed_autofill_payment"
         case userRemovedCredentialFromCollection = "user_removed_credential_from_collection"
-        case userAddedSecureNoteToCollection = "user_added_secure_note_to_collection"
         case userRemovedSecureNoteFromCollection = "user_removed_secure_note_from_collection"
         case userRenamedCollection = "user_renamed_collection"
-        case userDeletedCollection = "user_deleted_collection"
+        case userRevealedBankAccountField = "user_revealed_bank_account_field"
+        case userRevealedCredentialField = "user_revealed_credential_field"
+        case userRevealedCreditCardField = "user_revealed_credit_card_field"
+        case userRevealedSecretField = "user_revealed_secret_field"
+        case userRevealedSecureNoteField = "user_revealed_secure_note_field"
+        case userTypedCompromisedPassword = "user_typed_compromised_password"
+        case userTypedPassword = "user_typed_password"
+        case userTypedOrFilledPassword = "user_typed_or_filled_password"
+        case userTypedWeakPassword = "user_typed_weak_password"
         case undecodable
         public init(from decoder: Decoder) throws {
           let container = try decoder.singleValueContainer()
@@ -72,39 +91,140 @@ extension UserDeviceAPIClient.Teams.StoreActivityLogs {
         }
       }
 
-      public struct Properties: Codable, Equatable, Sendable {
+      public struct Properties: Codable, Hashable, Sendable {
         public enum CodingKeys: String, CodingKey {
+          case autofilledDomain = "autofilled_domain"
           case collectionName = "collection_name"
           case credentialCount = "credential_count"
+          case credentialDomain = "credential_domain"
+          case credentialLogin = "credential_login"
+          case currentDomain = "current_domain"
           case domainURL = "domain_url"
+          case field = "field"
+          case fillType = "fill_type"
+          case healthStatus = "health_status"
           case importCount = "import_count"
+          case itemName = "item_name"
+          case itemType = "item_type"
+          case name = "name"
           case oldCollectionName = "old_collection_name"
+          case passkeyDomain = "passkey_domain"
         }
 
+        public enum Field: String, Sendable, Hashable, Codable, CaseIterable {
+          case iban = "iban"
+          case swift = "swift"
+          case sortCode = "sort_code"
+          case accountNumber = "account_number"
+          case routingNumber = "routing_number"
+          case password = "password"
+          case otp = "otp"
+          case number = "number"
+          case cvv = "cvv"
+          case expirationDate = "expiration_date"
+          case undecodable
+          public init(from decoder: Decoder) throws {
+            let container = try decoder.singleValueContainer()
+            let rawValue = try container.decode(String.self)
+            self = Self(rawValue: rawValue) ?? .undecodable
+          }
+        }
+
+        public enum FillType: String, Sendable, Hashable, Codable, CaseIterable {
+          case autofill = "autofill"
+          case manual = "manual"
+          case undecodable
+          public init(from decoder: Decoder) throws {
+            let container = try decoder.singleValueContainer()
+            let rawValue = try container.decode(String.self)
+            self = Self(rawValue: rawValue) ?? .undecodable
+          }
+        }
+
+        public enum HealthStatus: String, Sendable, Hashable, Codable, CaseIterable {
+          case safe = "safe"
+          case weak = "weak"
+          case compromised = "compromised"
+          case undecodable
+          public init(from decoder: Decoder) throws {
+            let container = try decoder.singleValueContainer()
+            let rawValue = try container.decode(String.self)
+            self = Self(rawValue: rawValue) ?? .undecodable
+          }
+        }
+
+        public enum ItemType: String, Sendable, Hashable, Codable, CaseIterable {
+          case creditCard = "credit_card"
+          case bankAccount = "bank_account"
+          case undecodable
+          public init(from decoder: Decoder) throws {
+            let container = try decoder.singleValueContainer()
+            let rawValue = try container.decode(String.self)
+            self = Self(rawValue: rawValue) ?? .undecodable
+          }
+        }
+
+        public let autofilledDomain: String?
         public let collectionName: String?
         public let credentialCount: Int?
+        public let credentialDomain: String?
+        public let credentialLogin: String?
+        public let currentDomain: String?
         public let domainURL: String?
+        public let field: Field?
+        public let fillType: FillType?
+        public let healthStatus: HealthStatus?
         public let importCount: Int?
+        public let itemName: String?
+        public let itemType: ItemType?
+        public let name: String?
         public let oldCollectionName: String?
+        public let passkeyDomain: String?
 
         public init(
-          collectionName: String? = nil, credentialCount: Int? = nil, domainURL: String? = nil,
-          importCount: Int? = nil, oldCollectionName: String? = nil
+          autofilledDomain: String? = nil, collectionName: String? = nil,
+          credentialCount: Int? = nil, credentialDomain: String? = nil,
+          credentialLogin: String? = nil, currentDomain: String? = nil, domainURL: String? = nil,
+          field: Field? = nil, fillType: FillType? = nil, healthStatus: HealthStatus? = nil,
+          importCount: Int? = nil, itemName: String? = nil, itemType: ItemType? = nil,
+          name: String? = nil, oldCollectionName: String? = nil, passkeyDomain: String? = nil
         ) {
+          self.autofilledDomain = autofilledDomain
           self.collectionName = collectionName
           self.credentialCount = credentialCount
+          self.credentialDomain = credentialDomain
+          self.credentialLogin = credentialLogin
+          self.currentDomain = currentDomain
           self.domainURL = domainURL
+          self.field = field
+          self.fillType = fillType
+          self.healthStatus = healthStatus
           self.importCount = importCount
+          self.itemName = itemName
+          self.itemType = itemType
+          self.name = name
           self.oldCollectionName = oldCollectionName
+          self.passkeyDomain = passkeyDomain
         }
 
         public func encode(to encoder: Encoder) throws {
           var container = encoder.container(keyedBy: CodingKeys.self)
+          try container.encodeIfPresent(autofilledDomain, forKey: .autofilledDomain)
           try container.encodeIfPresent(collectionName, forKey: .collectionName)
           try container.encodeIfPresent(credentialCount, forKey: .credentialCount)
+          try container.encodeIfPresent(credentialDomain, forKey: .credentialDomain)
+          try container.encodeIfPresent(credentialLogin, forKey: .credentialLogin)
+          try container.encodeIfPresent(currentDomain, forKey: .currentDomain)
           try container.encodeIfPresent(domainURL, forKey: .domainURL)
+          try container.encodeIfPresent(field, forKey: .field)
+          try container.encodeIfPresent(fillType, forKey: .fillType)
+          try container.encodeIfPresent(healthStatus, forKey: .healthStatus)
           try container.encodeIfPresent(importCount, forKey: .importCount)
+          try container.encodeIfPresent(itemName, forKey: .itemName)
+          try container.encodeIfPresent(itemType, forKey: .itemType)
+          try container.encodeIfPresent(name, forKey: .name)
           try container.encodeIfPresent(oldCollectionName, forKey: .oldCollectionName)
+          try container.encodeIfPresent(passkeyDomain, forKey: .passkeyDomain)
         }
       }
 
@@ -149,18 +269,18 @@ extension UserDeviceAPIClient.Teams.StoreActivityLogs {
 }
 
 extension UserDeviceAPIClient.Teams.StoreActivityLogs {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case invalidActivityLogs = "invalidActivityLogs"
     }
 
-    public struct InvalidActivityLogsElement: Codable, Equatable, Sendable {
+    public struct InvalidActivityLogsElement: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case uuid = "uuid"
         case error = "error"
       }
 
-      public enum Error: String, Sendable, Equatable, CaseIterable, Codable {
+      public enum Error: String, Sendable, Hashable, Codable, CaseIterable {
         case auditLogMissingJsonSchema = "AUDIT_LOG_MISSING_JSON_SCHEMA"
         case auditLogInvalidJsonForJsonSchema = "AUDIT_LOG_INVALID_JSON_FOR_JSON_SCHEMA"
         case auditLogInvalidLogSchemaTypeOrVersion = "AUDIT_LOG_INVALID_LOG_SCHEMA_TYPE_OR_VERSION"
@@ -170,6 +290,8 @@ extension UserDeviceAPIClient.Teams.StoreActivityLogs {
         case auditLogTypeNotTeamDeviceOrClientSide = "AUDIT_LOG_TYPE_NOT_TEAM_DEVICE_OR_CLIENT_SIDE"
         case auditLogMissingCategoryToLogTypeMapping =
           "AUDIT_LOG_MISSING_CATEGORY_TO_LOG_TYPE_MAPPING"
+        case auditLogNonSecurityMonitoringInMassDeployment =
+          "AUDIT_LOG_NON_SECURITY_MONITORING_IN_MASS_DEPLOYMENT"
         case undecodable
         public init(from decoder: Decoder) throws {
           let container = try decoder.singleValueContainer()

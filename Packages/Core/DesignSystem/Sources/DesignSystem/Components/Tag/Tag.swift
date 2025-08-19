@@ -43,7 +43,7 @@ public struct Tag: View {
         .accessibilityHidden(true)
       titleView
         .textStyle(.body.standard.regular)
-        .foregroundColor(.ds.text.neutral.standard)
+        .foregroundStyle(Color.ds.text.neutral.standard)
         .lineLimit(1)
         .fixedSize(horizontal: true, vertical: false)
       trailingAccessoryView
@@ -105,7 +105,7 @@ public struct Tag: View {
         icon
           .resizable()
           .aspectRatio(contentMode: .fit)
-          .foregroundColor(.ds.text.neutral.quiet)
+          .foregroundStyle(Color.ds.text.neutral.quiet)
           .frame(
             width: trailingIconDimension,
             height: trailingIconDimension

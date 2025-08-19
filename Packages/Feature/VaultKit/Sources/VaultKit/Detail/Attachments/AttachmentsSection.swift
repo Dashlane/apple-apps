@@ -1,8 +1,9 @@
 import CoreLocalization
+import CorePersonalData
 import DesignSystem
+import DesignSystemExtra
 import DocumentServices
 import SwiftUI
-import UIComponents
 import UIDelight
 
 struct AttachmentsSection: View {
@@ -13,9 +14,9 @@ struct AttachmentsSection: View {
   private var showAttachmentsList: Bool = false
 
   var body: some View {
-    Section(L10n.Core.documentsStorageSectionTitle) {
+    Section(CoreL10n.documentsStorageSectionTitle) {
       if !model.itemCollections.isEmpty {
-        CoreLocalization.L10n.Core.collectionLimitation(for: model.item).map {
+        CoreL10n.collectionLimitation(for: model.item).map {
           Text($0)
             .textStyle(.body.reduced.regular)
             .foregroundStyle(Color.ds.text.neutral.quiet)
@@ -30,7 +31,7 @@ struct AttachmentsSection: View {
         }
       } else {
         if model.item.hasAttachments {
-          LinkDetailField(title: attachmentsButtonTitle) {
+          NativeNavigationPushRow(title: attachmentsButtonTitle) {
             showAttachmentsList = true
           }
           .navigation(isActive: $showAttachmentsList) {
@@ -66,24 +67,24 @@ struct AttachmentsSection: View {
 
   private var addAttachmentButtonTitle: String {
     model.item.hasAttachments
-      ? L10n.Core.existingSecureFilesAttachedCta : L10n.Core.noSecureFilesAttachedCta
+      ? CoreL10n.existingSecureFilesAttachedCta : CoreL10n.noSecureFilesAttachedCta
   }
 
   private var attachmentsButtonTitle: String {
     let attachmentsCount: Int = model.item.attachments?.count ?? 0
     return if attachmentsCount == 1 {
-      L10n.Core.oneSecureFileAttachedCta
+      CoreL10n.oneSecureFileAttachedCta
     } else {
-      L10n.Core.numberedSecureFilesAttachedCta(attachmentsCount)
+      CoreL10n.numberedSecureFilesAttachedCta(attachmentsCount)
     }
   }
 
   private var sharedItemText: String? {
-    CoreLocalization.L10n.Core.sharingLimitation(for: model.item)
+    CoreL10n.sharingLimitation(for: model.item)
   }
 }
 
-extension CoreLocalization.L10n.Core {
+extension CoreL10n {
   fileprivate static func collectionLimitation(for item: VaultItem) -> String? {
     return switch item.enumerated {
     case .credential:

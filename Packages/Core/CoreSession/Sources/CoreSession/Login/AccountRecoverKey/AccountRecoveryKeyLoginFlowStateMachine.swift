@@ -1,6 +1,8 @@
 import CoreNetworking
-import DashTypes
+import CoreTypes
 import DashlaneAPI
+import Foundation
+import LogFoundation
 import StateMachine
 
 public struct AccountRecoveryKeyLoginFlowStateMachine: StateMachine {
@@ -8,30 +10,17 @@ public struct AccountRecoveryKeyLoginFlowStateMachine: StateMachine {
   public enum Error: Swift.Error {
     case verificationFailed
     case wrongRecoveryKey
+    case cannotConvertFromBase64
+    case cannotDecodeMasterKey
   }
 
-  public enum LoginType: Hashable {
+  public enum LoginType: Hashable, Sendable {
     case remote(AuthTicket)
     case deviceToDevice(DeviceInfo)
-    case local(_ user: User, DeviceInfo)
+    case local(_ user: MPUserAccountUnlockMode, DeviceInfo)
   }
 
-  public enum User: Hashable {
-    case otp2User(AuthTicket)
-    case normalUser
-
-    var authTicket: AuthTicket? {
-      switch self {
-      case let .otp2User(authTicket):
-        return authTicket
-      case .normalUser:
-        return nil
-      }
-    }
-
-  }
-
-  public struct Completion: Hashable {
+  public struct Completion: Hashable, Sendable {
     public let masterKey: MasterKey
     public let authTicket: AuthTicket
     public let newMasterPassword: String?
@@ -39,17 +28,19 @@ public struct AccountRecoveryKeyLoginFlowStateMachine: StateMachine {
     public let verificationMethod: VerificationMethod
   }
 
-  public enum State: Hashable {
+  @Loggable
+  public enum State: Hashable, Sendable {
     case loading
     case error(StateMachineError)
     case accountVerification(VerificationMethod, DeviceInfo)
-    case recoveryKeyInput(AuthTicket)
+    case recoveryKeyInput(AuthTicket, AccountType)
     case masterPasswordChangeNeeded(MasterKey, AuthTicket)
     case completed(AccountRecoveryKeyLoginFlowStateMachine.Completion)
     case cancel
   }
 
-  public enum Event {
+  @Loggable
+  public enum Event: Sendable {
     case start
     case errorEncountered(StateMachineError)
     case accountVerified(AuthTicket, isBackupCode: Bool, VerificationMethod)
@@ -65,9 +56,10 @@ public struct AccountRecoveryKeyLoginFlowStateMachine: StateMachine {
   private let loginType: LoginType
   private let accountType: AccountType
   private let appAPIClient: AppAPIClient
-  private let recoveryLoginService: AccountRecoveryKeyLoginService
   private var isBackupCode = false
   private var verificationMethod: VerificationMethod = .emailToken
+  private let logger: Logger
+  private let cryptoEngineProvider: CryptoEngineProvider
 
   public init(
     initialState: AccountRecoveryKeyLoginFlowStateMachine.State,
@@ -75,21 +67,19 @@ public struct AccountRecoveryKeyLoginFlowStateMachine: StateMachine {
     loginType: LoginType,
     accountType: AccountType,
     appAPIClient: AppAPIClient,
-    cryptoEngineProvider: CryptoEngineProvider
+    cryptoEngineProvider: CryptoEngineProvider,
+    logger: Logger
   ) {
     self.state = initialState
     self.login = login
     self.loginType = loginType
     self.appAPIClient = appAPIClient
     self.accountType = accountType
-    self.recoveryLoginService = .init(
-      login: login,
-      appAPIClient: appAPIClient,
-      cryptoEngineProvider: cryptoEngineProvider
-    )
+    self.logger = logger
+    self.cryptoEngineProvider = cryptoEngineProvider
   }
 
-  public mutating func transition(with event: Event) async {
+  public mutating func transition(with event: Event) async throws {
     switch event {
     case .start:
       await start()
@@ -98,14 +88,19 @@ public struct AccountRecoveryKeyLoginFlowStateMachine: StateMachine {
     case let .accountVerified(authTicket, isBackupCode, verificationMethod):
       self.isBackupCode = isBackupCode
       self.verificationMethod = verificationMethod
-      state = .recoveryKeyInput(authTicket)
+      state = .recoveryKeyInput(authTicket, accountType)
     case let .masterPasswordChanged(masterKey, authTicket, newMasterPassword):
       state = .completed(
         Completion(
           masterKey: masterKey, authTicket: authTicket, newMasterPassword: newMasterPassword,
           isBackupCode: isBackupCode, verificationMethod: verificationMethod))
     case .getMasterKey(let recoveryKey, let authTicket):
-      await masterKey(using: recoveryKey, authTicket: authTicket)
+      do {
+        let masterKey = try await masterKey(using: recoveryKey, authTicket: authTicket)
+        try await transition(with: .masterKeyReceived(masterKey, authTicket))
+      } catch {
+        state = .error(.init(underlyingError: Error.wrongRecoveryKey))
+      }
     case .masterKeyReceived(let masterKey, let authTicket):
       if case .masterPassword = accountType {
         state = .masterPasswordChangeNeeded(masterKey, authTicket)
@@ -118,17 +113,19 @@ public struct AccountRecoveryKeyLoginFlowStateMachine: StateMachine {
     case .cancel:
       state = .cancel
     }
+    let state = state
+    logger.info("Transition to state: \(state)")
   }
 
   private mutating func start() async {
     switch loginType {
     case let .remote(authTicket):
-      state = .recoveryKeyInput(authTicket)
+      state = .recoveryKeyInput(authTicket, accountType)
     case let .deviceToDevice(deviceInfo):
       await makeVerificationMethod(login: login, deviceInfo: deviceInfo)
     case let .local(user, deviceInfo):
-      if let authTicket = user.authTicket {
-        state = .recoveryKeyInput(authTicket)
+      if let authTicket = user.accountRecoveryAuthTicket {
+        state = .recoveryKeyInput(authTicket, accountType)
       } else {
         await makeVerificationMethod(login: login, deviceInfo: deviceInfo)
       }
@@ -147,16 +144,41 @@ public struct AccountRecoveryKeyLoginFlowStateMachine: StateMachine {
     }
   }
 
-  private mutating func masterKey(
-    using recoveryKey: String,
-    authTicket: AuthTicket
-  ) async {
-    do {
-      let masterKey = try await recoveryLoginService.masterKey(
-        using: recoveryKey, authTicket: authTicket)
-      await transition(with: .masterKeyReceived(masterKey, authTicket))
-    } catch {
-      state = .error(.init(underlyingError: Error.wrongRecoveryKey))
+  public func masterKey(using recoveryKey: AccountRecoveryKey, authTicket: AuthTicket) async throws
+    -> MasterKey
+  {
+    let encryptedVaultKey = try await appAPIClient.accountrecovery.getEncryptedVaultKey(
+      login: login.email, authTicket: authTicket.value
+    ).encryptedVaultKey
+    guard let encryptedVaultKeyData = Data(base64Encoded: encryptedVaultKey) else {
+      throw Error.cannotConvertFromBase64
     }
+
+    let cryptoEngine = try cryptoEngineProvider.cryptoEngine(
+      forEncryptedVaultKey: encryptedVaultKeyData, recoveryKey: recoveryKey)
+
+    let decryptedData = try cryptoEngine.decrypt(encryptedVaultKeyData)
+    guard let decryptedMasterKey = String(data: decryptedData, encoding: .utf8) else {
+      throw Error.cannotDecodeMasterKey
+    }
+
+    return .masterPassword(decryptedMasterKey)
+  }
+}
+
+extension AccountRecoveryKeyLoginFlowStateMachine {
+  public func makeAccountVerificationStateMachine() -> AccountVerificationStateMachine {
+    AccountVerificationStateMachine(
+      state: .initialize, login: login, verificationMethod: verificationMethod,
+      appAPIClient: appAPIClient, logger: logger)
+  }
+}
+
+extension AccountRecoveryKeyLoginFlowStateMachine {
+  public static var mock: AccountRecoveryKeyLoginFlowStateMachine {
+    AccountRecoveryKeyLoginFlowStateMachine(
+      initialState: .loading, login: Login("_"), loginType: .local(.masterPasswordOnly, .mock),
+      accountType: .masterPassword, appAPIClient: .fake, cryptoEngineProvider: .mock(),
+      logger: .mock)
   }
 }

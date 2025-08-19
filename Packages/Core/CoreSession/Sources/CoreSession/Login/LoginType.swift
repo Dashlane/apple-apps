@@ -1,14 +1,12 @@
-import DashTypes
+import CoreTypes
 import Foundation
 
 public enum LoginType {
-  case localLogin(LocalLoginHandler)
+  case localLogin(LocalLoginStateMachine)
   case remoteLogin(RemoteLoginType)
 }
 
-public enum RemoteLoginType: Hashable {
-  case regularRemoteLogin(
-    Login, deviceRegistrationMethod: LoginMethod,
-    deviceInfo: DeviceInfo)
+public enum RemoteLoginType: Hashable, Sendable {
+  case regularRemoteLogin(Login, deviceRegistrationMethod: LoginMethod)
   case deviceToDeviceRemoteLogin(Login?, deviceInfo: DeviceInfo)
 }

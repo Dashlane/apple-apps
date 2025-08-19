@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppAPIClient.Authentication {
-  public struct RequestOtpRecoveryCodesByPhone: APIRequest {
+  public struct RequestOtpRecoveryCodesByPhone: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/authentication/RequestOtpRecoveryCodesByPhone"
 
     public let api: AppAPIClient

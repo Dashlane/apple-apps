@@ -1,14 +1,20 @@
-import CoreFeature
+import Combine
 import CoreLocalization
-import CorePersonalData
 import CorePremium
+import CoreTypes
 import CoreUserTracking
-import DashTypes
 import DesignSystem
 import Foundation
+import UserTrackingFoundation
 
 @MainActor
 public final class CollectionsListViewModel: ObservableObject, VaultKitServicesInjecting {
+  enum ViewSate {
+    case loading
+    case emptyCredentialsList
+    case emptyCollectionsList
+    case loaded
+  }
 
   @Published
   var collections: [VaultCollection] = []
@@ -32,6 +38,11 @@ public final class CollectionsListViewModel: ObservableObject, VaultKitServicesI
     return vaultState == .frozen
   }
 
+  @Published
+  var viewState: ViewSate = .loading
+
+  private var cancellables = Set<AnyCancellable>()
+
   private let collectionNamingViewModelFactory: CollectionNamingViewModel.Factory
   let collectionRowViewModelFactory: CollectionRowViewModel.Factory
 
@@ -41,8 +52,9 @@ public final class CollectionsListViewModel: ObservableObject, VaultKitServicesI
   private let vaultCollectionDatabase: VaultCollectionDatabaseProtocol
   private let userSpacesService: UserSpacesService
   private let premiumStatusProvider: PremiumStatusProvider
-  private let deeplinkingService: VaultKit.DeepLinkingServiceProtocol
+  private let deeplinkingService: DeepLinkingServiceProtocol
   private let vaultStateService: VaultStateServiceProtocol
+  private let vaultItemsStore: VaultItemsStore
 
   public init(
     activityReporter: ActivityReporterProtocol,
@@ -52,9 +64,10 @@ public final class CollectionsListViewModel: ObservableObject, VaultKitServicesI
     userSpacesService: UserSpacesService,
     premiumStatusProvider: PremiumStatusProvider,
     vaultStateService: VaultStateServiceProtocol,
-    deeplinkingService: VaultKit.DeepLinkingServiceProtocol,
+    deeplinkingService: DeepLinkingServiceProtocol,
     collectionNamingViewModelFactory: CollectionNamingViewModel.Factory,
-    collectionRowViewModelFactory: CollectionRowViewModel.Factory
+    collectionRowViewModelFactory: CollectionRowViewModel.Factory,
+    vaultItemsStore: VaultItemsStore
   ) {
     self.activityReporter = activityReporter
     self.capabilityService = capabilityService
@@ -66,6 +79,7 @@ public final class CollectionsListViewModel: ObservableObject, VaultKitServicesI
     self.vaultStateService = vaultStateService
     self.collectionNamingViewModelFactory = collectionNamingViewModelFactory
     self.collectionRowViewModelFactory = collectionRowViewModelFactory
+    self.vaultItemsStore = vaultItemsStore
 
     registerPublishers()
   }
@@ -81,6 +95,31 @@ public final class CollectionsListViewModel: ObservableObject, VaultKitServicesI
       .vaultStatePublisher()
       .receive(on: DispatchQueue.main)
       .assign(to: &$vaultState)
+
+    Publishers.CombineLatest(
+      vaultItemsStore
+        .$credentials
+        .filter(by: userSpacesService.$configuration),
+
+      vaultCollectionsStore
+        .$collections
+        .filter(by: userSpacesService.$configuration)
+    )
+    .receive(on: DispatchQueue.main)
+    .sink { [weak self] credentialsList, collectionsList in
+      guard let self else {
+        return
+      }
+
+      if credentialsList.isEmpty && collectionsList.isEmpty {
+        self.viewState = .emptyCredentialsList
+      } else if collectionsList.isEmpty {
+        self.viewState = .emptyCollectionsList
+      } else {
+        self.viewState = .loaded
+      }
+    }
+    .store(in: &cancellables)
   }
 
   func isSharingDisabledByStarterPack(_ collection: VaultCollection) -> Bool {
@@ -102,7 +141,7 @@ public final class CollectionsListViewModel: ObservableObject, VaultKitServicesI
       do {
         try await vaultCollectionDatabase.delete(collection)
         toast(
-          L10n.Core.KWVaultItem.Collections.deleted(collection.name),
+          CoreL10n.KWVaultItem.Collections.deleted(collection.name),
           image: .ds.feedback.success.outlined)
       } catch {
         if collection.isShared {
@@ -128,6 +167,10 @@ public final class CollectionsListViewModel: ObservableObject, VaultKitServicesI
 
   func redirectToFrozenPaywall() {
     deeplinkingService.handle(.frozenAccount)
+  }
+
+  func addPassword() {
+    deeplinkingService.handle(.vault(.create(.credential)))
   }
 }
 
@@ -182,9 +225,10 @@ extension CollectionsListViewModel {
     userSpacesService: UserSpacesService,
     premiumStatusProvider: PremiumStatusProvider,
     vaultStateService: VaultStateServiceProtocol,
-    deeplinkingService: VaultKit.DeepLinkingServiceProtocol,
+    deeplinkingService: DeepLinkingServiceProtocol,
     collectionNamingViewModelFactory: CollectionNamingViewModel.Factory,
-    collectionRowViewModelFactory: CollectionRowViewModel.Factory
+    collectionRowViewModelFactory: CollectionRowViewModel.Factory,
+    vaultItemsStore: VaultItemsStore
   ) {
     self.init(
       activityReporter: activityReporter,
@@ -196,7 +240,8 @@ extension CollectionsListViewModel {
       vaultStateService: vaultStateService,
       deeplinkingService: deeplinkingService,
       collectionNamingViewModelFactory: collectionNamingViewModelFactory,
-      collectionRowViewModelFactory: collectionRowViewModelFactory
+      collectionRowViewModelFactory: collectionRowViewModelFactory,
+      vaultItemsStore: vaultItemsStore
     )
     self.collections = collections
   }
@@ -210,10 +255,11 @@ extension CollectionsListViewModel {
       vaultCollectionDatabase: MockVaultKitServicesContainer().vaultCollectionDatabase,
       userSpacesService: MockVaultKitServicesContainer().userSpacesService,
       premiumStatusProvider: .mock(),
-      vaultStateService: .mock,
+      vaultStateService: .mock(),
       deeplinkingService: MockVaultKitServicesContainer().deeplinkService,
       collectionNamingViewModelFactory: .init { mode in .mock(mode: mode) },
-      collectionRowViewModelFactory: .init { collection in .mock(collection: collection) }
+      collectionRowViewModelFactory: .init { collection in .mock(collection: collection) },
+      vaultItemsStore: .mock()
     )
   }
 }

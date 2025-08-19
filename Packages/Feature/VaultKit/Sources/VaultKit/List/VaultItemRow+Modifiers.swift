@@ -55,11 +55,11 @@ public enum VaultItemRowCollectionActionType: Identifiable, Equatable {
   public var title: String {
     switch self {
     case .addToACollection:
-      return L10n.Core.KWVaultItem.Collections.Actions.addToACollection
+      return CoreL10n.KWVaultItem.Collections.Actions.addToACollection
     case .removeFromACollection:
-      return L10n.Core.KWVaultItem.Collections.Actions.removeFromACollection
+      return CoreL10n.KWVaultItem.Collections.Actions.removeFromACollection
     case .removeFromThisCollection:
-      return L10n.Core.KWVaultItem.Collections.Actions.removeFromThisCollection
+      return CoreL10n.KWVaultItem.Collections.Actions.removeFromThisCollection
     }
   }
 }

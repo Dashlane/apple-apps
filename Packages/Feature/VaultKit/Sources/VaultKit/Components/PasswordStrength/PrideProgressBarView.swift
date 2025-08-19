@@ -9,16 +9,6 @@ struct PrideProgressBarView: View {
 
   let fillColor: Color
   let backgroundColor: Color
-  let prideColors = [
-    Color(asset: Asset.pride1),
-    Color(asset: Asset.pride2),
-    Color(asset: Asset.pride3),
-    Color(asset: Asset.pride4),
-    Color(asset: Asset.pride5),
-    Color(asset: Asset.pride6),
-    Color(asset: Asset.pride7),
-    Color(asset: Asset.pride8),
-  ]
 
   init(
     progress: CGFloat,
@@ -34,12 +24,12 @@ struct PrideProgressBarView: View {
 
   var body: some View {
     ProgressBarLayout(progress: progress / total) {
-      progress(withColors: progress >= total ? prideColors : [fillColor])
+      progress(withColors: progress >= total ? Color.prideColors : [fillColor])
         .cornerRadius(2)
     }
     .background(
       Capsule()
-        .foregroundColor(backgroundColor)
+        .foregroundStyle(backgroundColor)
     )
     .frame(height: 4)
   }

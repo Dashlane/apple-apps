@@ -1,6 +1,6 @@
 import Foundation
 
-public struct SecurefileQuota: Codable, Equatable, Sendable {
+public struct SecurefileQuota: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case remaining = "remaining"
     case max = "max"

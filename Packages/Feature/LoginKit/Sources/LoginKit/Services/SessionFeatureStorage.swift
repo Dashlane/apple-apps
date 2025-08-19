@@ -1,8 +1,9 @@
 import CoreFeature
 import CoreSession
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 
 final public class SessionFeatureStorage: FeatureFlipServiceStorage {
 
@@ -46,7 +47,6 @@ extension FeatureService {
       apiClient: apiClient,
       apiAppClient: apiAppClient,
       storage: SessionFeatureStorage(session: session),
-      labsStorage: SessionLabsStorage(session: session),
       logger: logger,
       useCacheOnly: useCacheOnly)
   }

@@ -45,7 +45,7 @@ public struct GeneratedOTPCodeRowView: View {
               .font(codeFont)
               .bold()
               .monospacedDigit()
-              .foregroundColor(.ds.text.neutral.catchy)
+              .foregroundStyle(Color.ds.text.neutral.catchy)
           }
         )
         .id(model.code)
@@ -71,12 +71,10 @@ public struct GeneratedOTPCodeRowView: View {
         label: {
           copyTrashButtonImage
             .resizable()
-            .accessibilityLabel(
-              isEditing ? CoreLocalization.L10n.Core.kwDelete : CoreLocalization.L10n.Core.kwCopy
-            )
+            .accessibilityLabel(isEditing ? CoreL10n.kwDelete : CoreL10n.kwCopy)
             .scaledToFit()
             .frame(height: 24)
-            .foregroundColor(.ds.text.neutral.standard)
+            .foregroundStyle(Color.ds.text.neutral.standard)
         })
     }
   }
@@ -85,12 +83,16 @@ public struct GeneratedOTPCodeRowView: View {
   var leadingAction: some View {
     switch model.currentMode {
     case let .totp(progress, period):
-      TimeProgressIndicator(progress: .constant(progress))
-        .frame(width: 20, height: 20)
+      ProgressView(value: progress)
+        .progressViewStyle(.countdown)
         .onReceive(timer) { _ in
           model.update(period: period)
         }
         .accessibilityHidden(true)
+        .animation(.linear(duration: 1), value: progress)
+        .controlSize(.large)
+        .id(model.code)
+
     case .hotp:
       if !hidesLeadingAction {
         Button(
@@ -99,10 +101,10 @@ public struct GeneratedOTPCodeRowView: View {
           },
           label: {
             Image.ds.action.refresh.outlined
-              .foregroundColor(.ds.text.brand.standard)
+              .foregroundStyle(Color.ds.text.brand.standard)
           }
         )
-        .fiberAccessibilityLabel(Text(CoreLocalization.L10n.Core.kwPadExtensionGeneratorRefresh))
+        .fiberAccessibilityLabel(Text(CoreL10n.kwPadExtensionGeneratorRefresh))
       }
     }
   }

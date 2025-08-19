@@ -31,7 +31,7 @@ public enum SessionState {
 
 public class FakeSessionLifeCycleHandler: SessionLifeCycleHandler {
 
-  public init() {}
+  init() {}
   public var sessionState: SessionState = .disconnected
 
   public func automaticLogout() {
@@ -46,4 +46,10 @@ public class FakeSessionLifeCycleHandler: SessionLifeCycleHandler {
 
   }
 
+}
+
+extension SessionLifeCycleHandler where Self == FakeSessionLifeCycleHandler {
+  public static var mock: SessionLifeCycleHandler {
+    FakeSessionLifeCycleHandler()
+  }
 }

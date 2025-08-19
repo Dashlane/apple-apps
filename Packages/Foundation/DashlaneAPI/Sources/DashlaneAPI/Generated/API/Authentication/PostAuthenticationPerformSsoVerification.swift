@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppAPIClient.Authentication {
-  public struct PerformSsoVerification: APIRequest {
+  public struct PerformSsoVerification: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/authentication/PerformSsoVerification"
 
     public let api: AppAPIClient
@@ -24,7 +24,7 @@ extension AppAPIClient.Authentication {
 }
 
 extension AppAPIClient.Authentication.PerformSsoVerification {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case login = "login"
       case ssoToken = "ssoToken"

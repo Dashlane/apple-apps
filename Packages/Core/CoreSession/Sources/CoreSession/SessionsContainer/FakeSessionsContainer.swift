@@ -1,7 +1,7 @@
-import DashTypes
+import CoreTypes
 import Foundation
 
-public class FakeSessionsContainer: SessionsContainerProtocol {
+public final class FakeSessionsContainer: SessionsContainerProtocol, @unchecked Sendable {
 
   enum FakeError: Error {
     case notMocked
@@ -16,6 +16,8 @@ public class FakeSessionsContainer: SessionsContainerProtocol {
   var loadSession: Result<Session, Error> = .failure(FakeError.notMocked)
   var migrateSession: Result<MigratingSession, Error> = .failure(FakeError.notMocked)
   var finalizeMigrationSession: Result<Session, Error> = .failure(FakeError.notMocked)
+  var changeLoginSession: Result<Session, Error> = .failure(FakeError.notMocked)
+
   var removeSessionDirectoryBlock: (Login) -> Void = { _ in }
 
   public func fetchCurrentLogin() throws -> Login? {
@@ -65,7 +67,6 @@ public class FakeSessionsContainer: SessionsContainerProtocol {
     to newMasterKey: MasterKey,
     remoteKey: Data?,
     cryptoConfig: CryptoRawConfig,
-    accountMigrationType: AccountMigrationType,
     loginOTPOption: ThirdPartyOTPOption?
   ) throws -> MigratingSession {
     try migrateSession.get()
@@ -76,7 +77,7 @@ public class FakeSessionsContainer: SessionsContainerProtocol {
   }
 
   public func update(_ session: Session, with analyticsId: AnalyticsIdentifiers) throws -> Session {
-    try finalizeMigrationSession.get()
+    try changeLoginSession.get()
   }
 
   public func localMigration(
@@ -92,4 +93,22 @@ public class FakeSessionsContainer: SessionsContainerProtocol {
     }
     return []
   }
+
+  public func update(_ session: Session, to login: CoreTypes.Login) throws -> Session {
+    return Session(
+      configuration: SessionConfiguration(
+        login: login,
+        masterKey: session.configuration.masterKey,
+        keys: session.configuration.keys,
+        info: session.configuration.info),
+      localKey: session.localKey,
+      directory: session.directory,
+      cryptoEngine: session.cryptoEngine,
+      localCryptoEngine: session.localCryptoEngine,
+      remoteCryptoEngine: session.remoteCryptoEngine)
+  }
+}
+
+extension SessionsContainerProtocol where Self == FakeSessionsContainer {
+  public static var mock: Self { .init() }
 }

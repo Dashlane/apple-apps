@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Breaches {
-  public struct GetBreach: APIRequest {
+  public struct GetBreach: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/breaches/GetBreach"
 
     public let api: UserDeviceAPIClient
@@ -23,7 +23,7 @@ extension UserDeviceAPIClient.Breaches {
 }
 
 extension UserDeviceAPIClient.Breaches.GetBreach {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case revision = "revision"
     }
@@ -42,14 +42,14 @@ extension UserDeviceAPIClient.Breaches.GetBreach {
 }
 
 extension UserDeviceAPIClient.Breaches.GetBreach {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case revision = "revision"
       case latestBreaches = "latestBreaches"
       case filesToDownload = "filesToDownload"
     }
 
-    public struct LatestBreachesElement: Codable, Equatable, Sendable {
+    public struct LatestBreachesElement: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case announcedDate = "announcedDate"
         case breachCreationDate = "breachCreationDate"
@@ -69,7 +69,7 @@ extension UserDeviceAPIClient.Breaches.GetBreach {
         case template = "template"
       }
 
-      public struct Description: Codable, Equatable, Sendable {
+      public struct Description: Codable, Hashable, Sendable {
         public enum CodingKeys: String, CodingKey {
           case en = "en"
         }

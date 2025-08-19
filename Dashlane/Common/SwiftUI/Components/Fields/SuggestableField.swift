@@ -23,11 +23,10 @@ struct SuggestableFieldModifier: ViewModifier {
       if detailMode.isEditing && !suggestions.isEmpty {
         Button(action: showSelector) {
           Image.ds.action.more.outlined
-            .foregroundColor(.ds.text.brand.quiet)
+            .foregroundStyle(Color.ds.text.brand.quiet)
         }
         .frame(width: 30, height: 30)
-        .fiberAccessibilityLabel(
-          Text(CoreLocalization.L10n.Core.detailItemViewAccessibilitySelectEmail))
+        .fiberAccessibilityLabel(Text(CoreL10n.detailItemViewAccessibilitySelectEmail))
       }
     }
   }

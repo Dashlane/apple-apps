@@ -33,6 +33,14 @@ struct ActionableVaultItemRow: View {
   @ViewBuilder
   @MainActor
   private var quickActions: some View {
+    copyPasswordAction
+      .alert(
+        model.item.limitedRightsAlertTitle,
+        isPresented: $showLimitedRightsAlert,
+        actions: {
+          Button(CoreL10n.kwButtonOk) {}
+        }
+      )
     QuickActionsMenuView(
       model: model.quickActionsMenuViewModelFactory.make(
         item: model.item,
@@ -40,14 +48,6 @@ struct ActionableVaultItemRow: View {
         isSuggestedItem: model.isSuggested
       )
     )
-    copyPasswordAction
-      .alert(
-        model.item.limitedRightsAlertTitle,
-        isPresented: $showLimitedRightsAlert,
-        actions: {
-          Button(CoreLocalization.L10n.Core.kwButtonOk) {}
-        }
-      )
   }
 
   @ViewBuilder
@@ -75,7 +75,9 @@ struct ActionableVaultItemRow: View {
 
     switch result {
     case .success:
-      UINotificationFeedbackGenerator().notificationOccurred(.success)
+      #if !os(visionOS)
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+      #endif
       toast(L10n.Localizable.pasteboardCopyPassword, image: .ds.action.copy.outlined)
     case .limitedRights:
       showLimitedRightsAlert = true
@@ -92,5 +94,5 @@ struct ActionableVaultItemRow: View {
       select: {}
     )
   }
-  .listAppearance(.plain)
+  .listStyle(.ds.plain)
 }

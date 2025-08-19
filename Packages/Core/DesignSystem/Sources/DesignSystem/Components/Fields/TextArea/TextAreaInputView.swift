@@ -1,9 +1,8 @@
 import SwiftUI
 
 struct TextAreaInputView: View {
-  @Environment(\.editionDisabled) private var editionDisabled
-  @Environment(\.textInputDisabledEditionAppearance) private var disabledEditionAppearance
-  @Environment(\.fieldLabelPersistencyDisabled) private var isLabelPersistencyDisabled
+  @Environment(\.fieldEditionDisabled) private var editionDisabled
+  @Environment(\.fieldLabelHiddenOnFocus) private var isLabelPersistencyDisabled
 
   @ScaledMetric private var placeholderTransitionVerticalOffset = 14
 
@@ -26,12 +25,13 @@ struct TextAreaInputView: View {
     } else {
       TextField("", text: text, axis: .vertical)
         .focused($isFocused)
-        ._foregroundStyle(.textInputValue)
+        .foregroundStyle(.textInputValue)
         .frame(maxWidth: .infinity, alignment: .leading)
         .fixedSize(horizontal: false, vertical: true)
         .allowsHitTesting(!editionDisabled)
         .accessibilityLabel(accessibilityLabel)
         .accessibilityAddTraits(editionDisabled ? .isStaticText : [])
+        .hoverEffect()
     }
   }
 
@@ -39,7 +39,7 @@ struct TextAreaInputView: View {
     if let placeholder {
       return Text(placeholder)
     }
-    return Text(label)
+    return Text("")
   }
 }
 
@@ -63,7 +63,7 @@ struct TextAreaInputView: View {
     )
   }
   .padding(.horizontal)
-  .editionDisabled()
+  .fieldEditionDisabled()
 }
 
 #Preview("Edition Disabled (Discrete)") {
@@ -75,5 +75,5 @@ struct TextAreaInputView: View {
     )
   }
   .padding(.horizontal)
-  .editionDisabled(appearance: .discrete)
+  .fieldEditionDisabled(appearance: .discrete)
 }

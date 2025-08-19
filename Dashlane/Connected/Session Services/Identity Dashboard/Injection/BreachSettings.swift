@@ -2,7 +2,7 @@ import Combine
 import CoreSettings
 import Foundation
 
-import struct DashTypes.Login
+import struct CoreTypes.Login
 
 enum BreachSettingsKey: String, CaseIterable, LocalSettingsKey {
   case lastRevisionForPublicBreaches = "securityDashboardLastKnownBreachesRevisionKey"

@@ -2,11 +2,31 @@ import Foundation
 
 @propertyWrapper
 public struct CalendarDateFormatted: Codable, Equatable {
-  static var formatter: DateFormatter = {
+  static var regularDateFormatter: DateFormatter = {
     let formatter = DateFormatter()
     formatter.dateFormat = "yyyy-MM-dd"
     return formatter
   }()
+
+  static var twoDigitsYearFormatter: DateFormatter = {
+    let formatter = DateFormatter()
+    formatter.dateFormat = "yy-MM-dd"
+    return formatter
+  }()
+
+  static func date(from string: String) -> Date? {
+    let isYearCorrectlyFormatted =
+      string.count > 4
+      && string.prefix(4).allSatisfy {
+        $0.isNumber
+      }
+
+    if !isYearCorrectlyFormatted {
+      return twoDigitsYearFormatter.date(from: string)
+    } else {
+      return regularDateFormatter.date(from: string)
+    }
+  }
 
   public var wrappedValue: Date?
 
@@ -14,7 +34,12 @@ public struct CalendarDateFormatted: Codable, Equatable {
     guard let date = wrappedValue else {
       return nil
     }
-    return Calendar.current.dateComponents(in: TimeZone.current, from: date)
+
+    let allComponents = Calendar.current.dateComponents(in: TimeZone.current, from: date)
+    return DateComponents(
+      year: allComponents.year,
+      month: allComponents.month,
+      day: allComponents.day)
   }
 
   public init() {
@@ -24,7 +49,7 @@ public struct CalendarDateFormatted: Codable, Equatable {
   public init(rawValue: String?) {
     guard let rawValue = rawValue,
       !rawValue.isEmpty,
-      let date = Self.formatter.date(from: rawValue)
+      let date = Self.date(from: rawValue)
     else {
       self.wrappedValue = nil
       return
@@ -37,7 +62,7 @@ public struct CalendarDateFormatted: Codable, Equatable {
     let container = try decoder.singleValueContainer()
     let rawDate = try container.decode(String.self)
     guard !rawDate.isEmpty,
-      let date = Self.formatter.date(from: rawDate)
+      let date = Self.date(from: rawDate)
     else {
       self.wrappedValue = nil
       return
@@ -46,7 +71,7 @@ public struct CalendarDateFormatted: Codable, Equatable {
     self.wrappedValue = date
   }
 
-  public init(_ date: Date) {
+  public init(_ date: Date?) {
     self.wrappedValue = date
   }
 
@@ -64,6 +89,6 @@ public struct CalendarDateFormatted: Codable, Equatable {
     guard let date else {
       return nil
     }
-    return Self.formatter.string(from: date)
+    return Self.regularDateFormatter.string(from: date)
   }
 }

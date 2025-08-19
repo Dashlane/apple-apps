@@ -1,5 +1,6 @@
 import CoreFeature
 import CoreLocalization
+import CorePersonalData
 import SwiftUI
 import UIComponents
 import VaultKit
@@ -21,8 +22,8 @@ struct SharingDetailSection: View {
   var body: some View {
     if !detailMode.isAdding {
       if model.item.hasAttachments {
-        Section(CoreLocalization.L10n.Core.KWVaultItem.Sharing.Section.title) {
-          CoreLocalization.L10n.Core.attachmentsLimitation(for: model.item).map {
+        Section(CoreL10n.KWVaultItem.Sharing.Section.title) {
+          CoreL10n.attachmentsLimitation(for: model.item).map {
             Text($0)
               .textStyle(.body.reduced.regular)
               .foregroundStyle(Color.ds.text.neutral.quiet)
@@ -52,11 +53,12 @@ struct SharingDetailSection: View {
   @ViewBuilder
   var activeSharingSection: some View {
     if model.item.isShared {
-      Section(CoreLocalization.L10n.Core.KWVaultItem.Sharing.Section.title) {
+      Section(CoreL10n.KWVaultItem.Sharing.Section.title) {
         SharingMembersDetailLink(model: model.makeSharingMembersDetailLinkModel())
+          .foregroundStyle(Color.ds.text.neutral.catchy)
 
         if case .limited = model.item.metadata.sharingPermission {
-          Text(CoreLocalization.L10n.Core.KWVaultItem.Sharing.LimitedRights.message)
+          Text(CoreL10n.KWVaultItem.Sharing.LimitedRights.message)
             .textStyle(.body.reduced.regular)
             .foregroundStyle(Color.ds.text.neutral.quiet)
         }
@@ -65,7 +67,7 @@ struct SharingDetailSection: View {
   }
 }
 
-extension CoreLocalization.L10n.Core {
+extension CoreL10n {
   fileprivate static func attachmentsLimitation(for item: VaultItem) -> String? {
     return switch item.enumerated {
     case .credential:

@@ -3,12 +3,13 @@ import CoreKeychain
 import CoreLocalization
 import CoreSession
 import CoreSettings
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import StateMachine
 import SwiftTreats
+import UserTrackingFoundation
 
 @MainActor
 public final class MasterPasswordLocalViewModel: StateMachineBasedObservableObject,
@@ -37,7 +38,7 @@ public final class MasterPasswordLocalViewModel: StateMachineBasedObservableObje
     }
   }
   @Published var errorMessage: String?
-  @Published var inProgress: Bool = false
+  @Published var isValidationInProgress: Bool = false
   @Published var shouldDisplayError: Bool = false
   @Published var showWrongPasswordError: Bool = false
   @Published var hasAccountRecoveryKey = false
@@ -49,52 +50,57 @@ public final class MasterPasswordLocalViewModel: StateMachineBasedObservableObje
     context.localLoginContext.isExtension
   }
 
-  let shouldSuggestMPReset: Bool
+  var shouldSuggestMPReset: Bool = false
   let biometry: Biometry?
-  let activityReporter: ActivityReporterProtocol
 
   let context: LoginUnlockContext
 
-  public var stateMachine: MasterPasswordLocalLoginStateMachine
+  @Published public var stateMachine: MasterPasswordLocalLoginStateMachine
+  @Published public var isPerformingEvent: Bool = false
 
-  private let loginMetricsReporter: LoginMetricsReporterProtocol
-  private let pinCodeAttempts: PinCodeAttempts
   private let recoveryKeyLoginFlowModelFactory: AccountRecoveryKeyLoginFlowModel.Factory
+  private let forgotMasterPasswordSheetModelFactory: ForgotMasterPasswordSheetModel.Factory
   private let logger: Logger
 
   public init(
     login: Login,
     biometry: Biometry?,
-    user: AccountRecoveryKeyLoginFlowStateMachine.User,
-    unlocker: UnlockSessionHandler,
     context: LoginUnlockContext,
-    resetMasterPasswordService: ResetMasterPasswordServiceProtocol,
-    loginMetricsReporter: LoginMetricsReporterProtocol,
-    activityReporter: ActivityReporterProtocol,
-    userSettings: UserSettings,
+    masterPasswordLocalStateMachine: MasterPasswordLocalLoginStateMachine,
     logger: Logger,
     recoveryKeyLoginFlowModelFactory: AccountRecoveryKeyLoginFlowModel.Factory,
-    masterPasswordLocalStateMachineFactory: MasterPasswordLocalLoginStateMachine.Factory,
+    forgotMasterPasswordSheetModelFactory: ForgotMasterPasswordSheetModel.Factory,
     completion: @escaping (MasterPasswordLocalViewModel.CompletionType) -> Void
   ) {
     self.login = login
     self.context = context
-    self.loginMetricsReporter = loginMetricsReporter
     self.logger = logger
-    self.pinCodeAttempts = .init(internalStore: userSettings.internalStore)
     self.completion = completion
     self.biometry = biometry
-    shouldSuggestMPReset =
-      context.localLoginContext.isPasswordApp ? resetMasterPasswordService.isActive : false
-    self.activityReporter = activityReporter
     self.recoveryKeyLoginFlowModelFactory = recoveryKeyLoginFlowModelFactory
-    stateMachine = masterPasswordLocalStateMachineFactory.make(
-      login: login, unlocker: unlocker, resetMasterPasswordService: resetMasterPasswordService,
-      loginType: .local(user, DeviceInfo.default))
+    stateMachine = masterPasswordLocalStateMachine
+    self.forgotMasterPasswordSheetModelFactory = forgotMasterPasswordSheetModelFactory
     if context.localLoginContext.isPasswordApp {
       Task {
-        await self.perform(.fetchAccountRecoveryKeyStatus)
+        await self.perform(.initialize)
       }
+    }
+  }
+
+  public func willPerform(_ event: MasterPasswordLocalLoginStateMachine.Event) async {
+    switch event {
+    case .validateMP:
+      isValidationInProgress = true
+      showWrongPasswordError = false
+    case .initialize,
+      .logout,
+      .recoveryFinished,
+      .cancelled,
+      .initiateResetMP,
+      .resetMP,
+      .startAccountRecovery,
+      .cancelAccountRecovery:
+      break
     }
   }
 
@@ -102,52 +108,40 @@ public final class MasterPasswordLocalViewModel: StateMachineBasedObservableObje
     for event: MasterPasswordLocalLoginStateMachine.Event,
     from oldState: MasterPasswordLocalLoginStateMachine.State,
     to newState: MasterPasswordLocalLoginStateMachine.State
-  ) {
+  ) async {
     switch (newState, event) {
+    case (.initial, _):
+      break
     case (let .validationSuccess(config), _):
       self.errorMessage = nil
-      self.pinCodeAttempts.removeAll()
-      self.inProgress = false
       self.completion(.authenticated(config))
+      self.isValidationInProgress = false
+
     case (let .validationFailed(error), _):
-      self.loginMetricsReporter.resetTimer(.login)
-      self.inProgress = false
       self.attempts += 1
       switch error {
       case MasterPasswordLocalLoginStateMachine.Error.wrongMasterKey:
         self.showWrongPasswordError = true
-        self.activityReporter.logLoginStatus(.errorWrongPassword, context: context)
       default:
-        self.errorMessage = L10n.errorMessage(for: error)
-        self.activityReporter.logLoginStatus(.errorUnknown, context: context)
+        self.errorMessage = CoreL10n.errorMessage(for: error)
       }
+      self.isValidationInProgress = false
     case (let .accountRecoveryFlow(state, loginType), _):
       self.viewState = .accountRecovery(state, loginType)
     case (.accountRecoveryCancelled, _):
       self.viewState = .masterPassword
-    case (let .waitingForUserInput(enabled), _):
-      hasAccountRecoveryKey = enabled
-    case (.validationInProgress, _):
-      self.showWrongPasswordError = false
-      self.inProgress = true
-      loginMetricsReporter.startLoginTimer(from: .masterPassword)
-      Task {
-        await self.perform(.validateMP(password, newMasterPassword: nil))
-      }
+    case (let .waitingForUserInput(isARKEnabled, isResetMPActive), _):
+      hasAccountRecoveryKey = isARKEnabled
+      shouldSuggestMPReset = isResetMPActive
     case (.resetMPinProgress, _):
-      self.inProgress = true
-      activityReporter.logForgotPassword(shouldSuggestMPReset: shouldSuggestMPReset)
-      loginMetricsReporter.startLoginTimer(from: .masterPassword)
-      Task {
-        await self.perform(.resetMP)
-      }
+      await self.perform(.resetMP)
     case (.cancelled, _), (.logout, _):
       self.completion(.cancel)
     }
   }
 
   func validate() async throws {
-    await self.perform(.initiateMPvalidation)
+    await self.perform(.validateMP(password, newMasterPassword: nil))
   }
 
   public func didTapResetMP() async {
@@ -162,7 +156,6 @@ public final class MasterPasswordLocalViewModel: StateMachineBasedObservableObje
   }
 
   func onViewAppear() {
-    logOnAppear()
     #if DEBUG
       if !ProcessInfo.isTesting {
         guard password.isEmpty else { return }
@@ -171,14 +164,9 @@ public final class MasterPasswordLocalViewModel: StateMachineBasedObservableObje
     #endif
   }
 
-  private func logOnAppear() {
-    activityReporter.logOnAppear(for: context)
-  }
-
   func makeForgotMasterPasswordSheetModel() -> ForgotMasterPasswordSheetModel {
-    ForgotMasterPasswordSheetModel(
+    forgotMasterPasswordSheetModelFactory.make(
       login: login.email,
-      activityReporter: activityReporter,
       hasMasterPasswordReset: shouldSuggestMPReset,
       didTapResetMP: { [weak self] in
         Task {
@@ -199,8 +187,7 @@ public final class MasterPasswordLocalViewModel: StateMachineBasedObservableObje
   ) -> AccountRecoveryKeyLoginFlowModel {
     recoveryKeyLoginFlowModelFactory.make(
       login: login,
-      accountType: .masterPassword,
-      loginType: loginType,
+      stateMachine: stateMachine.makeAccountRecoveryKeyLoginFlowStateMachine(loginType: loginType),
       completion: { [weak self] result in
         guard let self = self else {
           return
@@ -220,67 +207,21 @@ public final class MasterPasswordLocalViewModel: StateMachineBasedObservableObje
   }
 }
 
-extension ActivityReporterProtocol {
-  fileprivate func logLoginStatus(_ status: Definition.Status, context: LoginUnlockContext) {
-    report(
-      UserEvent.Login(
-        isBackupCode: context.isBackupCode,
-        mode: .masterPassword,
-        status: status,
-        verificationMode: context.verificationMode
-      )
-    )
-  }
-
-  fileprivate func logOnAppear(for context: LoginUnlockContext) {
-    if context.verificationMode == .none {
-      report(
-        UserEvent.AskAuthentication(
-          mode: .masterPassword,
-          reason: context.reason,
-          verificationMode: context.verificationMode
-        )
-      )
-    }
-    reportPageShown(.unlockMp)
-  }
-
-  fileprivate func logForgotPassword(shouldSuggestMPReset: Bool) {
-    let shouldSuggestMPReset = shouldSuggestMPReset
-    report(
-      UserEvent.ForgetMasterPassword(
-        hasBiometricReset: shouldSuggestMPReset,
-        hasTeamAccountRecovery: false
-      )
-    )
-  }
-}
-
 extension MasterPasswordLocalViewModel {
   public static var mock: MasterPasswordLocalViewModel {
     MasterPasswordLocalViewModel(
       login: Login("_"),
       biometry: nil,
-      user: .normalUser,
-      unlocker: .mock(),
       context: LoginUnlockContext(
         verificationMode: .emailToken,
-        isBackupCode: nil,
         origin: .login,
         localLoginContext: .passwordApp
       ),
-      resetMasterPasswordService: ResetMasterPasswordService.mock,
-      loginMetricsReporter: .fake,
-      activityReporter: .mock,
-      userSettings: .mock,
+      masterPasswordLocalStateMachine: .mock,
       logger: .mock,
-      recoveryKeyLoginFlowModelFactory: .init({ _, _, _, _ in .mock }),
-      masterPasswordLocalStateMachineFactory: .init({
-        _, unlocker, resetMasterPasswordService, loginType in
-        .init(
-          login: Login(""), unlocker: unlocker, appAPIClient: .mock({}),
-          resetMasterPasswordService: resetMasterPasswordService, loginType: loginType,
-          logger: .mock)
+      recoveryKeyLoginFlowModelFactory: .init({ _, _, _ in .mock }),
+      forgotMasterPasswordSheetModelFactory: .init({ login, hasMasterPasswordReset, _, _ in
+        .init(login: login, activityReporter: .mock, hasMasterPasswordReset: hasMasterPasswordReset)
       }),
       completion: { _ in }
     )

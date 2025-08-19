@@ -1,6 +1,7 @@
-import DashTypes
+import CoreMainMenu
+import CoreTypes
 import Foundation
-import UIComponents
+import LogFoundation
 import UIKit
 
 struct SessionMainMenuBuilder {
@@ -42,7 +43,7 @@ struct SessionMainMenuBuilder {
         result[element.shortcut.menu, default: []].append(
           element.shortcut.command(
             selector: #selector(
-              DashlaneHostingViewController<ConnectedRootView>.handleMenuBarShortcut(_:))))
+              MainMenuHandlerHostingViewController<ConnectedRootView>.handleMenuBarShortcut(_:))))
       }
       .mapValues { commands in
         UIMenu(

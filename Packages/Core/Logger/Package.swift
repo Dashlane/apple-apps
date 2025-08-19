@@ -3,7 +3,7 @@ import PackageDescription
 let package = Package(
   name: "Logger",
   platforms: [
-    .iOS(.v16)
+    .iOS(.v17)
   ],
   products: [
     .library(
@@ -11,14 +11,16 @@ let package = Package(
       targets: ["Logger"])
   ],
   dependencies: [
-    .package(path: "../../Foundation/DashTypes"),
+    .package(path: "../../Core/CoreTypes"),
     .package(path: "../../Foundation/DashlaneAPI"),
+    .package(path: "../../Foundation/LogFoundation"),
   ],
   targets: [
     .target(
       name: "Logger",
       dependencies: [
-        "DashTypes",
+        "CoreTypes",
+        "LogFoundation",
         .product(name: "DashlaneAPI", package: "DashlaneAPI"),
       ])
   ]

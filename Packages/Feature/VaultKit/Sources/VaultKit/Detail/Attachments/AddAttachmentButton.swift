@@ -1,11 +1,11 @@
 import CoreLocalization
-import CoreUserTracking
 import DocumentServices
 import Foundation
 import SwiftTreats
 import SwiftUI
 import UIComponents
 import UIDelight
+import UserTrackingFoundation
 
 struct AddAttachmentButton<Label: View>: View {
   @StateObject
@@ -39,8 +39,10 @@ struct AddAttachmentButton<Label: View>: View {
         switch sheet {
         case .imagePicker:
           ImagePicker(imageData: self.$model.imageContent, sourceType: .photoLibrary)
-        case .camera:
-          ImagePicker(imageData: self.$model.imageContent, sourceType: .camera)
+        #if !os(visionOS)
+          case .camera:
+            ImagePicker(imageData: self.$model.imageContent, sourceType: .camera)
+        #endif
         case .scanner:
           DocumentScannerView(completion: model.saveScanImagesIntoPDF(result:))
         case .documentPicker:
@@ -81,7 +83,7 @@ struct AddAttachmentButton<Label: View>: View {
         }
       }
     case .allowed:
-      if Device.isMac {
+      if Device.is(.mac) {
         button {
           self.sheet = .documentPicker
         }
@@ -100,24 +102,34 @@ struct AddAttachmentButton<Label: View>: View {
     if let label = label {
       Button(action: action, label: label)
     } else {
-      AddBarButton(action: action)
+      Button(action: action) {
+        Image(systemName: "plus")
+          .resizable()
+          .aspectRatio(contentMode: .fill)
+          .frame(width: 18, height: 18)
+          .foregroundStyle(Color.ds.text.brand.standard)
+          .padding(EdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 0))
+          .contentShape(Rectangle())
+      }
     }
   }
 
   @ViewBuilder
   private var nativeMenuActions: some View {
-    Button(
-      action: { self.sheet = .camera },
-      title: L10n.Core.kwTakePhoto)
-    Button(
-      action: { self.sheet = .scanner },
-      title: L10n.Core.scanDocuments)
-    Button(
-      action: { self.sheet = .imagePicker },
-      title: L10n.Core.kwPickPhoto)
-    Button(
-      action: { self.sheet = .documentPicker },
-      title: L10n.Core.kwPickFile)
+    #if !os(visionOS)
+      Button(CoreL10n.kwTakePhoto) {
+        self.sheet = .camera
+      }
+    #endif
+    Button(CoreL10n.scanDocuments) {
+      self.sheet = .scanner
+    }
+    Button(CoreL10n.kwPickPhoto) {
+      self.sheet = .imagePicker
+    }
+    Button(CoreL10n.kwPickFile) {
+      self.sheet = .documentPicker
+    }
   }
 
   private func alert(from alertType: AddAttachmentButtonViewModel.AlertType) -> Alert {
@@ -152,31 +164,31 @@ extension AddAttachmentButtonViewModel {
 
     var title: String {
       switch self {
-      case .upgradeToPremium: return L10n.Core.kwAttachPremiumTitle
-      case .sharing: return L10n.Core.kwSharedItemNoAttachmentTitle
-      case .error: return L10n.Core.kwErrorTitle
+      case .upgradeToPremium: return CoreL10n.kwAttachPremiumTitle
+      case .sharing: return CoreL10n.kwSharedItemNoAttachmentTitle
+      case .error: return CoreL10n.kwErrorTitle
       }
     }
 
     var message: Text? {
       switch self {
-      case .upgradeToPremium: return Text(L10n.Core.kwAttachPremiumMessage)
-      case .sharing: return Text(L10n.Core.kwSharedItemNoAttachmentMessage)
+      case .upgradeToPremium: return Text(CoreL10n.kwAttachPremiumMessage)
+      case .sharing: return Text(CoreL10n.kwSharedItemNoAttachmentMessage)
       case .error(let message): return Text(message)
       }
     }
 
     var primaryButton: Alert.Button {
       switch self {
-      case .upgradeToPremium(let action): return .default(Text(L10n.Core.goPremium), action: action)
-      case .sharing: return .default(Text(L10n.Core.kwButtonOk))
-      case .error: return .default(Text(L10n.Core.kwButtonOk))
+      case .upgradeToPremium(let action): return .default(Text(CoreL10n.goPremium), action: action)
+      case .sharing: return .default(Text(CoreL10n.kwButtonOk))
+      case .error: return .default(Text(CoreL10n.kwButtonOk))
       }
     }
 
     var secondaryButton: Alert.Button? {
       switch self {
-      case .upgradeToPremium: return .cancel(Text(L10n.Core.cancel))
+      case .upgradeToPremium: return .cancel(Text(CoreL10n.cancel))
       default: return nil
       }
     }
@@ -184,6 +196,7 @@ extension AddAttachmentButtonViewModel {
 
   enum SheetType: String, Identifiable {
     case imagePicker
+    @available(visionOS, unavailable)
     case camera
     case scanner
     case documentPicker

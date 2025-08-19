@@ -1,10 +1,10 @@
 import CoreKeychain
 import CoreSession
 import CoreSettings
-import DashTypes
+import CoreTypes
 import Foundation
 
-extension SettingsManager: LocalSettingsFactory {
+extension SettingsManager: @retroactive LocalSettingsFactory {
   public func fetchOrCreateSettings(for login: Login) throws -> LocalSettingsStore {
     let sessionDirectory = try SessionDirectory(
       baseURL: ApplicationGroup.fiberSessionsURL, login: login)
@@ -19,7 +19,7 @@ extension SettingsManager: LocalSettingsFactory {
 
   public func fetchOrCreateSettings(
     for login: Login,
-    cryptoEngine: DashTypes.CryptoEngine
+    cryptoEngine: CoreTypes.CryptoEngine
   ) throws -> LocalSettingsStore {
     let settings = try fetchOrCreateSettings(for: login)
     self.cryptoEngine = cryptoEngine
@@ -35,13 +35,13 @@ extension SettingsManager: LocalSettingsFactory {
   }
 }
 
-extension SettingsManager: KeychainSettingsDataProvider {
+extension SettingsManager: @retroactive KeychainSettingsDataProvider {
   public func provider(for login: Login) throws -> SettingsDataProvider {
     try fetchOrCreateSettings(for: login).keyed(by: UserLockSettingsKey.self)
   }
 }
 
-extension FakeSettingsFactory: KeychainSettingsDataProvider {
+extension FakeSettingsFactory: @retroactive KeychainSettingsDataProvider {
   public func fetchOrCreateSettings(for session: Session) throws -> LocalSettingsStore {
     return try fetchOrCreateSettings(for: session.login)
   }

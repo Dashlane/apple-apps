@@ -1,4 +1,4 @@
-import DashTypes
+import CoreTypes
 
 public class FakeSettingsFactory: LocalSettingsFactory {
 
@@ -17,7 +17,7 @@ public class FakeSettingsFactory: LocalSettingsFactory {
     return store
   }
 
-  public func fetchOrCreateSettings(for login: Login, cryptoEngine: DashTypes.CryptoEngine) throws
+  public func fetchOrCreateSettings(for login: Login, cryptoEngine: CoreTypes.CryptoEngine) throws
     -> LocalSettingsStore
   {
     return try fetchOrCreateSettings(for: login)

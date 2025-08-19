@@ -1,4 +1,4 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 
@@ -18,7 +18,7 @@ struct DataForMasterPasswordChange: Encodable {
   let sharingKeys: SyncSharingKeys
   let transactions: [UploadMigrationTransaction]
   let authTicket: String?
-  let remoteKeys: [SyncUploadDataRemoteKeys]?
+  let remoteKeys: SyncUploadDataRemoteKeys?
   let updateVerification: Verification?
 
 }

@@ -24,6 +24,6 @@ struct MyView: View {
         }
       )
     }
-    .fieldAppearance(.grouped)
+    .listStyle(.ds.insetGrouped)
   }
 }

@@ -1,6 +1,6 @@
 import Foundation
 
-public protocol LocalSettingsKey: CaseIterable {
+public protocol LocalSettingsKey: CaseIterable, Sendable {
   var identifier: String { get }
   var type: Any.Type { get }
   var isEncrypted: Bool { get }

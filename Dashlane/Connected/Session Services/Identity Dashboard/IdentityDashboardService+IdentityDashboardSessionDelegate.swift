@@ -27,7 +27,9 @@ extension IdentityDashboardService: IdentityDashboardSessionDelegate {
     notificationManager.post(notification: .securityDashboardDidRefresh)
     session.report(spaceId: nil) { [weak self] report in
       self?.logger.debug("\(report)")
-      self?.widgetService.refresh(withReport: report)
+      #if !os(visionOS)
+        self?.widgetService.refresh(withReport: report)
+      #endif
     }
   }
 

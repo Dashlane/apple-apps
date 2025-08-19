@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Icons {
-  public struct RequestIcons: APIRequest {
+  public struct RequestIcons: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/icons/RequestIcons"
 
     public let api: UserDeviceAPIClient
@@ -25,7 +25,7 @@ extension UserDeviceAPIClient.Icons {
 }
 
 extension UserDeviceAPIClient.Icons.RequestIcons {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case domains = "domains"
     }

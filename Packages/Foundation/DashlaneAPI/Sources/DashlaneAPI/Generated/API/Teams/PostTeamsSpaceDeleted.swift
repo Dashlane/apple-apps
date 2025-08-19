@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Teams {
-  public struct SpaceDeleted: APIRequest {
+  public struct SpaceDeleted: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/teams/SpaceDeleted"
 
     public let api: UserDeviceAPIClient
@@ -25,7 +25,7 @@ extension UserDeviceAPIClient.Teams {
 }
 
 extension UserDeviceAPIClient.Teams.SpaceDeleted {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case teamId = "teamId"
     }

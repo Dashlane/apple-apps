@@ -10,7 +10,7 @@ extension PersonalWebsite: VaultItem {
 
   public var localizedTitle: String {
     guard !name.isEmpty else {
-      return L10n.Core.kwPersonalWebsiteIOS
+      return CoreL10n.kwPersonalWebsiteIOS
     }
     return name
   }
@@ -20,14 +20,14 @@ extension PersonalWebsite: VaultItem {
   }
 
   public static var localizedName: String {
-    L10n.Core.kwPersonalWebsiteIOS
+    CoreL10n.kwPersonalWebsiteIOS
   }
 
   public static var addTitle: String {
-    L10n.Core.kwadddatakwPersonalWebsiteIOS
+    CoreL10n.kwadddatakwPersonalWebsiteIOS
   }
 
   public static var nativeMenuAddTitle: String {
-    L10n.Core.addWebsite
+    CoreL10n.addWebsite
   }
 }

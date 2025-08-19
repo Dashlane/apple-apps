@@ -44,12 +44,10 @@ struct AddOTPManuallyFlowView: View {
       case let .addCredential(credential, configuration):
         CredentialDetailView(
           model: viewModel.makeCredentialDetailViewModel(
-            credential: credential, configuration: configuration)
-        )
-        .navigationBarHidden(true)
+            credential: credential, configuration: configuration))
       }
     }
-    .accentColor(.ds.text.brand.standard)
+    .tint(.ds.text.brand.standard)
   }
 }
 

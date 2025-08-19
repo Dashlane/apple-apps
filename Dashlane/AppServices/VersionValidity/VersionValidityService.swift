@@ -1,11 +1,12 @@
 import Combine
 import CoreSession
 import CoreSettings
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import LoginKit
+import UserTrackingFoundation
 
 class VersionValidityService {
 
@@ -44,7 +45,7 @@ class VersionValidityService {
       } catch let error where error.isConnectionError {
         self.versionValidityStatus = nil
       } catch {
-        self.logger.error(String(describing: error))
+        self.logger.error("Couldn't get app version validity status:)", error: error)
       }
     }
   }

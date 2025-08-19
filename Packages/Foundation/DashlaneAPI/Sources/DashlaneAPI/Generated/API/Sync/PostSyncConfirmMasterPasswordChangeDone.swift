@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Sync {
-  public struct ConfirmMasterPasswordChangeDone: APIRequest {
+  public struct ConfirmMasterPasswordChangeDone: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/sync/ConfirmMasterPasswordChangeDone"
 
     public let api: UserDeviceAPIClient

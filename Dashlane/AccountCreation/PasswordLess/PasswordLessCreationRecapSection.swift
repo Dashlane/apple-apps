@@ -1,5 +1,5 @@
 import CoreLocalization
-import DashTypes
+import CoreTypes
 import DesignSystem
 import SwiftUI
 
@@ -11,7 +11,7 @@ struct PasswordLessCreationRecapSection: View {
 
     } header: {
       description
-        .foregroundColor(.ds.text.neutral.standard)
+        .foregroundStyle(Color.ds.text.neutral.standard)
         .fixedSize(horizontal: false, vertical: true)
         .padding(.leading, -16)
         .padding(.trailing, -16)
@@ -34,6 +34,6 @@ struct PasswordLessCreationRecapSection_Previews: PreviewProvider {
   static var previews: some View {
     List {
       PasswordLessCreationRecapSection()
-    }.listStyle(.insetGrouped)
+    }.listStyle(.ds.insetGrouped)
   }
 }

@@ -5,16 +5,24 @@ import SwiftUI
 public struct FrozenBanner: View {
   @StateObject
   var model: FrozenBannerViewModel
+  @Environment(\.openURL) var openURL
 
   public init(model: @autoclosure @escaping () -> FrozenBannerViewModel) {
     self._model = .init(wrappedValue: model())
   }
 
   public var body: some View {
-    Infobox(L10n.Core.frozenAccountTitle, description: L10n.Core.frozenAccountMessage) {
-      Button(L10n.Core.frozenAccountAction) {
+    Infobox(CoreL10n.frozenAccountTitle, description: CoreL10n.frozenAccountMessage) {
+      Button(CoreL10n.frozenAccountAction) {
         model.displayPaywall()
       }
+
+      Button {
+        openURL(URL(string: "_")!)
+      } label: {
+        Label(CoreL10n.FrozenBanner.learnMoreButton, icon: .ds.action.openExternalLink.outlined)
+      }
+      .buttonStyle(.designSystem(.iconTrailing))
     }
     .style(mood: .danger)
   }

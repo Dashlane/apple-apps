@@ -55,7 +55,7 @@ struct PasswordHealthListView: View {
     HStack {
       Text(viewModel.kind.title)
         .font(.title3.bold())
-        .foregroundColor(.ds.text.neutral.standard)
+        .foregroundStyle(Color.ds.text.neutral.standard)
 
       Spacer()
 
@@ -64,7 +64,7 @@ struct PasswordHealthListView: View {
           action(.detailedList(viewModel.kind))
         }
         .font(.body)
-        .foregroundColor(.ds.text.brand.standard)
+        .foregroundStyle(Color.ds.text.brand.standard)
       }
     }
     .padding(.top, 32)

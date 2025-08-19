@@ -42,14 +42,14 @@ extension CreditCard: VaultItem {
       if let bank = bank, !bank.name.isEmpty {
         return bank.name
       }
-      return L10n.Core.kwPaymentMeanCreditCardIOS
+      return CoreL10n.kwPaymentMeanCreditCardIOS
     }
     return name
   }
 
   public var localizedSubtitle: String {
     if cardNumber.isEmpty {
-      return L10n.Core.KWIDCardIOS.number
+      return CoreL10n.KWIDCardIOS.number
     }
 
     return "••••\(cardNumber.suffix(4)) \(subtitleDateString ?? "")"
@@ -61,15 +61,15 @@ extension CreditCard: VaultItem {
   }
 
   public static var localizedName: String {
-    L10n.Core.kwPaymentMeanCreditCardIOS
+    CoreL10n.kwPaymentMeanCreditCardIOS
   }
 
   public static var addTitle: String {
-    L10n.Core.kwadddatakwPaymentMeanCreditCardIOS
+    CoreL10n.kwadddatakwPaymentMeanCreditCardIOS
   }
 
   public static var nativeMenuAddTitle: String {
-    L10n.Core.addCreditCard
+    CoreL10n.addCreditCard
   }
 }
 
@@ -87,34 +87,34 @@ extension CreditCardColor {
   public var localizedName: String {
     switch self {
     case .black:
-      return L10n.Core.KWPaymentMeanCreditCardIOS.Color.black
+      return CoreL10n.KWPaymentMeanCreditCardIOS.Color.black
 
     case .silver:
-      return L10n.Core.KWPaymentMeanCreditCardIOS.Color.silver
+      return CoreL10n.KWPaymentMeanCreditCardIOS.Color.silver
 
     case .white:
-      return L10n.Core.KWPaymentMeanCreditCardIOS.Color.white
+      return CoreL10n.KWPaymentMeanCreditCardIOS.Color.white
 
     case .red:
-      return L10n.Core.KWPaymentMeanCreditCardIOS.Color.red
+      return CoreL10n.KWPaymentMeanCreditCardIOS.Color.red
 
     case .orange:
-      return L10n.Core.KWPaymentMeanCreditCardIOS.Color.orange
+      return CoreL10n.KWPaymentMeanCreditCardIOS.Color.orange
 
     case .gold:
-      return L10n.Core.KWPaymentMeanCreditCardIOS.Color.gold
+      return CoreL10n.KWPaymentMeanCreditCardIOS.Color.gold
 
     case .green:
-      return L10n.Core.KWPaymentMeanCreditCardIOS.Color.green1
+      return CoreL10n.KWPaymentMeanCreditCardIOS.Color.green1
 
     case .darkGreen:
-      return L10n.Core.KWPaymentMeanCreditCardIOS.Color.green2
+      return CoreL10n.KWPaymentMeanCreditCardIOS.Color.green2
 
     case .blue:
-      return L10n.Core.KWPaymentMeanCreditCardIOS.Color.blue1
+      return CoreL10n.KWPaymentMeanCreditCardIOS.Color.blue1
 
     case .darkBlue:
-      return L10n.Core.KWPaymentMeanCreditCardIOS.Color.blue2
+      return CoreL10n.KWPaymentMeanCreditCardIOS.Color.blue2
     }
   }
 }

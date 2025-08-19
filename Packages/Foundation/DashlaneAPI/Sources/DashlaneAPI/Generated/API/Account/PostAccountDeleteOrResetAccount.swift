@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppAPIClient.Account {
-  public struct DeleteOrResetAccount: APIRequest {
+  public struct DeleteOrResetAccount: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/account/DeleteOrResetAccount"
 
     public let api: AppAPIClient
@@ -27,7 +27,7 @@ extension AppAPIClient.Account {
 }
 
 extension AppAPIClient.Account.DeleteOrResetAccount {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case authTicket = "authTicket"
       case login = "login"
@@ -65,13 +65,13 @@ extension AppAPIClient.Account.DeleteOrResetAccount {
 }
 
 extension AppAPIClient.Account.DeleteOrResetAccount {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case renewalPlatform = "renewalPlatform"
       case renewalStatus = "renewalStatus"
     }
 
-    public enum RenewalPlatform: String, Sendable, Equatable, CaseIterable, Codable {
+    public enum RenewalPlatform: String, Sendable, Hashable, Codable, CaseIterable {
       case ios = "ios"
       case mac = "mac"
       case paypal = "paypal"
@@ -86,7 +86,7 @@ extension AppAPIClient.Account.DeleteOrResetAccount {
       }
     }
 
-    public enum RenewalStatus: String, Sendable, Equatable, CaseIterable, Codable {
+    public enum RenewalStatus: String, Sendable, Hashable, Codable, CaseIterable {
       case stopped = "stopped"
       case notStopped = "not_stopped"
       case undecodable

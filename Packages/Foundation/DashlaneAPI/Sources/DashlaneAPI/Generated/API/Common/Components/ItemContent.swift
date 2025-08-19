@@ -1,6 +1,6 @@
 import Foundation
 
-public struct ItemContent: Codable, Equatable, Sendable {
+public struct ItemContent: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case itemId = "itemId"
     case content = "content"

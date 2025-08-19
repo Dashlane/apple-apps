@@ -1,5 +1,6 @@
-import CoreUserTracking
+import DashlaneAPI
 import Foundation
+import UserTrackingFoundation
 
 public enum DetailFieldType: String {
   case login
@@ -59,6 +60,27 @@ extension DetailFieldType {
       return .addressName
     case .content:
       return .content
+    }
+  }
+
+  public var auditLogField:
+    UserSecureNitroEncryptionAPIClient.Logs.StoreAuditLogs.Body.AuditLogsElement.Properties.Field?
+  {
+    switch self {
+    case .bankAccountIBAN:
+      return .iban
+    case .bankAccountBIC:
+      return .swift
+    case .password:
+      return .password
+    case .otp:
+      return .otp
+    case .number, .cardNumber:
+      return .number
+    case .securityCode:
+      return .cvv
+    default:
+      return nil
     }
   }
 }

@@ -1,8 +1,7 @@
 import AuthenticatorKit
 import Combine
-import CoreFeature
 import CorePersonalData
-import DashTypes
+import CoreTypes
 import Foundation
 import VaultKit
 
@@ -11,6 +10,12 @@ class OTPExplorerViewModel: ObservableObject, SessionServicesInjecting {
   enum Action {
     case setupAuthentication(Credential?)
     case addNewLogin
+  }
+
+  enum ViewState {
+    case loading
+    case intro
+    case ready
   }
 
   private let vaultItemsStore: VaultItemsStore
@@ -26,6 +31,11 @@ class OTPExplorerViewModel: ObservableObject, SessionServicesInjecting {
 
   @Published
   private var vaultState: VaultState = .default
+
+  @Published
+  var viewState: ViewState = .loading
+
+  var cancellables = Set<AnyCancellable>()
 
   init(
     vaultItemsStore: VaultItemsStore,
@@ -59,6 +69,22 @@ class OTPExplorerViewModel: ObservableObject, SessionServicesInjecting {
       }
     }.assign(to: &$otpNotConfiguredCredentials)
 
+    vaultItemsStore
+      .$credentials
+      .receive(on: DispatchQueue.main)
+      .sink { [weak self] credentialsList in
+        guard let self else {
+          return
+        }
+
+        if credentialsList.isEmpty {
+          self.viewState = .intro
+        } else {
+          self.viewState = .ready
+        }
+      }
+      .store(in: &cancellables)
+
     vaultStateService
       .vaultStatePublisher()
       .assign(to: &$vaultState)
@@ -90,7 +116,7 @@ extension OTPExplorerViewModel {
   static var mock: OTPExplorerViewModel {
     return OTPExplorerViewModel(
       vaultItemsStore: MockVaultKitServicesContainer().vaultItemsStore,
-      vaultStateService: .mock,
+      vaultStateService: .mock(),
       deeplinkingService: DeepLinkingService.fakeService,
       otpSupportedDomainsRepository: OTPSupportedDomainsRepository(),
       rowModelFactory: .init { item, _, _ in .mock(item: item) },

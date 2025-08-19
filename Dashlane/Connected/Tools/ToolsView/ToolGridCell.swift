@@ -50,7 +50,7 @@ struct ToolGridCell: View {
         .renderingMode(.template)
         .resizable()
         .frame(width: imageHeightAndWidth, height: imageHeightAndWidth)
-        .foregroundColor(.ds.text.brand.quiet)
+        .foregroundStyle(Color.ds.text.brand.quiet)
       if !sizeCategory.isAccessibilityCategory {
         Spacer()
       }
@@ -68,7 +68,7 @@ struct ToolGridCell: View {
     HStack(alignment: .top) {
       Text(tool.item.title)
         .font(.headline.weight(.semibold).leading(.loose))
-        .foregroundColor(.ds.text.neutral.catchy)
+        .foregroundStyle(Color.ds.text.neutral.catchy)
         .multilineTextAlignment(.leading)
       Spacer()
     }
@@ -86,7 +86,7 @@ struct ToolsViewCellView_Previews: PreviewProvider {
         ToolGridCell(tool: ToolInfo(item: .secureWifi, status: .available(beta: true)))
           .frame(minHeight: 112)
       }
-      .backgroundColorIgnoringSafeArea(.red)
+      .background(Color.red, ignoresSafeAreaEdges: .all)
       .previewLayout(.sizeThatFits)
     }
   }

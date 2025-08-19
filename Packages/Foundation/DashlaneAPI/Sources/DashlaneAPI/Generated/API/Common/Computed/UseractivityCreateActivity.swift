@@ -1,6 +1,6 @@
 import Foundation
 
-public struct UseractivityCreateActivity: Codable, Equatable, Sendable {
+public struct UseractivityCreateActivity: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case autologins = "autologins"
     case averagePasswordStrength = "averagePasswordStrength"

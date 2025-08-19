@@ -1,5 +1,6 @@
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 
 public struct SecureArchiveDBStack {
   public struct Filter {
@@ -18,6 +19,7 @@ public struct SecureArchiveDBStack {
   public let driver: DatabaseDriver
   public let cryptoEngine: CryptoEngine
 
+  @Loggable
   public enum SecureArchiveError: Swift.Error {
     case unreadableArchive
     case noEncryptedData
@@ -72,7 +74,16 @@ public struct SecureArchiveDBStack {
 
     let records = try driver.read { db in
       try acceptedTypes.map { type in
-        try db.fetchAll(by: type)
+        let records = try db.fetchAll(by: type)
+        switch type {
+        case .passkey:
+          let cloudKeyItem = "\(Passkey.KeyAlgorithm.cloudKey)"
+          return records.filter {
+            $0.content[Passkey.CodingKeys.keyAlgorithm.rawValue]?.item != cloudKeyItem
+          }
+        default:
+          return records
+        }
       }.joined()
     }.filter(filter)
 

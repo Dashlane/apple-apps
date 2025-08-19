@@ -3,10 +3,11 @@ import CoreFeature
 import CoreLocalization
 import CorePersonalData
 import CorePremium
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DesignSystem
 import Foundation
+import LogFoundation
+import UserTrackingFoundation
 import VaultKit
 
 @MainActor
@@ -241,7 +242,7 @@ extension CollectionDetailViewModel {
     Task {
       _ = try? await vaultCollectionEditionService.remove(item)
       toast(
-        CoreLocalization.L10n.Core.KWVaultItem.Collections.Toast.itemRemoved(1),
+        CoreL10n.KWVaultItem.Collections.Toast.itemRemoved(1),
         image: .ds.feedback.success.outlined
       )
     }

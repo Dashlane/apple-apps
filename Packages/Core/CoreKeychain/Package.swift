@@ -3,7 +3,7 @@ import PackageDescription
 let package = Package(
   name: "CoreKeychain",
   platforms: [
-    .iOS(.v16)
+    .iOS(.v17)
   ],
   products: [
     .library(
@@ -12,7 +12,7 @@ let package = Package(
   ],
   dependencies: [
     .package(path: "../../Foundation/SwiftTreats"),
-    .package(path: "../../Foundation/DashTypes"),
+    .package(path: "../../Core/CoreTypes"),
     .package(path: "../../Foundation/CyrilKit"),
   ],
   targets: [
@@ -20,7 +20,7 @@ let package = Package(
       name: "CoreKeychain",
       dependencies: [
         .product(name: "SwiftTreats", package: "SwiftTreats"),
-        .product(name: "DashTypes", package: "DashTypes"),
+        .product(name: "CoreTypes", package: "CoreTypes"),
         .product(name: "CyrilKit", package: "CyrilKit"),
       ]
     )

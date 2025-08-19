@@ -1,6 +1,6 @@
 import Foundation
 
-public struct UserUpload: Codable, Equatable, Sendable {
+public struct UserUpload: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case userId = "userId"
     case alias = "alias"

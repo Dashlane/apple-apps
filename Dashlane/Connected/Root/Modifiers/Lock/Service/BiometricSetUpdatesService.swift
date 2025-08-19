@@ -2,7 +2,7 @@ import CoreFeature
 import CoreKeychain
 import CoreSession
 import CoreSettings
-import DashTypes
+import CoreTypes
 import Foundation
 import LocalAuthentication
 import LoginKit
@@ -11,7 +11,7 @@ import SwiftTreats
 struct BiometricSetUpdatesService {
   let session: Session
   let settings: UserLockSettings
-  let keychainService: AuthenticationKeychainService
+  let keychainService: AuthenticationKeychainServiceProtocol
   let featureService: FeatureServiceProtocol
   let configurator: SecureLockConfigurator
   let resetMasterPasswordService: ResetMasterPasswordService

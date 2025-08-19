@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Sync {
-  public struct UploadDataForMasterPasswordChange: APIRequest {
+  public struct UploadDataForMasterPasswordChange: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/sync/UploadDataForMasterPasswordChange"
 
     public let api: UserDeviceAPIClient
@@ -30,7 +30,7 @@ extension UserDeviceAPIClient.Sync {
 }
 
 extension UserDeviceAPIClient.Sync.UploadDataForMasterPasswordChange {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case timestamp = "timestamp"
       case transactions = "transactions"
@@ -41,14 +41,14 @@ extension UserDeviceAPIClient.Sync.UploadDataForMasterPasswordChange {
       case uploadReason = "uploadReason"
     }
 
-    public struct UpdateVerification: Codable, Equatable, Sendable {
+    public struct UpdateVerification: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case type = "type"
         case serverKey = "serverKey"
         case ssoServerKey = "ssoServerKey"
       }
 
-      public enum `Type`: String, Sendable, Equatable, CaseIterable, Codable {
+      public enum `Type`: String, Sendable, Hashable, Codable, CaseIterable {
         case emailToken = "email_token"
         case totpDeviceRegistration = "totp_device_registration"
         case totpLogin = "totp_login"
@@ -79,7 +79,7 @@ extension UserDeviceAPIClient.Sync.UploadDataForMasterPasswordChange {
       }
     }
 
-    public enum UploadReason: String, Sendable, Equatable, CaseIterable, Codable {
+    public enum UploadReason: String, Sendable, Hashable, Codable, CaseIterable {
       case completeAccountRecovery = "complete_account_recovery"
       case masterPasswordMobileReset = "master_password_mobile_reset"
       case undecodable

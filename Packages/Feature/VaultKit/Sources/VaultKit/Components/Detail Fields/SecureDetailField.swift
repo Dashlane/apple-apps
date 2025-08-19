@@ -31,9 +31,6 @@ public struct SecureDetailField<FeedbackContent: View>: DetailField {
   @Binding
   var text: String
 
-  @State
-  var shouldReveal: Bool = false
-
   @FocusState
   var isFocused
 
@@ -50,45 +47,24 @@ public struct SecureDetailField<FeedbackContent: View>: DetailField {
   let actions: [Action]
   let feedback: FeedbackContent?
 
-  let formatter: Formatter?
-  let obfuscatingFormatter: Formatter?
-  let hasDisplayEmptyIndicator: Bool
-
-  var effectiveFormatter: Formatter? {
-    return shouldReveal ? formatter : obfuscatingFormatter
-  }
-
-  var isColored: Bool
+  let format: FieldValueFormat?
 
   var shouldBeDisabled: Bool {
     return !detailMode.isEditing
-  }
-
-  var shouldUseNewTextField: Bool {
-    if Device.isMac, #unavailable(macOS 13.0) {
-      return false
-    }
-    return obfuscatingFormatter == nil && formatter == nil
   }
 
   public init(
     title: String,
     text: Binding<String>,
     onRevealAction: OnRevealAction? = nil,
-    hasDisplayEmptyIndicator: Bool = true,
-    formatter: Formatter? = nil,
-    obfuscatingFormatter: Formatter? = nil,
-    isColored: Bool = false,
+    format: FieldValueFormat? = nil,
     actions: [Action] = [],
     feedback: FeedbackContent?
   ) {
     self.title = title
     self._text = text
     self.onRevealAction = onRevealAction
-    self.hasDisplayEmptyIndicator = hasDisplayEmptyIndicator
-    self.formatter = formatter
-    self.obfuscatingFormatter = obfuscatingFormatter
-    self.isColored = isColored
+    self.format = format
     self.actions = actions
     self.feedback = feedback
   }
@@ -97,124 +73,57 @@ public struct SecureDetailField<FeedbackContent: View>: DetailField {
     title: String,
     text: Binding<String>,
     onRevealAction: OnRevealAction? = nil,
-    hasDisplayEmptyIndicator: Bool = true,
-    formatter: Formatter? = nil,
-    obfuscatingFormatter: Formatter? = nil,
-    isColored: Bool = false,
+    format: FieldValueFormat? = nil,
     actions: [Action] = []
   ) where FeedbackContent == EmptyView {
     self.init(
       title: title,
       text: text,
       onRevealAction: onRevealAction,
-      hasDisplayEmptyIndicator: hasDisplayEmptyIndicator,
-      formatter: formatter,
-      obfuscatingFormatter: obfuscatingFormatter,
-      isColored: isColored,
+      format: format,
       actions: actions,
       feedback: EmptyView()
     )
   }
 
+  @ViewBuilder
   public var body: some View {
-    HStack {
-      if !detailMode.isEditing {
-        textfield
-      } else if !Device.isMac {
-        textfield
-          .contentShape(Rectangle())
-          .onTapGesture {
-            self.isFocused = true
-            self.isFocusedBinding = true
-          }
-      } else {
-        textfield
-      }
-
-      if detailMode != .limitedViewing, !shouldUseNewTextField, !text.isEmpty {
-        Toggle(isOn: $shouldReveal) {
-          EmptyView()
+    if !Device.is(.mac) && detailMode.isEditing {
+      textfield
+        .lineLimit(1)
+        .frame(maxWidth: .infinity)
+        .environment(\.editMode, detailMode.isEditing ? .constant(.active) : .constant(.inactive))
+        .contentShape(Rectangle())
+        .onTapGesture {
+          self.isFocused = true
+          self.isFocusedBinding = true
         }
-        .toggleStyle(
-          RevealToggleStyle(
-            fieldType: fiberFieldType,
-            action: {
-              shouldReveal.toggle()
-              onRevealAction?($0)
-            }))
-
-        ForEach(actions) { action in
-          if case .copy(let action) = action {
-            Button(
-              action: { action(text, fiberFieldType) },
-              label: {
-                Image.ds.action.copy.outlined
-                  .resizable()
-                  .aspectRatio(contentMode: .fit)
-                  .frame(width: 24, height: 24)
-                  .foregroundColor(Color.ds.text.brand.quiet)
-              }
-            )
-            .buttonStyle(.plain)
-            .accessibilityLabel(Text(L10n.Core.kwCopy))
-          }
-        }
-      }
+    } else {
+      textfield
+        .lineLimit(1)
+        .frame(maxWidth: .infinity)
+        .environment(\.editMode, detailMode.isEditing ? .constant(.active) : .constant(.inactive))
     }
-    .onAppear {
-      if detailMode.isAdding {
-        shouldReveal = true
-      }
-    }
-    .animation(Device.isMac ? .none : .default, value: shouldReveal)
   }
 
+  @ViewBuilder
   var textfield: some View {
-    ZStack {
-      if shouldUseNewTextField {
-        newField
-      } else if !detailMode.isEditing && shouldReveal && isColored {
-        PasswordText(text: text, formatter: formatter)
-      } else if detailMode.isEditing || (!shouldReveal && obfuscatingFormatter == nil) {
-        previousField
+    if let format {
+      if detailMode.isEditing {
+        dsObfuscatedInputField
       } else {
-        Text("\(text, formatter: effectiveFormatter)")
-          .font(Font.system(.body, design: .monospaced))
-          .frame(maxWidth: .infinity, alignment: .leading)
+        dsObfuscatedDisplayField(format: format)
       }
+    } else {
+      dsPasswordField
     }
-    .padding(1)
-    .lineLimit(1)
-    .frame(maxWidth: .infinity)
-    .labeledIfNeeded(
-      title + (detailMode.isEditing && hasDisplayEmptyIndicator ? "*" : ""),
-      !shouldUseNewTextField
-    )
-    .environment(\.editMode, detailMode.isEditing ? .constant(.active) : .constant(.inactive))
   }
 
-  private var previousField: some View {
-    PasswordField(title, text: $text, isFocused: $isFocusedBinding)
-      .passwordFieldSecure(!shouldReveal)
-      .textInputAutocapitalization(.never)
-      .passwordFieldMonospacedFont(true)
-      .disabled(shouldBeDisabled)
-      .fiberAccessibilityHint(
-        Text(
-          [
-            !shouldBeDisabled ? L10n.Core.detailItemViewAccessibilityEditableHint : nil,
-            hasDisplayEmptyIndicator ? L10n.Core.textInputRequired : nil,
-          ]
-          .compactMap({ $0 })
-          .joined(separator: " ,")
-        )
-      )
-  }
-
-  private var newField: some View {
+  private var dsPasswordField: some View {
     DS.PasswordField(
       title,
       text: $text,
+      shouldReveal: detailMode.isAdding,
       actions: {
         ForEach(actions, id: \.id) { action in
           switch action {
@@ -235,126 +144,84 @@ public struct SecureDetailField<FeedbackContent: View>: DetailField {
     )
     .onRevealSecureValue { onRevealAction?(fiberFieldType) }
     .focused($isFocused)
-    .passwordFieldSecure(!shouldReveal)
-    .textInputAutocapitalization(.never)
-    .passwordFieldMonospacedFont(true)
     .fiberAccessibilityHint(
-      !shouldBeDisabled ? Text(L10n.Core.detailItemViewAccessibilityEditableHint) : Text(""))
-  }
-}
-
-private struct LabeledContainer<Content: View>: View {
-  private let label: String
-  private let content: Content
-
-  init(_ label: String, @ViewBuilder content: @escaping () -> Content) {
-    self.label = label
-    self.content = content()
+      !shouldBeDisabled ? Text(CoreL10n.detailItemViewAccessibilityEditableHint) : Text(""))
   }
 
-  var body: some View {
-    VStack(alignment: .leading, spacing: 4) {
-      Text(label)
-        .textStyle(.body.helper.regular)
-        .foregroundStyle(Color.ds.text.neutral.quiet)
-        .accessibilityHidden(true)
-      content
-    }
-  }
-}
-
-public struct PasswordText: View {
-  var text: String
-  let formatter: Formatter?
-
-  public init(text: String, formatter: Formatter? = nil) {
-    self.text = text
-    self.formatter = formatter
-  }
-
-  public var body: some View {
-    text.reduce(
-      Text(""),
-      { (currentText, char) -> Text in
-        let tempText = Text("\(String(char), formatter: formatter)")
-          .foregroundColor(Color(passwordChar: char))
-        return currentText + tempText
+  private var dsObfuscatedInputField: some View {
+    DS.ObfuscatedInputField(
+      title,
+      text: $text,
+      shouldReveal: detailMode.isAdding,
+      actions: {
+        ForEach(actions, id: \.id) { action in
+          switch action {
+          case .copy(let action):
+            if !text.isEmpty {
+              DS.FieldAction.CopyContent { action(text, fiberFieldType) }
+            }
+          case .other(let title, let image, let action):
+            DS.FieldAction.Button(title, image: image, action: action)
+          }
+        }
       }
     )
-    .font(Font.system(.body, design: .monospaced))
-    .frame(maxWidth: .infinity, alignment: .leading)
-  }
-}
-
-struct RevealToggleStyle: ToggleStyle {
-  let fieldType: DetailFieldType
-  let action: SecureDetailField.OnRevealAction
-
-  private func image(for configuration: Self.Configuration) -> Image {
-    return configuration.isOn ? .ds.action.hide.outlined : .ds.action.reveal.outlined
+    .onRevealSecureValue { onRevealAction?(fiberFieldType) }
+    .focused($isFocused)
+    .fiberAccessibilityHint(
+      !shouldBeDisabled ? Text(CoreL10n.detailItemViewAccessibilityEditableHint) : Text(""))
   }
 
-  func makeBody(configuration: Self.Configuration) -> some View {
-    image(for: configuration)
-      .resizable()
-      .aspectRatio(contentMode: .fit)
-      .frame(width: 24, height: 24)
-      .fiberAccessibilityLabel(Text(configuration.isOn ? L10n.Core.kwHide : L10n.Core.kwReveal))
-      .foregroundColor(Color.ds.text.brand.quiet)
-      .extendTappableArea()
-      .animation(nil, value: configuration.isOn)
-      .onTapGesture {
-        self.action(self.fieldType)
+  private func dsObfuscatedDisplayField(format: FieldValueFormat) -> some View {
+    DS.ObfuscatedDisplayField(title, value: text, format: format) {
+      ForEach(actions, id: \.id) { action in
+        switch action {
+        case .copy(let action):
+          if !text.isEmpty {
+            DS.FieldAction.CopyContent { action(text, fiberFieldType) }
+          }
+        case .other(let title, let image, let action):
+          DS.FieldAction.Button(title, image: image, action: action)
+        }
       }
+    }
+    .onRevealSecureValue { onRevealAction?(fiberFieldType) }
+    .focused($isFocused)
+    .fiberAccessibilityHint(
+      !shouldBeDisabled ? Text(CoreL10n.detailItemViewAccessibilityEditableHint) : Text(""))
   }
+
 }
 
-extension View {
-  @ViewBuilder
-  fileprivate func extendTappableArea() -> some View {
-    if Device.isMac {
-      self
-        .padding(2)
-        .contentShape(Rectangle())
-    } else {
-      self
-    }
-  }
-
-  @ViewBuilder
-  fileprivate func labeledIfNeeded(_ label: String, _ needed: Bool) -> some View {
-    if needed {
-      LabeledContainer(label) {
-        self
-      }
-    } else {
-      self
-    }
-  }
+#Preview("Password fields - Default") {
+  SecureDetailField(title: "Title", text: .constant("test"))
+    .background(Color.ds.background.default)
 }
 
-struct SecureDetailField_Previews: PreviewProvider {
-  static var previews: some View {
-    MultiContextPreview {
-      Group {
-        SecureDetailField(title: "Title", text: .constant("test"))
-        SecureDetailField(title: "Title", text: .constant("test")).environment(
-          \.detailMode, .updating)
-        SecureDetailField(title: "Title", text: .constant(""))
-      }
-      .background(Color.ds.background.default)
-    }
-    .previewLayout(.sizeThatFits)
-  }
+#Preview("Password fields - Updating") {
+  SecureDetailField(title: "Title", text: .constant("test"))
+    .environment(\.detailMode, .updating)
+    .background(Color.ds.background.default)
 }
 
-extension DetailFieldType {
-  fileprivate var infoButtonAccessibilityLabel: String {
-    switch self {
-    case .cardNumber, .socialSecurityNumber, .bankAccountBIC, .bankAccountIBAN:
-      return L10n.Core.detailItemViewAccessibilityNumberMissingIconLabel
-    default:
-      return L10n.Core.detailItemViewAccessibilityPasswordMissingIconLabel
-    }
-  }
+#Preview("Password fields - Empty") {
+  SecureDetailField(title: "Title", text: .constant(""))
+    .background(Color.ds.background.default)
+}
+
+#Preview("Formatted fields - Card Number") {
+  SecureDetailField(title: "Title", text: .constant("1234222233334444"), format: .cardNumber)
+    .background(Color.ds.background.default)
+}
+
+#Preview("Formatted fields - BIC") {
+  SecureDetailField(
+    title: "Title", text: .constant("BARCGB22XXX"), format: .accountIdentifier(.bic)
+  )
+  .background(Color.ds.background.default)
+}
+
+#Preview("Formatted fields - Obfuscated Note") {
+  SecureDetailField(title: "Title", text: .constant("Test note"), format: .obfuscated(maxLength: 4))
+    .background(Color.ds.background.default)
 }

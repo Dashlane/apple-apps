@@ -1,6 +1,7 @@
 import CorePremium
-import MacrosKit
+import CoreSession
 import SwiftUI
+import UIDelight
 import VaultKit
 
 @ViewInit
@@ -16,13 +17,11 @@ struct ConnectedEnvironmentViewModifier: ViewModifier {
       .environment(\.richIconsEnabled, model.richIconsEnabled)
       .environment(\.spacesConfiguration, model.spacesConfiguration)
       .environment(\.copy, model.copyAction)
+      .environment(\.authenticationMethod, model.session.authenticationMethod)
   }
 }
 
 extension EnvironmentValues {
-  @EnvironmentValue
-  var spacesConfiguration: UserSpacesService.SpacesConfiguration = .init()
-
-  @EnvironmentValue
-  var copy: (String) -> Void = UIPasteboard.general.copy
+  @Entry var spacesConfiguration: UserSpacesService.SpacesConfiguration = .init()
+  @Entry var copy: (String) -> Void = UIPasteboard.general.copy
 }

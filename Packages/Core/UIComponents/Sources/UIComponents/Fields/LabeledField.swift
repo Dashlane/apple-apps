@@ -6,7 +6,7 @@ struct LabeledFieldModifier: ViewModifier {
   func body(content: Content) -> some View {
     VStack(alignment: .leading, spacing: 8) {
       Text(label)
-        .foregroundColor(.ds.text.neutral.quiet)
+        .foregroundStyle(Color.ds.text.neutral.quiet)
         .font(.caption)
         .id(label)
       content

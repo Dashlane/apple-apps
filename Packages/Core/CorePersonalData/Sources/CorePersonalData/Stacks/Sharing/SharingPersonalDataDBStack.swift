@@ -1,6 +1,7 @@
 import Combine
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 import SwiftUI
 
 public class SharingPersonalDataDBStack {
@@ -30,13 +31,13 @@ public class SharingPersonalDataDBStack {
 }
 
 extension SharingPersonalDataDBStack: SharingPersonalDataDB {
-  public func sharedItemIds() async throws -> [DashTypes.Identifier] {
+  public func sharedItemIds() async throws -> [CoreTypes.Identifier] {
     try driver.read { db in
       try db.fetchAllMetadata().filter { $0.isShared }.map(\.id)
     }
   }
 
-  public func perform(_ updates: [DashTypes.SharingItemUpdate]) async throws {
+  public func perform(_ updates: [CoreTypes.SharingItemUpdate]) async throws {
     try driver.write { db in
       for update in updates {
         try perform(update, in: &db)
@@ -152,10 +153,14 @@ extension SharingPersonalDataDBStack: SharingPersonalDataDB {
     }
   }
 
-  public func reCreateAcceptedItem(with id: Identifier) async throws {
+  public func reCreateAcceptedItem(with id: Identifier, markOldItemAsPending: Bool) async throws {
     try driver.write { db in
       guard var record = try db.fetchOneForSharing(with: id) else {
         return
+      }
+
+      if markOldItemAsPending {
+        pendingActivationRecords[id] = record
       }
 
       record.metadata.markAsPendingRemove()

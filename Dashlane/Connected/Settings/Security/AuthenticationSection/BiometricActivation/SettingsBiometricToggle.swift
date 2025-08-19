@@ -9,6 +9,9 @@ struct SettingsBiometricToggle: View {
   @ObservedObject
   var viewModel: SettingsBiometricToggleViewModel
 
+  @Environment(\.accessControl)
+  var accessControl
+
   var body: some View {
     DS.Toggle(
       L10n.Localizable.kwUseBiometryType(Device.currentBiometryDisplayableName),
@@ -26,7 +29,15 @@ struct SettingsBiometricToggle: View {
         return makeKeychainStoredMasterPasswordAlert(completion: completion)
       }
     }
-    .onChange(of: viewModel.isToggleOn, perform: viewModel.useBiometry)
+    .onChange(of: viewModel.isToggleOn) { _, newValue in
+      accessControl.requestAccess(for: .authenticationSetup) { success in
+        if success {
+          viewModel.useBiometry(newValue)
+        } else {
+          viewModel.isToggleOn.toggle()
+        }
+      }
+    }
   }
 
   private func makePinCodeReplacementWarningAlert(completion: @escaping (Confirmed) -> Void)
@@ -36,10 +47,8 @@ struct SettingsBiometricToggle: View {
     return Alert(
       title: Text(title),
       message: nil,
-      primaryButton: .cancel(
-        Text(CoreLocalization.L10n.Core.kwReplaceTouchidCancel), action: { completion(false) }),
-      secondaryButton: .default(
-        Text(CoreLocalization.L10n.Core.kwReplaceTouchidOk), action: { completion(true) }))
+      primaryButton: .cancel(Text(CoreL10n.kwReplaceTouchidCancel), action: { completion(false) }),
+      secondaryButton: .default(Text(CoreL10n.kwReplaceTouchidOk), action: { completion(true) }))
   }
 
   private func makeMasterPasswordResetDeactivationWarningAlert(
@@ -83,7 +92,7 @@ struct SettingsBiometricToggle: View {
       title: Text(title),
       message: nil,
       primaryButton: .cancel({ completion(false) }),
-      secondaryButton: .default(Text(CoreLocalization.L10n.Core.kwButtonOk)) { completion(true) })
+      secondaryButton: .default(Text(CoreL10n.kwButtonOk)) { completion(true) })
   }
 }
 

@@ -48,20 +48,21 @@ struct PasswordHealthListRowView: View, SessionServicesInjecting {
 
   private var actionsMenu: some View {
     Menu {
-      Button(
-        action: exclude,
-        title: item.disabledForPasswordAnalysis
-          ? L10n.Localizable.securityDashboardActionInclude
-          : L10n.Localizable.securityDashboardActionExclude
-      )
-      Button(action: replace, title: L10n.Localizable.securityDashboardActionReplace)
+      let excludeTitle =
+        if item.disabledForPasswordAnalysis {
+          L10n.Localizable.securityDashboardActionInclude
+        } else {
+          L10n.Localizable.securityDashboardActionExclude
+        }
+      Button(excludeTitle, action: exclude)
+      Button(L10n.Localizable.securityDashboardActionReplace, action: replace)
     } label: {
       Image.ds.action.more.outlined
         .resizable()
         .aspectRatio(contentMode: .fit)
-        .fiberAccessibilityLabel(Text(CoreLocalization.L10n.Core.kwActions))
+        .fiberAccessibilityLabel(Text(CoreL10n.kwActions))
         .frame(width: 24, height: 40)
-        .foregroundColor(.ds.text.brand.quiet)
+        .foregroundStyle(Color.ds.text.brand.quiet)
     }
   }
 }

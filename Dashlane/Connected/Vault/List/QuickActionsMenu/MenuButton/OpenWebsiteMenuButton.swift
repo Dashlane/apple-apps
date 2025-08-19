@@ -21,7 +21,7 @@ struct OpenWebsiteMenuButton_Previews: PreviewProvider {
   static var previews: some View {
     MultiContextPreview {
       OpenWebsiteMenuButton(url: URL(string: "_")!)
-        .foregroundColor(.ds.text.neutral.catchy)
+        .foregroundStyle(Color.ds.text.neutral.catchy)
     }
     .padding()
     .background(Color.ds.background.default)

@@ -37,20 +37,8 @@ struct PinButton: View {
   }
 }
 
-struct PinButton_Previews: PreviewProvider {
-  static var previews: some View {
-    MultiContextPreview {
-      Group {
-        PinButton(action: {}, title: "1")
-        PinButton(action: {}, title: "1", fillColor: .yellow)
-          .font(.largeTitle)
-      }
-    }
-  }
-}
-
 struct PinButtonStyle: ButtonStyle {
-
+  @Environment(\.isEnabled) var isEnabled
   let fillColor: Color
   let highlightColor: Color
 
@@ -58,10 +46,21 @@ struct PinButtonStyle: ButtonStyle {
     ZStack {
       Circle()
         .fill(configuration.isPressed ? highlightColor : fillColor)
+        .contentShape(.hoverEffect, Circle())
+        .hoverEffect(isEnabled: isEnabled)
         .contentShape(Rectangle())
       configuration.label
-        .foregroundColor(.ds.text.neutral.standard)
+        .foregroundStyle(Color.ds.text.neutral.standard)
         .lineLimit(1)
     }
   }
+}
+
+#Preview("Default") {
+  PinButton(action: {}, title: "1")
+}
+
+#Preview("Custom Fill & Font") {
+  PinButton(action: {}, title: "1", fillColor: .yellow)
+    .font(.largeTitle)
 }

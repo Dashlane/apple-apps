@@ -1,5 +1,4 @@
 import Combine
-import CoreActivityLogs
 import CoreFeature
 import CorePasswords
 import CorePersonalData
@@ -7,12 +6,14 @@ import CorePremium
 import CoreRegion
 import CoreSession
 import CoreSettings
-import CoreUserTracking
-import DashTypes
+import CoreTeamAuditLogs
+import CoreTypes
 import DocumentServices
 import Foundation
+import LogFoundation
 import SwiftUI
 import UIComponents
+import UserTrackingFoundation
 import VaultKit
 
 class DrivingLicenseDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting,
@@ -56,7 +57,7 @@ class DrivingLicenseDetailViewModel: DetailViewModelProtocol, SessionServicesInj
     userSpacesService: UserSpacesService,
     deepLinkService: VaultKit.DeepLinkingServiceProtocol,
     activityReporter: ActivityReporterProtocol,
-    activityLogsService: ActivityLogsServiceProtocol,
+    teamAuditLogsService: TeamAuditLogsServiceProtocol,
     regionInformationService: RegionInformationService,
     iconViewModelProvider: @escaping (VaultItem) -> VaultItemIconViewModel,
     logger: Logger,
@@ -68,7 +69,6 @@ class DrivingLicenseDetailViewModel: DetailViewModelProtocol, SessionServicesInj
     self.init(
       service: .init(
         item: item,
-        canLock: session.authenticationMethod.supportsLock,
         mode: mode,
         vaultItemDatabase: vaultItemDatabase,
         vaultItemsStore: vaultItemsStore,
@@ -80,7 +80,7 @@ class DrivingLicenseDetailViewModel: DetailViewModelProtocol, SessionServicesInj
         documentStorageService: documentStorageService,
         deepLinkService: deepLinkService,
         activityReporter: activityReporter,
-        activityLogsService: activityLogsService,
+        teamAuditLogsService: teamAuditLogsService,
         iconViewModelProvider: iconViewModelProvider,
         attachmentSectionFactory: attachmentSectionFactory,
         logger: logger,

@@ -17,7 +17,7 @@ extension Identity: VaultItem {
   public var localizedSubtitle: String {
     var dob: String = ""
     if let birthDate = birthDate {
-      dob = DateFormatter.mediumDateFormatter.string(from: birthDate)
+      dob = DateFormatter.birthDateFormatter.string(from: birthDate)
     }
     return [dob, birthPlace]
       .filter { !$0.isEmpty }
@@ -25,15 +25,15 @@ extension Identity: VaultItem {
   }
 
   public static var localizedName: String {
-    L10n.Core.kwIdentityIOS
+    CoreL10n.kwIdentityIOS
   }
 
   public static var addTitle: String {
-    L10n.Core.kwadddatakwIdentityIOS
+    CoreL10n.kwadddatakwIdentityIOS
   }
 
   public static var nativeMenuAddTitle: String {
-    L10n.Core.addName
+    CoreL10n.addName
   }
 }
 
@@ -42,17 +42,17 @@ extension Identity.PersonalTitle {
   public var localizedString: String {
     switch self {
     case .mr:
-      return L10n.Core.KWIdentityIOS.Title.mr
+      return CoreL10n.KWIdentityIOS.Title.mr
     case .mrs:
-      return L10n.Core.KWIdentityIOS.Title.mme
+      return CoreL10n.KWIdentityIOS.Title.mme
     case .miss:
-      return L10n.Core.KWIdentityIOS.Title.mlle
+      return CoreL10n.KWIdentityIOS.Title.mlle
     case .ms:
-      return L10n.Core.KWIdentityIOS.Title.ms
+      return CoreL10n.KWIdentityIOS.Title.ms
     case .mx:
-      return L10n.Core.KWIdentityIOS.Title.mx
+      return CoreL10n.KWIdentityIOS.Title.mx
     case .noneOfThese:
-      return L10n.Core.KWIdentityIOS.Title.noneOfThese
+      return CoreL10n.KWIdentityIOS.Title.noneOfThese
     }
   }
 

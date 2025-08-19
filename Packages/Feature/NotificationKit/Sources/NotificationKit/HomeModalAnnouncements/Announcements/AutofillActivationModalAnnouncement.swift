@@ -1,7 +1,7 @@
 import Combine
 import CoreFeature
 import CoreSettings
-import DashTypes
+import CoreTypes
 import Foundation
 
 public class AutofillActivationModalAnnouncement: HomeModalAnnouncement,

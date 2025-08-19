@@ -2,6 +2,7 @@ import Combine
 import CoreFeature
 import CoreLocalization
 import CoreSettings
+import CoreTypes
 import DesignSystem
 import Foundation
 import SwiftTreats
@@ -49,8 +50,8 @@ struct FrozenAccountNotification: DashlaneNotification {
   let notificationActionHandler: NotificationActionHandler
 
   let icon: Image = Image.ds.notification.outlined
-  let title: String = CoreLocalization.L10n.Core.notificationFrozenAccountTitle
-  let description: String = CoreLocalization.L10n.Core.notificationFrozenAccountDescription
+  let title: String = CoreL10n.notificationFrozenAccountTitle
+  let description: String = CoreL10n.notificationFrozenAccountDescription
 
   let category: NotificationCategory = .whatIsNew
   let id: String = "frozenAccount"

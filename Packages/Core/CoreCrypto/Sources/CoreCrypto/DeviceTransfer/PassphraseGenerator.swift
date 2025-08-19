@@ -1,4 +1,5 @@
 import Foundation
+import LogFoundation
 
 struct PassphraseGenerator {
 
@@ -40,6 +41,7 @@ struct PassphraseGenerator {
 }
 
 extension PassphraseGenerator {
+  @Loggable
   enum GeneratorError: Error {
     case wrongSeedSize
   }

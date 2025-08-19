@@ -4,33 +4,32 @@ import SecurityDashboard
 import SwiftUI
 
 protocol UnresolvedAlertShowable {
-  func generateMessage() -> NSAttributedString
+  func generateMessage() -> AttributedString
   func generateActionableMessage() -> UnresolvedAlertActionableMessage?
-  func generatePostActionableMessage() -> NSAttributedString?
+  func generatePostActionableMessage() -> AttributedString?
 }
 
 extension UnresolvedAlertShowable {
   func generateActionableMessage() -> UnresolvedAlertActionableMessage? { return nil }
-  func generatePostActionableMessage() -> NSAttributedString? { return nil }
+  func generatePostActionableMessage() -> AttributedString? { return nil }
 }
 
 public protocol UnresolvedAlertActionableMessage {
   var state: DataLeakPlaintextTrayAlert.Actionable.State { get }
-  var message: NSAttributedString { get }
-  var icon: UIImage { get }
+  var message: AttributedString { get }
+  var icon: Image { get }
   func action()
 }
 
 public struct UnresolvedAlert {
 
   let alert: TrayAlertProtocol
-  let title: NSAttributedString?
-  let message: NSAttributedString
+  let title: AttributedString?
+  let message: AttributedString
   let actionableMessage: UnresolvedAlertActionableMessage?
-  let postActionableMessage: NSAttributedString?
+  let postActionableMessage: AttributedString?
 
   init(_ trayAlert: TrayAlertProtocol) {
-
     self.alert = trayAlert
     self.title = UnresolvedAlert.generateTitle(from: trayAlert)
 
@@ -43,8 +42,7 @@ public struct UnresolvedAlert {
     self.postActionableMessage = showableAlert.generatePostActionableMessage()
   }
 
-  private static func generateTitle(from alert: TrayAlertProtocol) -> NSAttributedString? {
-
+  private static func generateTitle(from alert: TrayAlertProtocol) -> AttributedString? {
     var titleString = ""
 
     if let timestamp = alert.timestamp {
@@ -53,112 +51,119 @@ public struct UnresolvedAlert {
 
     titleString += "\n\(alert.title)"
 
-    let attributedString = NSMutableAttributedString(string: titleString)
+    var attributedString = AttributedString(titleString)
 
-    guard let rangeOfBreachName = attributedString.string.range(of: alert.title) else {
+    guard let rangeOfBreachName = attributedString.range(of: alert.title) else {
       return nil
     }
 
-    attributedString.addAttributes(
-      semiboldTextAttributes, range: NSRange(rangeOfBreachName, in: attributedString.string))
+    attributedString[rangeOfBreachName].setAttributes(.semibold)
 
     return attributedString
   }
 }
 
 extension DashlaneSixTrayAlert: UnresolvedAlertShowable {
+  func generateMessage() -> AttributedString {
+    let alertDate: AttributedString? =
+      if let date = self.date {
+        date.attributedString(withContentAttributes: .danger)
+      } else {
+        nil
+      }
 
-  func generateMessage() -> NSAttributedString {
+    let description: AttributedString? =
+      if let description = self.description {
+        description.attributedString(withContentAttributes: .danger)
+      } else {
+        nil
+      }
 
-    let alertDate: NSAttributedString? = {
-      guard let date = self.date else { return nil }
-      return date.attributedString(withContentAttributes: redTextAttributes)
-    }()
+    let dataInvolved: AttributedString? =
+      if let details = self.details {
+        details.attributedString(withContentJoinedBy: ", ", attributes: .danger)
+      } else {
+        nil
+      }
 
-    let description: NSAttributedString? = {
-      guard let description = self.description else { return nil }
-      return description.attributedString(withContentAttributes: redTextAttributes)
-    }()
+    let recommendation: AttributedString? =
+      if let alertRecommendation = self.recommendation {
+        alertRecommendation.attributedString(withContentAttributes: .semibold)
+      } else {
+        nil
+      }
 
-    let dataInvolved: NSAttributedString? = {
-      guard let details = self.details else { return nil }
-      return details.attributedString(withContentJoinedBy: ", ", attributes: redTextAttributes)
-    }()
-
-    let recommendation: NSAttributedString? = {
-      guard let alertRecommendation = self.recommendation else { return nil }
-      return alertRecommendation.attributedString(withContentAttributes: semiboldTextAttributes)
-    }()
-
-    let message = NSMutableAttributedString(
-      attributedString: [
-        alertDate,
-        description,
-        dataInvolved,
-        recommendation,
-      ]
-      .compactMap { $0 }
-      .joined(by: "\n\n"))
-
-    return message
+    return [
+      alertDate,
+      description,
+      dataInvolved,
+      recommendation,
+    ]
+    .compactMap { $0 }
+    .joined(by: .separator)
+    .mergingAttributes(.alertDefault, mergePolicy: .keepCurrent)
   }
 }
 
 extension HiddenTrayAlert: UnresolvedAlertShowable {
 
-  func generateMessage() -> NSAttributedString {
+  func generateMessage() -> AttributedString {
+    let alertDate: AttributedString? =
+      if let date = self.date {
+        date.attributedString(withContentAttributes: .danger)
+      } else {
+        nil
+      }
 
-    let alertDate: NSAttributedString? = {
-      guard let date = self.date else { return nil }
-      return date.attributedString(withContentAttributes: redTextAttributes)
-    }()
+    let dataInvolved: AttributedString? =
+      if let details = details {
+        details.attributedString(withContentJoinedBy: ", ", attributes: .danger)
+      } else {
+        nil
+      }
 
-    let dataInvolved: NSAttributedString? = {
-      guard let details = self.details else { return nil }
-      return details.attributedString(withContentJoinedBy: ", ", attributes: redTextAttributes)
-    }()
+    let recommendation: AttributedString? =
+      if let recommendation = recommendation {
+        AttributedString(recommendation.string())
+      } else {
+        nil
+      }
 
-    let recommendation: NSAttributedString? = {
-      guard let alertRecommendation = self.recommendation else { return nil }
-      return NSAttributedString(string: alertRecommendation.string())
-    }()
-
-    let message = NSMutableAttributedString(
-      attributedString: [
-        alertDate,
-        dataInvolved,
-        recommendation,
-      ]
-      .compactMap { $0 }
-      .joined(by: "\n\n"))
-
-    return message
+    return [
+      alertDate,
+      dataInvolved,
+      recommendation,
+    ]
+    .compactMap { $0 }
+    .joined(by: .separator)
+    .mergingAttributes(.alertDefault, mergePolicy: .keepCurrent)
   }
 }
 
 extension DataLeakContentTrayAlert: UnresolvedAlertShowable {
 
-  func generateMessage() -> NSAttributedString {
+  func generateMessage() -> AttributedString {
+    let alertDate: AttributedString? =
+      if let date = self.date {
+        date.attributedString(withContentAttributes: .danger)
+      } else {
+        nil
+      }
 
-    let alertDate: NSAttributedString? = {
-      guard let date = self.date else { return nil }
-      return date.attributedString(withContentAttributes: redTextAttributes)
-    }()
+    let dataInvolved: AttributedString? =
+      if let details = self.details {
+        details.attributedString(withContentAttributes: .danger, splittedBy: "_")
+      } else {
+        nil
+      }
 
-    let dataInvolved: NSAttributedString? = {
-      guard let details = self.details else { return nil }
-      return details.attributedString(withContentAttributes: redTextAttributes, splittedBy: "_")
-    }()
-
-    let message = NSMutableAttributedString(
-      attributedString: [
-        alertDate,
-        dataInvolved,
-      ]
-      .compactMap { $0 }
-      .joined(by: "\n\n"))
-
-    return message
+    return [
+      alertDate,
+      dataInvolved,
+    ]
+    .compactMap { $0 }
+    .joined(by: .separator)
+    .mergingAttributes(.alertDefault, mergePolicy: .keepCurrent)
   }
 }
 
@@ -171,20 +176,20 @@ extension DataLeakPlaintextTrayAlert: UnresolvedAlertShowable {
       case hidden
     }
 
-    private let clearMessage: NSAttributedString
+    private let clearMessage: AttributedString
     private let passwords: [String]
 
-    public private(set) var message: NSAttributedString
+    public private(set) var message: AttributedString
     public private(set) var state: State = .hidden
 
-    public var icon: UIImage {
+    public var icon: Image {
       if state == .hidden {
-        return UIImage.ds.action.reveal.outlined
+        return .ds.action.reveal.outlined
       }
-      return UIImage.ds.action.hide.outlined
+      return .ds.action.hide.outlined
     }
 
-    init(message: NSAttributedString, passwords: [String]) {
+    init(message: AttributedString, passwords: [String]) {
       self.clearMessage = message
       self.message = message
       self.passwords = passwords
@@ -198,44 +203,38 @@ extension DataLeakPlaintextTrayAlert: UnresolvedAlertShowable {
 
     private func updateMessage(for state: State) {
       if state == .visible {
-        self.message = self.clearMessage
+        self.message = clearMessage
       } else {
-        let passwordsString = self.passwords.joined(separator: ", ")
-        let passwordsRange = (self.clearMessage.string as NSString).range(of: passwordsString)
-        guard passwordsRange.location != NSNotFound else { return }
-        let attributesUsed = self.clearMessage.attributes(
-          at: passwordsRange.location, effectiveRange: nil)
-        let hiddenPasswordBullets = "••••••••••••••••••"
-        let newMessage = self.clearMessage.string.replacingOccurrences(
-          of: passwordsString, with: hiddenPasswordBullets)
-        let rangeOfBullets = (newMessage as NSString).range(of: hiddenPasswordBullets)
-        let newMessageAttributed = NSMutableAttributedString(string: newMessage)
-        newMessageAttributed.addAttributes(attributesUsed, range: rangeOfBullets)
-        self.message = newMessageAttributed
+        let passwordsString = passwords.joined(separator: ", ")
+        guard let passwordsRange = clearMessage.range(of: passwordsString) else {
+          return
+        }
+
+        var message = clearMessage
+        let currentAttributes = clearMessage[passwordsRange].runs.first?.attributes
+        let hiddenPasswordBullets = AttributedString(
+          "••••••••••••••••••", attributes: currentAttributes ?? .alertDefault)
+        message.replaceSubrange(passwordsRange, with: hiddenPasswordBullets)
+        self.message = message
       }
     }
   }
 
-  func generateMessage() -> NSAttributedString {
+  func generateMessage() -> AttributedString {
+    let alertDate = date?.attributedString(withContentAttributes: .danger)
+    let affectedEmails = details?.attributedString(withContentAttributes: .danger)
 
-    let alertDate = date?.attributedString(withContentAttributes: redTextAttributes)
-    let affectedEmails = details?.attributedString(withContentAttributes: redTextAttributes)
-
-    let message = NSMutableAttributedString(
-      attributedString: [
-        alertDate,
-        affectedEmails,
-      ]
-      .compactMap { $0 }
-      .joined(by: "\n\n"))
-
-    return message
+    return [
+      alertDate,
+      affectedEmails,
+    ]
+    .compactMap { $0 }
+    .joined(by: .separator)
+    .mergingAttributes(.alertDefault, mergePolicy: .keepCurrent)
   }
 
   func generateActionableMessage() -> UnresolvedAlertActionableMessage? {
-
-    let leakedPasswords = self.leakedPasswords?.attributedString(
-      withContentAttributes: redTextAttributes)
+    let leakedPasswords = self.leakedPasswords?.attributedString(withContentAttributes: .danger)
 
     guard let leakedPasswordsMessage = leakedPasswords else { return nil }
     guard let passwords = self.leakedPasswords?.contents else { return nil }
@@ -243,8 +242,8 @@ extension DataLeakPlaintextTrayAlert: UnresolvedAlertShowable {
     return Actionable(message: leakedPasswordsMessage, passwords: passwords)
   }
 
-  func generatePostActionableMessage() -> NSAttributedString? {
-    return self.recommendation?.attributedString(withContentAttributes: redTextAttributes)
+  func generatePostActionableMessage() -> AttributedString? {
+    return self.recommendation?.attributedString(withContentAttributes: .danger)
   }
 }
 
@@ -261,28 +260,36 @@ extension Array where Element == NSAttributedString {
   }
 }
 
-private var messageFontSize: CGFloat = 17.0
-
-private var redTextAttributes: [NSAttributedString.Key: NSObject] {
-  let font = UIFont.systemFont(ofSize: messageFontSize, weight: .medium)
-  let fontMetrics = UIFontMetrics(forTextStyle: .body)
-  return [
-    NSAttributedString.Key.foregroundColor: UIColor(Color.ds.text.danger.quiet),
-    NSAttributedString.Key.font: fontMetrics.scaledFont(for: font),
-  ]
+extension Font {
+  fileprivate static var unresolvedAlertFont: Font {
+    Font.body
+  }
 }
 
-private var semiboldTextAttributes: [NSAttributedString.Key: NSObject] {
-  let font = UIFont.systemFont(ofSize: messageFontSize, weight: .semibold)
-  let fontMetrics = UIFontMetrics(forTextStyle: .body)
-  return [
-    NSAttributedString.Key.foregroundColor: UIColor(Color.ds.text.neutral.standard),
-    NSAttributedString.Key.font: fontMetrics.scaledFont(for: font),
-  ]
-}
+extension AttributeContainer {
+  fileprivate static var alertDefault: AttributeContainer {
+    var container = AttributeContainer()
+    container.font = .unresolvedAlertFont
+    return container
+  }
 
-private var messageFontAttribute: [NSAttributedString.Key: NSObject] {
-  let font = UIFont.systemFont(ofSize: messageFontSize, weight: .medium)
-  let fontMetrics = UIFontMetrics(forTextStyle: .body)
-  return [NSAttributedString.Key.font: fontMetrics.scaledFont(for: font)]
+  fileprivate static var danger: AttributeContainer {
+    var container = AttributeContainer()
+    container.foregroundColor = Color.ds.text.danger.quiet
+    container.font = .unresolvedAlertFont.weight(.medium)
+
+    return container
+  }
+
+  fileprivate static var semibold: AttributeContainer {
+    var container = AttributeContainer()
+    container.font = .unresolvedAlertFont.weight(.semibold)
+    return container
+  }
+
+  fileprivate static var bold: AttributeContainer {
+    var container = AttributeContainer()
+    container.font = .unresolvedAlertFont.weight(.bold)
+    return container
+  }
 }

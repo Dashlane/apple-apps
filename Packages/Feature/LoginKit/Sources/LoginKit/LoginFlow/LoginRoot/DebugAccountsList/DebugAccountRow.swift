@@ -1,5 +1,5 @@
 import CoreSession
-import DashTypes
+import CoreTypes
 import DesignSystem
 import SwiftUI
 
@@ -24,13 +24,13 @@ struct DebugAccountRow: View {
 }
 
 private struct DebugAccountSubtitle: View {
-  let image: ImageAsset?
+  let image: Image?
   let subtitle: String
 
   var body: some View {
     HStack {
       if let image = image {
-        Image(asset: image)
+        image
           .resizable()
           .aspectRatio(contentMode: .fit)
           .frame(width: 20)
@@ -39,19 +39,19 @@ private struct DebugAccountSubtitle: View {
         .font(.footnote)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
-    .foregroundColor(.ds.text.neutral.quiet)
+    .foregroundStyle(Color.ds.text.neutral.quiet)
   }
 }
 
 extension AccountLoginType {
-  var image: ImageAsset? {
+  var image: Image? {
     switch self {
     case .masterPassword:
       return nil
     case .sso:
-      return Asset.sso
+      return .ds.sso.outlined
     case .otp:
-      return Asset._2fa
+      return .ds.feature.authenticator.outlined
     }
   }
 

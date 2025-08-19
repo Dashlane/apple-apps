@@ -16,18 +16,13 @@ struct PasswordHealthFlowView: View {
       switch step {
       case .main:
         PasswordHealthView(
-          viewModel: viewModel.makePasswordHealthViewModel(), action: viewModel.handleAction
-        )
-        .navigationBarHidden(false)
+          viewModel: viewModel.makePasswordHealthViewModel(), action: viewModel.handleAction)
       case .detailedList(let kind):
         PasswordHealthDetailedListView(
           viewModel: viewModel.makePasswordHealthDetailedListViewModel(kind: kind),
-          action: viewModel.handleAction
-        )
-        .navigationBarHidden(false)
+          action: viewModel.handleAction)
       case .credentialDetail(let credential):
         CredentialDetailView(model: viewModel.makeCredentialDetailViewModel(credential: credential))
-          .navigationBarHidden(true)
       }
     }
   }

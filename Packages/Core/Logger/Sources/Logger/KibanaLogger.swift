@@ -1,9 +1,10 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import SwiftTreats
 
-public final class KibanaLogger: @unchecked Sendable {
+public final class KibanaLogger: @unchecked Sendable, RemoteLogger {
   typealias Report = UnsignedAPIClient.Monitoring.ReportClientException.Body
 
   public enum Origin: String, Sendable {
@@ -59,13 +60,15 @@ public final class KibanaLogger: @unchecked Sendable {
   public init(
     apiClient: UnsignedAPIClient,
     outputLevel: Level,
-    origin: Origin
+    origin: Origin,
+    deviceId: String?
   ) {
     self.apiClient = apiClient
     self.subSection = nil
     self.outputLevel = outputLevel
     self.origin = origin
     self.platform = .passwordManager
+    self.deviceId = deviceId
   }
 
   private init(
@@ -85,12 +88,13 @@ public final class KibanaLogger: @unchecked Sendable {
   }
 
   private func send(
-    _ message: @escaping () -> String, error: Error? = nil, level: Level, location: Location
+    _ message: @escaping () -> LogMessage, error: Error? = nil, level: KibanaLogger.Level,
+    location: Logger.Location
   ) {
     guard outputLevel >= level, error?.shouldIgnoreForExceptionLog != true else {
       return
     }
-    let message = [message(), error?.logDescription]
+    let message = ["\(message())", error?.logDescription]
       .compactMap { $0 }
       .joined(separator: ": ")
 
@@ -117,36 +121,40 @@ public final class KibanaLogger: @unchecked Sendable {
 }
 
 extension KibanaLogger: Logger {
-  public func fatal(_ message: @escaping () -> String, location: Location) {
-    send(message, level: .fatal, location: location)
+  public func fatal(_ message: @escaping () -> LogMessage, location: Logger.Location) {
+    send(message, level: Level.fatal, location: location)
   }
 
-  public func fatal(_ message: @escaping () -> String, error: Error, location: Location) {
-    send(message, error: error, level: .fatal, location: location)
+  public func fatal(_ message: @escaping () -> LogMessage, error: Error, location: Logger.Location)
+  {
+    send(message, error: error, level: Level.fatal, location: location)
   }
 
-  public func error(_ message: @escaping () -> String, location: Location) {
-    send(message, level: .error, location: location)
+  public func error(_ message: @escaping () -> LogMessage, location: Logger.Location) {
+    send(message, level: Level.error, location: location)
   }
 
-  public func error(_ message: @escaping () -> String, error: Error, location: Location) {
-    send(message, error: error, level: .error, location: location)
+  public func error(_ message: @escaping () -> LogMessage, error: Error, location: Logger.Location)
+  {
+    send(message, error: error, level: Level.error, location: location)
   }
 
-  public func warning(_ message: @escaping () -> String, location: Location) {
-    send(message, level: .warning, location: location)
+  public func warning(_ message: @escaping () -> LogMessage, location: Logger.Location) {
+    send(message, level: Level.warning, location: location)
   }
 
-  public func warning(_ message: @escaping () -> String, error: Error, location: Location) {
-    send(message, error: error, level: .warning, location: location)
+  public func warning(
+    _ message: @escaping () -> LogMessage, error: Error, location: Logger.Location
+  ) {
+    send(message, error: error, level: Level.warning, location: location)
   }
 
-  public func info(_ message: @escaping () -> String, location: Location) {
-    send(message, level: .info, location: location)
+  public func info(_ message: @escaping () -> LogMessage, location: Logger.Location) {
+    send(message, level: Level.info, location: location)
   }
 
-  public func debug(_ message: @escaping () -> String, location: Location) {
-    send(message, level: .debug, location: location)
+  public func debug(_ message: @escaping () -> LogMessage, location: Logger.Location) {
+    send(message, level: Level.debug, location: location)
   }
 
   public func sublogger(for identifier: LoggerIdentifier) -> Logger {

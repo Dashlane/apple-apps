@@ -1,3 +1,4 @@
+import CorePersonalData
 import Foundation
 
 class DetailContainerViewModel<Item: VaultItem & Equatable>: DetailViewModelProtocol {
@@ -14,6 +15,7 @@ class DetailContainerViewModel<Item: VaultItem & Equatable>: DetailViewModelProt
     let publisher = service.vaultItemDatabase
       .itemPublisher(for: item)
       .map { $0 as VaultItem }
+      .receive(on: DispatchQueue.main)
       .eraseToAnyPublisher()
     return service.attachmentSectionFactory.make(item: item, itemPublisher: publisher)
   }

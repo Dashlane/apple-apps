@@ -12,7 +12,7 @@ extension Email: VaultItem {
 
   public var localizedTitle: String {
     guard !name.isEmpty else {
-      return L10n.Core.kwEmailIOS
+      return CoreL10n.kwEmailIOS
     }
 
     return name
@@ -23,15 +23,15 @@ extension Email: VaultItem {
   }
 
   public static var localizedName: String {
-    L10n.Core.kwEmailIOS
+    CoreL10n.kwEmailIOS
   }
 
   public static var addTitle: String {
-    L10n.Core.kwadddatakwEmailIOS
+    CoreL10n.kwadddatakwEmailIOS
   }
 
   public static var nativeMenuAddTitle: String {
-    L10n.Core.addEmail
+    CoreL10n.addEmail
   }
 
   public func isAssociated(to team: PremiumStatusTeamInfo) -> Bool {
@@ -41,7 +41,7 @@ extension Email: VaultItem {
 
 extension Email.EmailType {
 
-  typealias KWEmailIOSTypeL10n = L10n.Core.KWEmailIOS.`Type`
+  typealias KWEmailIOSTypeL10n = CoreL10n.KWEmailIOS.`Type`
 
   public var localizedString: String {
     switch self {

@@ -10,8 +10,8 @@ struct PasswordHealthGauge: View {
       VStack(spacing: 8) {
         Spacer()
         gaugeText
-          .font(DashlaneFont.custom(80, .bold).font)
-          .foregroundColor(.ds.text.neutral.catchy)
+          .textStyle(.specialty.spotlight.large)
+          .foregroundStyle(Color.ds.text.neutral.catchy)
           .padding(.top)
         Spacer()
         subtitle
@@ -34,10 +34,10 @@ struct PasswordHealthGauge: View {
     }
   }
 
-  private var subtitle: Text {
+  private var subtitle: some View {
     Text(L10n.Localizable.widgetScoreSubtitle.uppercased())
-      .font(.footnote)
-      .foregroundColor(.ds.text.neutral.quiet)
+      .textStyle(.body.helper.regular)
+      .foregroundStyle(Color.ds.text.neutral.quiet)
   }
 
   private var accessibilityLabel: Text {

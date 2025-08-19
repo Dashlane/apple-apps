@@ -3,299 +3,131 @@ import CoreKeychain
 import CoreNetworking
 import CoreSession
 import CoreSettings
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import Logger
+import StateMachine
+import UserTrackingFoundation
 
 @MainActor
-public class LocalLoginFlowViewModel: ObservableObject, LoginKitServicesInjecting {
+public class LocalLoginFlowViewModel: ObservableObject, LoginKitServicesInjecting,
+  StateMachineBasedObservableObject
+{
 
   public enum Completion {
-    public enum MigrationMode {
-      case migrateAccount(migrationInfos: AccountMigrationInfos)
-      case migrateSsoKey(type: SSOKeysMigrationType, email: String)
-      case migrateAnalyticsId(session: Session)
-    }
-
-    case completed(
-      session: Session, shouldResetMP: Bool, shouldRefreshKeychainMasterKey: Bool,
-      loginFlowLogInfo: LoginFlowLogInfo, isRecoveryLogin: Bool, newMasterPassword: String?)
-    case migration(MigrationMode, LocalLoginHandler)
+    case completed(config: LocalLoginConfiguration, logInfo: LoginFlowLogInfo)
+    case migration(AccountMigrationInfos)
     case logout
     case cancel
   }
 
   enum Step {
-    case unlock(SecureLockMode, UnlockSessionHandler, UnlockType)
-    case otp(ThirdPartyOTPOption, hasLock: Bool)
-    case sso(SSOAuthenticationInfo, deviceAccessKey: String)
+    case unlock(UserUnlockInfo)
+    case otp(ThirdPartyOTPOption, SecureLockMode, DeviceInfo)
+    case sso(SSOLocalStateMachine.State, SSOAuthenticationInfo, _ deviceAccessKey: String)
   }
 
   @Published
   var steps: [Step] = []
 
-  let email: String
+  @Published public var isPerformingEvent: Bool = false
 
-  let localLoginHandler: LocalLoginHandler
+  let login: Login
+
   let settingsManager: LocalSettingsFactory
   let keychainService: AuthenticationKeychainServiceProtocol
   let activityReporter: ActivityReporterProtocol
-  let loginMetricsReporter: LoginMetricsReporterProtocol
   let userSettings: UserSettings
   let resetMasterPasswordService: ResetMasterPasswordServiceProtocol
   let sessionContainer: SessionsContainerProtocol
-  let completion: @MainActor (Result<Completion, Error>) -> Void
-  let context: LocalLoginFlowContext
-  let nitroClient: NitroSSOAPIClient
+  var completion: (@MainActor (Result<Completion, Error>) -> Void)?
+  let context: UnlockOriginProcess
   let accountVerificationFlowModelFactory: AccountVerificationFlowModel.Factory
   let recoveryLoginFlowModelFactory: AccountRecoveryKeyLoginFlowModel.Factory
   let localLoginUnlockViewModelFactory: LocalLoginUnlockViewModel.Factory
+  let masterPasswordLocalViewModelFactory: MasterPasswordLocalViewModel.Factory
   let ssoLoginViewModelFactory: SSOLocalLoginViewModel.Factory
-  let accountType: CoreSession.AccountType
-  private let logger: Logger
+  let logger: Logger
 
-  var lastSuccessfulAuthenticationMode: Definition.Mode?
-  var verificationMode: Definition.VerificationMode = .none
-  var isBackupCode: Bool = false
+  @Published public var stateMachine: LocalLoginStateMachine
 
   public init(
-    localLoginHandler: LocalLoginHandler,
+    stateMachine: LocalLoginStateMachine,
     settingsManager: LocalSettingsFactory,
-    loginMetricsReporter: LoginMetricsReporterProtocol,
     activityReporter: ActivityReporterProtocol,
     sessionContainer: SessionsContainerProtocol,
     logger: Logger,
     resetMasterPasswordService: ResetMasterPasswordServiceProtocol,
     userSettings: UserSettings,
     keychainService: AuthenticationKeychainServiceProtocol,
-    email: String,
-    context: LocalLoginFlowContext,
-    nitroClient: NitroSSOAPIClient,
+    login: Login,
+    context: UnlockOriginProcess,
     accountVerificationFlowModelFactory: AccountVerificationFlowModel.Factory,
     recoveryLoginFlowModelFactory: AccountRecoveryKeyLoginFlowModel.Factory,
     localLoginUnlockViewModelFactory: LocalLoginUnlockViewModel.Factory,
+    masterPasswordLocalViewModelFactory: MasterPasswordLocalViewModel.Factory,
     ssoLoginViewModelFactory: SSOLocalLoginViewModel.Factory,
     completion: @escaping @MainActor (Result<LocalLoginFlowViewModel.Completion, Error>) -> Void
   ) {
-    self.localLoginHandler = localLoginHandler
-    self.email = email
+    self.login = login
     self.context = context
     self.userSettings = userSettings
     self.resetMasterPasswordService = resetMasterPasswordService
     self.activityReporter = activityReporter
     self.logger = logger[.session]
     self.sessionContainer = sessionContainer
-    self.loginMetricsReporter = loginMetricsReporter
     self.completion = completion
     self.keychainService = keychainService
     self.settingsManager = settingsManager
-    self.nitroClient = nitroClient
-    self.accountType = localLoginHandler.accountType
     self.accountVerificationFlowModelFactory = accountVerificationFlowModelFactory
     self.recoveryLoginFlowModelFactory = recoveryLoginFlowModelFactory
     self.localLoginUnlockViewModelFactory = localLoginUnlockViewModelFactory
+    self.masterPasswordLocalViewModelFactory = masterPasswordLocalViewModelFactory
     self.ssoLoginViewModelFactory = ssoLoginViewModelFactory
-    updateStep()
+    self.stateMachine = stateMachine
+    start()
   }
 
-  internal func updateStep(
-    for authenticationMode: LocalLoginUnlockViewModel.Completion.AuthenticationMode? = nil
-  ) {
-    switch localLoginHandler.step {
-    case .initialize:
-      break
-    case let .migrateAccount(migrationInfos):
-      completion(
-        .success(.migration(.migrateAccount(migrationInfos: migrationInfos), localLoginHandler)))
-    case let .migrateSSOKeys(info):
-      completion(.success(.migration(.migrateSsoKey(type: info, email: email), localLoginHandler)))
-    case let .migrateAnalyticsId(session):
-      completion(.success(.migration(.migrateAnalyticsId(session: session), localLoginHandler)))
-    case let .validateThirdPartyOTP(validator):
-      Task {
-        await validateThirdPartyOTP(with: validator, email: email)
-      }
-    case let .unlock(handler, unlockType):
-      Task {
-        await unlock(with: handler, type: unlockType)
-      }
-    case let .completed(session, isRecoveryLogin):
-      completed(
-        with: session, isRecoveryLogin: isRecoveryLogin, authenticationMode: authenticationMode)
+  func start() {
+    Task {
+      await perform(.getLoginType)
     }
   }
 
-  func completed(
-    with session: Session, isRecoveryLogin: Bool,
-    authenticationMode: LocalLoginUnlockViewModel.Completion.AuthenticationMode?
-  ) {
-    var shouldResetMP = false
-    if case .resetMasterPassword = authenticationMode {
-      shouldResetMP = true
-    }
-    var newMasterPassword: String?
-    if case let .accountRecovered(password) = authenticationMode {
-      newMasterPassword = password
-    }
-    let logInfo = LoginFlowLogInfo(
-      loginMode: lastSuccessfulAuthenticationMode ?? .masterPassword,
-      verificationMode: verificationMode,
-      isBackupCode: isBackupCode)
-    completion(
-      .success(
-        .completed(
-          session: session,
-          shouldResetMP: shouldResetMP,
-          shouldRefreshKeychainMasterKey: shouldRefreshKeychainMasterKey(for: authenticationMode),
-          loginFlowLogInfo: logInfo,
-          isRecoveryLogin: isRecoveryLogin,
-          newMasterPassword: newMasterPassword)))
-  }
-
-  private func shouldRefreshKeychainMasterKey(
-    for authenticationMode: LocalLoginUnlockViewModel.Completion.AuthenticationMode?
-  ) -> Bool {
-    (authenticationMode?.shouldRefreshKeychainMasterKey == true)
-      || (lastSuccessfulAuthenticationMode == .sso)
-  }
-
-  private func validateThirdPartyOTP(with option: ThirdPartyOTPOption, email: String) async {
-    do {
-      guard let serverKey = try serverKey(for: Login(email)) else {
-        self.verificationMode = .otp2
-        self.steps.append(.otp(option, hasLock: false))
-        return
-      }
-      self.verificationMode = .none
-      localLoginHandler.moveToUnlockStep(
-        with: .mpOtp2Validation(authTicket: nil, serverKey: serverKey))
-      updateStep()
-    } catch {
-      self.verificationMode = .otp2
-      self.steps.append(.otp(option, hasLock: true))
-    }
-  }
-
-  func makeAccountVerificationFlowViewModel(method: VerificationMethod, hasLock: Bool)
-    -> AccountVerificationFlowModel
-  {
+  func makeAccountVerificationFlowViewModel(
+    method: VerificationMethod, lockType: SecureLockMode, deviceInfo: DeviceInfo
+  ) -> AccountVerificationFlowModel {
     accountVerificationFlowModelFactory.make(
-      login: Login(email), mode: .masterPassword, verificationMethod: method,
-      deviceInfo: localLoginHandler.deviceInfo,
+      login: login, mode: .masterPassword,
+      stateMachine: stateMachine.makeAccountVerificationStateMachine(verificationMethod: method),
       completion: { [weak self] result in
-
         guard let self = self else {
           return
         }
         Task {
           do {
-            let (authTicket, _) = try result.get()
-            let serverKey = try await self.localLoginHandler.login(withAuthTicket: authTicket)
-            self.saveServerKey(serverKey, hasLock: hasLock)
-            self.verificationMode = .none
-            self.updateStep()
+            let (authTicket, isBackupCode) = try result.get()
+            await self.perform(
+              .otpDidFinish(authTicket: authTicket, lockType, isBackUpCode: isBackupCode))
           } catch {
-            self.completion(.failure(error))
+            await self.perform(
+              .errorEncountered(
+                StateMachineError(underlyingError: LocalLoginStateMachine.Error.noServerKey)))
           }
         }
       })
   }
 
-  private func saveServerKey(_ serverKey: String, hasLock: Bool) {
-    guard hasLock else {
-      return
-    }
-    try? keychainService.saveServerKey(serverKey, for: Login(email))
-  }
-
-  private func serverKey(for login: Login) throws -> ServerKey? {
-    guard
-      let settings = try? self.settingsManager.fetchOrCreateSettings(for: localLoginHandler.login)
-    else {
-      return nil
-    }
-
-    let provider = SecureLockProvider(
-      login: localLoginHandler.login,
-      settings: settings,
-      keychainService: keychainService)
-    let secureLockMode = provider.secureLockMode()
-    guard secureLockMode != .masterKey else {
-      return nil
-    }
-    guard let serverKey = keychainService.serverKey(for: login) else {
-      throw KeychainError.itemNotFound
-    }
-    return serverKey
-  }
-
-  private func unlock(with handler: UnlockSessionHandler, type: UnlockType) async {
-    guard
-      let settingsStore = try? settingsManager.fetchOrCreateSettings(for: localLoginHandler.login)
-    else {
-      assertionFailure("Settings Store should not be nil at this point")
-      return
-    }
-
-    let provider = SecureLockProvider(
-      login: localLoginHandler.login,
-      settings: settingsStore,
-      keychainService: keychainService)
-    let secureLockMode = provider.secureLockMode(
-      checkIsBiometricSetIntact: context.shouldCheckBiometricSetIsIntact)
-
-    if shouldStayOnUserLoginScreen() {
-      return
-    }
-
-    if !secureLockMode.shouldShowConvenientAuthenticationMethod && type.isSso {
-      await authenticationUsingSSO(with: handler)
-    } else {
-      self.steps.append(.unlock(secureLockMode, handler, type))
-    }
-  }
-
-  private func shouldStayOnUserLoginScreen() -> Bool {
-    guard let settings = try? settingsManager.fetchOrCreateSettings(for: localLoginHandler.login)
-    else {
-      return false
-    }
-    let provider = SecureLockProvider(
-      login: localLoginHandler.login,
-      settings: settings,
-      keychainService: keychainService)
-
-    if userSettings[.automaticallyLoggedOut] == true
-      && provider.secureLockMode() == .rememberMasterPassword
-    {
-      userSettings[.automaticallyLoggedOut] = false
-      return true
-    }
-    return false
-  }
-
-  func authenticationUsingSSO(with handler: UnlockSessionHandler) async {
-    activityReporter.report(
-      UserEvent.AskAuthentication(
-        mode: .sso,
-        reason: .login,
-        verificationMode: Definition.VerificationMode.none))
-    guard case let .unlock(_, type) = self.localLoginHandler.step,
-      case let UnlockType.ssoValidation(validator, _, _) = type
-    else {
-      assertionFailure()
-      return
-    }
-    self.steps.append(.sso(validator, deviceAccessKey: localLoginHandler.deviceAccessKey))
-  }
-
-  func makeSSOLoginViewModel(ssoAuthenticationInfo: SSOAuthenticationInfo, deviceAccessKey: String)
-    -> SSOLocalLoginViewModel
-  {
+  func makeSSOLoginViewModel(
+    initialState: SSOLocalStateMachine.State, ssoAuthenticationInfo: SSOAuthenticationInfo,
+    deviceAccessKey: String
+  ) -> SSOLocalLoginViewModel {
     return ssoLoginViewModelFactory.make(
-      deviceAccessKey: deviceAccessKey, ssoAuthenticationInfo: ssoAuthenticationInfo,
+      stateMachine: stateMachine.makeSSOLocalStateMachine(
+        state: initialState, ssoAuthenticationInfo: ssoAuthenticationInfo),
+      ssoAuthenticationInfo: ssoAuthenticationInfo,
       completion: { result in
         Task {
           await self.handleSSOResult(result, ssoAuthenticationInfo: ssoAuthenticationInfo)
@@ -311,15 +143,12 @@ public class LocalLoginFlowViewModel: ObservableObject, LoginKitServicesInjectin
       let result = try result.get()
       switch result {
       case let .completed(ssoKeys):
-        try await self.localLoginHandler.validateSSOKey(
-          ssoKeys, ssoAuthenticationInfo: ssoAuthenticationInfo)
-        lastSuccessfulAuthenticationMode = .sso
-        self.updateStep()
+        await perform(.validateSSO(ssoKeys))
       case .cancel:
-        self.completion(.success(.cancel))
+        await self.perform(.cancel)
       }
     } catch {
-      self.completion(.failure(error))
+      await self.perform(.errorEncountered(StateMachineError(underlyingError: error)))
       self.activityReporter.report(
         UserEvent.Login(
           mode: .sso,
@@ -329,20 +158,88 @@ public class LocalLoginFlowViewModel: ObservableObject, LoginKitServicesInjectin
   }
 }
 
-extension LocalLoginUnlockViewModel.Completion.AuthenticationMode {
+extension LocalLoginFlowViewModel {
+  public func update(
+    for event: CoreSession.LocalLoginStateMachine.Event,
+    from oldState: CoreSession.LocalLoginStateMachine.State,
+    to newState: CoreSession.LocalLoginStateMachine.State
+  ) {
+    switch (newState, event) {
+    case (.initial, _):
+      break
+    case (let .needsThirdPartyOTP(option, lockType, deviceInfo, _), _):
+      self.steps.append(.otp(option, lockType, deviceInfo))
+    case (let .ssoAuthenticationNeeded(initialState, ssoAuthenticationInfo, deviceAccessKey), _):
+      self.steps.append(.sso(initialState, ssoAuthenticationInfo, deviceAccessKey))
+    case (let .userUnlock(unlockInfo), _):
+      self.steps.append(.unlock(unlockInfo))
+    case (let .completed(config), _):
+      let loginFlowLogInfo: LoginFlowLogInfo = .init(
+        loginMode: config.authenticationMode?.authenticationLog ?? .masterPassword,
+        verificationMode: config.verificationMode.verificationModeLog,
+        isBackupCode: config.isBackupCode)
+      loginCompleted(with: .success(.completed(config: config, logInfo: loginFlowLogInfo)))
+    case (let .failed(error), _):
+      loginCompleted(with: .failure(error.underlyingError))
+    case (.cancelled, _):
+      loginCompleted(with: .success(.cancel))
+    case (let .migrateAccount(infos), _):
+      loginCompleted(with: .success(.migration(infos)))
+    case (.logout, _):
+      loginCompleted(with: .success(.logout))
+    }
+  }
+
+  func loginCompleted(with result: Result<LocalLoginFlowViewModel.Completion, Error>) {
+    guard completion != nil else {
+      logger.error("Local login Completion called more than once")
+      return
+    }
+    self.completion?(result)
+    self.completion = nil
+  }
+}
+
+extension AuthenticationMode {
   fileprivate var shouldRefreshKeychainMasterKey: Bool {
     switch self {
-    case .resetMasterPassword, .masterPassword: return true
+    case .resetMasterPassword, .masterPassword, .sso: return true
     default: return false
     }
   }
 }
 
-extension LocalLoginFlowContext {
+extension UnlockOriginProcess {
   fileprivate var shouldCheckBiometricSetIsIntact: Bool {
     switch self {
     case .autofillExtension: return false
     default: return true
+    }
+  }
+}
+
+extension AuthenticationMode {
+  fileprivate var authenticationLog: Definition.Mode {
+    switch self {
+    case .masterPassword, .resetMasterPassword, .accountRecovered:
+      return .masterPassword
+    case .biometry, .rememberMasterPassword:
+      return .biometric
+    case .pincode:
+      return .pin
+    case .sso:
+      return .sso
+    }
+  }
+}
+
+extension LocalLoginVerificationMode {
+  fileprivate var verificationModeLog: Definition.VerificationMode {
+    switch self {
+    case .otp2:
+      return .otp2
+    default:
+      return .none
     }
   }
 }

@@ -1,7 +1,8 @@
 import Combine
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 
 public enum KilledFeature: String, Codable, CaseIterable {
   case disableAutofill
@@ -53,7 +54,7 @@ public class KillSwitchService: KillSwitchServiceProtocol {
         self.logger.warning("Disabled \(killedFeatures)")
       }
     } catch {
-      self.logger.error(error.localizedDescription)
+      self.logger.error("Couldn't fetch kill switches:", error: error)
     }
     self.scheduleNextCall()
   }

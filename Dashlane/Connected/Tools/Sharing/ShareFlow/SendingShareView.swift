@@ -1,5 +1,5 @@
 import SwiftUI
-import UIComponents
+import SwiftUILottie
 
 struct SendingShareView: View {
 
@@ -14,8 +14,11 @@ struct SendingShareView: View {
           .padding(60)
           .overlay(alignment: .bottom) {
             Text(L10n.Localizable.kwSharingSuccess)
+              .foregroundStyle(Color.ds.text.neutral.catchy)
               .fiberAccessibilityAnnouncement(L10n.Localizable.kwSharingSuccess)
-              .alignmentGuide(.bottom, to: .top)
+              .alignmentGuide(.bottom) {
+                $0[.top]
+              }
               .font(.title)
               .multilineTextAlignment(.center)
           }
@@ -25,7 +28,7 @@ struct SendingShareView: View {
           .padding(30)
           .overlay {
             Image.ds.group.outlined
-              .foregroundColor(.ds.border.neutral.quiet.idle)
+              .foregroundStyle(Color.ds.border.neutral.quiet.idle)
               .padding(50)
           }
       }
@@ -42,8 +45,8 @@ struct SendingShareView: View {
 struct ShareProgressView_Previews: PreviewProvider {
   static var previews: some View {
     SendingShareView(hasSucceed: .init(get: { true }, set: { _ in }))
-      .previewDisplayName("Progress")
-    SendingShareView(hasSucceed: .init(get: { false }, set: { _ in }))
       .previewDisplayName("Success")
+    SendingShareView(hasSucceed: .init(get: { false }, set: { _ in }))
+      .previewDisplayName("Progress")
   }
 }

@@ -3,11 +3,11 @@ import CoreNetworking
 import CorePasswords
 import CorePersonalData
 import CoreSession
-import CoreUserTracking
 import DesignSystem
 import SwiftTreats
 import SwiftUI
 import UIDelight
+import UserTrackingFoundation
 
 struct SecuritySettingsView: View {
 
@@ -54,8 +54,9 @@ struct SecuritySettingsView: View {
 
       if spacesConfiguration.currentTeam?.isRichIconsDisabled != true {
         Section {
-          Toggle(
-            L10n.Localizable.Settings.Security.richIconsToggle, isOn: $viewModel.richIconsEnabled)
+          DS.Toggle(isOn: $viewModel.richIconsEnabled) {
+            Text(L10n.Localizable.Settings.Security.richIconsToggle)
+          }
         } footer: {
           Text(L10n.Localizable.Settings.Security.richIconsDescription)
             .textStyle(.body.helper.regular)
@@ -75,14 +76,14 @@ struct SecuritySettingsView: View {
       } header: {
         Text(L10n.Localizable.kwCryptography)
           .textStyle(.title.supporting.small)
-          .foregroundColor(.ds.text.neutral.standard)
+          .foregroundStyle(Color.ds.text.neutral.standard)
       } footer: {
         Text(viewModel.userKind.cryptoKeyDescription)
           .textStyle(.body.helper.regular)
       }
       .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
     }
-    .listAppearance(.insetGrouped)
+    .listStyle(.ds.insetGrouped)
     .navigationTitle(L10n.Localizable.kwSecurity)
     .navigationBarTitleDisplayMode(.inline)
     .alert(using: $viewModel.activeAlert) { alert in
@@ -96,8 +97,7 @@ struct SecuritySettingsView: View {
         return Alert(
           title: Text(title),
           message: nil,
-          primaryButton: .default(
-            Text(CoreLocalization.L10n.Core.kwButtonOk), action: { completion(true) }),
+          primaryButton: .default(Text(CoreL10n.kwButtonOk), action: { completion(true) }),
           secondaryButton: .cancel({ completion(false) }))
       }
     }

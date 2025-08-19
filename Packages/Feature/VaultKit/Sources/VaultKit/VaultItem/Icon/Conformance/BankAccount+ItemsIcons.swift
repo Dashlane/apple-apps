@@ -9,6 +9,6 @@ extension BankAccount {
   }
 
   public static var addIcon: SwiftUI.Image {
-    .ds.item.taxNumber.outlined
+    .ds.item.bankAccount.outlined
   }
 }

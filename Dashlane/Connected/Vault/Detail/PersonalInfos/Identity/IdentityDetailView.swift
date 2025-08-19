@@ -16,7 +16,7 @@ struct IdentityDetailView: View {
     DetailContainerView(service: model.service) {
       Section {
         PickerDetailField(
-          title: CoreLocalization.L10n.Core.KWIdentityIOS.title,
+          title: CoreL10n.KWIdentityIOS.title,
           selection: $model.item.personalTitle,
           elements: Identity.PersonalTitle.displayableCases,
           content: { item in
@@ -24,42 +24,32 @@ struct IdentityDetailView: View {
           })
 
         if !model.item.firstName.isEmpty || model.mode.isEditing {
-          TextDetailField(
-            title: CoreLocalization.L10n.Core.KWIdentityIOS.firstName, text: $model.item.firstName
-          )
-          .textInputAutocapitalization(.words)
+          TextDetailField(title: CoreL10n.KWIdentityIOS.firstName, text: $model.item.firstName)
+            .textInputAutocapitalization(.words)
         }
 
         if !model.item.middleName.isEmpty || model.mode.isEditing {
-          TextDetailField(
-            title: CoreLocalization.L10n.Core.KWIdentityIOS.middleName, text: $model.item.middleName
-          )
-          .textInputAutocapitalization(.words)
+          TextDetailField(title: CoreL10n.KWIdentityIOS.middleName, text: $model.item.middleName)
+            .textInputAutocapitalization(.words)
         }
 
         if !model.item.lastName.isEmpty || model.mode.isEditing {
-          TextDetailField(
-            title: CoreLocalization.L10n.Core.KWIdentityIOS.lastName, text: $model.item.lastName
-          )
-          .textInputAutocapitalization(.words)
+          TextDetailField(title: CoreL10n.KWIdentityIOS.lastName, text: $model.item.lastName)
+            .textInputAutocapitalization(.words)
         }
 
         if !model.item.pseudo.isEmpty || model.mode.isEditing {
-          TextDetailField(
-            title: CoreLocalization.L10n.Core.KWIdentityIOS.pseudo, text: $model.item.pseudo
-          )
-          .textInputAutocapitalization(.words)
+          TextDetailField(title: CoreL10n.KWIdentityIOS.pseudo, text: $model.item.pseudo)
+            .textInputAutocapitalization(.words)
         }
 
         DateDetailField(
-          title: CoreLocalization.L10n.Core.KWIdentityIOS.birthDate,
+          title: CoreL10n.KWIdentityIOS.birthDate,
           date: $model.item.birthDate,
           range: .past)
 
         if !model.item.birthPlace.isEmpty || model.mode == .updating {
-          TextDetailField(
-            title: CoreLocalization.L10n.Core.KWIdentityIOS.birthPlace, text: $model.item.birthPlace
-          )
+          TextDetailField(title: CoreL10n.KWIdentityIOS.birthPlace, text: $model.item.birthPlace)
         }
       }
     }

@@ -1,27 +1,34 @@
 import CoreFeature
+import CoreLocalization
 import CorePersonalData
 import CorePremium
+import DesignSystem
+import DesignSystemExtra
 import SwiftUI
-import UIComponents
 import UIDelight
 
 public struct AddVaultButton<Label: View>: View {
-  @CapabilityState(.secureNotes)
-  var secureNoteState
-
   @FeatureState(.disableSecureNotes)
   var isSecureNoteDisabled
 
-  @FeatureState(.vaultSecrets)
-  var areSecretsEnabled
+  @FeatureState(.wifiCredential)
+  var isWiFiCredentialsEnabled
+
+  @FeatureState(.importDataButton)
+  var isImportDataButtonEnabled
 
   @CapabilityState(.secretManagement)
   var secretManagementStatus
 
+  public enum Action {
+    case add(VaultItem.Type)
+    case `import`
+  }
+
   let label: Label
+  let isImportEnabled: Bool
   let category: ItemCategory?
-  let onTap: () -> Void
-  let selectAction: (VaultItem.Type) -> Void
+  let onAction: (Action) -> Void
 
   private var isDisabled: Bool {
     return isSecureNoteDisabled && category == .secureNotes
@@ -29,26 +36,24 @@ public struct AddVaultButton<Label: View>: View {
 
   public init(
     category: ItemCategory? = nil,
-    onTap: @escaping () -> Void = {},
-    selectAction: @escaping (VaultItem.Type) -> Void,
+    isImportEnabled: Bool,
+    onAction: @escaping (Action) -> Void,
     @ViewBuilder label: () -> Label
   ) {
     self.label = label()
+    self.isImportEnabled = isImportEnabled
     self.category = category
-    self.onTap = onTap
-    self.selectAction = selectAction
+    self.onAction = onAction
   }
 
   public var body: some View {
     if let category = category, category.hasOnlyOneItemType, let item = category.items.first {
       Button {
-        onTap()
-        selectAction(item.type)
+        onAction(.add(item.type))
       } label: {
         label
-          .contentShape(Rectangle())
       }
-      .buttonStyle(ColoredButtonStyle())
+      .buttonStyle(.designSystem(.titleOnly(.sizeToFit)))
       .disabled(isDisabled)
     } else {
       Menu {
@@ -61,22 +66,38 @@ public struct AddVaultButton<Label: View>: View {
             button(for: category)
           }
         }
+
+        if isImportDataButtonEnabled && isImportEnabled {
+          Divider()
+          Button {
+            onAction(.import)
+          } label: {
+            HStack {
+              Text(L10n.Core.vauldAddButtonImportData)
+              Image.ds.download.outlined
+            }
+          }
+        }
       } label: {
         label
-          .contentShape(Rectangle())
-          .foregroundColor(.ds.text.brand.standard)
-          .fiberAccessibilityRemoveTraits(.isImage)
-          .fiberAccessibilityAddTraits(.isButton)
       }
-      .onTapGesture(perform: onTap)
+      .buttonStyle(.designSystem(.titleOnly(.sizeToFit)))
       .disabled(isDisabled)
     }
   }
 
   private var enabledCategories: [ItemCategory] {
-    let filters = ItemCategory.allCases
-    let isSecretsManagementAvailable = areSecretsEnabled && secretManagementStatus.isAvailable
-    return isSecretsManagementAvailable ? filters : filters.filter { $0 != .secrets }
+    ItemCategory.allCases.lazy
+      .filter { category in
+        switch category {
+        case .secrets:
+          return secretManagementStatus.isAvailable
+        case .wifi:
+          return isWiFiCredentialsEnabled
+        default:
+          return true
+        }
+      }
   }
 }
 
@@ -85,41 +106,32 @@ extension AddVaultButton {
   private func button(for category: ItemCategory) -> some View {
     if isSecureNoteDisabled && category == .secureNotes {
       EmptyView()
+    } else if !isWiFiCredentialsEnabled && category == .wifi {
+      EmptyView()
     } else if category.hasOnlyOneItemType, let item = category.items.first {
-      button(for: item.type, icon: icon(for: category))
+      button(for: item.type)
     } else {
       Menu {
         ForEach(category.items) { item in
-          button(for: item.type, icon: icon(for: category))
+          button(for: item.type)
         }
       } label: {
         HStack {
           Text(category.nativeMenuAddTitle)
-          icon(for: category)
           category.icon
         }
       }
     }
   }
 
-  private func icon(for category: ItemCategory) -> SwiftUI.Image? {
-    switch category {
-    case .secureNotes:
-      return !isSecureNoteDisabled && secureNoteState == .needsUpgrade
-        ? Image(asset: Asset.imgNoteLocked) : nil
-    default:
-      return nil
-    }
-  }
-
   @ViewBuilder
-  private func button(for itemType: VaultItem.Type, icon: SwiftUI.Image? = nil) -> some View {
+  private func button(for itemType: VaultItem.Type) -> some View {
     Button {
-      selectAction(itemType)
+      onAction(.add(itemType))
     } label: {
       HStack {
         Text(itemType.nativeMenuAddTitle)
-        icon ?? itemType.addIcon
+        itemType.addIcon
       }
     }
   }
@@ -131,23 +143,16 @@ extension ItemCategory {
   }
 }
 
-public struct NavigationBarAddIcon: View {
-  public var body: some View {
-    Image(asset: Asset.addButton)
-      .padding(EdgeInsets(top: 10, leading: 10, bottom: 10, trailing: 0))
-  }
-}
-
 extension AddVaultButton where Label == NavigationBarAddIcon {
   public init(
+    isImportEnabled: Bool,
     category: ItemCategory? = nil,
-    onTap: @escaping () -> Void = {},
-    selectAction: @escaping (VaultItem.Type) -> Void
+    onAction: @escaping (Action) -> Void
   ) {
     self.init(
       category: category,
-      onTap: onTap,
-      selectAction: selectAction
+      isImportEnabled: isImportEnabled,
+      onAction: onAction
     ) {
       NavigationBarAddIcon()
     }
@@ -157,51 +162,46 @@ extension AddVaultButton where Label == NavigationBarAddIcon {
 extension AddVaultButton where Label == Text {
   public init(
     text: Text,
+    isImportEnabled: Bool,
     category: ItemCategory? = nil,
-    onTap: @escaping () -> Void = {},
-    selectAction: @escaping (VaultItem.Type) -> Void
+    onAction: @escaping (Action) -> Void
   ) {
     self.init(
       category: category,
-      onTap: onTap,
-      selectAction: selectAction
+      isImportEnabled: isImportEnabled,
+      onAction: onAction
     ) {
       text
     }
   }
 }
 
-struct AddVaultButton_Previews: PreviewProvider {
-  static var previews: some View {
-    MultiContextPreview {
-      AddVaultButton { _ in }
-        .previewDisplayName("Add icon button")
+#Preview("Add icon button", traits: .sizeThatFitsLayout) {
+  AddVaultButton(isImportEnabled: true, onAction: { _ in })
+}
 
-      AddVaultButton { _ in }
-        .environment(\.enabledFeatures, [.disableSecureNotes])
-        .previewDisplayName("Add icon button with disabled secure note in menu")
+#Preview("Add icon button with disabled secure note in menu", traits: .sizeThatFitsLayout) {
+  AddVaultButton(isImportEnabled: true, onAction: { _ in })
+    .environment(\.enabledFeatures, [.disableSecureNotes])
+}
 
-      AddVaultButton(category: .secureNotes) { _ in }
-        .environment(\.enabledFeatures, [.disableSecureNotes])
-        .previewDisplayName("Add icon secure note button with disabled secure note")
+#Preview("Add icon secure note button with disabled secure note", traits: .sizeThatFitsLayout) {
+  AddVaultButton(isImportEnabled: true, category: .secureNotes, onAction: { _ in })
+    .environment(\.enabledFeatures, [.disableSecureNotes])
+}
 
-      AddVaultButton(text: Text("Add Item")) { _ in }
-        .previewDisplayName("Add text button with menu")
+#Preview("Add text button with menu", traits: .sizeThatFitsLayout) {
+  AddVaultButton(text: Text("Add Item"), isImportEnabled: true, onAction: { _ in })
+}
 
-      AddVaultButton(
-        text: Text("Add Item"),
-        category: .credentials
-      ) { _ in }
-      .previewDisplayName("Add text button with no menu")
+#Preview("Add text button with no menu", traits: .sizeThatFitsLayout) {
+  AddVaultButton(text: Text("Add Item"), isImportEnabled: true, onAction: { _ in })
+}
 
-      AddVaultButton(
-        text: Text("Add Item"),
-        category: .secureNotes
-      ) { _ in }
-      .previewDisplayName("Add text secure button with disabled secure note")
-      .environment(\.enabledFeatures, [.disableSecureNotes])
-
-    }
-    .previewLayout(.sizeThatFits)
-  }
+#Preview("Add text secure button with disabled secure note", traits: .sizeThatFitsLayout) {
+  AddVaultButton(
+    text: Text("Add Item"),
+    isImportEnabled: true, category: .secureNotes, onAction: { _ in }
+  )
+  .environment(\.enabledFeatures, [.disableSecureNotes])
 }

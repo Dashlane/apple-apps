@@ -47,8 +47,7 @@ public struct ImportInformationView: View {
         .padding(.bottom, 30)
     }
     .frame(maxHeight: .infinity)
-    .backgroundColorIgnoringSafeArea(.ds.background.alternate)
-    .navigationBarStyle(.transparent(tintColor: .ds.text.brand.standard, titleColor: nil))
+    .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
     .toolbar {
       ToolbarItem(placement: .navigationBarTrailing) {
         doneButton
@@ -59,15 +58,15 @@ public struct ImportInformationView: View {
       data.map { self.action?(.importCompleted(data: $0)) }
     }
     .alert(
-      L10n.Core.m2WImportFromChromeConfirmationPopupTitle,
+      CoreL10n.m2WImportFromChromeConfirmationPopupTitle,
       isPresented: $showConfirmationPopup,
       actions: {
-        Button(L10n.Core.m2WImportFromChromeConfirmationPopupYes) {
+        Button(CoreL10n.m2WImportFromChromeConfirmationPopupYes) {
           Task { @MainActor in
             self.action?(.done)
           }
         }
-        Button(L10n.Core.m2WImportFromChromeConfirmationPopupNo, role: .cancel) {}
+        Button(CoreL10n.m2WImportFromChromeConfirmationPopupNo, role: .cancel) {}
       }
     )
   }
@@ -78,10 +77,10 @@ extension ImportInformationView {
   @ViewBuilder
   fileprivate var doneButton: some View {
     if case .extension = step {
-      Button(L10n.Core.m2WImportFromChromeImportScreenDone) {
+      Button(CoreL10n.m2WImportFromChromeImportScreenDone) {
         self.showConfirmationPopup = true
       }
-      .foregroundColor(.ds.text.brand.standard)
+      .foregroundStyle(Color.ds.text.brand.standard)
     }
   }
 
@@ -110,8 +109,8 @@ extension ImportInformationView {
     if let title = kind.title(for: step) {
       Text(title)
         .frame(maxWidth: 400)
-        .font(DashlaneFont.custom(28, .medium).font)
-        .foregroundColor(.ds.text.neutral.catchy)
+        .textStyle(.title.section.large)
+        .foregroundStyle(Color.ds.text.neutral.catchy)
         .multilineTextAlignment(.center)
         .padding(.horizontal, 32)
         .fixedSize(horizontal: false, vertical: true)
@@ -124,7 +123,7 @@ extension ImportInformationView {
       Text(description)
         .frame(maxWidth: 400)
         .font(.body.weight(.light))
-        .foregroundColor(.ds.text.neutral.standard)
+        .foregroundStyle(Color.ds.text.neutral.standard)
         .multilineTextAlignment(.center)
         .padding(.horizontal, 32)
         .fixedSize(horizontal: false, vertical: true)
@@ -148,7 +147,7 @@ extension ImportInformationView {
   @ViewBuilder
   fileprivate var ctaButtonsForDash: some View {
     if case .intro = step {
-      Button(L10n.Core.m2WImportFromDashIntroScreenBrowse) {
+      Button(CoreL10n.m2WImportFromDashIntroScreenBrowse) {
         self.showDocumentPicker = true
         model.reportImportStarted()
       }
@@ -161,7 +160,7 @@ extension ImportInformationView {
   fileprivate var ctaButtonsForLastpass: some View {
     if case .intro = step {
       VStack {
-        Button(L10n.Core.m2WImportFromKeychainIntroScreenBrowse) {
+        Button(CoreL10n.m2WImportFromKeychainIntroScreenBrowse) {
           self.showDocumentPicker = true
           model.reportImportStarted()
         }
@@ -177,37 +176,37 @@ extension ImportInformationView {
   fileprivate var ctaButtonsForKeychain: some View {
     if case .intro = step {
       VStack {
-        Button(L10n.Core.m2WImportFromKeychainIntroScreenBrowse) {
+        Button(CoreL10n.m2WImportFromKeychainIntroScreenBrowse) {
           self.showDocumentPicker = true
           model.reportImportStarted()
         }
         .buttonStyle(.designSystem(.titleOnly))
         .padding(.horizontal, 16)
 
-        Button(L10n.Core.m2WImportFromKeychainIntroScreenNotExported) {
+        Button(CoreL10n.m2WImportFromKeychainIntroScreenNotExported) {
           Task { @MainActor in
             self.action?(.nextInfo)
           }
         }
-        .buttonStyle(BorderlessActionButtonStyle())
-        .foregroundColor(.ds.text.brand.standard)
+        .buttonStyle(.designSystem(.titleOnly))
+        .style(intensity: .supershy)
       }
     } else if case .instructions = step {
       VStack {
-        Button(L10n.Core.m2WImportFromKeychainURLScreenBrowse) {
+        Button(CoreL10n.m2WImportFromKeychainURLScreenBrowse) {
           self.showDocumentPicker = true
           model.reportImportStarted()
         }
         .buttonStyle(.designSystem(.titleOnly))
         .padding(.horizontal, 16)
 
-        Button(L10n.Core.m2WImportFromKeychainURLScreenClose) {
+        Button(CoreL10n.m2WImportFromKeychainURLScreenClose) {
           Task { @MainActor in
             self.action?(.close)
           }
         }
-        .buttonStyle(BorderlessActionButtonStyle())
-        .foregroundColor(.ds.text.brand.standard)
+        .buttonStyle(.designSystem(.titleOnly))
+        .style(intensity: .supershy)
       }
     }
   }
@@ -215,7 +214,7 @@ extension ImportInformationView {
   @ViewBuilder
   fileprivate var ctaButtonsForChrome: some View {
     if case .intro = step {
-      Button(L10n.Core.m2WImportFromChromeIntoScreenCTA) {
+      Button(CoreL10n.m2WImportFromChromeIntoScreenCTA) {
         Task { @MainActor in
           self.action?(.nextInfo)
         }
@@ -223,7 +222,7 @@ extension ImportInformationView {
       .buttonStyle(.designSystem(.titleOnly))
       .padding(.horizontal, 16)
     } else if case .instructions = step {
-      Button(L10n.Core.m2WImportFromChromeURLScreenCTA) {
+      Button(CoreL10n.m2WImportFromChromeURLScreenCTA) {
         Task { @MainActor in
           self.action?(.nextInfo)
         }
@@ -239,19 +238,19 @@ extension ImportFlowKind {
   fileprivate func image(for step: ImportInformationViewModel.Step) -> Image? {
     switch (self, step) {
     case (.dash, .intro):
-      return Image(asset: Asset.dashImport)
+      return Image(.dashImport)
     case (.keychain, .intro):
-      return Image(asset: Asset.keychainImport)
+      return Image(.keychainImport)
     case (.keychain, .instructions):
-      return Image(asset: Asset.keychainInstructions)
+      return Image(.keychainInstructions)
     case (.lastpass, .intro):
-      return Image(asset: Asset.lastpassImport)
+      return Image(.lastpassImport)
     case (.chrome, .intro):
-      return Image(asset: Asset.chromeImport)
+      return Image(.chromeImport)
     case (.chrome, .instructions):
-      return Image(asset: Asset.m2wConnect)
+      return Image(.m2WConnect)
     case (.chrome, .extension):
-      return Image(asset: Asset.chromeInstructions)
+      return Image(.chromeInstructions)
     default:
       return nil
     }
@@ -260,19 +259,19 @@ extension ImportFlowKind {
   fileprivate func title(for step: ImportInformationViewModel.Step) -> String? {
     switch (self, step) {
     case (.dash, .intro):
-      return L10n.Core.m2WImportFromDashIntroScreenPrimaryTitle
+      return CoreL10n.m2WImportFromDashIntroScreenPrimaryTitle
     case (.keychain, .intro):
-      return L10n.Core.m2WImportFromKeychainIntroScreenPrimaryTitle
+      return CoreL10n.m2WImportFromKeychainIntroScreenPrimaryTitle
     case (.lastpass, .intro):
-      return L10n.Core.importFromLastpassIntroTitle
+      return CoreL10n.importFromLastpassIntroTitle
     case (.keychain, .instructions):
-      return L10n.Core.m2WImportFromKeychainURLScreenPrimaryTitle
+      return CoreL10n.m2WImportFromKeychainURLScreenPrimaryTitle
     case (.chrome, .intro):
-      return L10n.Core.m2WImportFromChromeIntroScreenPrimaryTitle
+      return CoreL10n.m2WImportFromChromeIntroScreenPrimaryTitle
     case (.chrome, .instructions):
-      return L10n.Core.m2WImportFromChromeURLScreenPrimaryTitle
+      return CoreL10n.m2WImportFromChromeURLScreenPrimaryTitle
     case (.chrome, .extension):
-      return L10n.Core.m2WImportFromChromeImportScreenPrimaryTitle
+      return CoreL10n.m2WImportFromChromeImportScreenPrimaryTitle
     default:
       return nil
     }
@@ -281,17 +280,17 @@ extension ImportFlowKind {
   fileprivate func description(for step: ImportInformationViewModel.Step) -> String? {
     switch (self, step) {
     case (.dash, _):
-      return L10n.Core.m2WImportFromDashIntroScreenSecondaryTitle
+      return CoreL10n.m2WImportFromDashIntroScreenSecondaryTitle
     case (.keychain, .intro):
-      return L10n.Core.m2WImportFromKeychainIntroScreenSecondaryTitle
+      return CoreL10n.m2WImportFromKeychainIntroScreenSecondaryTitle
     case (.lastpass, .intro):
-      return L10n.Core.importFromLastpassIntroDescription
+      return CoreL10n.importFromLastpassIntroDescription
     case (.keychain, _):
-      return L10n.Core.m2WImportFromKeychainURLScreenSecondaryTitle
+      return CoreL10n.m2WImportFromKeychainURLScreenSecondaryTitle
     case (.chrome, .intro):
-      return L10n.Core.m2WImportFromChromeIntoScreenSecondaryTitle
+      return CoreL10n.m2WImportFromChromeIntoScreenSecondaryTitle
     case (.chrome, .extension):
-      return L10n.Core.m2WImportFromChromeImportScreenSecondaryTitle
+      return CoreL10n.m2WImportFromChromeImportScreenSecondaryTitle
     default:
       return nil
     }
@@ -299,16 +298,26 @@ extension ImportFlowKind {
 
 }
 
-struct ImportInformationView_Previews: PreviewProvider {
-  static var previews: some View {
-    MultiContextPreview(deviceRange: .some([.iPhone8, .iPhone11, .iPadPro])) {
-      ImportInformationView(model: .dashMock, action: nil, isLoading: .constant(false))
-      ImportInformationView(model: .keychainIntroMock, action: nil, isLoading: .constant(false))
-      ImportInformationView(
-        model: .keychainInstructionsMock, action: nil, isLoading: .constant(false))
-      ImportInformationView(model: .chromeIntroMock, action: nil, isLoading: .constant(false))
-      ImportInformationView(model: .chromeInstrutionsMock, action: nil, isLoading: .constant(false))
-      ImportInformationView(model: .chromeExtensionMock, action: nil, isLoading: .constant(false))
-    }
-  }
+#Preview("Dash Mock") {
+  ImportInformationView(model: .dashMock, action: nil, isLoading: .constant(false))
+}
+
+#Preview("Keychain Intro Mock") {
+  ImportInformationView(model: .keychainIntroMock, action: nil, isLoading: .constant(false))
+}
+
+#Preview("Keychain Instructions Mock") {
+  ImportInformationView(model: .keychainInstructionsMock, action: nil, isLoading: .constant(false))
+}
+
+#Preview("Chrome Intro Mock") {
+  ImportInformationView(model: .chromeIntroMock, action: nil, isLoading: .constant(false))
+}
+
+#Preview("Chrome Instructions Mock") {
+  ImportInformationView(model: .chromeInstrutionsMock, action: nil, isLoading: .constant(false))
+}
+
+#Preview("Chrome Extension Mock") {
+  ImportInformationView(model: .chromeExtensionMock, action: nil, isLoading: .constant(false))
 }

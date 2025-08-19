@@ -3,6 +3,7 @@ import CoreFeature
 import CoreKeychain
 import CoreSession
 import CoreSettings
+import CoreTypes
 import Foundation
 import LoginKit
 import SwiftTreats
@@ -67,7 +68,7 @@ class ResetMasterPasswordNotificationProvider: NotificationProvider {
 
 struct ResetMasterPasswordNotification: DashlaneNotification {
   let state: NotificationCenterService.Notification.State
-  let icon = Image(asset: FiberAsset.resetMasterPasswordActionItemIcon)
+  let icon = Image(.Notification.resetMasterPasswordActionItemIcon)
   let title = L10n.Localizable.resetMasterPasswordNotificationCenterItemTitle
   let description = L10n.Localizable.resetMasterPasswordNotificationCenterItemTitle
   let category: NotificationCategory = .gettingStarted

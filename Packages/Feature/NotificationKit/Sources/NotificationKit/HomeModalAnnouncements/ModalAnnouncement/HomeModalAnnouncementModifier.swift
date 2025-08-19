@@ -36,22 +36,20 @@ struct HomeModalAnnouncementModifier: ViewModifier {
       }
     }
     .modifier(AlertAnnouncementModifier(announcement: model.alert, isPresented: $showAlert))
-    .onChange(of: model.alert) { newValue in
+    .onChange(of: model.alert) { _, newValue in
       self.showAlert = newValue != nil
     }
   }
 
   func nativeBottomSheetView(content: Content) -> some View {
     content
-      .sheet(
-        item: $model.bottomSheet,
-        content: { announcement in
-          switch announcement {
-          case let .braze(brazeAnnouncement):
-            BrazeAnnouncementContainerView(
-              announcement: brazeAnnouncement, dismiss: { model.dismiss(announcement) })
-          }
-        })
+      .sheet(item: $model.bottomSheet) { announcement in
+        switch announcement {
+        case let .braze(brazeAnnouncement):
+          BrazeAnnouncementContainerView(
+            announcement: brazeAnnouncement, dismiss: { model.dismiss(announcement) })
+        }
+      }
   }
 }
 

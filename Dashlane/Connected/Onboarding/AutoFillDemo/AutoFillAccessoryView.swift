@@ -25,7 +25,7 @@ struct AutoFillAccessoryView: View {
           .minimumScaleFactor(1)
           .truncationMode(.middle)
       }
-    }.buttonStyle(AutoFillButtonStyle())
+    }.buttonStyle(KeyboardAutoFillMockButtonStyle())
   }
 }
 

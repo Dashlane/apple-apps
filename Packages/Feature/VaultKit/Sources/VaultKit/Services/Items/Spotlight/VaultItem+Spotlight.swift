@@ -53,7 +53,7 @@ extension Credential: SpotLightSearchable {
 
     let attr = CSSearchableItemAttributeSet.makeItem()
     attr.title = self.localizedTitle
-    attr.contentDescription = L10n.Core.kwCorespotlightTitleAuth(domain)
+    attr.contentDescription = CoreL10n.kwCorespotlightTitleAuth(domain)
     attr.keywords = [Credential.localizedName, domain]
     attr.relatedUniqueIdentifier = deepLinkIdentifier.rawValue
     return attr
@@ -63,8 +63,8 @@ extension Credential: SpotLightSearchable {
 extension CreditCard: SpotLightSearchable {
   var spotlightAttributeSet: CSSearchableItemAttributeSet? {
     let attr = CSSearchableItemAttributeSet.makeItem()
-    attr.title = L10n.Core.kwCorespotlightTitleCreditcard(self.localizedTitle)
-    attr.contentDescription = L10n.Core.kwCorespotlightDescCreditcard
+    attr.title = CoreL10n.kwCorespotlightTitleCreditcard(self.localizedTitle)
+    attr.contentDescription = CoreL10n.kwCorespotlightDescCreditcard
     attr.keywords = [Self.localizedName, bank?.name].compactMap { $0 }
     attr.relatedUniqueIdentifier = deepLinkIdentifier.rawValue
     return attr
@@ -74,12 +74,12 @@ extension CreditCard: SpotLightSearchable {
 extension BankAccount: SpotLightSearchable {
   var spotlightAttributeSet: CSSearchableItemAttributeSet? {
     let attr = CSSearchableItemAttributeSet.makeItem()
-    attr.title = L10n.Core.kwCorespotlightTitleCreditcard(self.localizedTitle)
-    attr.contentDescription = L10n.Core.kwCorespotlightDescBankAccount
+    attr.title = CoreL10n.kwCorespotlightTitleCreditcard(self.localizedTitle)
+    attr.contentDescription = CoreL10n.kwCorespotlightDescBankAccount
     attr.keywords = [
       Self.localizedName,
-      L10n.Core.KWBankStatementIOS.bicFieldTitle(for: bicVariant),
-      L10n.Core.KWBankStatementIOS.ibanFieldTitle(for: ibanVariant),
+      CoreL10n.KWBankStatementIOS.bicFieldTitle(for: bicVariant),
+      CoreL10n.KWBankStatementIOS.ibanFieldTitle(for: ibanVariant),
       bank?.name,
     ].compactMap { $0 }
     attr.relatedUniqueIdentifier = deepLinkIdentifier.rawValue

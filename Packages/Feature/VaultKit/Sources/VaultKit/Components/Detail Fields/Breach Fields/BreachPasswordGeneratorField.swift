@@ -18,19 +18,15 @@ public struct BreachPasswordGeneratorField: DetailField {
     PasswordText(text: text)
       .font(.body)
       .lineLimit(1)
-      .foregroundColor(.ds.text.neutral.catchy)
+      .foregroundStyle(Color.ds.text.neutral.catchy)
       .padding(.horizontal, 16)
       .padding(.vertical, 10)
       .background(Color.ds.container.agnostic.neutral.supershy)
   }
 }
 
-struct BreachPasswordGeneratorField_Previews: PreviewProvider {
-  static var previews: some View {
-    MultiContextPreview {
-      VStack {
-        BreachPasswordGeneratorField(text: "_")
-      }
-    }.previewLayout(.sizeThatFits)
+#Preview(traits: .sizeThatFitsLayout) {
+  VStack {
+    BreachPasswordGeneratorField(text: "_")
   }
 }

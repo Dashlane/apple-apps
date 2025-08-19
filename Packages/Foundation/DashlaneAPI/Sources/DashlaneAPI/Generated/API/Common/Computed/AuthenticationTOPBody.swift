@@ -1,6 +1,6 @@
 import Foundation
 
-public struct AuthenticationTOPBody: Codable, Equatable, Sendable {
+public struct AuthenticationTOPBody: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case authTicket = "authTicket"
   }

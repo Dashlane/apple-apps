@@ -12,12 +12,14 @@ struct DataLeakMonitoringAddEmailSuccessView: View {
       Image.ds.item.email.outlined
         .resizable()
         .frame(width: 64, height: 64)
-        .foregroundColor(.ds.text.brand.quiet)
+        .foregroundStyle(Color.ds.text.brand.quiet)
         .accessibilityHidden(true)
       Text(L10n.Localizable.dataleakmonitoringSuccessTitle)
         .font(.title2)
+        .foregroundStyle(Color.ds.text.neutral.standard)
         .bold()
       Text(L10n.Localizable.dataleakmonitoringSuccessDescription(monitoredEmail))
+        .foregroundStyle(Color.ds.text.neutral.standard)
       Spacer()
       closeButton
     }

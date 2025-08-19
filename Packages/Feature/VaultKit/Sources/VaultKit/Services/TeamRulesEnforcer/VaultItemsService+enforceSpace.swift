@@ -1,3 +1,4 @@
+import CorePersonalData
 import CorePremium
 import Foundation
 

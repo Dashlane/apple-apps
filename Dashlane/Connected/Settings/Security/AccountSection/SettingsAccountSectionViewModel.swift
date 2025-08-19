@@ -5,12 +5,12 @@ import CorePasswords
 import CorePersonalData
 import CorePremium
 import CoreSession
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 import LoginKit
 import UIKit
+import UserTrackingFoundation
 
 @MainActor
 final class SettingsAccountSectionViewModel: ObservableObject, SessionServicesInjecting {
@@ -36,9 +36,10 @@ final class SettingsAccountSectionViewModel: ObservableObject, SessionServicesIn
 
   let deepLinkPublisher: AnyPublisher<SettingsDeepLinkComponent, Never>
 
-  let masterPasswordResetActivationViewModelFactory: MasterPasswordResetActivationViewModel.Factory
-  let changeMasterPasswordFlowViewModelFactory: ChangeMasterPasswordFlowViewModel.Factory
-  let accountRecoveryKeyStatusViewModelFactory: AccountRecoveryKeyStatusViewModel.Factory
+  private let masterPasswordResetActivationViewModelFactory:
+    MasterPasswordResetActivationViewModel.Factory
+  private let changeMasterPasswordFlowViewModelFactory: MP2MPAccountMigrationViewModel.Factory
+  private let accountRecoveryKeyStatusViewModelFactory: AccountRecoveryKeyStatusViewModel.Factory
   var masterPasswordResetActivationViewModel: MasterPasswordResetActivationViewModel?
 
   init(
@@ -51,7 +52,7 @@ final class SettingsAccountSectionViewModel: ObservableObject, SessionServicesIn
     deepLinkingService: DeepLinkingServiceProtocol,
     userDeviceAPIClient: UserDeviceAPIClient,
     masterPasswordResetActivationViewModelFactory: MasterPasswordResetActivationViewModel.Factory,
-    changeMasterPasswordFlowViewModelFactory: ChangeMasterPasswordFlowViewModel.Factory,
+    changeMasterPasswordFlowViewModelFactory: MP2MPAccountMigrationViewModel.Factory,
     accountRecoveryKeyStatusViewModelFactory: AccountRecoveryKeyStatusViewModel.Factory,
     actionHandler: @escaping (MasterPasswordResetActivationViewModel.Action) -> Void
   ) {
@@ -135,6 +136,22 @@ final class SettingsAccountSectionViewModel: ObservableObject, SessionServicesIn
     self.masterPasswordResetActivationViewModel = model
     return model
   }
+
+  func makeChangeMasterPasswordViewModel(_ completion: @escaping () -> Void)
+    -> MP2MPAccountMigrationViewModel
+  {
+    changeMasterPasswordFlowViewModelFactory.make(migrationContext: .changeMP) {
+      [weak self] result in
+      guard let self else { return }
+
+      if case .success(let session) = result {
+        self.sessionLifeCycleHandler?.logoutAndPerform(
+          action: .startNewSession(session, reason: .masterPasswordChanged))
+      }
+
+      completion()
+    }
+  }
 }
 
 extension SettingsAccountSectionViewModel {
@@ -150,7 +167,8 @@ extension SettingsAccountSectionViewModel {
       deepLinkingService: DeepLinkingService.fakeService,
       userDeviceAPIClient: .fake,
       masterPasswordResetActivationViewModelFactory: .init({ _, _ in .mock }),
-      changeMasterPasswordFlowViewModelFactory: .init({ .mock }),
+      changeMasterPasswordFlowViewModelFactory: .init({ _, _ in fatalError("unreachable in Preview")
+        }),
       accountRecoveryKeyStatusViewModelFactory: .init({ .mock }),
       actionHandler: { _ in })
   }

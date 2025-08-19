@@ -32,7 +32,7 @@ struct HomeView: View {
           model: model.homeListViewModel)
       }
     )
-    .navigationTitle(CoreLocalization.L10n.Core.mainMenuHomePage)
+    .navigationTitle(CoreL10n.mainMenuHomePage)
     .navigationBarTitleDisplayMode(.inline)
   }
 }

@@ -46,6 +46,8 @@ extension ItemCategory {
         IDCard.self,
         FiscalInformation.self,
       ].map(Item.init)
+    case .wifi:
+      return [WiFi.self].map(Item.init)
     }
   }
 }

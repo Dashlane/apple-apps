@@ -1,13 +1,13 @@
 import CoreCrypto
 import CoreLocalization
 import CoreSession
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 import StateMachine
 import SwiftTreats
 import UIDelight
+import UserTrackingFoundation
 
 @MainActor
 public class DeviceTransferSecurityChallengeFlowModel: StateMachineBasedObservableObject,
@@ -29,9 +29,10 @@ public class DeviceTransferSecurityChallengeFlowModel: StateMachineBasedObservab
   var error: TransferError?
 
   @Published
-  var progressState: ProgressionState = .inProgress(L10n.Core.deviceToDeviceLoginProgress)
+  var progressState: ProgressionState = .inProgress(CoreL10n.deviceToDeviceLoginProgress)
 
-  public var stateMachine: SecurityChallengeFlowStateMachine
+  @Published public var stateMachine: SecurityChallengeFlowStateMachine
+  @Published public var isPerformingEvent: Bool = false
 
   let login: Login
   let completion: @MainActor (DeviceTransferCompletion) -> Void
@@ -40,14 +41,13 @@ public class DeviceTransferSecurityChallengeFlowModel: StateMachineBasedObservab
 
   public init(
     login: Login,
+    stateMachine: SecurityChallengeFlowStateMachine,
     securityChallengeIntroViewModelFactory: DeviceTransferSecurityChallengeIntroViewModel.Factory,
     passphraseViewModelFactory: DeviceTransferPassphraseViewModel.Factory,
-    securityChallengeFlowStateMachineFactory: SecurityChallengeFlowStateMachine.Factory,
     completion: @escaping @MainActor (DeviceTransferCompletion) -> Void
   ) {
     self.login = login
-    self.stateMachine = securityChallengeFlowStateMachineFactory.make(
-      state: .startSecurityChallengeTransfer(.initializing))
+    self.stateMachine = stateMachine
     self.completion = completion
     self.securityChallengeIntroViewModelFactory = securityChallengeIntroViewModelFactory
     self.passphraseViewModelFactory = passphraseViewModelFactory
@@ -59,7 +59,11 @@ public class DeviceTransferSecurityChallengeFlowModel: StateMachineBasedObservab
 
 extension DeviceTransferSecurityChallengeFlowModel {
   func makeSecurityChallengeIntroViewModel() -> DeviceTransferSecurityChallengeIntroViewModel {
-    securityChallengeIntroViewModelFactory.make(login: login) { [weak self] result in
+    securityChallengeIntroViewModelFactory.make(
+      login: login,
+      stateMachine: stateMachine.makeSecurityChallengeTransferStateMachine(
+        login: login, cryptoProvider: DeviceTransferCryptoKeysProviderImpl())
+    ) { [weak self] result in
       guard let self = self else {
         return
       }
@@ -82,11 +86,12 @@ extension DeviceTransferSecurityChallengeFlowModel {
     state: PassphraseVerificationStateMachine.State, securityChallengeKeys: SecurityChallengeKeys
   ) -> DeviceTransferPassphraseViewModel {
     passphraseViewModelFactory.make(
-      initialState: state,
-      words: securityChallengeKeys.passphrase,
-      transferId: securityChallengeKeys.transferId,
-      secretBox: DeviceTransferSecretBoxImpl(
-        cryptoEngine: DeviceTransferCryptoEngine(symmetricKey: securityChallengeKeys.symmetricKey))
+      stateMachine: stateMachine.makePassphraseVerificationStateMachine(
+        state: state, transferId: securityChallengeKeys.transferId,
+        secretBox: DeviceTransferSecretBoxImpl(
+          cryptoEngine: DeviceTransferCryptoEngine(symmetricKey: securityChallengeKeys.symmetricKey)
+        )),
+      words: securityChallengeKeys.passphrase
     ) { [weak self] result in
       guard let self = self else {
         return

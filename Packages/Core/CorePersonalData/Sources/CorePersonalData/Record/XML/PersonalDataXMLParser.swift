@@ -1,7 +1,9 @@
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 
 final class PersonalDataXMLParser: NSObject {
+  @Loggable
   enum ParsingError: Error {
     case noNodeFound
     case noObjectFound

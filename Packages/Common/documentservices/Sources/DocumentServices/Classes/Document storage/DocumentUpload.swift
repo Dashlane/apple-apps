@@ -1,11 +1,14 @@
 import CoreNetworking
 import CorePersonalData
+import CoreTypes
 import CyrilKit
-import DashTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 
+@Loggable
 public struct DocumentUploadError: Error {
+  @LogPublicPrivacy
   let message: String
   init(_ message: String) {
     self.message = message

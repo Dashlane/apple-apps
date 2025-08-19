@@ -1,7 +1,9 @@
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 import SwiftTreats
 
+@Loggable
 @PersonalData
 public struct Phone: Equatable, Identifiable, Hashable, DatedPersonalData {
   public static let searchCategory: SearchCategory = .personalInfo
@@ -89,5 +91,16 @@ public struct Phone: Equatable, Identifiable, Hashable, DatedPersonalData {
     if number.isEmptyOrWhitespaces() {
       throw ItemValidationError(invalidProperty: \Phone.number)
     }
+  }
+}
+
+extension Phone {
+  public var displayPhone: String {
+    if !interNationalNumber.isEmpty {
+      return interNationalNumber
+    } else if !nationalNumber.isEmpty {
+      return nationalNumber
+    }
+    return number
   }
 }

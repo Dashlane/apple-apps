@@ -1,16 +1,19 @@
 import CoreLocalization
-import CoreUserTracking
 import DesignSystem
 import Foundation
 import NotificationKit
 import SwiftUI
 import UIDelight
+import UserTrackingFoundation
 import VaultKit
 
 struct OnboardingChecklistView: View {
 
   @StateObject
   var model: OnboardingChecklistViewModel
+
+  @State
+  private var isPresentingImportView = false
 
   let displayMode: OnboardingChecklistFlowViewModel.DisplayMode
   let dismiss: () -> Void
@@ -30,15 +33,6 @@ struct OnboardingChecklistView: View {
         if model.actions.contains(.addFirstPasswordsManually) {
           addPasswordsManually
         }
-        if model.actions.contains(.importFromBrowser) {
-          importPasswordsFromBrowser
-        }
-        if model.actions.contains(.fixBreachedAccounts) {
-          fixBreachedAccounts
-        }
-        if model.actions.contains(.seeScanResult) {
-          seeScanResult
-        }
         if model.actions.contains(.activateAutofill) {
           activateAutofill
         }
@@ -52,15 +46,15 @@ struct OnboardingChecklistView: View {
       .padding(16)
       .animation(.spring(), value: model.selectedAction)
     }
-    .background(backgroundColor.edgesIgnoringSafeArea(.bottom))
+    .background(backgroundColor.edgesIgnoringSafeArea(.vertical))
     .toolbar(content: {
       ToolbarItem(placement: .navigationBarLeading) {
         if displayMode == .modal {
           Button(
             action: dismiss,
             label: {
-              Text(CoreLocalization.L10n.Core.kwButtonClose)
-                .foregroundColor(.ds.text.brand.standard)
+              Text(CoreL10n.kwButtonClose)
+                .foregroundStyle(Color.ds.text.brand.standard)
                 .fontWeight(.regular)
             })
         }
@@ -74,22 +68,32 @@ struct OnboardingChecklistView: View {
     })
     .navigationBarBackButtonHidden(displayMode != .modal)
     .navigationTitle(
-      displayMode == .modal
-        ? L10n.Localizable.onboardingChecklistTitle : CoreLocalization.L10n.Core.mainMenuHomePage
+      displayMode == .modal ? L10n.Localizable.onboardingChecklistTitle : CoreL10n.mainMenuHomePage
     )
     .onAppear(perform: model.updateOnAppear)
     .reportPageAppearance(userTrackingPage)
+    .sheet(isPresented: $isPresentingImportView) {
+      ImportView(importSource: .vaultList)
+    }
   }
 
   var backgroundColor: Color {
-    .ds.background.default
+    .ds.background.alternate
   }
 
   @ViewBuilder
   var addButton: some View {
-    AddVaultButton(onTap: model.onAddItemDropdown) { itemType in
-      self.model.addNewItemAction(mode: .itemType(itemType))
-    }
+    AddVaultButton(
+      isImportEnabled: true,
+      onAction: { action in
+        switch action {
+        case .add(let itemType):
+          self.model.addNewItemAction(mode: .itemType(itemType))
+        case .import:
+          isPresentingImportView = true
+        }
+      }
+    )
   }
 
   var addPasswordsManually: some View {
@@ -99,17 +103,6 @@ struct OnboardingChecklistView: View {
       action: .addFirstPasswordsManually,
       ctaAction: { self.model.start(.addFirstPasswordsManually) }
     ).onTapGesture { self.model.select(.addFirstPasswordsManually) }
-  }
-
-  var importPasswordsFromBrowser: some View {
-    OnboardingChecklistItemView(
-      showDetails: model.selectedAction == .importFromBrowser,
-      completed: model.hasPassedPasswordOnboarding,
-      action: .importFromBrowser,
-      ctaAction: { self.model.start(.importFromBrowser) }
-    ).onTapGesture {
-      self.model.select(.importFromBrowser)
-    }
   }
 
   var activateAutofill: some View {
@@ -132,24 +125,6 @@ struct OnboardingChecklistView: View {
     ).onTapGesture { self.model.select(.mobileToDesktop) }
   }
 
-  var fixBreachedAccounts: some View {
-    OnboardingChecklistItemView(
-      showDetails: model.selectedAction == .fixBreachedAccounts,
-      completed: model.hasSeenDWMExperience,
-      action: .fixBreachedAccounts,
-      ctaAction: { self.model.start(.fixBreachedAccounts) }
-    ).onTapGesture { self.model.select(.fixBreachedAccounts) }
-  }
-
-  var seeScanResult: some View {
-    OnboardingChecklistItemView(
-      showDetails: model.selectedAction == .seeScanResult,
-      completed: model.hasPassedPasswordOnboarding,
-      action: .seeScanResult,
-      ctaAction: { self.model.start(.seeScanResult) }
-    ).onTapGesture { self.model.select(.seeScanResult) }
-  }
-
   var dismissButton: some View {
     Button(
       action: {
@@ -159,7 +134,7 @@ struct OnboardingChecklistView: View {
       },
       label: {
         Text(model.dismissButtonCTA ?? "")
-          .foregroundColor(.ds.text.brand.standard)
+          .foregroundStyle(Color.ds.text.brand.standard)
           .bold()
       }
     )

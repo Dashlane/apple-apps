@@ -1,12 +1,13 @@
 import Combine
+import CorePersonalData
 import CorePremium
 import CoreSharing
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DocumentServices
 import Foundation
 import SwiftUI
 import UIComponents
+import UserTrackingFoundation
 
 final class VaultItemEditionService<Item: VaultItem & Equatable>: ObservableObject {
 
@@ -15,7 +16,7 @@ final class VaultItemEditionService<Item: VaultItem & Equatable>: ObservableObje
 
   @Binding var mode: DetailMode
 
-  var itemDidChange: Bool {
+  var itemHasChanged: Bool {
     item != originalItem
   }
 
@@ -71,7 +72,7 @@ final class VaultItemEditionService<Item: VaultItem & Equatable>: ObservableObje
 
   func delete() async throws {
     try await documentStorageService
-      .documentDeleteService
+      .documentUpdateService
       .deleteAllAttachments(of: item)
     await MainActor.run {
       self.vaultItemDatabase.dispatchDelete(self.item)
@@ -115,7 +116,7 @@ extension VaultItemEditionService {
   }
 
   func save(with selectedUserSpace: UserSpace, itemCollectionsCount: Int) throws {
-    guard itemDidChange else {
+    guard itemHasChanged else {
       return
     }
     let now = Date()

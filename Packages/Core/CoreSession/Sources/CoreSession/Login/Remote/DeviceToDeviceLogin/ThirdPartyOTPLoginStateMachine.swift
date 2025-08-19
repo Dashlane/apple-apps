@@ -1,13 +1,14 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import StateMachine
 import SwiftTreats
 
-@MainActor
 public struct ThirdPartyOTPLoginStateMachine: StateMachine {
 
-  public enum State: Hashable {
+  @Loggable
+  public enum State: Hashable, Sendable {
     case initialize(VerificationMethod.PushType?)
 
     case didReceivedAuthTicket(AuthTicket, _ isBackupCode: Bool = false)
@@ -15,7 +16,8 @@ public struct ThirdPartyOTPLoginStateMachine: StateMachine {
     case errorOccured(ThirdPartyOTPError, _ isBackupCode: Bool = false)
   }
 
-  public enum Event {
+  @Loggable
+  public enum Event: Sendable {
     case start
 
     case validateOTP(String, _ isBackupCode: Bool)
@@ -44,8 +46,7 @@ public struct ThirdPartyOTPLoginStateMachine: StateMachine {
     self.state = initialState
   }
 
-  public mutating func transition(with event: Event) async {
-    logger.logInfo("Received event \(event)")
+  public mutating func transition(with event: Event) async throws {
     switch event {
     case .start:
       state = .initialize(option.pushType)
@@ -56,7 +57,8 @@ public struct ThirdPartyOTPLoginStateMachine: StateMachine {
         await validateUsingDUOPush()
       }
     }
-    logger.logInfo("Transition to state: \(state)")
+    let state = state
+    logger.info("Transition to state: \(state)")
   }
 
   private mutating func validateOTP(_ otp: String, isBackupCode: Bool) async {
@@ -98,6 +100,6 @@ extension ThirdPartyOTPLoginStateMachine {
       login: Login("_"),
       option: option,
       apiClient: .mock({}),
-      logger: LoggerMock())
+      logger: .mock)
   }
 }

@@ -1,6 +1,7 @@
 import CoreLocalization
 import CoreSession
 import DesignSystem
+import DesignSystemExtra
 import SwiftUI
 import UIComponents
 import UIDelight
@@ -38,7 +39,7 @@ public struct UnlinkMutltiDevicesView: View {
 
   public var body: some View {
     VStack(alignment: .leading, spacing: 21) {
-      VStack(spacing: 2) {
+      VStack(spacing: 4) {
         HStack {
           header
           Spacer()
@@ -49,32 +50,30 @@ public struct UnlinkMutltiDevicesView: View {
     }
     .padding(26)
     .loginAppearance()
-    #if canImport(UIKit)
-      .navigationBarBackButtonHidden(true)
-      .toolbar {
-        ToolbarItem(placement: .navigationBarLeading) {
-          NavigationBarButton(L10n.Core.cancel, action: cancel)
-        }
+    .navigationBarBackButtonHidden(true)
+    .toolbar {
+      ToolbarItem(placement: .navigationBarLeading) {
+        Button(CoreL10n.cancel, action: cancel)
       }
-    #endif
+    }
   }
 
   private var header: some View {
-    VStack(alignment: .leading, spacing: 2) {
-      Text(L10n.Core.deviceUnlinkUnlinkDevicesTitle)
-        .font(DashlaneFont.custom(26, .bold).font)
+    VStack(alignment: .leading, spacing: 4) {
+      Text(CoreL10n.deviceUnlinkUnlinkDevicesTitle)
+        .textStyle(.title.section.medium)
 
-      Text(L10n.Core.deviceUnlinkUnlinkDevicesSubtitle)
-        .font(.body)
-        .foregroundColor(.ds.text.neutral.standard)
+      Text(CoreL10n.deviceUnlinkUnlinkDevicesSubtitle)
+        .textStyle(.body.standard.regular)
+        .foregroundStyle(Color.ds.text.neutral.standard)
     }
   }
 
   private var list: some View {
     VStack(alignment: .leading, spacing: 14) {
-      Text(L10n.Core.deviceUnlinkLimitedMultiDevicesDescription)
-        .font(.caption)
-        .foregroundColor(.ds.text.neutral.standard)
+      Text(CoreL10n.deviceUnlinkLimitedMultiDevicesDescription)
+        .textStyle(.body.helper.regular)
+        .foregroundStyle(Color.ds.text.neutral.standard)
       ScrollViewReader { scrollReader in
         ScrollView(.vertical) {
           LazyVStack(alignment: .leading, spacing: 0) {
@@ -100,7 +99,7 @@ public struct UnlinkMutltiDevicesView: View {
       .overlay(
         RoundedRectangle(cornerRadius: 4.0)
           .stroke(lineWidth: 1.0)
-          .foregroundColor(Color.secondary)
+          .foregroundStyle(.secondary)
           .opacity(0.17)
       )
     }
@@ -108,15 +107,16 @@ public struct UnlinkMutltiDevicesView: View {
 
   private var actions: some View {
     VStack(alignment: .center, spacing: 5) {
-      Button(L10n.Core.deviceUnlinkingUnlinkCta, action: unlink)
+      Button(CoreL10n.deviceUnlinkingUnlinkCta, action: unlink)
         .buttonStyle(.designSystem(.titleOnly))
         .disabled(!canUnlink)
 
       Button(action: upgrade) {
-        Text(L10n.Core.deviceUnlinkUnlinkDevicesUpgradeCta)
-          .foregroundColor(.ds.text.brand.standard)
+        Text(CoreL10n.deviceUnlinkUnlinkDevicesUpgradeCta)
+          .foregroundStyle(Color.ds.text.brand.standard)
       }
-      .buttonStyle(BorderlessActionButtonStyle())
+      .buttonStyle(.designSystem(.titleOnly))
+      .style(intensity: .supershy)
     }
   }
 
@@ -159,7 +159,7 @@ private struct SelectionDeviceRow: View {
   let isSelected: Bool
 
   var body: some View {
-    SelectionRow(isSelected: isSelected, spacing: 20) {
+    NativeSelectionRow(isSelected: isSelected, spacing: 20) {
       BucketDeviceRow(device: device)
     }
     .padding(16)
@@ -175,116 +175,78 @@ private struct SelectionDeviceRow: View {
   }
 }
 
-struct SelectionDeviceButtonStyle: ButtonStyle {
+private struct SelectionDeviceButtonStyle: ButtonStyle {
+  @Environment(\.isEnabled) var isEnabled
+
   func makeBody(configuration: Configuration) -> some View {
     configuration.label.overlay(
       Group {
         if configuration.isPressed {
           Color.ds.container.expressive.brand.quiet.idle.opacity(0.6)
         }
-      })
+      }
+    )
+    .hoverEffect(isEnabled: isEnabled)
   }
 }
 
-struct UnlinkMutltiDevicesView_Previews: PreviewProvider {
-  static var previews: some View {
-    MultiContextPreview {
-      SelectionDeviceRow(
-        device: BucketDevice(
-          id: "id",
-          name: "mac mini m2x",
-          platform: .macos,
-          creationDate: Date(),
-          lastUpdateDate: Date(),
-          lastActivityDate: Date().addingTimeInterval(-5000),
-          isBucketOwner: false,
-          isTemporary: false),
-        isSelected: true
+#if DEBUG
 
+  extension BucketDevice {
+    fileprivate static func preview(
+      id: String,
+      name: String,
+      platform: DevicePlatform,
+      lastActivityInterval: TimeInterval
+    ) -> BucketDevice {
+      BucketDevice(
+        id: id,
+        name: name,
+        platform: platform,
+        creationDate: Date(),
+        lastUpdateDate: Date(),
+        lastActivityDate: Date().addingTimeInterval(lastActivityInterval),
+        isBucketOwner: false,
+        isTemporary: false
       )
-      .background(.ds.background.default)
-      .previewLayout(.sizeThatFits)
-
-      UnlinkMutltiDevicesView(
-        limit: 2,
-        devices: [
-          BucketDevice(
-            id: "id",
-            name: "iPhone",
-            platform: .iphone,
-            creationDate: Date(),
-            lastUpdateDate: Date(),
-            lastActivityDate: Date().addingTimeInterval(-300),
-            isBucketOwner: false,
-            isTemporary: false),
-          BucketDevice(
-            id: "idPixel",
-            name: "Unsafe Device",
-            platform: .android,
-            creationDate: Date(),
-            lastUpdateDate: Date(),
-            lastActivityDate: Date().addingTimeInterval(-990000),
-            isBucketOwner: false,
-            isTemporary: false),
-          BucketDevice(
-            id: "idWin",
-            name: "Windobe",
-            platform: .windows,
-            creationDate: Date(),
-            lastUpdateDate: Date(),
-            lastActivityDate: Date().addingTimeInterval(-990000),
-            isBucketOwner: false,
-            isTemporary: false),
-          BucketDevice(
-            id: "idWeb",
-            name: "Slow Web",
-            platform: .web,
-            creationDate: Date(),
-            lastUpdateDate: Date(),
-            lastActivityDate: Date().addingTimeInterval(-1_990_000),
-            isBucketOwner: false,
-            isTemporary: false),
-          BucketDevice(
-            id: "ids",
-            name: "iPhone",
-            platform: .iphone,
-            creationDate: Date(),
-            lastUpdateDate: Date(),
-            lastActivityDate: Date().addingTimeInterval(-300),
-            isBucketOwner: false,
-            isTemporary: false),
-          BucketDevice(
-            id: "idPixesl",
-            name: "Unsafe Device",
-            platform: .android,
-            creationDate: Date(),
-            lastUpdateDate: Date(),
-            lastActivityDate: Date().addingTimeInterval(-990000),
-            isBucketOwner: false,
-            isTemporary: false),
-          BucketDevice(
-            id: "idWisn",
-            name: "Windobe",
-            platform: .windows,
-            creationDate: Date(),
-            lastUpdateDate: Date(),
-            lastActivityDate: Date().addingTimeInterval(-990000),
-            isBucketOwner: false,
-            isTemporary: false),
-          BucketDevice(
-            id: "idWesb",
-            name: "Slow Web",
-            platform: .web,
-            creationDate: Date(),
-            lastUpdateDate: Date(),
-            lastActivityDate: Date().addingTimeInterval(-1_990_000),
-            isBucketOwner: false,
-            isTemporary: false),
-
-        ].map { .independentDevice($0) }
-      ) { _ in
-
-      }
     }
   }
-}
+
+  #Preview("SelectionDeviceRow", traits: .sizeThatFitsLayout) {
+    SelectionDeviceRow(
+      device: BucketDevice(
+        id: "id",
+        name: "mac mini m2x",
+        platform: .macos,
+        creationDate: Date(),
+        lastUpdateDate: Date(),
+        lastActivityDate: Date().addingTimeInterval(-5000),
+        isBucketOwner: false,
+        isTemporary: false
+      ),
+      isSelected: true
+    )
+    .background(.ds.background.default)
+  }
+
+  #Preview("UnlinkMutltiDevicesView") {
+    let devices: [BucketDevice] = [
+      .preview(id: "id", name: "iPhone", platform: .iphone, lastActivityInterval: -300),
+      .preview(
+        id: "idPixel", name: "Unsafe Device", platform: .android, lastActivityInterval: -990000),
+      .preview(id: "idWin", name: "Windobe", platform: .windows, lastActivityInterval: -990000),
+      .preview(id: "idWeb", name: "Slow Web", platform: .web, lastActivityInterval: -1_990_000),
+      .preview(id: "ids", name: "iPhone", platform: .iphone, lastActivityInterval: -300),
+      .preview(
+        id: "idPixesl", name: "Unsafe Device", platform: .android, lastActivityInterval: -990000),
+      .preview(id: "idWisn", name: "Windobe", platform: .windows, lastActivityInterval: -990000),
+      .preview(id: "idWesb", name: "Slow Web", platform: .web, lastActivityInterval: -1_990_000),
+    ]
+
+    UnlinkMutltiDevicesView(
+      limit: 2,
+      devices: devices.map { .independentDevice($0) }
+    ) { _ in
+    }
+  }
+#endif

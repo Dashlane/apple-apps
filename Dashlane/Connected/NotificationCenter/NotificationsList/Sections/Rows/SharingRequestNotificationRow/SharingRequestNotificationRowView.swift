@@ -7,10 +7,9 @@ struct SharingRequestNotificationRowView: View {
     BaseNotificationRowView(
       icon: model.notification.icon,
       title: model.notification.title,
-      description: model.notification.description
-    ) {
-      model.openSharingCenter()
-    }
+      description: model.notification.description,
+      notificationState: model.notification.state
+    ) { model.openSharingCenter() }
   }
 }
 

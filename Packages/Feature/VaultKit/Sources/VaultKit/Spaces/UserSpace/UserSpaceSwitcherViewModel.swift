@@ -1,8 +1,8 @@
 import Combine
 import CorePremium
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import Foundation
+import UserTrackingFoundation
 
 @MainActor
 public class UserSpaceSwitcherViewModel: UserSpacePopoverModelProtocol, VaultKitServicesInjecting {

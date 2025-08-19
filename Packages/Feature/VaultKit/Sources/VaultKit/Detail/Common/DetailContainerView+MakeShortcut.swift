@@ -1,6 +1,7 @@
+import CoreMainMenu
+import CorePersonalData
 import Foundation
 import SwiftUI
-import UIComponents
 
 extension View {
   @ViewBuilder

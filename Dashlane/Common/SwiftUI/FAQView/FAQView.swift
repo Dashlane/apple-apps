@@ -23,7 +23,7 @@ struct FAQView: View {
     .onAppear {
       self.completion?(.faqSectionShown)
     }
-    .onChange(of: selectedItem) { newValue in
+    .onChange(of: selectedItem) { _, newValue in
       guard let newValue else { return }
       completion?(.itemOpened(item: newValue))
     }

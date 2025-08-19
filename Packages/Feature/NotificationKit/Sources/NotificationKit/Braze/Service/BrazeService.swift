@@ -3,9 +3,10 @@ import BrazeUI
 import Combine
 import CoreFeature
 import CoreSettings
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import UserNotifications
 
 public protocol BrazeServiceProtocol {

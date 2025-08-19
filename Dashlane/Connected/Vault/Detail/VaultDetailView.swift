@@ -103,6 +103,8 @@ struct VaultDetailView: View {
       PasskeyDetailView(model: viewModel.makePasskeyDetailViewModel(passkey: passkey, mode: mode))
     case let .secret(secret):
       SecretDetailView(model: viewModel.makeSecretDetailViewModel(secret: secret, mode: mode))
+    case let .wifi(wifi):
+      WifiDetailView(model: viewModel.makeWifiDetailViewModel(wifi: wifi, mode: mode))
     }
   }
 }

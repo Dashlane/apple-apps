@@ -1,6 +1,6 @@
 import CorePremium
-import CoreUserTracking
 import Foundation
+import UserTrackingFoundation
 
 extension UserSpace {
   public var logItemSpace: Definition.Space {

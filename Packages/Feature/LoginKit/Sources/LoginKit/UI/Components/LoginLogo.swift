@@ -1,5 +1,5 @@
 import CoreSession
-import DashTypes
+import CoreTypes
 import DesignSystem
 import SwiftUI
 import UIDelight
@@ -14,8 +14,8 @@ public struct LoginLogo: View {
   public var body: some View {
     Group {
       VStack(spacing: 17.0) {
-        Image(asset: Asset.logomark)
-          .foregroundColor(.ds.oddity.brand)
+        Image(.logomark)
+          .foregroundStyle(Color.ds.oddity.brand)
           .fiberAccessibilityHidden(true)
 
         login.map { login in
@@ -24,6 +24,7 @@ public struct LoginLogo: View {
             .allowsTightening(true)
             .font(.body)
             .padding(.horizontal)
+            .foregroundStyle(Color.ds.text.neutral.standard)
         }
       }
       .frame(maxHeight: .infinity, alignment: .center)
@@ -31,17 +32,12 @@ public struct LoginLogo: View {
   }
 }
 
-struct Logo_Previews: PreviewProvider {
-
-  static var previews: some View {
-    MultiContextPreview {
-      VStack {
-        LoginLogo(login: Login("_"))
-        Divider()
-        LoginLogo(login: Login("_"))
-      }
-      .frame(maxWidth: .infinity, maxHeight: .infinity)
-      .background(.ds.background.default)
-    }
+#Preview {
+  VStack {
+    LoginLogo(login: Login("_"))
+    Divider()
+    LoginLogo(login: Login("_"))
   }
+  .frame(maxWidth: .infinity, maxHeight: .infinity)
+  .background(.ds.background.default)
 }

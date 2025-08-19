@@ -1,5 +1,5 @@
 import CoreFeature
-import DashTypes
+import CoreTypes
 import DesignSystem
 import SwiftUI
 import UIDelight
@@ -40,7 +40,7 @@ struct AlternateIconSwitcherView: View {
     .frame(maxHeight: .infinity, alignment: .top)
     .navigationTitle(L10n.Localizable.alternateIconSettingsTitle)
     .navigationBarTitleDisplayMode(.inline)
-    .backgroundColorIgnoringSafeArea(.ds.background.default)
+    .background(Color.ds.background.default, ignoresSafeAreaEdges: .all)
     .animation(.spring(dampingFraction: 0.8), value: model.currentIcon)
     .onReceive(model.successPublisher) { _ in
       dismiss()
@@ -56,7 +56,7 @@ struct AlternateIconSwitcherView: View {
     Button {
       self.model.changeIcon(to: icon)
     } label: {
-      Image(uiImage: UIImage(named: icon.name)!)
+      icon.image
         .resizable()
         .renderingMode(.original)
         .frame(width: 64, height: 64)
@@ -90,13 +90,13 @@ struct AlternateIconSwitcherView: View {
 
   var selectedIcon: some View {
     Circle()
-      .foregroundColor(Color.ds.container.expressive.positive.catchy.active)
+      .foregroundStyle(Color.ds.container.expressive.positive.catchy.active)
       .frame(width: 24, height: 24, alignment: .center)
       .overlay {
         Image.ds.checkmark.outlined
           .renderingMode(.template)
           .resizable()
-          .foregroundColor(.ds.text.inverse.catchy)
+          .foregroundStyle(Color.ds.text.inverse.catchy)
           .padding(4)
       }
 

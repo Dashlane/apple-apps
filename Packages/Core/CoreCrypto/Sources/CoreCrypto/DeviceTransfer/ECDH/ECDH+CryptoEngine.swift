@@ -1,7 +1,9 @@
 import CryptoKit
 import Foundation
+import LogFoundation
 
 extension ECDH {
+  @Loggable
   enum CryptoError: Error {
     case couldNotDecrypt
     case couldNotEncrypt

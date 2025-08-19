@@ -1,6 +1,6 @@
 import Foundation
 
-public enum MplessTransferEllipticCurve: String, Sendable, Equatable, CaseIterable, Codable {
+public enum MplessTransferEllipticCurve: String, Sendable, Hashable, Codable, CaseIterable {
   case x25519 = "X25519"
   case undecodable
   public init(from decoder: Decoder) throws {

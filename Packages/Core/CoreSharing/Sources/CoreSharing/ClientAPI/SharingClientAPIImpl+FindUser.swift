@@ -1,6 +1,7 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import SwiftTreats
 
 extension SharingClientAPIImpl {
   public static let sliceSize = 100

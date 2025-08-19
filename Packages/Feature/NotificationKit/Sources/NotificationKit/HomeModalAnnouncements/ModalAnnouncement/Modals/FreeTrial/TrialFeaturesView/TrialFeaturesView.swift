@@ -1,11 +1,11 @@
 import CoreLocalization
 import CorePremium
-import CoreUserTracking
 import DesignSystem
 import SwiftTreats
 import SwiftUI
 import UIComponents
 import UIDelight
+import UserTrackingFoundation
 
 public struct TrialFeaturesView: View {
 
@@ -30,28 +30,29 @@ public struct TrialFeaturesView: View {
     VStack(alignment: .leading, spacing: 0) {
       banner
 
-      Text(L10n.Core.currentPlanTitleTrial)
+      Text(CoreL10n.currentPlanTitleTrial)
         .font(.title)
         .fontWeight(.bold)
+        .foregroundStyle(Color.ds.text.neutral.standard)
         .multilineTextAlignment(.leading)
         .padding()
 
       Group {
-        capability(L10n.Core.currentBenefitPasswordsUnlimited)
-        capability(L10n.Core.currentBenefitDevicesSyncUnlimited)
-        capability(L10n.Core.currentBenefitSecureNotes)
-        capability(L10n.Core.currentBenefitDarkWebMonitoring, moreInfo: dwmMoreInfo)
+        capability(CoreL10n.currentBenefitPasswordsUnlimited)
+        capability(CoreL10n.currentBenefitDevicesSyncUnlimited)
+        capability(CoreL10n.currentBenefitSecureNotes)
+        capability(CoreL10n.currentBenefitDarkWebMonitoring, moreInfo: dwmMoreInfo)
         if case .available = secureWifiState {
-          capability(L10n.Core.currentBenefitVpn)
+          capability(CoreL10n.currentBenefitVpn)
         }
       }
 
-      Infobox(L10n.Core.currentPlanSuggestionTrialText)
+      Infobox(CoreL10n.currentPlanSuggestionTrialText)
         .padding(.horizontal)
 
       Spacer()
 
-      Button(L10n.Core.currentPlanCtaAllPlans) {
+      Button(CoreL10n.currentPlanCtaAllPlans) {
         viewModel.deepLinkingService.handle(.goToPremium)
         viewModel.activityReporter.report(
           UserEvent.CallToAction(
@@ -62,7 +63,7 @@ public struct TrialFeaturesView: View {
       .padding(.bottom)
     }
     .navigationBarBackButtonHidden(true)
-    .backgroundColorIgnoringSafeArea(.ds.background.default)
+    .background(Color.ds.background.default, ignoresSafeAreaEdges: .all)
     .reportPageAppearance(.currentPlan)
   }
 
@@ -70,8 +71,8 @@ public struct TrialFeaturesView: View {
   func capability(_ title: String, moreInfo: CapabilityMoreInfo? = nil) -> some View {
     HStack {
       Image.ds.feedback.success.filled
-        .foregroundColor(.ds.text.positive.quiet)
-      Text(title).foregroundColor(.ds.text.neutral.standard)
+        .foregroundStyle(Color.ds.text.positive.quiet)
+      Text(title).foregroundStyle(Color.ds.text.neutral.standard)
       if let moreInfo {
         moreInfoButton(moreInfo)
       }
@@ -82,8 +83,8 @@ public struct TrialFeaturesView: View {
 
   private var dwmMoreInfo: CapabilityMoreInfo {
     CapabilityMoreInfo(
-      title: L10n.Core.currentBenefitMoreInfoDarkWebMonitoringTitle,
-      text: L10n.Core.currentBenefitMoreInfoDarkWebMonitoringText,
+      title: CoreL10n.currentBenefitMoreInfoDarkWebMonitoringTitle,
+      text: CoreL10n.currentBenefitMoreInfoDarkWebMonitoringText,
       page: .currentPlanDwmLearnMore)
   }
 
@@ -97,7 +98,7 @@ public struct TrialFeaturesView: View {
           .layoutPriority(-1)
 
         HStack {
-          Image(asset: Asset.diamond)
+          Image(.diamond)
             .padding(.top, 50)
             .padding(.leading, 20)
           Spacer()
@@ -111,10 +112,10 @@ public struct TrialFeaturesView: View {
   }
 
   var bannerImage: SwiftUI.Image {
-    if Device.isIpadOrMac {
-      return Image(asset: Asset.trialHeaderIpad)
+    if Device.is(.pad, .mac, .vision) {
+      return Image(.trialHeaderIpad)
     } else {
-      return Image(asset: Asset.trialHeader)
+      return Image(.trialHeader)
     }
   }
 
@@ -127,14 +128,14 @@ public struct TrialFeaturesView: View {
       },
       label: {
         Image.ds.feedback.info.outlined
-          .foregroundColor(.ds.text.brand.standard)
+          .foregroundStyle(Color.ds.text.brand.standard)
       }
     )
     .alert(
       moreInfo.title,
       isPresented: $showAlert,
       actions: {
-        Button(L10n.Core.kwButtonOk) {}
+        Button(CoreL10n.kwButtonOk) {}
       },
       message: {
         Text(moreInfo.text)
@@ -155,7 +156,7 @@ public struct TrialFeaturesView: View {
 struct CapabilityMoreInfo {
   let title: String
   let text: String
-  let page: CoreUserTracking.Page
+  let page: UserTrackingFoundation.Page
 }
 
 extension CapabilityServiceProtocol {
@@ -169,21 +170,23 @@ extension CapabilityServiceProtocol {
   }
 }
 
-private struct PreviewContent: View {
-  @Environment(\.dismiss) var dismissFlow
+#if DEBUG
+  private struct PreviewContent: View {
+    @Environment(\.dismiss) var dismissFlow
 
-  var body: some View {
-    TrialFeaturesView(
-      viewModel: .init(
-        capabilityService: .mock(),
-        deepLinkingService: NotificationKitDeepLinkingServiceMock(),
-        activityReporter: .mock
-      ),
-      dismissFlow: dismissFlow
-    )
+    var body: some View {
+      TrialFeaturesView(
+        viewModel: .init(
+          capabilityService: .mock(),
+          deepLinkingService: NotificationKitDeepLinkingServiceMock(),
+          activityReporter: .mock
+        ),
+        dismissFlow: dismissFlow
+      )
+    }
   }
-}
 
-#Preview {
-  PreviewContent()
-}
+  #Preview {
+    PreviewContent()
+  }
+#endif

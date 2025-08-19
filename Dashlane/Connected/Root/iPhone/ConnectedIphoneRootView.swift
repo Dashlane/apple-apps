@@ -1,6 +1,6 @@
 import CoreLocalization
-import MacrosKit
 import SwiftUI
+import UIDelight
 
 @ViewInit
 struct ConnectedIphoneRootView: View {
@@ -17,7 +17,7 @@ struct ConnectedIphoneRootView: View {
       }
       .navigationViewStyle(.stack)
       .tabLabel(
-        CoreLocalization.L10n.Core.mainMenuHomePage,
+        CoreL10n.mainMenuHomePage,
         image: .ds.home.outlined,
         selectedImage: .ds.home.filled,
         item: .home,
@@ -40,7 +40,7 @@ struct ConnectedIphoneRootView: View {
       }
       .navigationViewStyle(.stack)
       .tabLabel(
-        CoreLocalization.L10n.Core.tabGeneratorTitle,
+        CoreL10n.tabGeneratorTitle,
         image: .ds.feature.passwordGenerator.outlined,
         selectedImage: .ds.feature.passwordGenerator.filled,
         item: .tools(.passwordGenerator),

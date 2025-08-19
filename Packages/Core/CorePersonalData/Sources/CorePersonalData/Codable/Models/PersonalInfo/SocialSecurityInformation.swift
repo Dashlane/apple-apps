@@ -1,7 +1,9 @@
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 import SwiftTreats
 
+@Loggable
 @PersonalData("SOCIALSECURITYSTATEMENT")
 public struct SocialSecurityInformation: Equatable, Identifiable, IdentityLinked, DatedPersonalData
 {

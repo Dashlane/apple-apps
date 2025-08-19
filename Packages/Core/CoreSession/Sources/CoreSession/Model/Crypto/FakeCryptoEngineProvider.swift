@@ -1,4 +1,4 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 
@@ -26,15 +26,13 @@ public struct FakeCryptoEngineProvider: CryptoEngineProvider {
   public func sessionCryptoEngine(for setting: CryptoRawConfig, masterKey: MasterKey) throws
     -> SessionCryptoEngine
   {
-    .mock(
-      mode: validMasterKey == masterKey ? .reverseEncrypt : .failure(CryptoError.decryptionFailure))
+    .mock(mode: mode)
   }
 
   public func sessionCryptoEngine(forEncryptedPayload payload: Data, masterKey: MasterKey) throws
     -> SessionCryptoEngine
   {
-    .mock(
-      mode: validMasterKey == masterKey ? .reverseEncrypt : .failure(CryptoError.decryptionFailure))
+    .mock(mode: mode)
   }
 
   public func defaultCryptoRawConfig(for masterKey: MasterKey) throws -> CryptoRawConfig {
@@ -52,7 +50,7 @@ public struct FakeCryptoEngineProvider: CryptoEngineProvider {
   }
 
   public func cryptoEngine(forEncryptedVaultKey payload: Data, recoveryKey: String) throws
-    -> DashTypes.CryptoEngine
+    -> CoreTypes.CryptoEngine
   {
     .mock(mode)
   }
@@ -65,5 +63,14 @@ public struct FakeCryptoEngineProvider: CryptoEngineProvider {
       return CryptoRawConfig(fixedSalt: nil, marker: "fakeConfig")
     }
     throw RemoteLoginStateMachine.Error.wrongMasterKey
+  }
+}
+
+extension CryptoEngineProvider where Self == FakeCryptoEngineProvider {
+  static func mock(
+    validMasterKey: MasterKey = .masterPassword("valid", serverKey: nil),
+    mode: MockCryptoEngine.OperationMode = .reverseEncrypt
+  ) -> Self {
+    .init(validMasterKey: validMasterKey, mode: mode)
   }
 }

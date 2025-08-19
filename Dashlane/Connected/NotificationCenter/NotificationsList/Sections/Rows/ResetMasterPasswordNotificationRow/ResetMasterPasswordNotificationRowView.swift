@@ -1,6 +1,5 @@
 import NotificationKit
 import SwiftUI
-import UIDelight
 
 struct ResetMasterPasswordNotificationRowView: View {
   let model: ResetMasterPasswordNotificationRowViewModel
@@ -12,7 +11,8 @@ struct ResetMasterPasswordNotificationRowView: View {
     BaseNotificationRowView(
       icon: model.notification.icon,
       title: model.notification.title,
-      description: model.notification.description
+      description: model.notification.description,
+      notificationState: model.notification.state
     ) {
       self.showResetMPFlow = true
     }

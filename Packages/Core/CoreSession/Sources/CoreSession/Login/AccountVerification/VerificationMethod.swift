@@ -1,10 +1,10 @@
 import DashlaneAPI
 
-public enum VerificationMethod: Hashable {
+public enum VerificationMethod: Hashable, Sendable {
   case emailToken
   case totp(PushType?)
 
-  public enum PushType: Hashable {
+  public enum PushType: Hashable, Sendable {
     case duo
   }
 

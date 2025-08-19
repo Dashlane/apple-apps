@@ -1,4 +1,6 @@
+import CryptoKit
 import Foundation
+import SwiftCBOR
 
 public struct AttestationDocument: Decodable {
 
@@ -36,13 +38,66 @@ public struct AttestationDocument: Decodable {
     self.userData = try JSONDecoder().decode(UserData.self, from: jsonData)
     self.pcrs = try container.decode([Int: Data].self, forKey: .pcrs)
   }
+
+  init(coseSign1: CBOR) throws {
+    guard let payloadCbor = coseSign1[2],
+      case let CBOR.byteString(payload) = payloadCbor
+    else {
+      throw NitroError.couldNotDecodeCBOR
+    }
+
+    self = try CodableCBORDecoder().decode(AttestationDocument.self, from: Data(payload))
+
+    try verifySignatureMatchPublicKey(in: coseSign1)
+  }
+
+  init(rawAttestation: String) throws {
+    guard let response = try CBORDecoder(input: rawAttestation.hexaBytes).decodeItem(),
+      case let .tagged(CBOR.Tag(rawValue: 18), coseSign1) = response
+    else {
+      throw NitroError.couldNotDecodeCBOR
+    }
+
+    try self.init(coseSign1: coseSign1)
+  }
 }
 
 extension AttestationDocument {
+  private func verifySignatureMatchPublicKey(in coseSign1: CBOR) throws {
+    guard let certificate = SecCertificateCreateWithData(nil, certificate as CFData),
+      let pubKey = SecCertificateCopyKey(certificate)
+    else {
+      throw NitroError.invalidCertificate
+    }
+    guard let publicKeyData = try? pubKey.data(), let signatureCbor = coseSign1[3],
+      case let CBOR.byteString(signature) = signatureCbor
+    else {
+      throw NitroError.couldNotDecodeCBOR
+    }
 
-  public func verifyCertificateChain(withRootCertificate rootCertificate: String) throws {
+    let externalData = CBOR.byteString([])
+    let signedPayload: [UInt8] = CBOR.encode([
+      "Signature1", coseSign1[0]!, externalData, coseSign1[2]!,
+    ])
+
+    let publicKey = try P384.Signing.PublicKey(x963RepresentationData: publicKeyData)
+    let isValid = try publicKey.isValidSignature(Data(signature), forCOSEPayload: signedPayload)
+
+    guard isValid else {
+      throw NitroError.invalidSignature
+    }
+  }
+}
+
+extension AttestationDocument {
+  func verify(using certificate: NitroSecureTunnelCertificate) throws {
+    try verifyCertificateChain(withRootCertificate: certificate.rootCertificate)
+    try verifyPCRMeasurements(withExpectedPCRs: [3: certificate.pcr3, 8: certificate.pcr8])
+  }
+
+  func verifyCertificateChain(withRootCertificate rootCertificate: String) throws {
     guard let decodedData = cabundle.first?.base64EncodedString().data(using: .utf8),
-      let rootFromAttestation = String(data: decodedData, encoding: .utf8),
+      case let rootFromAttestation = String(decoding: decodedData, as: UTF8.self),
       rootCertificate == rootFromAttestation
     else {
       throw NitroError.rootCertificateDidNotMatch
@@ -71,8 +126,8 @@ extension AttestationDocument {
     }
   }
 
-  public func verifyPCR(_ localPCRs: [Int: String]) throws {
-    try localPCRs.forEach { (index, value) in
+  func verifyPCRMeasurements(withExpectedPCRs expectedPCRs: [Int: String]) throws {
+    try expectedPCRs.forEach { (index, value) in
       guard pcrs[index]?.hexadecimalString == value else {
         throw NitroError.pcrDidNotMatch
       }

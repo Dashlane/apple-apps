@@ -1,6 +1,6 @@
 import CoreLocalization
 import CorePersonalData
-import DashTypes
+import CoreTypes
 import Foundation
 import IconLibrary
 import SwiftUI
@@ -70,11 +70,12 @@ struct SharingRequestNotification: DashlaneNotification {
       self.description = L10n.Localizable.actionItemSharingDetail(referrer, item.localizedTitle)
     case .item(let item) where item is SecureNote:
       self.description = L10n.Localizable.actionItemSharingDetailSecurenote(referrer)
+    case .item(let item) where item is Secret:
+      self.description = CoreL10n.actionItemSharingDetailSecret(referrer)
     case .userGroup:
       self.description = L10n.Localizable.actionItemSharingDetailGroup(referrer)
     case .collection(let name):
-      self.description = CoreLocalization.L10n.Core.actionItemSharingDetailCollection(
-        referrer, name)
+      self.description = CoreL10n.actionItemSharingDetailCollection(referrer, name)
     case .item:
       assertionFailure("Sharing this type of item isn't supported")
       self.description = ""

@@ -3,7 +3,7 @@ import PackageDescription
 let package = Package(
   name: "CoreRegion",
   platforms: [
-    .iOS(.v16)
+    .iOS(.v17)
   ],
   products: [
     .library(

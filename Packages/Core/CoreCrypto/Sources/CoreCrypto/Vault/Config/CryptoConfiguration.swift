@@ -1,5 +1,7 @@
 import Foundation
+import LogFoundation
 
+@Loggable
 public enum CryptoConfiguration: Hashable, Sendable {
   case flexible(FlexibleCryptoConfiguration)
   case legacy(LegacyCryptoConfiguration)

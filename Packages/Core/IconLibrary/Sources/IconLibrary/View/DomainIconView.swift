@@ -1,20 +1,17 @@
-import DashTypes
+import CoreTypes
 import DesignSystem
 import SwiftUI
 
 public struct DomainIconView<Accessory: View>: View {
   let model: DomainIconViewModel
   let accessory: Accessory
-  let isLarge: Bool
 
   public init(
     model: DomainIconViewModel,
-    @ViewBuilder accessory: @escaping () -> Accessory,
-    isLarge: Bool = false
+    @ViewBuilder accessory: @escaping () -> Accessory
   ) {
     self.model = model
     self.accessory = accessory()
-    self.isLarge = isLarge
   }
 
   public var body: some View {
@@ -22,8 +19,7 @@ public struct DomainIconView<Accessory: View>: View {
       try await model.icon()
     } content: { image, color in
       DS.Thumbnail.login(image)
-        .foregroundStyle(color ?? .primary)
-        .controlSize(isLarge ? .large : .small)
+        .foregroundStyle(color ?? Color.ds.container.decorative.grey)
     }
     .overlay(alignment: .bottomTrailing) {
       accessory
@@ -33,10 +29,9 @@ public struct DomainIconView<Accessory: View>: View {
 }
 
 extension DomainIconView where Accessory == EmptyView {
-  public init(model: DomainIconViewModel, isLarge: Bool = false) {
+  public init(model: DomainIconViewModel) {
     self.model = model
     self.accessory = EmptyView()
-    self.isLarge = isLarge
   }
 }
 
@@ -63,7 +58,7 @@ extension DomainIconViewModel {
   static var preview: DomainIconViewModel {
     DomainIconViewModel(
       domain: Domain(name: "random", publicSuffix: ".org"),
-      iconLibrary: FakeDomainIconLibrary(icon: Icon(image: Asset.logomark.image))
+      iconLibrary: FakeDomainIconLibrary(icon: Icon(image: .init(systemName: "paperplane.fill")))
     )
   }
 }

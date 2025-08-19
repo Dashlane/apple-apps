@@ -2,14 +2,15 @@ import CoreLocalization
 import CorePasswords
 import CorePersonalData
 import CoreSpotlight
+import CoreTypes
 import CoreUserTracking
-import DashTypes
 import DesignSystem
 import Foundation
 import SwiftTreats
 import SwiftUI
 import UIComponents
 import UIDelight
+import UserTrackingFoundation
 
 public struct PasswordGeneratorView: View {
 
@@ -37,16 +38,16 @@ public struct PasswordGeneratorView: View {
     form
       .frame(maxWidth: 650)
       .frame(maxWidth: .infinity)
-      .backgroundColorIgnoringSafeArea(.ds.background.alternate)
-      .accentColor(.ds.container.expressive.brand.catchy.active)
+      .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
+      .tint(.ds.container.expressive.brand.catchy.active)
       .userActivity(.generatePassword, userActivityCallback)
       .toolbar {
         ToolbarItem(placement: .navigationBarTrailing) {
           trailingView
         }
       }
-      .navigationTitle(L10n.Core.tabGeneratorTitle)
-      .navigationBarTitleDisplayMode(Device.isIpadOrMac ? .inline : .automatic)
+      .navigationTitle(CoreL10n.tabGeneratorTitle)
+      .navigationBarTitleDisplayMode(Device.is(.pad, .mac, .vision) ? .inline : .automatic)
       .reportPageAppearance(.passwordGenerator)
       .onAppear {
         viewModel.forcedRefresh()
@@ -58,15 +59,16 @@ public struct PasswordGeneratorView: View {
   var trailingView: some View {
     switch viewModel.mode {
     case let .standalone(action):
-      NavigationBarButton(
+      Button(
         action: {
           action(.showHistory)
         },
         label: {
-          Image(asset: Asset.history)
+          Image.ds.historyBackup.outlined
+            .resizable()
             .contentShape(Rectangle())
             .frame(width: 24, height: 24)
-            .fiberAccessibilityLabel(Text(L10n.Core.generatedPasswordListTitle))
+            .fiberAccessibilityLabel(Text(CoreL10n.generatedPasswordListTitle))
         })
     case .selection:
       EmptyView()
@@ -83,19 +85,24 @@ public struct PasswordGeneratorView: View {
       .listRowSeparator(.hidden)
       .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
 
-      Section(
-        header: Text(L10n.Core.kwPadExtensionGeneratorLength.uppercased())
-          + Text(": \(viewModel.preferences.length)")
-      ) {
+      Section {
         PasswordGeneratorSliderView(viewModel: viewModel)
+      } header: {
+        Group {
+          Text(CoreL10n.kwPadExtensionGeneratorLength.uppercased())
+            + Text(": \(viewModel.preferences.length)")
+        }.foregroundStyle(Color.ds.text.neutral.quiet)
       }
       .listRowInsets(.init(top: 8, leading: 16, bottom: 8, trailing: 16))
       .listRowSeparator(.hidden)
       .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
 
-      Section(header: Text(L10n.Core.kwPadExtensionOptions.uppercased())) {
+      Section {
         PasswordGeneratorViewOptions(preferences: $viewModel.preferences)
           .font(.body)
+      } header: {
+        Text(CoreL10n.kwPadExtensionOptions.uppercased())
+          .foregroundStyle(Color.ds.text.neutral.quiet)
       }
       .listRowInsets(.init(top: 6, leading: 16, bottom: 6, trailing: 16))
       .listRowSeparator(.hidden)
@@ -114,14 +121,14 @@ public struct PasswordGeneratorView: View {
     Group {
       switch viewModel.mode {
       case let .standalone(action):
-        Button(L10n.Core.passwordGeneratorCopyButton, action: viewModel.performMainAction)
+        Button(CoreL10n.passwordGeneratorCopyButton, action: viewModel.performMainAction)
           .actionSheet(item: $viewModel.pendingSaveAsCredentialPassword) { password in
             makeSavePasswordActionSheet {
               action(.createCredential(password: password))
             }
           }
       case .selection:
-        Button(L10n.Core.passwordGeneratorUseButton) {
+        Button(CoreL10n.passwordGeneratorUseButton) {
           self.viewModel.performMainAction()
           self.dismiss()
         }
@@ -133,11 +140,11 @@ public struct PasswordGeneratorView: View {
 
   private func makeSavePasswordActionSheet(action: @escaping () -> Void) -> ActionSheet {
     ActionSheet(
-      title: Text(L10n.Core.dwmOnboardingCardPWGTabEmailCopied).foregroundColor(.green),
-      message: Text(L10n.Core.savePasswordMessageNewpassword),
+      title: Text(CoreL10n.dwmOnboardingCardPWGTabEmailCopied).foregroundStyle(.green),
+      message: Text(CoreL10n.savePasswordMessageNewpassword),
       buttons: [
-        .default(Text(L10n.Core.kwSave), action: action),
-        .cancel(Text(L10n.Core.kwNotSave)),
+        .default(Text(CoreL10n.kwSave), action: action),
+        .cancel(Text(CoreL10n.kwNotSave)),
       ])
 
   }
@@ -152,13 +159,13 @@ struct PasswordGeneratorForm<Content: View>: View {
   }
 
   var body: some View {
-    if Device.isIpadOrMac {
+    if Device.is(.pad, .mac, .vision) {
       Form(content: content)
         .scrollContentBackground(.hidden)
-        .backgroundColorIgnoringSafeArea(.ds.background.alternate)
+        .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
     } else {
       List(content: content)
-        .listStyle(InsetGroupedListStyle())
+        .listStyle(.ds.insetGrouped)
     }
 
   }
@@ -167,21 +174,17 @@ struct PasswordGeneratorForm<Content: View>: View {
 extension List {
   @ViewBuilder
   fileprivate func generatorListStyle() -> some View {
-    if Device.isIpadOrMac {
-      self.listStyle(PlainListStyle())
+    if Device.is(.pad, .mac, .vision) {
+      self.listStyle(.ds.plain)
     } else {
-      self.listStyle(InsetGroupedListStyle())
+      self.listStyle(.ds.insetGrouped)
     }
   }
 }
 
-struct PasswordGeneratorView_Previews: PreviewProvider {
-  static var previews: some View {
-    MultiContextPreview {
-      PasswordGeneratorView(viewModel: PasswordGeneratorViewModel.mock)
-        .navigationBarTitleDisplayMode(.inline)
-    }
-  }
+#Preview {
+  PasswordGeneratorView(viewModel: PasswordGeneratorViewModel.mock)
+    .navigationBarTitleDisplayMode(.inline)
 }
 
 extension GeneratedPassword: Identifiable {}

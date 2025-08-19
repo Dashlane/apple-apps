@@ -1,3 +1,4 @@
+import CoreTypes
 import Foundation
 import Security
 
@@ -11,9 +12,9 @@ public class KeychainItemWrapper {
     self.genericPasswordQuery[kSecAttrGeneric] = identifier as AnyObject?
 
     if accessGroup != nil {
-      if TARGET_IPHONE_SIMULATOR != 1 {
+      #if !targetEnvironment(simulator)
         self.genericPasswordQuery[kSecAttrAccessGroup] = accessGroup as AnyObject?
-      }
+      #endif
     }
 
     self.genericPasswordQuery[kSecMatchLimit] = kSecMatchLimitOne
@@ -28,9 +29,9 @@ public class KeychainItemWrapper {
 
       self.keychainItemData[kSecAttrGeneric as String] = identifier as AnyObject?
       if accessGroup != nil {
-        if TARGET_IPHONE_SIMULATOR != 1 {
+        #if !targetEnvironment(simulator)
           self.keychainItemData[kSecAttrAccessGroup as String] = accessGroup as AnyObject?
-        }
+        #endif
       }
     } else {
       self.keychainItemData = self.secItemDataToDict(data: outDict as! [String: AnyObject])

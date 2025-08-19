@@ -4,7 +4,7 @@ public enum NitroSSOErrorCodes {
 }
 
 extension NitroSSOErrorCodes {
-  public enum Authentication: String, Sendable, Equatable, CaseIterable, Codable {
+  public enum Authentication: String, Sendable, Hashable, Codable, CaseIterable {
     case domainCheckInvalid = "domain_check_invalid"
 
     case domainConfigurationIntegrityMismatch = "domain_configuration_integrity_mismatch"
@@ -59,7 +59,7 @@ extension NitroSSOError {
 }
 
 extension NitroSSOErrorCodes {
-  public enum Tunnel: String, Sendable, Equatable, CaseIterable, Codable {
+  public enum Tunnel: String, Sendable, Hashable, Codable, CaseIterable {
     case clientSessionKeysNotFound = "client_session_keys_not_found"
 
   }

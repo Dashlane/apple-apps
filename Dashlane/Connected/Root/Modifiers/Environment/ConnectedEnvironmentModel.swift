@@ -2,9 +2,10 @@ import Combine
 import CoreFeature
 import CorePersonalData
 import CorePremium
+import CoreSession
 import CoreUserTracking
 import Foundation
-import MacrosKit
+import UserTrackingFoundation
 import VaultKit
 
 class ConnectedEnvironmentModel: SessionServicesInjecting, ObservableObject {
@@ -30,8 +31,9 @@ class ConnectedEnvironmentModel: SessionServicesInjecting, ObservableObject {
   private let capabilitiesService: any CapabilityServiceProtocol
   private let activityReporter: any ActivityReporterProtocol
   private let pasteboardService: any PasteboardServiceProtocol
-
+  let session: Session
   init(
+    session: Session,
     featureService: FeatureServiceProtocol,
     userSpaceService: UserSpacesService,
     capabilitiesService: CapabilityServiceProtocol,
@@ -39,6 +41,7 @@ class ConnectedEnvironmentModel: SessionServicesInjecting, ObservableObject {
     syncedSettings: SyncedSettingsService,
     pasteboardService: PasteboardServiceProtocol
   ) {
+    self.session = session
     self.featureService = featureService
     self.capabilitiesService = capabilitiesService
     self.activityReporter = activityReporter

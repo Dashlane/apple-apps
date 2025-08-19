@@ -34,9 +34,14 @@ struct CollectionShareFlowView: View {
       .toolbar {
         ToolbarItem(placement: .navigationBarTrailing) {
           if model.hasSucceed {
-            Button(CoreLocalization.L10n.Core.kwButtonClose) {
-              dismiss()
-            }
+            Button(
+              action: {
+                dismiss()
+              },
+              label: {
+                Text(CoreL10n.kwButtonClose)
+                  .foregroundStyle(Color.ds.text.brand.standard)
+              })
           }
         }
       }

@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppNitroEncryptionAPIClient.Tunnel {
-  public struct TerminateHello: APIRequest {
+  public struct TerminateHello: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/tunnel/TerminateHello"
 
     public let api: AppNitroEncryptionAPIClient
@@ -25,7 +25,7 @@ extension AppNitroEncryptionAPIClient.Tunnel {
 }
 
 extension AppNitroEncryptionAPIClient.Tunnel.TerminateHello {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case clientHeader = "clientHeader"
       case tunnelUuid = "tunnelUuid"

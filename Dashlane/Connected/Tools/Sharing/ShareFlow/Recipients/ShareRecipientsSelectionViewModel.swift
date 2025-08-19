@@ -4,7 +4,7 @@ import CoreLocalization
 import CorePremium
 import CoreSession
 import CoreSharing
-import DashTypes
+import CoreTypes
 import Foundation
 import VaultKit
 
@@ -38,6 +38,12 @@ class ShareRecipientsSelectionViewModel: ObservableObject, SessionServicesInject
   var showPermissionLevelSelector: Bool
   var showTeamOnly: Bool
   var teamLogins: [String]?
+
+  var placeholderText: String {
+    premiumStatusProvider.status.b2bStatus?.statusCode == .inTeam
+      ? CoreL10n.kwSharingComposeMessageToFieldPlaceholderB2B
+      : CoreL10n.kwSharingComposeMessageToFieldPlaceholderB2C
+  }
 
   var isSearchInsertable: Bool {
     recipientsCount == 1
@@ -297,18 +303,18 @@ extension ShareRecipientsSelectionViewModel {
 extension ShareRecipientsSelectionViewModel {
   static var collectionInfo: InfoboxContent {
     InfoboxContent(
-      title: CoreLocalization.L10n.Core.kwSharingCollectionPermissionTitle,
-      text: CoreLocalization.L10n.Core.kwSharingCollectionPermissionText)
+      title: CoreL10n.kwSharingCollectionPermissionTitle,
+      text: CoreL10n.kwSharingCollectionPermissionText)
   }
   static var starterAdminInfo: InfoboxContent {
     InfoboxContent(
-      title: CoreLocalization.L10n.Core.starterLimitationAdminSharingWarningTitle,
-      text: CoreLocalization.L10n.Core.starterLimitationAdminSharingWarningDescription)
+      title: CoreL10n.starterLimitationAdminSharingWarningTitle,
+      text: CoreL10n.starterLimitationAdminSharingWarningDescription)
   }
   static var businessTrialInfo: InfoboxContent {
     InfoboxContent(
-      title: CoreLocalization.L10n.Core.starterLimitationBusinessAdminTrialSharingWarningTitle,
-      text: CoreLocalization.L10n.Core.starterLimitationBusinessAdminTrialSharingWarningDescription)
+      title: CoreL10n.starterLimitationBusinessAdminTrialSharingWarningTitle,
+      text: CoreL10n.starterLimitationBusinessAdminTrialSharingWarningDescription)
   }
 }
 

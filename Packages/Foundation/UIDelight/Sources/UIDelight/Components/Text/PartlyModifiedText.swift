@@ -72,7 +72,7 @@ extension PartlyModifiedText: Hashable {
 struct PartlyModifiedText_Previews: PreviewProvider {
   static var previews: some View {
     PartlyModifiedText(text: "Hello World!", toBeModified: "World!") {
-      $0.foregroundColor(.red)
+      $0.foregroundStyle(.red)
     }
     .padding()
     .previewLayout(.sizeThatFits)

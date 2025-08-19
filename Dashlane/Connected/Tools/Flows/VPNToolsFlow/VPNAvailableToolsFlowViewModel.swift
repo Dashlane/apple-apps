@@ -1,9 +1,9 @@
 import Combine
 import CoreSession
-import CoreUserTracking
 import Foundation
 import StoreKit
 import SwiftTreats
+import UserTrackingFoundation
 
 @MainActor
 class VPNAvailableToolsFlowViewModel: NSObject, ObservableObject, SessionServicesInjecting {
@@ -29,7 +29,9 @@ class VPNAvailableToolsFlowViewModel: NSObject, ObservableObject, SessionService
   let vpnMainViewModelFactory: VPNMainViewModel.Factory
   let vpnActivationViewModelFactory: VPNActivationViewModel.Factory
 
-  private let skStoreProductViewController = SKStoreProductViewController()
+  #if !os(visionOS)
+    private let skStoreProductViewController = SKStoreProductViewController()
+  #endif
 
   let actionPublisher = PassthroughSubject<VPNAvailableToolsFlowViewModel.Action, Never>()
   private var cancellables = Set<AnyCancellable>()
@@ -62,7 +64,11 @@ class VPNAvailableToolsFlowViewModel: NSObject, ObservableObject, SessionService
       case .accountActivated:
         self.handleAccountActivated()
       case .openApp:
-        self.showStoreProduct()
+        #if os(visionOS)
+          break
+        #else
+          self.showStoreProduct()
+        #endif
       case .openHotspotShieldSupport:
         UIApplication.shared.open(URL(string: "_")!)
       case .openDashlaneSupport:
@@ -81,48 +87,51 @@ extension VPNAvailableToolsFlowViewModel {
     activityReporter.report(UserEvent.ActivateVpn(flowStep: .complete))
   }
 
-  fileprivate func showStoreProduct() {
-    let url = URL(string: Self.hotspotshieldDeepLink)!
+  #if !os(visionOS)
+    func showStoreProduct() {
+      let url = URL(string: Self.hotspotshieldDeepLink)!
 
-    if UIApplication.shared.canOpenURL(url) {
-      UIApplication.shared.open(url, options: [:], completionHandler: nil)
-    } else {
-      UIPasteboard.general.string = Self.hotspotshieldDeepLink
-
-      if Device.isMac {
-        let appLink = "itms-apps://itunes.apple.com/app/id\(VPNService.vpnExternalAppId)"
-        guard let appURL = URL(string: appLink), UIApplication.shared.canOpenURL(appURL) else {
-          return
-        }
-        UIApplication.shared.open(appURL, options: [:], completionHandler: nil)
+      if UIApplication.shared.canOpenURL(url) {
+        UIApplication.shared.open(url, options: [:], completionHandler: nil)
       } else {
-        guard !isDisplayingStoreProductViewController else { return }
+        UIPasteboard.general.string = Self.hotspotshieldDeepLink
 
-        isDisplayingStoreProductViewController = true
-        let parameters = [
-          SKStoreProductParameterITunesItemIdentifier: "\(VPNService.vpnExternalAppId)"
-        ]
-        skStoreProductViewController.loadProduct(withParameters: parameters) {
-          [weak self] (loaded, _) -> Void in
-          guard let self = self, loaded else { return }
-          DispatchQueue.main.async {
-            UIApplication.shared.keyUIWindow?.rootViewController?.present(
-              self.skStoreProductViewController, animated: true, completion: nil)
+        if Device.is(.mac) {
+          let appLink = "itms-apps://itunes.apple.com/app/id\(VPNService.vpnExternalAppId)"
+          guard let appURL = URL(string: appLink), UIApplication.shared.canOpenURL(appURL) else {
+            return
+          }
+          UIApplication.shared.open(appURL, options: [:], completionHandler: nil)
+        } else {
+          guard !isDisplayingStoreProductViewController else { return }
+
+          isDisplayingStoreProductViewController = true
+          let parameters = [
+            SKStoreProductParameterITunesItemIdentifier: "\(VPNService.vpnExternalAppId)"
+          ]
+          skStoreProductViewController.loadProduct(withParameters: parameters) {
+            [weak self] (loaded, _) in
+            guard let self = self, loaded else { return }
+            DispatchQueue.main.async {
+              UIApplication.shared.keyUIWindow?.rootViewController?.present(
+                self.skStoreProductViewController, animated: true, completion: nil)
+            }
           }
         }
       }
+
+      activityReporter.report(UserEvent.DownloadVpnClient())
     }
-
-    activityReporter.report(UserEvent.DownloadVpnClient())
-  }
+  #endif
 }
 
-extension VPNAvailableToolsFlowViewModel: SKStoreProductViewControllerDelegate {
-
-  func productViewControllerDidFinish(_ viewController: SKStoreProductViewController) {
-    isDisplayingStoreProductViewController = false
+#if !os(visionOS)
+  extension VPNAvailableToolsFlowViewModel: SKStoreProductViewControllerDelegate {
+    func productViewControllerDidFinish(_ viewController: SKStoreProductViewController) {
+      isDisplayingStoreProductViewController = false
+    }
   }
-}
+#endif
 
 extension VPNAvailableToolsFlowViewModel {
   static var mock: VPNAvailableToolsFlowViewModel {

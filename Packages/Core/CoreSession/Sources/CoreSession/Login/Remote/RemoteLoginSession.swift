@@ -1,7 +1,7 @@
-import DashTypes
+import CoreTypes
 import Foundation
 
-public struct RemoteLoginSession: Hashable {
+public struct RemoteLoginSession: Hashable, Sendable {
   public let login: Login
   let userData: DeviceRegistrationData
   let cryptoConfig: CryptoRawConfig
@@ -14,7 +14,7 @@ public struct RemoteLoginSession: Hashable {
   public let verificationMethod: VerificationMethod?
   let pin: String?
   let shouldEnableBiometry: Bool
-  let isBackupCode: Bool
+  public let isBackupCode: Bool
   public var analyticsIds: AnalyticsIdentifiers {
     return userData.analyticsIds
   }

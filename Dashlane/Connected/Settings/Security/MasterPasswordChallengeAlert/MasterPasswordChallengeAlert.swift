@@ -1,9 +1,10 @@
 import CoreLocalization
-import CoreUserTracking
-import DashTypes
+import CoreTypes
+import DesignSystemExtra
 import SwiftUI
 import UIComponents
 import UIDelight
+import UserTrackingFoundation
 
 struct MasterPasswordChallengeAlert: View {
 
@@ -22,29 +23,33 @@ struct MasterPasswordChallengeAlert: View {
         .fill(.black.opacity(colorScheme == .dark ? 0.48 : 0.2))
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .ignoresSafeArea()
-      AlertTextFieldView(
+      NativeTextFieldAlert(
         title: title,
         message: message,
-        placeholder: CoreLocalization.L10n.Core.kwEnterYourMasterPassword,
+        placeholder: CoreL10n.kwEnterYourMasterPassword,
         isSecure: true,
         textFieldInput: $masterPasswordInput,
         onSubmit: buttonAction
       ) {
-        HStack {
-          Button(CoreLocalization.L10n.Core.cancel) {
-            viewModel.completion(.cancelled)
-          }
-          Divider()
-            .frame(maxHeight: 44)
-          Button(secondaryButtonTitle, action: buttonAction)
-            .buttonStyle(AlertButtonStyle(mainButton: false))
+        Button(CoreL10n.cancel, role: .cancel) {
+          viewModel.completion(.cancelled)
         }
+
+        Button(secondaryButtonTitle, action: buttonAction)
       }
     }
+    .writingToolsDisabled()
     .ignoresSafeArea(.keyboard, edges: .bottom)
     .onAppear {
       report?(UserEvent.AskAuthentication(mode: .masterPassword, reason: .changeMasterPassword))
     }
+    #if DEBUG
+      .onAppear {
+        if !ProcessInfo.isTesting {
+          masterPasswordInput = TestAccount.password
+        }
+      }
+    #endif
   }
 
   private func buttonAction() {
@@ -76,18 +81,21 @@ struct MasterPasswordChallengeAlert: View {
   private var secondaryButtonTitle: String {
     switch viewModel.intent {
     case .changeMasterPassword:
-      return CoreLocalization.L10n.Core.kwButtonOk
+      return CoreL10n.kwButtonOk
     case .enableMasterPasswordReset:
       return L10n.Localizable.resetMasterPasswordActivationMasterPasswordChallengeEnable
     }
   }
 }
 
-struct MasterPasswordChallengeAlert_Previews: PreviewProvider {
-  static var previews: some View {
-    MultiContextPreview {
-      MasterPasswordChallengeAlert(viewModel: .mock(intent: .changeMasterPassword))
-      MasterPasswordChallengeAlert(viewModel: .mock(intent: .enableMasterPasswordReset))
-    }
-  }
+#Preview("Change MP") {
+  MasterPasswordChallengeAlert(
+    viewModel: .mock(intent: .changeMasterPassword)
+  )
+}
+
+#Preview("Enable MP Reset") {
+  MasterPasswordChallengeAlert(
+    viewModel: .mock(intent: .enableMasterPasswordReset)
+  )
 }

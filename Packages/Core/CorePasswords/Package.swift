@@ -3,7 +3,7 @@ import PackageDescription
 let package = Package(
   name: "CorePasswords",
   platforms: [
-    .iOS(.v16)
+    .iOS(.v17)
   ],
   products: [
     .library(
@@ -11,14 +11,14 @@ let package = Package(
       targets: ["CorePasswords"])
   ],
   dependencies: [
-    .package(name: "DashTypes", path: "../../Foundation/DashTypes"),
+    .package(name: "CoreTypes", path: "../../Core/CoreTypes"),
     .package(url: "_", branch: "main"),
   ],
   targets: [
     .target(
       name: "CorePasswords",
       dependencies: [
-        "DashTypes",
+        "CoreTypes",
         .product(name: "ZXCVBN", package: "zxcvbnswift"),
 
       ],

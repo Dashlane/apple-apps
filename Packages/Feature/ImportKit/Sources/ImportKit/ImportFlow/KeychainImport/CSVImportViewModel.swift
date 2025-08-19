@@ -1,13 +1,13 @@
 import Combine
 import CorePersonalData
 import CorePremium
-import CoreUserTracking
-import DashTypes
+import CoreTypes
+import IconLibrary
 import UniformTypeIdentifiers
-import VaultKit
+import UserTrackingFoundation
 
 @MainActor
-public class CSVImportViewModel: ImportViewModel, ObservableObject, ImportKitServicesInjecting {
+public class CSVImportViewModel: OldImportViewModel, ObservableObject, ImportKitServicesInjecting {
 
   public let kind: ImportFlowKind = .keychain
   public var step: ImportStep = .extract

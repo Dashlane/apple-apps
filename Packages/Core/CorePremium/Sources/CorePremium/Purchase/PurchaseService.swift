@@ -1,6 +1,7 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import StoreKit
 
 public actor PurchaseService {
@@ -194,7 +195,9 @@ extension PurchaseService {
     case let .success(result):
       switch result {
       case let .unverified(transaction, error):
-        logger.fatal("Appstore verification failed on transaction \(transaction.id)", error: error)
+        logger.fatal(
+          "Appstore verification failed on transaction \(transaction.id, privacy: .public)",
+          error: error)
         throw PurchaseError.storeKitVerificationError(error, transactionId: transaction.id)
 
       case let .verified(transaction):
@@ -256,7 +259,9 @@ extension PurchaseService {
     switch result {
     case let .unverified(transaction, error):
 
-      logger.fatal("Appstore verification failed on transaction \(transaction.id)", error: error)
+      logger.fatal(
+        "Appstore verification failed on transaction \(transaction.id, privacy: .public)",
+        error: error)
       return
     case let .verified(transaction):
       guard !transaction.isUpgraded,

@@ -1,7 +1,7 @@
 import CorePersonalData
-import CoreUserTracking
 import Foundation
 import SwiftUI
+import UserTrackingFoundation
 
 struct PasskeyMenu: View {
   let passkey: Passkey

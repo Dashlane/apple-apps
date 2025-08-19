@@ -2,9 +2,10 @@ import Combine
 import CorePersonalData
 import CoreSession
 import CoreSettings
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import Foundation
+import IconLibrary
+import UserTrackingFoundation
 import VaultKit
 
 class VPNMainViewModel: ObservableObject, SessionServicesInjecting {
@@ -32,27 +33,6 @@ class VPNMainViewModel: ObservableObject, SessionServicesInjecting {
   private let pasteboardService: PasteboardServiceProtocol
   private let userSettings: UserSettings
   private let activityReporter: ActivityReporterProtocol
-
-  var title: String {
-    switch mode {
-    case .activationNeeded: return L10n.Localizable.vpnMainViewTitleActivationNeeded
-    case .activated: return L10n.Localizable.vpnMainViewTitleActivated
-    }
-  }
-
-  var subtitle: String {
-    switch mode {
-    case .activationNeeded: return L10n.Localizable.vpnMainViewSubtitleActivationNeeded
-    case .activated: return L10n.Localizable.vpnMainViewSubtitleActivated
-    }
-  }
-
-  var buttonTitle: String {
-    switch mode {
-    case .activationNeeded: return L10n.Localizable.vpnMainViewButtonActivationNeeded
-    case .activated: return L10n.Localizable.vpnMainViewButtonActivated
-    }
-  }
 
   var action: () -> Void {
     switch mode {

@@ -1,8 +1,10 @@
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import Sodium
 
 public struct NitroSecureTunnel: SecureTunnel {
+  @Loggable
   enum NitroError: Error {
     case couldNotEncrypt
     case couldNotDecrypt

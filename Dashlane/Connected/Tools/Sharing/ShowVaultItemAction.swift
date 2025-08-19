@@ -1,3 +1,4 @@
+import CorePersonalData
 import Foundation
 import SwiftUI
 import VaultKit

@@ -26,10 +26,10 @@
   import CoreSettings
 #endif
 #if canImport(CoreUserTracking)
-  import CoreUserTracking
+  import UserTrackingFoundation
 #endif
-#if canImport(DashTypes)
-  import DashTypes
+#if canImport(CoreTypes)
+  import CoreTypes
 #endif
 #if canImport(DashlaneAPI)
   import DashlaneAPI
@@ -236,7 +236,8 @@ extension HomeAnnouncementsServicesContainer {
   public func makeRateAppModalAnnouncement() -> RateAppModalAnnouncement {
     return RateAppModalAnnouncement(
       session: session,
-      userSettings: userSettings
+      userSettings: userSettings,
+      premiumStatusProvider: premiumStatusProvider
     )
   }
 

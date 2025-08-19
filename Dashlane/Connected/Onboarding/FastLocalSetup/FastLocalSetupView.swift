@@ -25,34 +25,11 @@ struct FastLocalSetupView<Model: FastLocalSetupViewModel>: View {
   }
 
   var body: some View {
-    FullScreenScrollView {
-      VStack(alignment: .leading, spacing: 0) {
-        Text(L10n.Localizable.fastLocalSetupTitle)
-          .font(DashlaneFont.custom(24, .medium).font)
-          .foregroundColor(.ds.text.neutral.standard)
-          .multilineTextAlignment(.leading)
-          .lineLimit(nil)
-          .fixedSize(horizontal: false, vertical: true)
-          .padding(.bottom, 32)
-
-        VStack(alignment: .leading, spacing: 24) {
-          if shouldDisplayHowItWorksDescription, case let .biometry(biometry) = model.mode {
-            howItWorksDescription(biometry: biometry)
-          } else {
-            settingsView
-          }
-        }
-        .padding(24)
-        .background(.ds.container.agnostic.neutral.supershy)
-        .cornerRadius(8)
-
-        Spacer()
-
-        continueButton
+    ViewThatFits {
+      ScrollView {
+        mainView
       }
-      .animation(.easeOut, value: shouldDisplayHowItWorksDescription)
-      .padding(.top, 40)
-      .padding(.horizontal, 24)
+      mainView
     }
     .reportPageAppearance(.accountCreationUnlockOption)
     .loginAppearance()
@@ -60,6 +37,36 @@ struct FastLocalSetupView<Model: FastLocalSetupViewModel>: View {
     .onAppear {
       model.markDisplay()
     }
+  }
+
+  private var mainView: some View {
+    VStack(alignment: .leading, spacing: 0) {
+      Text(L10n.Localizable.fastLocalSetupTitle)
+        .textStyle(.title.section.medium)
+        .foregroundStyle(Color.ds.text.neutral.standard)
+        .multilineTextAlignment(.leading)
+        .lineLimit(nil)
+        .fixedSize(horizontal: false, vertical: true)
+        .padding(.bottom, 32)
+
+      VStack(alignment: .leading, spacing: 24) {
+        if shouldDisplayHowItWorksDescription, case let .biometry(biometry) = model.mode {
+          howItWorksDescription(biometry: biometry)
+        } else {
+          settingsView
+        }
+      }
+      .padding(24)
+      .background(.ds.container.agnostic.neutral.supershy)
+      .cornerRadius(8)
+
+      Spacer()
+
+      continueButton
+    }
+    .animation(.easeOut, value: shouldDisplayHowItWorksDescription)
+    .padding(.top, 40)
+    .padding(.horizontal, 24)
   }
 
   @ViewBuilder
@@ -78,11 +85,11 @@ struct FastLocalSetupView<Model: FastLocalSetupViewModel>: View {
         VStack(alignment: .leading, spacing: togglesInnerSpacing) {
           Text(biometry.displayableName)
             .font(.system(.body).weight(.semibold))
-            .foregroundColor(.ds.text.neutral.standard)
+            .foregroundStyle(Color.ds.text.neutral.standard)
 
           Text(biometry.localizedDescription)
             .font(.system(.footnote))
-            .foregroundColor(.ds.text.neutral.quiet)
+            .foregroundStyle(Color.ds.text.neutral.quiet)
         }
       }
 
@@ -91,11 +98,11 @@ struct FastLocalSetupView<Model: FastLocalSetupViewModel>: View {
           VStack(alignment: .leading, spacing: togglesInnerSpacing) {
             Text(L10n.Localizable.fastLocalSetupMasterPasswordReset)
               .font(.system(.body).weight(.semibold))
-              .foregroundColor(.ds.text.neutral.standard)
+              .foregroundStyle(Color.ds.text.neutral.standard)
 
             Text(L10n.Localizable.fastLocalSetupMasterPasswordResetDescription)
               .font(.system(.footnote))
-              .foregroundColor(.ds.text.neutral.quiet)
+              .foregroundStyle(Color.ds.text.neutral.quiet)
           }
         }
       }
@@ -111,11 +118,11 @@ struct FastLocalSetupView<Model: FastLocalSetupViewModel>: View {
       VStack(alignment: .leading, spacing: togglesInnerSpacing) {
         Text(L10n.Localizable.fastLocalSetupRememberMPTitle)
           .font(.system(.body).weight(.semibold))
-          .foregroundColor(.ds.text.neutral.standard)
+          .foregroundStyle(Color.ds.text.neutral.standard)
 
         Text(L10n.Localizable.fastLocalSetupRememberMPDescription)
           .font(.system(.footnote))
-          .foregroundColor(.ds.text.neutral.quiet)
+          .foregroundStyle(Color.ds.text.neutral.quiet)
       }
     }
   }
@@ -158,7 +165,7 @@ struct FastLocalSetupView<Model: FastLocalSetupViewModel>: View {
             biometry.displayableName))
         Text(L10n.Localizable.fastLocalSetupHowItWorksNote(biometry.displayableName))
       }
-      .foregroundColor(.ds.text.neutral.quiet)
+      .foregroundStyle(Color.ds.text.neutral.quiet)
     }
   }
 
@@ -191,6 +198,8 @@ extension Biometry {
       return L10n.Localizable.fastLocalSetupTouchIDDescription
     case .faceId:
       return L10n.Localizable.fastLocalSetupFaceIDDescription
+    case .opticId:
+      return L10n.Localizable.fastLocalSetupOpticIDDescription
     }
   }
 }

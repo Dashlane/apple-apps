@@ -1,118 +1,7 @@
-import Combine
 import CoreLocalization
-import CorePersonalData
-import CoreSettings
-import DashTypes
 import DesignSystem
-import DomainParser
-import IconLibrary
 import SwiftUI
-import UIComponents
 import UIDelight
-import VaultKit
-
-class DarkWebMonitoringDetailsViewModel: ObservableObject, SessionServicesInjecting {
-  var breachViewModel: BreachViewModel
-  var actionPublisher: PassthroughSubject<DarkWebToolsFlowViewModel.Action, Never>?
-
-  @Published
-  var advice: DarkWebMonitoringAdvice?
-
-  var canChangePassword: Bool {
-    !correspondingCredentials.isEmpty
-  }
-
-  private var currentCredential: Credential?
-
-  private let darkWebMonitoringService: DarkWebMonitoringServiceProtocol
-  private let correspondingCredentials: [Credential]
-  private let domainParser: DomainParserProtocol
-  private let userSettings: UserSettings
-  private let initialPassword: String
-  private var newPassword: String
-
-  init(
-    breach: DWMSimplifiedBreach,
-    breachViewModel: BreachViewModel,
-    darkWebMonitoringService: DarkWebMonitoringServiceProtocol,
-    domainParser: DomainParserProtocol,
-    userSettings: UserSettings,
-    actionPublisher: PassthroughSubject<DarkWebToolsFlowViewModel.Action, Never>? = nil
-  ) {
-    self.breachViewModel = breachViewModel
-    self.darkWebMonitoringService = darkWebMonitoringService
-    self.domainParser = domainParser
-    self.userSettings = userSettings
-    self.actionPublisher = actionPublisher
-    self.correspondingCredentials = darkWebMonitoringService.correspondingCredentials(for: breach)
-
-    self.currentCredential = correspondingCredentials.first
-    self.initialPassword = correspondingCredentials.first?.password ?? ""
-    self.newPassword = ""
-
-    advice = canChangePassword ? .changePassword(changePassword) : nil
-  }
-
-  func changePassword() {
-    if let breach = breachViewModel.simplifiedBreach, let url = breach.url.openableURL {
-      self.darkWebMonitoringService.solved(breach)
-      UIApplication.shared.open(url)
-    } else if let credential = correspondingCredentials.first {
-      self.actionPublisher?.send(.changePassword(credential, { _ in }))
-    }
-  }
-
-  func newPasswordToBeSaved() {
-    guard let credential = currentCredential else { return }
-    guard let breach = breachViewModel.simplifiedBreach else { return }
-
-    darkWebMonitoringService.saveNewPassword(for: credential, newPassword: newPassword) {
-      [weak self] result in
-      guard let self = self else { return }
-      switch result {
-      case .success(let updatedCredential):
-        self.currentCredential = updatedCredential
-        self.darkWebMonitoringService.solved(breach)
-        self.advice = .savedNewPassword(self.viewItem, self.undoSavePassword)
-      case .failure: self.advice = .changePassword(self.changePassword)
-      }
-    }
-  }
-
-  func undoSavePassword() {
-    guard let credential = currentCredential else { return }
-
-    darkWebMonitoringService.saveNewPassword(for: credential, newPassword: initialPassword) {
-      [weak self] result in
-      guard let self = self else { return }
-      switch result {
-      case .success(let updatedCredential):
-        self.currentCredential = updatedCredential
-        self.advice = nil
-      case .failure: self.advice = .savedNewPassword(self.viewItem, self.undoSavePassword)
-      }
-    }
-  }
-
-  func viewItem() {
-    guard let credential = currentCredential else { return }
-
-    self.actionPublisher?.send(.showCredential(credential))
-  }
-}
-
-extension DarkWebMonitoringDetailsViewModel {
-  static func fake() -> DarkWebMonitoringDetailsViewModel {
-    DarkWebMonitoringDetailsViewModel(
-      breach: DWMSimplifiedBreach(
-        breachId: "00", url: .init(rawValue: "world.com"), leakedPassword: nil, date: nil),
-      breachViewModel: .mock(for: .init()),
-      darkWebMonitoringService: DarkWebMonitoringServiceMock(),
-      domainParser: FakeDomainParser(),
-      userSettings: .mock,
-      actionPublisher: nil)
-  }
-}
 
 struct DarkWebMonitoringDetailsView: View {
 
@@ -122,31 +11,36 @@ struct DarkWebMonitoringDetailsView: View {
   @State private var showConfirmAlert: Bool = false
 
   var body: some View {
-    FullScreenScrollView {
-      VStack(alignment: .center, spacing: 1) {
-        headerView
+    List {
+      Section {
         detailView
-        ourAdviceSection
-        Spacer()
-        Button(
-          action: { showConfirmAlert.toggle() },
-          label: {
-            Text(L10n.Localizable.dwmDeleteAlertCta)
-              .foregroundColor(.ds.text.brand.standard)
-          }
-        ).buttonStyle(BorderlessActionButtonStyle())
+      } header: {
+        headerView
       }
+
+      ourAdviceSection
     }
+    .safeAreaInset(edge: .bottom) {
+      Button {
+        showConfirmAlert.toggle()
+      } label: {
+        Text(L10n.Localizable.dwmDeleteAlertCta)
+          .fixedSize(horizontal: true, vertical: false)
+      }
+      .buttonStyle(.designSystem(.titleOnly))
+      .style(mood: .warning, intensity: .supershy)
+      .background(Color.ds.background.alternate)
+    }
+    .listStyle(.ds.insetGrouped)
     .confirmationDialog(
       L10n.Localizable.dwmDetailViewDeleteConfirmTitle,
       isPresented: $showConfirmAlert,
       actions: {
-        Button(CoreLocalization.L10n.Core.kwDelete) {
+        Button(CoreL10n.kwDelete) {
           confirmDelete()
         }
       }
     )
-    .backgroundColorIgnoringSafeArea(.ds.background.default)
     .reportPageAppearance(.toolsDarkWebMonitoringAlert)
   }
 
@@ -154,30 +48,32 @@ struct DarkWebMonitoringDetailsView: View {
   private var headerView: some View {
     VStack(alignment: .center, spacing: 10) {
       BreachIconView(model: model.breachViewModel.iconViewModel)
+        .controlSize(.large)
       Text(model.breachViewModel.url.displayDomain)
-        .font(DashlaneFont.custom(20, .medium).font)
+        .textStyle(.title.block.medium)
+        .foregroundStyle(Color.ds.text.neutral.catchy)
       Text(L10n.Localizable.dwmDetailViewSubtitle)
-        .font(.body).foregroundColor(.ds.text.neutral.quiet).multilineTextAlignment(.center)
+        .textStyle(.title.block.small)
+        .foregroundStyle(Color.ds.text.neutral.quiet)
+        .multilineTextAlignment(.center)
     }
-    .padding(16)
     .frame(maxWidth: .infinity)
-    .background(Color.ds.container.agnostic.neutral.supershy)
+    .padding(.bottom, 8)
+    .textCase(nil)
   }
 
   @ViewBuilder
   private var detailView: some View {
-    VStack(spacing: 1) {
-      textField(
-        title: L10n.Localizable.dwmDetailViewBreachDate,
-        text: model.breachViewModel.displayDate)
+    textField(
+      title: L10n.Localizable.dwmDetailViewBreachDate,
+      text: model.breachViewModel.displayDate)
 
-      if let email = model.breachViewModel.email {
-        textField(title: L10n.Localizable.dwmDetailViewEmailAffected, text: email)
-      }
+    if let email = model.breachViewModel.email {
+      textField(title: L10n.Localizable.dwmDetailViewEmailAffected, text: email)
+    }
 
-      if let leakedData = model.breachViewModel.displayLeakedData {
-        textField(title: L10n.Localizable.dwmDetailViewOtherDataAffected, text: leakedData)
-      }
+    if let leakedData = model.breachViewModel.displayLeakedData {
+      textField(title: L10n.Localizable.dwmDetailViewOtherDataAffected, text: leakedData)
     }
   }
 
@@ -196,10 +92,6 @@ struct DarkWebMonitoringDetailsView: View {
   }
 }
 
-struct DarkWebMonitoringDetailsView_Previews: PreviewProvider {
-  static var previews: some View {
-    MultiContextPreview(dynamicTypePreview: false) {
-      DarkWebMonitoringDetailsView(model: .fake())
-    }
-  }
+#Preview {
+  DarkWebMonitoringDetailsView(model: .fake())
 }

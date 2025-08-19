@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Devices {
-  public struct RenameDevice: APIRequest {
+  public struct RenameDevice: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/devices/RenameDevice"
 
     public let api: UserDeviceAPIClient
@@ -25,7 +25,7 @@ extension UserDeviceAPIClient.Devices {
 }
 
 extension UserDeviceAPIClient.Devices.RenameDevice {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case accessKey = "accessKey"
       case updatedName = "updatedName"
