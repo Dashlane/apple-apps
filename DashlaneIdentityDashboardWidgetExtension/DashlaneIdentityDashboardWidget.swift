@@ -47,6 +47,9 @@ struct DashlaneWidgetEntryView: View {
 
   var body: some View {
     entries()
+      .containerBackground(for: .widget) {
+        WidgetAsset.widgetBackground.swiftUIColor
+      }
   }
 
   #if targetEnvironment(macCatalyst)
@@ -68,17 +71,11 @@ struct DashlaneWidgetEntryView: View {
     func entries() -> some View {
       switch size {
       case .accessoryCircular:
-        if #available(iOSApplicationExtension 16, *) {
-          CircularWidgetView(entry: entry)
-        }
+        CircularWidgetView(entry: entry)
       case .accessoryRectangular:
-        if #available(iOSApplicationExtension 16, *) {
-          RectangularWidgetView(entry: entry)
-        }
+        RectangularWidgetView(entry: entry)
       case .accessoryInline:
-        if #available(iOSApplicationExtension 16, *) {
-          InlineWidgetView(entry: entry)
-        }
+        InlineWidgetView(entry: entry)
       case .systemSmall:
         SmallWidgetView(entry: entry)
       case .systemMedium:
@@ -92,29 +89,24 @@ struct DashlaneWidgetEntryView: View {
 
 struct SmallWidgetView: View {
   var entry: Provider.Entry
-  @Environment(\.colorScheme) var colorScheme
 
   var body: some View {
     ScoreWidgetEntryView(entry: entry)
-      .background(Color(WidgetAsset.widgetBackground.color))
   }
 }
 
 struct MediumWidgetView: View {
   var entry: Provider.Entry
-  @Environment(\.colorScheme) var colorScheme
 
   var body: some View {
-    HStack(spacing: 0) {
+    HStack {
       ScoreWidgetEntryView(entry: entry)
       ScoreDetailWidgetEntryView(entry: entry)
     }
-    .background(Color(WidgetAsset.widgetBackground.color))
   }
 }
 
 #if !targetEnvironment(macCatalyst)
-  @available(iOSApplicationExtension 16.0, *)
   struct GaugeScoreView: View {
     let value: Float
     let percentage: Int
@@ -129,7 +121,6 @@ struct MediumWidgetView: View {
     }
   }
 
-  @available(iOSApplicationExtension 16.0, *)
   struct CircularWidgetView: View {
     var entry: Provider.Entry
 
@@ -138,7 +129,6 @@ struct MediumWidgetView: View {
     }
   }
 
-  @available(iOSApplicationExtension 16.0, *)
   struct RectangularWidgetView: View {
     var entry: Provider.Entry
 
@@ -152,7 +142,6 @@ struct MediumWidgetView: View {
     }
   }
 
-  @available(iOSApplicationExtension 16.0, *)
   struct InlineWidgetView: View {
     var entry: Provider.Entry
 
@@ -167,14 +156,20 @@ struct DashlaneWidget: Widget {
   let kind: String = DashlaneWidgetConstant.kind
 
   var supportedFamilies: [WidgetFamily] {
-    #if !targetEnvironment(macCatalyst)
-      if #available(iOSApplicationExtension 16, *) {
-        return [
-          .systemSmall, .systemMedium, .accessoryCircular, .accessoryRectangular, .accessoryInline,
-        ]
-      }
+    #if targetEnvironment(macCatalyst)
+      return [
+        .systemSmall,
+        .systemMedium,
+      ]
+    #else
+      return [
+        .systemSmall,
+        .systemMedium,
+        .accessoryCircular,
+        .accessoryRectangular,
+        .accessoryInline,
+      ]
     #endif
-    return [.systemSmall, .systemMedium]
   }
 
   var body: some WidgetConfiguration {
@@ -189,7 +184,7 @@ struct DashlaneWidget: Widget {
 
 struct DashlaneWidget_Previews: PreviewProvider {
   static var previews: some View {
-    MultiContextPreview {
+    MultiContextPreview(addDefaultBackground: false) {
       DashlaneWidgetEntryView(entry: PasswordHealthEntry())
         .previewContext(WidgetPreviewContext(family: .systemSmall))
 
@@ -202,18 +197,14 @@ struct DashlaneWidget_Previews: PreviewProvider {
       )
       .previewContext(WidgetPreviewContext(family: .systemMedium))
 
-      #if !targetEnvironment(macCatalyst)
-        if #available(iOSApplicationExtension 16.0, *) {
-          DashlaneWidgetEntryView(entry: PasswordHealthEntry(score: 78))
-            .previewContext(WidgetPreviewContext(family: .accessoryCircular))
+      DashlaneWidgetEntryView(entry: PasswordHealthEntry(score: 78))
+        .previewContext(WidgetPreviewContext(family: .accessoryCircular))
 
-          DashlaneWidgetEntryView(entry: PasswordHealthEntry(score: 78))
-            .previewContext(WidgetPreviewContext(family: .accessoryRectangular))
+      DashlaneWidgetEntryView(entry: PasswordHealthEntry(score: 78))
+        .previewContext(WidgetPreviewContext(family: .accessoryRectangular))
 
-          DashlaneWidgetEntryView(entry: PasswordHealthEntry(score: 78))
-            .previewContext(WidgetPreviewContext(family: .accessoryInline))
-        }
-      #endif
+      DashlaneWidgetEntryView(entry: PasswordHealthEntry(score: 78))
+        .previewContext(WidgetPreviewContext(family: .accessoryInline))
     }
   }
 }

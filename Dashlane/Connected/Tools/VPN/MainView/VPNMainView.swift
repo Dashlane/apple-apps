@@ -1,7 +1,7 @@
 import Combine
 import CoreLocalization
 import CorePersonalData
-import DashTypes
+import CoreTypes
 import DesignSystem
 import SwiftUI
 import UIComponents
@@ -19,59 +19,48 @@ struct VPNMainView: View {
   var body: some View {
     ZStack {
       switch model.mode {
-      case .activationNeeded: activationView
-      case .activated: activatedView
+      case .activationNeeded:
+        activationNeededView
+      case .activated:
+        activatedView
       }
     }
     .navigationTitle(L10n.Localizable.mobileVpnTitle)
-    .backgroundColorIgnoringSafeArea(.ds.background.alternate)
+    .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
   }
 
-  private var activationView: some View {
-    ScrollView {
-      VStack(alignment: .leading, spacing: 32) {
-        VStack(spacing: 8) {
-          titleView
-          mainButton
-        }
+  private var activationNeededView: some View {
+    ToolIntroView(
+      icon: ExpressiveIcon(.ds.feature.vpn.outlined),
+      title: CoreL10n.VpnIntro.title
+    ) {
+      FeatureCard {
+        FeatureRow(
+          asset: ExpressiveIcon(.ds.laptopCheckmark.outlined),
+          title: CoreL10n.VpnIntro.subtitle1,
+          description: CoreL10n.VpnIntro.description1)
 
-        if !model.hasDismissedNewProviderMessage {
-          Infobox(L10n.Localizable.mobileVpnNewProviderInfoboxHeaderTitle) {
-            Button(L10n.Localizable.mobileVpnNewProviderInfoboxLearnMore) {
-              isPresentingInfoModal = true
-            }
-            Button(L10n.Localizable.mobileVpnNewProviderInfoboxDismiss) {
-              withAnimation { model.dismissNewProviderMessage() }
-            }
-          }
-        }
-
-        faqSection
-
-        Spacer()
+        FeatureRow(
+          asset: ExpressiveIcon(.ds.web.outlined),
+          title: CoreL10n.VpnIntro.subtitle2,
+          description: CoreL10n.VpnIntro.description2)
       }
-      .padding(.horizontal, 16)
-      .padding(.top, 24)
-      .fiberAccessibilityHidden(isPresentingInfoModal)
+
+      mainButton
     }
-    .bottomSheet(isPresented: $isPresentingInfoModal) {
-      VPNInfoModalView(buttonAction: {
-        isPresentingInfoModal = false
-        model.dismissNewProviderMessage()
-      })
-    }
-    .reportPageAppearance(.toolsVpn)
   }
 
   private var activatedView: some View {
     ScrollView {
-      VStack {
+      VStack(spacing: 24) {
         titleView
 
-        credentialView.padding(.top, 24)
+        credentialView
+
         mainButton
 
-        Spacer(minLength: 48)
+        Spacer()
+
         faqSection
       }
       .padding(.horizontal, 16)
@@ -90,29 +79,33 @@ struct VPNMainView: View {
             model: VaultItemIconViewModel(
               item: credential,
               domainIconLibrary: model.iconService.domain))
-          Text("Hotspot Shield").font(.body).fontWeight(.semibold)
+          Text("Hotspot Shield")
+            .font(.body)
+            .fontWeight(.semibold)
+            .foregroundStyle(Color.ds.text.neutral.catchy)
+
           Spacer()
         }
+
         TextDetailField(
-          title: CoreLocalization.L10n.Core.KWAuthentifiantIOS.login,
+          title: CoreL10n.KWAuthentifiantIOS.login,
           text: Binding.constant(credential.email),
           actions: [.copy(copy)]
         )
         .actions([.copy(copy)])
         .fiberFieldType(.email)
         .padding(.top, 26)
-        .editionDisabled()
+        .fieldEditionDisabled()
 
         SecureDetailField(
-          title: CoreLocalization.L10n.Core.KWAuthentifiantIOS.password,
+          title: CoreL10n.KWAuthentifiantIOS.password,
           text: Binding.constant(credential.password),
           onRevealAction: { _ in },
-          isColored: true,
           actions: [.copy(copy)]
         )
         .actions([.copy(copy)])
         .fiberFieldType(.password)
-        .editionDisabled()
+        .fieldEditionDisabled()
       }
       .padding(16)
       .background(Color.ds.container.expressive.neutral.quiet.idle)
@@ -123,21 +116,27 @@ struct VPNMainView: View {
   private var titleView: some View {
     HStack {
       VStack(alignment: .leading, spacing: 0) {
-        Text(model.title)
-          .font(.custom(GTWalsheimPro.bold.name, size: 26, relativeTo: .title).weight(.medium))
-        Text(model.subtitle)
-          .font(.subheadline)
-          .foregroundColor(.ds.text.neutral.quiet)
+        Text(L10n.Localizable.vpnMainViewTitleActivated)
+          .textStyle(.title.section.large)
+          .foregroundStyle(Color.ds.text.neutral.catchy)
+        Text(L10n.Localizable.vpnMainViewSubtitleActivated)
+          .textStyle(.body.reduced.regular)
+          .foregroundStyle(Color.ds.text.neutral.quiet)
           .padding(.top, 8)
       }
+
       Spacer()
     }
   }
 
   private var mainButton: some View {
-    Button(model.buttonTitle, action: model.action)
-      .buttonStyle(.designSystem(.titleOnly))
-      .padding(.top, 24)
+    Button(
+      model.mode == .activationNeeded
+        ? CoreL10n.VpnIntro.cta : L10n.Localizable.vpnMainViewButtonActivated
+    ) {
+      model.action()
+    }
+    .buttonStyle(.designSystem(.titleOnly(.sizeToFit)))
   }
 
   private var faqSection: some View {
@@ -145,7 +144,7 @@ struct VPNMainView: View {
       Text(L10n.Localizable.mobileVpnPageFaqTitle)
         .textCase(.uppercase)
         .font(.footnote)
-        .foregroundColor(.ds.text.neutral.quiet)
+        .foregroundStyle(Color.ds.text.neutral.quiet)
         .accessibility(addTraits: .isHeader)
 
       FAQView(items: [
@@ -158,7 +157,9 @@ struct VPNMainView: View {
 
   private func copy(_ value: String, fieldType: DetailFieldType) {
     model.copy(value, fieldType: fieldType)
-    UINotificationFeedbackGenerator().notificationOccurred(.success)
+    #if os(iOS)
+      UINotificationFeedbackGenerator().notificationOccurred(.success)
+    #endif
     toast(fieldType.definitionField.pasteboardMessage, image: .ds.action.copy.outlined)
   }
 }

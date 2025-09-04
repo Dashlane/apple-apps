@@ -18,13 +18,13 @@ struct BaseThumbnail<Content: View>: View {
       .foregroundStyle(.clear)
       .overlay(content)
       .overlay(
-        ThumbnailShape()
+        Squircle()
           .stroke(
             Color.ds.border.neutral.quiet.idle,
             lineWidth: effectiveStrokeLineWidth * 2
           )
       )
-      .mask(ThumbnailShape())
+      .mask(Squircle())
       .accessibilityHidden(true)
   }
 
@@ -41,12 +41,14 @@ extension ControlSize {
   var thumbnailScaleValue: Double {
     switch self {
     case .mini:
-      0.8
+      0.6
     case .small:
-      1
+      0.8
     case .regular:
+      1
+    case .large:
       1.5
-    case .large, .extraLarge:
+    case .extraLarge:
       2
     @unknown default:
       1

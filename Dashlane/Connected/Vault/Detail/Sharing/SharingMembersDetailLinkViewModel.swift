@@ -1,7 +1,7 @@
 import Combine
 import CorePersonalData
 import CoreSharing
-import DashTypes
+import CoreTypes
 import Foundation
 import SwiftUI
 import VaultKit

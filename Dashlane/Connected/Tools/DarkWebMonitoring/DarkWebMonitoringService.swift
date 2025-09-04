@@ -2,28 +2,33 @@ import Combine
 import CorePersonalData
 import CorePremium
 import CoreSettings
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import IconLibrary
+import LogFoundation
 import SecurityDashboard
+import UserTrackingFoundation
 import VaultKit
 
+@Loggable
 enum DWMBreachesFetchingError: Error {
   case connectionError
+  @LogPublicPrivacy
   case unexpectedError(_ error: Error)
 }
 
+@Loggable
 public enum DWMEmailRegistrationError: Error {
   case incorrectEmail
   case connectionError
+  @LogPublicPrivacy
   case unexpectedError(_ error: Error)
 }
 
 public protocol DarkWebMonitoringServiceProtocol {
   var isDwmEnabled: Bool { get }
   var maxMonitoredEmails: Int { get set }
-  var identityDashboardService: IdentityDashboardServiceProtocol { get }
   var monitoredEmailsPublisher: AnyPublisher<[DataLeakEmail], Never> { get }
   var breachesPublisher: AnyPublisher<[DWMSimplifiedBreach], Never> { get }
   func register(email: DarkWebMonitoringService.Email) -> AnyPublisher<
@@ -38,9 +43,18 @@ public protocol DarkWebMonitoringServiceProtocol {
   func saveNewPassword(
     for credential: Credential, newPassword: String,
     completion: @escaping (Result<Credential, Error>) -> Void)
+  func removeFromMonitoredEmails(email: String)
+  func monitorNew(email: String) async throws
 }
 
 public class DarkWebMonitoringService: DarkWebMonitoringServiceProtocol {
+  public func removeFromMonitoredEmails(email: String) {
+    identityDashboardService.removeFromMonitoredEmails(email: email)
+  }
+
+  public func monitorNew(email: String) async throws {
+    try await identityDashboardService.monitorNew(email: email)
+  }
 
   public var isDwmEnabled: Bool {
     return capabilityService.status(of: .dataLeak).isAvailable
@@ -110,7 +124,7 @@ public class DarkWebMonitoringService: DarkWebMonitoringServiceProtocol {
   public func register(email: DarkWebMonitoringService.Email) -> AnyPublisher<
     DarkWebMonitoringService.Email, DWMEmailRegistrationError
   > {
-    let email = DashTypes.Email(email)
+    let email = CoreTypes.Email(email)
     guard email.isValid else {
       return Fail(error: .incorrectEmail).eraseToAnyPublisher()
     }
@@ -119,8 +133,6 @@ public class DarkWebMonitoringService: DarkWebMonitoringServiceProtocol {
       Task {
         do {
           _ = try await self.identityDashboardService
-            .dataLeakMonitoringRegisterService
-            .webService
             .registerEmail(email: email.address)
           self.updateMonitoredEmails(completion: { _ in })
           promise(.success(email.address))
@@ -138,7 +150,7 @@ public class DarkWebMonitoringService: DarkWebMonitoringServiceProtocol {
   public func updateMonitoredEmails(
     completion: @escaping ((Result<DataLeakStatusResponse, Error>) -> Void)
   ) {
-    identityDashboardService.dataLeakMonitoringRegisterService.updateMonitoredEmails { result in
+    identityDashboardService.updateMonitoredEmails { result in
       completion(result)
     }
   }
@@ -218,7 +230,7 @@ extension DarkWebMonitoringService {
 
 extension DarkWebMonitoringService {
   fileprivate func subscribeToMonitoredEmails() {
-    identityDashboardService.dataLeakMonitoringRegisterService.monitoredEmailsPublisher
+    identityDashboardService.monitoredEmailsPublisher
       .map { $0.ordered() }
       .assign(to: \.monitoredEmails, on: self).store(in: &subscriptions)
   }
@@ -297,6 +309,13 @@ extension DarkWebMonitoringService {
 }
 
 struct DarkWebMonitoringServiceMock: DarkWebMonitoringServiceProtocol {
+  func removeFromMonitoredEmails(email: String) {
+
+  }
+
+  func monitorNew(email: String) async throws {
+
+  }
 
   var maxMonitoredEmails: Int = 5
   var isDwmEnabled: Bool = true

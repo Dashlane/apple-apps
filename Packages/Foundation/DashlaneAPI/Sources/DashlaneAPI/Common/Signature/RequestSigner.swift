@@ -3,7 +3,7 @@ import Foundation
 #if canImport(CryptoKit)
   @preconcurrency import CryptoKit
 #elseif canImport(Crypto)
-  import Crypto
+  @preconcurrency import Crypto
 #endif
 
 #if canImport(FoundationNetworking)
@@ -24,7 +24,7 @@ public struct RequestSigner: Sendable {
     }
   }
 
-  static var signatureAlgorithmKey = "DL1-HMAC-SHA256"
+  static let signatureAlgorithmKey = "DL1-HMAC-SHA256"
 
   let appCredentials: AppCredentials
   let userCredentials: UserCredentials?

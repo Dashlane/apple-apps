@@ -21,7 +21,7 @@ struct FieldRevealSecureContentButton: View {
       },
       label: {
         Label {
-          Text(reveal.wrappedValue ? L10n.Core.kwHide : L10n.Core.kwReveal)
+          Text(reveal.wrappedValue ? CoreL10n.kwHide : CoreL10n.kwReveal)
         } icon: {
           revealIcon
             .resizable()
@@ -29,6 +29,7 @@ struct FieldRevealSecureContentButton: View {
         }
       }
     )
+    .accessibilityLabel(reveal.wrappedValue ? CoreL10n.kwHide : CoreL10n.kwReveal)
   }
 
   private var revealIcon: Image {

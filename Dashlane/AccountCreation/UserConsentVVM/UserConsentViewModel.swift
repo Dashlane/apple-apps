@@ -1,6 +1,6 @@
 import Combine
 import CoreLocalization
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import DesignSystem
 import Foundation
@@ -121,7 +121,7 @@ extension UserConsentViewModelProtocol {
 
   var legalNoticeEUString: String {
     let termString = L10n.Localizable.createaccountPrivacysettingsTermsConditions
-    let privacyString = CoreLocalization.L10n.Core.kwCreateAccountPrivacy
+    let privacyString = CoreL10n.kwCreateAccountPrivacy
     let requiredString = L10n.Localizable.createaccountPrivacysettingsRequiredLabel
 
     return L10n.Localizable.minimalisticOnboardingRecapCheckboxTerms(

@@ -10,7 +10,7 @@ extension Company: VaultItem {
 
   public var localizedTitle: String {
     guard !name.isEmpty else {
-      return L10n.Core.kwCompanyIOS
+      return CoreL10n.kwCompanyIOS
     }
     return name
   }
@@ -20,14 +20,14 @@ extension Company: VaultItem {
   }
 
   public static var localizedName: String {
-    L10n.Core.kwCompanyIOS
+    CoreL10n.kwCompanyIOS
   }
 
   public static var addTitle: String {
-    L10n.Core.kwadddatakwCompanyIOS
+    CoreL10n.kwadddatakwCompanyIOS
   }
 
   public static var nativeMenuAddTitle: String {
-    L10n.Core.addCompany
+    CoreL10n.addCompany
   }
 }

@@ -26,10 +26,9 @@ struct AccountRecoveryActivationIntroView: View {
         .toolbar {
           ToolbarItem(placement: .navigationBarLeading) {
             if !canSkip {
-              Button(
-                action: {
-                  completion(.cancel)
-                }, title: CoreLocalization.L10n.Core.cancel)
+              Button(CoreL10n.cancel) {
+                completion(.cancel)
+              }
             }
           }
         }
@@ -43,43 +42,34 @@ struct AccountRecoveryActivationIntroView: View {
         Button(L10n.Localizable.mplessRecoverySkipAlertCta) {
           completion(.cancel)
         }
-        Button(CoreLocalization.L10n.Core.cancel) {}
+        Button(CoreL10n.cancel) {}
       },
       message: {
         Text(L10n.Localizable.mplessRecoverySkipAlertMessage)
       }
     )
-    .navigationTitle(CoreLocalization.L10n.Core.recoveryKeySettingsLabel)
+    .navigationTitle(CoreL10n.recoveryKeySettingsLabel)
     .loginAppearance()
   }
 
   var mainView: some View {
     VStack(alignment: .leading, spacing: 33) {
-      Image.ds.recoveryKey.outlined
-        .resizable()
-        .frame(width: 77, height: 77)
-        .foregroundColor(.ds.text.brand.quiet)
-        .padding(.horizontal, 16)
+      DS.ExpressiveIcon(.ds.recoveryKey.outlined)
+        .style(mood: .brand, intensity: .quiet)
+        .controlSize(.extraLarge)
       VStack(alignment: .leading, spacing: 16) {
         Text(L10n.Localizable.recoveryKeyActivationIntroTitle)
           .multilineTextAlignment(.leading)
           .lineLimit(nil)
           .fixedSize(horizontal: false, vertical: true)
-          .font(
-            .custom(
-              GTWalsheimPro.regular.name,
-              size: 28,
-              relativeTo: .title
-            )
-            .weight(.medium)
-          )
-          .foregroundColor(.ds.text.neutral.catchy)
+          .textStyle(.title.section.large)
+          .foregroundStyle(Color.ds.text.neutral.catchy)
         Text(authenticationMethod.message)
           .multilineTextAlignment(.leading)
           .lineLimit(nil)
           .fixedSize(horizontal: false, vertical: true)
-          .foregroundColor(.ds.text.neutral.standard)
-          .font(.body)
+          .foregroundStyle(Color.ds.text.neutral.standard)
+          .textStyle(.body.standard.regular)
       }
       Spacer()
     }
@@ -97,6 +87,7 @@ struct AccountRecoveryActivationIntroView: View {
         label: {
           Text(L10n.Localizable.recoveryKeyActivationIntroCta)
             .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity)
         })
       if canSkip {
         Button(
@@ -106,6 +97,7 @@ struct AccountRecoveryActivationIntroView: View {
           label: {
             Text(L10n.Localizable.mplessRecoverySkipCta)
               .fixedSize(horizontal: false, vertical: true)
+              .frame(maxWidth: .infinity)
           }
         )
         .style(mood: .brand, intensity: .quiet)

@@ -1,0 +1,103 @@
+import CorePersonalData
+import DesignSystem
+import SwiftUI
+import UIComponents
+import UIDelight
+import VaultKit
+
+struct CredentialLinkingView: View {
+
+  let model: CredentialLinkingViewModel
+
+  @ScaledMetric
+  var titleFontSize: CGFloat = 26
+  @ScaledMetric
+  var messageFontSize: CGFloat = 15
+
+  var body: some View {
+    VStack {
+      Spacer()
+
+      Text(titleString)
+        .multilineTextAlignment(.leading)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .textStyle(.title.section.medium)
+        .foregroundStyle(Color.ds.text.neutral.standard)
+        .padding(.top)
+        .padding(.bottom, 6)
+        .fixedSize(horizontal: false, vertical: true)
+        .minimumScaleFactor(0.01)
+
+      Text(messageString)
+        .multilineTextAlignment(.leading)
+        .frame(maxWidth: .infinity, alignment: .leading)
+        .textStyle(.title.block.small)
+        .font(.body)
+        .foregroundStyle(Color.ds.text.neutral.standard)
+        .fixedSize(horizontal: false, vertical: true)
+        .minimumScaleFactor(0.01)
+
+      credentialBlock
+
+      Spacer()
+
+      Button(L10n.Localizable.tachyonLinkingCredentialCtaLink) {
+        Task {
+          await model.link()
+        }
+      }
+      .padding(.top, 15)
+
+      Button(L10n.Localizable.tachyonLinkingCredentialCtaIgnore, action: model.ignore)
+        .padding(.bottom, 20)
+        .style(mood: .neutral, intensity: .supershy)
+    }
+    .reportPageAppearance(.autofillNotificationLinkDomain)
+    .buttonStyle(.designSystem(.titleOnly))
+    .padding(.horizontal, 20)
+    .frame(maxHeight: .infinity, alignment: .top)
+    .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
+  }
+
+  var credentialBlock: some View {
+    VStack(spacing: 5) {
+      VaultItemIconView(isListStyle: true, model: model.makeIconViewModel())
+        .padding(.bottom, 5)
+
+      if !model.credential.displayTitle.isEmpty {
+        Text(model.credential.displayTitle)
+          .foregroundStyle(Color.ds.text.neutral.catchy)
+      }
+      if !model.credential.email.isEmpty {
+        Text(model.credential.email)
+          .foregroundStyle(Color.ds.text.neutral.standard)
+          .font(.system(.footnote))
+      }
+    }
+    .frame(maxWidth: .infinity)
+    .fixedSize(horizontal: false, vertical: true)
+    .padding(.vertical, 22)
+    .background(.ds.container.agnostic.neutral.supershy)
+    .cornerRadius(8.0)
+  }
+
+  private var titleString: AttributedString {
+    var markdownLabel = L10n.Localizable.tachyonLinkingCredentialTitle(model.visitedWebsite)
+    markdownLabel = markdownLabel.replacingOccurrences(
+      of: model.visitedWebsite, with: "**\(model.visitedWebsite)**")
+    return (try? AttributedString(markdown: markdownLabel)) ?? AttributedString(markdownLabel)
+  }
+
+  private var messageString: AttributedString {
+    var markdownLabel = L10n.Localizable.tachyonLinkingCredentialMessage(
+      model.credential.displayTitle, model.visitedWebsite)
+    for boldString in [model.credential.displayTitle, model.visitedWebsite] {
+      markdownLabel = markdownLabel.replacingOccurrences(of: boldString, with: "**\(boldString)**")
+    }
+    return (try? AttributedString(markdown: markdownLabel)) ?? AttributedString(markdownLabel)
+  }
+}
+
+#Preview {
+  CredentialLinkingView(model: .mock)
+}

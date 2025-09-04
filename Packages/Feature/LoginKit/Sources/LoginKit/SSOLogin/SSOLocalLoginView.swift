@@ -1,24 +1,34 @@
-#if canImport(UIKit)
-  import Foundation
-  import SwiftUI
+import Foundation
+import SwiftUI
+import UserTrackingFoundation
 
-  public struct SSOLocalLoginView: View {
+public struct SSOLocalLoginView: View {
 
-    @StateObject
-    var model: SSOLocalLoginViewModel
+  @StateObject
+  var model: SSOLocalLoginViewModel
 
-    public init(model: @autoclosure @escaping () -> SSOLocalLoginViewModel) {
-      self._model = .init(wrappedValue: model())
-    }
+  @Environment(\.report)
+  var report
 
-    public var body: some View {
-      SSOView(model: model.makeSSOViewModel())
-    }
+  public init(model: @autoclosure @escaping () -> SSOLocalLoginViewModel) {
+    self._model = .init(wrappedValue: model())
   }
 
-  struct SSOLocalLoginView_Previews: PreviewProvider {
-    static var previews: some View {
-      SSOLocalLoginView(model: .mock)
-    }
+  public var body: some View {
+    SSOView(model: model.makeSSOViewModel())
+      .onAppear {
+        report?(
+          UserEvent.AskAuthentication(
+            mode: .sso,
+            reason: .login,
+            verificationMode: Definition.VerificationMode.none))
+      }
+      .reportPageAppearance(.loginSso)
   }
-#endif
+}
+
+struct SSOLocalLoginView_Previews: PreviewProvider {
+  static var previews: some View {
+    SSOLocalLoginView(model: .mock)
+  }
+}

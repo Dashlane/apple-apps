@@ -11,6 +11,13 @@ public struct LinkButtonStyle: ButtonStyle {
   @ScaledMetric private var backgroundVerticalPadding = 6
   @ScaledMetric private var backgroundCornerRadius = 10
 
+  var backgroundShape: RoundedRectangle {
+    RoundedRectangle(
+      cornerRadius: backgroundCornerRadius,
+      style: .continuous
+    )
+  }
+
   private let kind: Kind
 
   public init(_ kind: Kind) {
@@ -34,19 +41,18 @@ public struct LinkButtonStyle: ButtonStyle {
     )
     .labelStyle(.link)
     .background(
-      RoundedRectangle(
-        cornerRadius: backgroundCornerRadius,
-        style: .continuous
-      )
-      ._foregroundStyle(.expressiveContainer)
-      .padding(.horizontal, -backgroundHorizontalPadding)
-      .padding(.vertical, -backgroundVerticalPadding)
+      backgroundShape
+        .foregroundStyle(.ds.expressiveContainer)
+        .padding(.horizontal, -backgroundHorizontalPadding)
+        .padding(.vertical, -backgroundVerticalPadding)
     )
     .highlighted(configuration.isPressed)
     .transformEnvironment(\.style) { style in
       style = Style(mood: style.mood, intensity: .supershy, priority: style.priority)
     }
     .accessibilityAddTraits(kind == .external ? .isLink : [])
+    .contentShape(.hoverEffect, backgroundShape)
+    .hoverEffect()
   }
 
   private var accessoryImage: Image {

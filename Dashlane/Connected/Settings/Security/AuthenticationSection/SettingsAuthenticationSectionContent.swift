@@ -18,7 +18,7 @@ struct SettingsAuthenticationSectionContent: View {
 
     PinCodeSettingsView(viewModel: viewModels.pinCodeViewModel)
 
-    if Device.isMac {
+    if Device.is(.mac) {
       RememberMasterPasswordToggle(viewModel: viewModels.rememberMasterPasswordToggleViewModel)
     }
   }

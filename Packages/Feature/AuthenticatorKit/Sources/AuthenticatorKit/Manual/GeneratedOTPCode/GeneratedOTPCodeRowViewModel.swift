@@ -33,9 +33,8 @@ public class GeneratedOTPCodeRowViewModel: ObservableObject {
     self.databaseService = databaseService
     switch token.configuration.type {
     case let .totp(period):
-      let remaining = TOTPGenerator.timeRemaining(in: period)
-      self.currentMode = .totp(
-        progress: CGFloat((period - remaining) / period), refreshPeriod: period)
+      let progress = TOTPGenerator.progress(in: period)
+      self.currentMode = .totp(progress: progress, refreshPeriod: period)
       code = TOTPGenerator.generate(with: token, at: Date())
     case let .hotp(counter):
       self.currentMode = .hotp(counter: counter)
@@ -45,8 +44,7 @@ public class GeneratedOTPCodeRowViewModel: ObservableObject {
 
   func update(period: TimeInterval) {
     self.code = TOTPGenerator.generate(with: token)
-    let remainingTime = TOTPGenerator.timeRemaining(in: period)
-    let progress = CGFloat((period - remainingTime) / period)
+    let progress = TOTPGenerator.progress(in: period)
     self.currentMode = .totp(progress: progress, refreshPeriod: period)
   }
 
@@ -101,10 +99,7 @@ extension OTPInfo {
 }
 
 extension TOTPGenerator {
-  static func generate(
-    with token: OTPInfo,
-    at date: Date = Date()
-  ) -> String {
+  static func generate(with token: OTPInfo, at date: Date = Date()) -> String {
 
     var counter: UInt64?
     if case let .hotp(tokenCounter) = token.configuration.type {

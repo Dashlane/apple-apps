@@ -1,11 +1,11 @@
 import Combine
 import CorePersonalData
 import CoreSettings
-import CoreUserTracking
 import Foundation
 import IconLibrary
 import SwiftUI
 import UIDelight
+import UserTrackingFoundation
 import VaultKit
 
 class PasswordGeneratorHistoryViewModel: ObservableObject, SessionServicesInjecting {
@@ -19,7 +19,7 @@ class PasswordGeneratorHistoryViewModel: ObservableObject, SessionServicesInject
   var state: State = .loading
 
   let pasteboardService: PasteboardService
-  let iconService: VaultKit.IconServiceProtocol
+  let iconService: IconServiceProtocol
   let activityReporter: ActivityReporterProtocol
 
   init(

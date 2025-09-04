@@ -11,7 +11,7 @@ struct DeviceTransferPassphraseView: View {
   var body: some View {
     ZStack {
       if model.isLoading {
-        ProgressionView(state: $model.progressState)
+        LottieProgressionFeedbacksView(state: model.progressState)
       } else {
         mainview
       }
@@ -22,10 +22,10 @@ struct DeviceTransferPassphraseView: View {
 
   var mainview: some View {
     VStack(alignment: .leading, spacing: 24) {
-      Text(L10n.Core.Mpless.D2d.Universal.Untrusted.passphraseTitle)
+      Text(CoreL10n.Mpless.D2d.Universal.Untrusted.passphraseTitle)
         .textStyle(.title.section.large)
         .foregroundStyle(Color.ds.text.neutral.catchy)
-      Text(L10n.Core.Mpless.D2d.Universal.Untrusted.passphraseMessage)
+      Text(CoreL10n.Mpless.D2d.Universal.Untrusted.passphraseMessage)
         .textStyle(.body.standard.regular)
         .foregroundStyle(Color.ds.text.neutral.catchy)
       VStack(alignment: .leading, spacing: 24) {
@@ -45,19 +45,19 @@ struct DeviceTransferPassphraseView: View {
       Spacer()
     }
     .padding(24)
-    .backgroundColorIgnoringSafeArea(.ds.background.alternate)
-    .navigationTitle(L10n.Core.deviceToDeviceNavigationTitle)
+    .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
+    .navigationTitle(CoreL10n.deviceToDeviceNavigationTitle)
     .navigationBarBackButtonHidden(true)
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {
       ToolbarItem(placement: .topBarLeading) {
         Button(
-          L10n.Core.Mpless.D2d.Universal.Untrusted.passphraseCancelCta,
+          CoreL10n.Mpless.D2d.Universal.Untrusted.passphraseCancelCta,
           action: {
             model.cancel()
           }
         )
-        .foregroundColor(.ds.text.brand.standard)
+        .foregroundStyle(Color.ds.text.brand.standard)
       }
     }
   }

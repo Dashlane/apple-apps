@@ -4,12 +4,12 @@ import CoreFeature
 import CorePersonalData
 import CorePremium
 import CoreSettings
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import ImportKit
 import NotificationKit
 import SwiftTreats
 import SwiftUI
+import UserTrackingFoundation
 import VaultKit
 
 @MainActor

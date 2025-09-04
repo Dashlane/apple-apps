@@ -1,7 +1,9 @@
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 import SwiftTreats
 
+@Loggable
 @PersonalData("DATA_CHANGE_HISTORY")
 struct DataChangeHistory {
   struct ChangeSet: NestedObject, Codable, Equatable {

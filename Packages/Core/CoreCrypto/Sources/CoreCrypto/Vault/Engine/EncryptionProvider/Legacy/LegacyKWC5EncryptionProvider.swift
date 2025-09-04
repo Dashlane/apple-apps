@@ -1,6 +1,6 @@
+import CoreTypes
 @preconcurrency import CryptoKit
 import CyrilKit
-import DashTypes
 import Foundation
 
 struct LegacyKWC5EncryptionProvider: EncryptionProvider {

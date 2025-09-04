@@ -11,7 +11,7 @@ struct SharingUsersSection: View {
 
   var body: some View {
     if let users = model.users, !users.isEmpty {
-      LargeHeaderSection(title: L10n.Localizable.kwSharingCenterSectionIndividuals) {
+      Section(L10n.Localizable.kwSharingCenterSectionIndividuals) {
         ForEach(users) { user in
           NavigationLink {
             SharingItemsUserDetailView(model: model.makeDetailViewModel(user: user))
@@ -57,7 +57,7 @@ struct SharingUsersSection_Previews: PreviewProvider {
             gravatarIconViewModelFactory: gravatarFactory))
 
       }
-      .listStyle(.insetGrouped)
+      .listStyle(.ds.insetGrouped)
       .previewDisplayName("Two users")
     }
 
@@ -69,7 +69,7 @@ struct SharingUsersSection_Previews: PreviewProvider {
           detailViewModelFactory: .init { .mock(user: $0, item: Credential(), itemsProvider: $2) },
           gravatarIconViewModelFactory: gravatarFactory))
     }
-    .listStyle(.insetGrouped)
+    .listStyle(.ds.insetGrouped)
     .previewDisplayName("Empty")
 
   }

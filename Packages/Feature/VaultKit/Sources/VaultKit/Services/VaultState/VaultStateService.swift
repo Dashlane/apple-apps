@@ -1,11 +1,12 @@
 import Combine
 import CoreFeature
 import CorePremium
+import CoreTypes
 import Foundation
 
 public final class VaultStateService: VaultStateServiceProtocol, VaultKitServicesInjecting {
   @Published
-  private var vaultState: VaultState = .default
+  public var vaultState: VaultState = .default
 
   public init(
     vaultItemsLimitService: VaultItemsLimitService,
@@ -15,19 +16,17 @@ public final class VaultStateService: VaultStateServiceProtocol, VaultKitService
 
     vaultItemsLimitService.$credentialsLimit
       .combineLatest(premiumStatusProvider.statusPublisher)
-      .map({ (limit, status) -> VaultState in
-        if case let .limited(count, limit, enforceFreeze) = limit,
-          count > limit,
-          enforceFreeze,
-          status.b2cStatus.statusCode == .free,
-          featureService.isEnabled(.freeUsersFrozenState)
-        {
-
-          return .frozen
+      .map({ (vaultLimit, premiumStatus) -> VaultState in
+        switch vaultLimit {
+        case let .limited(count, limit, enforceFreeze)
+        where count > limit && enforceFreeze && premiumStatus.b2cStatus.statusCode == .free
+          && featureService.isEnabled(.freeUsersFrozenState):
+          .frozen
+        case .limited, .reachingLimit, .unlimited:
+          .default
         }
-
-        return .default
       })
+      .removeDuplicates()
       .assign(to: &$vaultState)
   }
 

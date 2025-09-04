@@ -3,10 +3,10 @@ import Combine
 import CoreFeature
 import CorePremium
 import CoreSettings
-import CoreUserTracking
 import Foundation
 import ImportKit
 import NotificationKit
+import UserTrackingFoundation
 import VaultKit
 
 @MainActor
@@ -20,7 +20,7 @@ class HomeListViewModel: ObservableObject, SessionServicesInjecting {
   private let userSettings: UserSettings
   private let isLastpassInstalled: Bool
   let sessionActivityReporter: ActivityReporterProtocol
-  private let autofillService: AutofillService
+  private let autofillService: AutofillStateServiceProtocol
   private let onboardingAction: (OnboardingChecklistFlowViewModel.Action) -> Void
   private let completion: (VaultListCompletion) -> Void
 
@@ -31,7 +31,7 @@ class HomeListViewModel: ObservableObject, SessionServicesInjecting {
   init(
     vaultItemsStore: VaultItemsStore,
     userSettings: UserSettings,
-    autofillService: AutofillService,
+    autofillService: AutofillStateServiceProtocol,
     lockService: LockServiceProtocol,
     onboardingAction: @escaping (OnboardingChecklistFlowViewModel.Action) -> Void,
     action: @escaping (VaultFlowViewModel.Action) -> Void,
@@ -88,7 +88,7 @@ extension HomeListViewModel {
     .init(
       vaultItemsStore: MockVaultKitServicesContainer().vaultItemsStore,
       userSettings: .mock,
-      autofillService: .fakeService,
+      autofillService: AutofillStateService.fakeService,
       lockService: LockServiceMock(),
       onboardingAction: { _ in },
       action: { _ in },

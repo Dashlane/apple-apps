@@ -1,6 +1,6 @@
 import Foundation
 
-public enum AccountCreateUserConsentType: String, Sendable, Equatable, CaseIterable, Codable {
+public enum AccountCreateUserConsentType: String, Sendable, Hashable, Codable, CaseIterable {
   case privacyPolicyAndToS = "privacyPolicyAndToS"
   case emailsOffersAndTips = "emailsOffersAndTips"
   case undecodable

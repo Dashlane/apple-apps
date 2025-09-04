@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppAPIClient.Accountrecovery {
-  public struct GetStatus: APIRequest {
+  public struct GetStatus: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/accountrecovery/GetStatus"
 
     public let api: AppAPIClient
@@ -23,7 +23,7 @@ extension AppAPIClient.Accountrecovery {
 }
 
 extension AppAPIClient.Accountrecovery.GetStatus {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case login = "login"
     }
@@ -42,7 +42,7 @@ extension AppAPIClient.Accountrecovery.GetStatus {
 }
 
 extension AppAPIClient.Accountrecovery.GetStatus {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case enabled = "enabled"
     }

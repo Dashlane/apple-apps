@@ -2,7 +2,7 @@ import AuthenticatorKit
 import Combine
 import CorePersonalData
 import CoreSync
-import DashTypes
+import CoreTypes
 import DomainParser
 import IconLibrary
 import SwiftUI

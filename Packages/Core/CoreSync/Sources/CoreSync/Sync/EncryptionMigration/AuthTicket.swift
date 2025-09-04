@@ -4,7 +4,7 @@ import Foundation
 public typealias Verification = UserDeviceAPIClient.Sync.UploadDataForMasterPasswordChange.Body
   .UpdateVerification
 
-public struct AuthTicket {
+public struct AuthTicket: Hashable, Sendable {
   public let token: String
   public let verification: Verification
 

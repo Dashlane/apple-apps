@@ -2,9 +2,10 @@ import Combine
 import CoreNetworking
 import CoreSession
 import CoreSettings
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import NotificationKit
 import UIKit
 import VaultKit
@@ -157,11 +158,11 @@ extension SessionNotificationService {
   static var fakeService: SessionNotificationService {
     .init(
       login: .init("_"),
-      notificationService: .init(logger: LoggerMock()),
+      notificationService: .init(logger: .mock),
       syncService: .mock(),
       brazeService: BrazeService.mock,
       settings: .mock,
       userDeviceAPIClient: .mock({}),
-      logger: LoggerMock())
+      logger: .mock)
   }
 }

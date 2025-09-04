@@ -2,9 +2,10 @@ import AutofillKit
 import Combine
 import CoreSession
 import CoreSettings
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import LoginKit
 import SwiftTreats
 
@@ -14,7 +15,7 @@ class DeviceInformationReporting {
   private let resetMasterPasswordService: ResetMasterPasswordService
   private let userSettings: UserSettings
   private let lockService: LockService
-  private let autofillService: AutofillService
+  private let autofillService: AutofillStateServiceProtocol
   private let session: Session
 
   private var cancellables = Set<AnyCancellable>()
@@ -30,13 +31,15 @@ class DeviceInformationReporting {
 
   private var reportRequested = PassthroughSubject<Void, Never>()
 
+  let backgroundQueue = DispatchQueue.global(qos: .background)
+
   init(
     userDeviceAPI: UserDeviceAPIClient,
     logger: Logger,
     resetMasterPasswordService: ResetMasterPasswordService,
     userSettings: UserSettings,
     lockService: LockService,
-    autofillService: AutofillService,
+    autofillService: AutofillStateServiceProtocol,
     session: Session
   ) {
     self.userDeviceAPI = userDeviceAPI
@@ -49,24 +52,22 @@ class DeviceInformationReporting {
     self.secureLockMode = lockService.secureLockMode()
     self.isMasterPasswordResetEnabled = resetMasterPasswordService.isActive
     self.isAutofillEnabled = autofillService.activationStatus == .enabled
-
     setupSubscriptions()
-  }
-
-  func report() {
-    reportRequested.send()
   }
 
   private func setupSubscriptions() {
     resetMasterPasswordService.activationStatusPublisher()
+      .receive(on: backgroundQueue)
       .assign(to: \.isMasterPasswordResetEnabled, on: self)
       .store(in: &cancellables)
 
     lockService.secureLockModePublisher()
+      .receive(on: backgroundQueue)
       .assign(to: \.secureLockMode, on: self)
       .store(in: &cancellables)
 
-    autofillService.$activationStatus
+    autofillService.activationStatusPublisher
+      .receive(on: backgroundQueue)
       .map {
         $0 == .enabled
       }
@@ -79,7 +80,7 @@ class DeviceInformationReporting {
         with: $isMasterPasswordResetEnabled.mapToVoid(), $isAutofillEnabled.mapToVoid(),
         reportRequested
       )
-      .debounce(for: .milliseconds(50), scheduler: RunLoop.main)
+      .debounce(for: .milliseconds(50), scheduler: backgroundQueue)
       .sink { [weak self] in
         self?.sendUpdatedInformation()
       }
@@ -116,14 +117,14 @@ class DeviceInformationReporting {
       return
     }
 
-    Task {
+    Task.detached(priority: .background) {
       do {
-        _ = try await userDeviceAPI.devices.updateDeviceInfo(deviceInformation: deviceInformation)
-        logger.debug("Successfully reported extra device information")
+        _ = try await self.userDeviceAPI.devices.updateDeviceInfo(
+          deviceInformation: deviceInformation)
+        self.logger.debug("Successfully reported extra device information")
       } catch {
-        logger.error("Failed to report extra device information, error: \(error)")
+        self.logger.error("Failed to report extra device information, error:", error: error)
       }
-
     }
   }
 }

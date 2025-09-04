@@ -3,14 +3,18 @@ import PackageDescription
 let package = Package(
   name: "DesignSystem",
   platforms: [
-    .iOS(.v16),
-    .macOS(.v13),
+    .iOS(.v17),
+    .macOS(.v14),
   ],
   products: [
     .library(
       name: "DesignSystem",
       targets: ["DesignSystem"]
-    )
+    ),
+    .library(
+      name: "DesignSystemExtra",
+      targets: ["DesignSystemExtra"]
+    ),
   ],
   dependencies: [
     .package(path: "../../Foundation/UIDelight"),
@@ -26,15 +30,15 @@ let package = Package(
         .product(name: "SwiftTreats", package: "SwiftTreats"),
         .product(name: "CoreLocalization", package: "CoreLocalization"),
       ],
-      exclude: [
-        "Resources/swiftgen.yml",
-        "Resources/swift5-color.stencil",
-        "Resources/swift5-images.stencil",
-        "Resources/swift5-text-styles.stencil",
-      ],
       resources: [
         .process("Resources/Assets.xcassets"),
         .process("Resources/Fonts"),
+      ]
+    ),
+    .target(
+      name: "DesignSystemExtra",
+      dependencies: [
+        .target(name: "DesignSystem")
       ]
     ),
     .testTarget(

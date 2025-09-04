@@ -16,14 +16,12 @@ struct PhoneDetailView: View {
     DetailContainerView(service: model.service) {
       Section {
         if model.mode.isEditing {
-          TextDetailField(
-            title: CoreLocalization.L10n.Core.KWPhoneIOS.phoneName, text: $model.item.name
-          )
-          .textInputAutocapitalization(.words)
+          TextDetailField(title: CoreL10n.KWPhoneIOS.phoneName, text: $model.item.name)
+            .textInputAutocapitalization(.words)
         }
 
         PickerDetailField(
-          title: CoreLocalization.L10n.Core.KWPhoneIOS.type,
+          title: CoreL10n.KWPhoneIOS.type,
           selection: $model.item.type,
           elements: Phone.NumberType.allCases.reversed(),
           content: { item in
@@ -31,16 +29,17 @@ struct PhoneDetailView: View {
           })
 
         TextDetailField(
-          title: CoreLocalization.L10n.Core.KWPhoneIOS.number,
+          title: CoreL10n.KWPhoneIOS.number,
           text: $model.item.number,
           actions: [.copy(model.copy)]
         )
         .actions([.copy(model.copy)])
         .keyboardType(.numberPad)
         .fiberFieldType(.number)
+        .fieldRequired()
 
         PickerDetailField(
-          title: CoreLocalization.L10n.Core.KWPhoneIOS.localeFormat,
+          title: CoreL10n.KWPhoneIOS.localeFormat,
           selection: $model.item.country,
           elements: CountryCodeNamePair.countries,
           content: { country in

@@ -24,7 +24,7 @@ extension AttributedString {
 }
 
 extension Color {
-  fileprivate init(passwordCharacter: Character) {
+  public init(passwordCharacter: Character) {
     switch passwordCharacter {
     case let passwordChar where passwordChar.isLetter:
       self = .ds.text.neutral.catchy

@@ -3,6 +3,6 @@ import UIKit
 
 extension UIModalPresentationStyle {
   static var adaptiveFormSheetOrFullscreen: UIModalPresentationStyle {
-    Device.isIpadOrMac ? .formSheet : .overFullScreen
+    Device.is(.pad, .mac, .vision) ? .formSheet : .overFullScreen
   }
 }

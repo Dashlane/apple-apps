@@ -4,12 +4,9 @@ import UIDelight
 struct TextInputReadOnlyValueView: View {
   @Environment(\.isInputSecure) private var isSecure
   @Environment(\.textFieldIsSecureValueRevealed) private var isRevealed
-  @Environment(\.textColorHighlightingMode) private var colorHighlightingMode
+  @Environment(\.textFieldColorHighlightingMode) private var colorHighlightingMode
   @Environment(\.dynamicTypeSize) private var dynamicTypeSize
   @Environment(\.style.mood) private var mood
-
-  @ScaledMetric private var iconDimension = 12
-  @ScaledMetric private var iconContainerDimension = 20
 
   private let value: String
 
@@ -32,23 +29,15 @@ struct TextInputReadOnlyValueView: View {
             ? .body.standard.monospace
             : .body.standard.regular
         )
-        .foregroundColor(.ds.text.neutral.catchy)
+        .foregroundStyle(Color.ds.text.neutral.catchy)
       }
     } icon: {
-      iconView
+
     }
     .minimumScaleFactor(dynamicTypeSize.isAccessibilitySize ? 0.6 : 0.8)
-    .labelStyle(CustomLabelStyle())
+    .labelStyle(.fieldContent)
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(Text(value))
-  }
-
-  private var iconView: some View {
-    Image.ds.lock.filled
-      .resizable()
-      .frame(width: iconDimension, height: iconDimension)
-      .foregroundColor(.ds.text.neutral.standard)
-      .frame(width: iconContainerDimension, height: iconContainerDimension)
   }
 
   private var attributedString: AttributedString {
@@ -68,35 +57,6 @@ struct TextInputReadOnlyValueView: View {
   }
 }
 
-private struct CustomLabelStyle: LabelStyle {
-  @Environment(\.textInputDisabledEditionAppearance) private var disabledEditionAppearance
-
-  @ScaledMetric private var cornerRadius = 4
-  @ScaledMetric private var trailingPadding = 4
-
-  func makeBody(configuration: Configuration) -> some View {
-    switch disabledEditionAppearance {
-    case .discrete:
-      Label(
-        title: { configuration.title },
-        icon: { configuration.icon }
-      )
-      .labelStyle(TitleOnlyLabelStyle())
-    case .emphasized:
-      Label(
-        title: { configuration.title },
-        icon: { configuration.icon }
-      )
-      .labelStyle(LeadingIconLabelStyle(spacing: 0))
-      .padding(.trailing, trailingPadding)
-      .background(
-        Color.ds.container.agnostic.neutral.standard,
-        in: RoundedRectangle(cornerRadius: cornerRadius, style: .continuous)
-      )
-    }
-  }
-}
-
 #Preview("Emphasized") {
   VStack(alignment: .leading) {
     TextInputReadOnlyValueView("dashlane-challenge.company.com")
@@ -106,11 +66,11 @@ private struct CustomLabelStyle: LabelStyle {
     TextInputReadOnlyValueView("_")
       .secureInput()
       .textFieldRevealSecureValue(true)
-      .textColorHighlightingMode(.password)
+      .textFieldColorHighlightingMode(.password)
     TextInputReadOnlyValueView("_")
-      .textColorHighlightingMode(.url)
+      .textFieldColorHighlightingMode(.url)
     TextInputReadOnlyValueView("_")
-      .textColorHighlightingMode(.url)
+      .textFieldColorHighlightingMode(.url)
       .style(.error)
   }
 }
@@ -124,12 +84,12 @@ private struct CustomLabelStyle: LabelStyle {
     TextInputReadOnlyValueView("_")
       .secureInput()
       .textFieldRevealSecureValue(true)
-      .textColorHighlightingMode(.password)
+      .textFieldColorHighlightingMode(.password)
     TextInputReadOnlyValueView("_")
-      .textColorHighlightingMode(.url)
+      .textFieldColorHighlightingMode(.url)
     TextInputReadOnlyValueView("_")
-      .textColorHighlightingMode(.url)
+      .textFieldColorHighlightingMode(.url)
       .style(.error)
   }
-  .textInputDisabledEditionAppearance(.discrete)
+  .fieldDisabledEditionAppearance(.discrete)
 }

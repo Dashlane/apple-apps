@@ -1,9 +1,9 @@
 import Combine
 import CorePersonalData
-import DashTypes
+import CoreTypes
 import Foundation
+import IconLibrary
 import SecurityDashboard
-import VaultKit
 
 protocol DarkWebMonitoringMonitoredEmailsViewModelProtocol: ObservableObject {
   var registeredEmails: [DataLeakEmail] { get }

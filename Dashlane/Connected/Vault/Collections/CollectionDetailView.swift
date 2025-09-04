@@ -1,8 +1,8 @@
 import CoreLocalization
 import CorePersonalData
-import CoreUserTracking
 import DesignSystem
 import SwiftUI
+import UserTrackingFoundation
 import VaultKit
 
 struct CollectionDetailView: View {
@@ -37,13 +37,14 @@ struct CollectionDetailView: View {
 
   var body: some View {
     content
-      .backgroundColorIgnoringSafeArea(.ds.background.alternate)
+      .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .principal) {
           HStack {
             Text(viewModel.collection.name)
               .fontWeight(.semibold)
+              .foregroundStyle(Color.ds.text.neutral.catchy)
             if let space = viewModel.collectionSpace, viewModel.shouldShowSpace {
               UserSpaceIcon(space: space, size: .small)
                 .equatable()
@@ -52,7 +53,7 @@ struct CollectionDetailView: View {
               Image.ds.shared.outlined
                 .resizable()
                 .frame(width: sharedIconSize, height: sharedIconSize)
-                .foregroundColor(.ds.text.neutral.quiet)
+                .foregroundStyle(Color.ds.text.neutral.quiet)
             }
           }
         }
@@ -63,11 +64,9 @@ struct CollectionDetailView: View {
       }
       .alert(isPresented: $showStarterLimitationAlert) {
         Alert(
-          title: Text(CoreLocalization.L10n.Core.starterLimitationUserSharingUnavailableTitle),
-          message: Text(
-            CoreLocalization.L10n.Core.starterLimitationUserSharingUnavailableDescription),
-          dismissButton: .default(
-            Text(CoreLocalization.L10n.Core.starterLimitationUserSharingUnavailableButton))
+          title: Text(CoreL10n.starterLimitationUserSharingUnavailableTitle),
+          message: Text(CoreL10n.starterLimitationUserSharingUnavailableDescription),
+          dismissButton: .default(Text(CoreL10n.starterLimitationUserSharingUnavailableButton))
         )
       }
       .reportPageAppearance(.collectionDetails)
@@ -87,26 +86,24 @@ struct CollectionDetailView: View {
     switch viewModel.starterInfo {
     case .warning:
       DS.Infobox(
-        CoreLocalization.L10n.Core.starterLimitationAdminSharingWarningTitle,
-        description: CoreLocalization.L10n.Core.starterLimitationAdminSharingWarningDescription)
+        CoreL10n.starterLimitationAdminSharingWarningTitle,
+        description: CoreL10n.starterLimitationAdminSharingWarningDescription)
     case .limitReached:
       DS.Infobox(
-        CoreLocalization.L10n.Core.starterLimitationAdminSharingLimitReachedTitle,
-        description: CoreLocalization.L10n.Core.starterLimitationAdminSharingLimitReachedDescription
+        CoreL10n.starterLimitationAdminSharingLimitReachedTitle,
+        description: CoreL10n.starterLimitationAdminSharingLimitReachedDescription
       )
       .style(mood: .warning)
     case .limitReachedAndEditing:
       DS.Infobox(
-        CoreLocalization.L10n.Core.starterLimitationAdminSharingLimitReachedTitle,
-        description: CoreLocalization.L10n.Core
-          .starterLimitationAdminSharingLimitReachedEditingDescription
+        CoreL10n.starterLimitationAdminSharingLimitReachedTitle,
+        description: CoreL10n.starterLimitationAdminSharingLimitReachedEditingDescription
       )
       .style(mood: .warning)
     case .businessTrialWarning:
       DS.Infobox(
-        CoreLocalization.L10n.Core.starterLimitationBusinessAdminTrialSharingWarningTitle,
-        description: CoreLocalization.L10n.Core
-          .starterLimitationBusinessAdminTrialSharingWarningDescription)
+        CoreL10n.starterLimitationBusinessAdminTrialSharingWarningTitle,
+        description: CoreL10n.starterLimitationBusinessAdminTrialSharingWarningDescription)
     case .none:
       EmptyView()
     }
@@ -134,7 +131,7 @@ struct CollectionDetailView: View {
         }
       }
     }
-    .scrollContentBackground(.hidden)
+    .listStyle(.ds.insetGrouped)
   }
 
   private var emptyState: some View {
@@ -146,11 +143,11 @@ struct CollectionDetailView: View {
         Image.ds.folder.outlined
           .resizable()
           .frame(width: 96, height: 96)
-          .foregroundColor(.ds.text.neutral.quiet)
+          .foregroundStyle(Color.ds.text.neutral.quiet)
 
-        Text(CoreLocalization.L10n.Core.KWVaultItem.Collections.Detail.EmptyState.message)
+        Text(CoreL10n.KWVaultItem.Collections.Detail.EmptyState.message)
           .font(.body)
-          .foregroundColor(.ds.text.neutral.quiet)
+          .foregroundStyle(Color.ds.text.neutral.quiet)
           .multilineTextAlignment(.center)
       }
       .padding(.horizontal, 24)
@@ -187,11 +184,11 @@ extension CollectionDetailViewModel.Section: Identifiable {
   var title: String {
     switch type {
     case .credentials:
-      return CoreLocalization.L10n.Core.mainMenuLoginsAndPasswords
+      return CoreL10n.mainMenuLoginsAndPasswords
     case .secureNotes:
-      return CoreLocalization.L10n.Core.mainMenuNotes
+      return CoreL10n.mainMenuNotes
     case .secrets:
-      return CoreLocalization.L10n.Core.mainMenuSecrets
+      return CoreL10n.mainMenuSecrets
     case .others:
       assertionFailure("Add another section if a new type of item is supporting collections")
       return ""

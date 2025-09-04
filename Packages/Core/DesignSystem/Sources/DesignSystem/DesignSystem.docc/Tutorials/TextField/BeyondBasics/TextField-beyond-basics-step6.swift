@@ -36,9 +36,9 @@ struct MyView: View {
         "Website",
         text: $website
       )
-      .textColorHighlightingMode(.url)
+      .textFieldColorHighlightingMode(.url)
       .textInputDisableLabelPersistency()
-      .editionDisabled()
+      .fieldEditionDisabled()
 
       DS.PasswordField(
         "Password",
@@ -47,7 +47,7 @@ struct MyView: View {
       .onRevealSecureValue {
       }
     }
-    .fieldAppearance(.grouped)
+    .listStyle(.ds.insetGrouped)
     .style(isFirstNameInvalid ? .error : nil)
   }
 }

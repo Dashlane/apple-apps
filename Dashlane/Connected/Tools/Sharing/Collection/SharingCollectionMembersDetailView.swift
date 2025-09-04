@@ -1,7 +1,7 @@
 import CoreFeature
 import CoreLocalization
 import CoreSharing
-import DashTypes
+import CoreTypes
 import DesignSystem
 import Foundation
 import SwiftUI
@@ -58,14 +58,14 @@ public struct SharingCollectionMembersDetailView: View {
     }
     .toolbar { toolbarContent }
     .navigationBarTitleDisplayMode(.inline)
-    .navigationTitle(CoreLocalization.L10n.Core.kwSharedAccess)
+    .navigationTitle(CoreL10n.kwSharedAccess)
     .alert(item: $model.alertMessage) { message in
       Alert(title: Text(message))
     }
     .searchable(
       text: $model.search,
       placement: .navigationBarDrawer(displayMode: .always),
-      prompt: Text(CoreLocalization.L10n.Core.kwSharedAccessSearchPlaceholder)
+      prompt: Text(CoreL10n.kwSharedAccessSearchPlaceholder)
     )
     .confirmationDialog(
       L10n.Localizable.kwRevokeAlertTitle,
@@ -77,11 +77,9 @@ public struct SharingCollectionMembersDetailView: View {
         revokeConfirmationDialog.action()
       }
     } message: { revokeConfirmationDialog in
-      Text(
-        CoreLocalization.L10n.Core.kwRevokeCollectionMessage(
-          revokeConfirmationDialog.userOrUserGroupName))
+      Text(CoreL10n.kwRevokeCollectionMessage(revokeConfirmationDialog.userOrUserGroupName))
     }
-    .bottomSheet(item: $actionSheetInfo) { actionSheetInfo in
+    .sheet(item: $actionSheetInfo) { actionSheetInfo in
       SharingPermissionActionSheet(
         memberIdentifier: actionSheetInfo.id,
         permission: actionSheetInfo.permission,
@@ -108,7 +106,8 @@ public struct SharingCollectionMembersDetailView: View {
       userGroupsList
       usersList
     }
-    .listStyle(.insetGrouped)
+    .listStyle(.ds.insetGrouped)
+    .headerProminence(.increased)
   }
 
   @ViewBuilder
@@ -118,7 +117,7 @@ public struct SharingCollectionMembersDetailView: View {
         Divider()
           .padding(.horizontal, 16)
 
-        Button(CoreLocalization.L10n.Core.update) {
+        Button(CoreL10n.update) {
           Task {
             await model.update()
             action(.done(accessChanged: true))
@@ -135,8 +134,7 @@ public struct SharingCollectionMembersDetailView: View {
   var toolbarContent: some ToolbarContent {
     ToolbarItem(placement: .navigationBarLeading) {
       Button(
-        permissionsDisplayEnabled
-          ? CoreLocalization.L10n.Core.cancel : CoreLocalization.L10n.Core.kwButtonClose
+        permissionsDisplayEnabled ? CoreL10n.cancel : CoreL10n.kwButtonClose
       ) {
         action(.done(accessChanged: model.accessChanged))
       }
@@ -144,7 +142,7 @@ public struct SharingCollectionMembersDetailView: View {
 
     ToolbarItem(placement: .navigationBarTrailing) {
       if model.accessChanged {
-        Button(CoreLocalization.L10n.Core.kwDoneButton) {
+        Button(CoreL10n.kwDoneButton) {
           action(.done(accessChanged: model.accessChanged))
         }
       }
@@ -158,7 +156,6 @@ public struct SharingCollectionMembersDetailView: View {
         HStack {
           SharingToolRecipientRow(title: userGroup.name, status: userGroup.status) {
             Thumbnail.User.single(nil)
-              .controlSize(.small)
           }
           button(for: userGroup)
             .disabled(model.groupActionInProgressIds.contains(userGroup.id))
@@ -216,10 +213,10 @@ public struct SharingCollectionMembersDetailView: View {
     let color: Color
     switch status {
     case .pending:
-      title = CoreLocalization.L10n.Core.kwRevokeInvite
+      title = CoreL10n.kwRevokeInvite
       color = .ds.text.brand.standard
     default:
-      title = CoreLocalization.L10n.Core.kwRevoke
+      title = CoreL10n.kwRevoke
       color = .ds.text.danger.standard
     }
 
@@ -230,7 +227,7 @@ public struct SharingCollectionMembersDetailView: View {
         showRevokeAlert = true
       }
     )
-    .foregroundColor(color)
+    .foregroundStyle(color)
   }
 
   func button(
@@ -284,7 +281,7 @@ public struct SharingCollectionMembersDetailView: View {
         }
       }
     }
-    .foregroundColor(buttonColor)
+    .foregroundStyle(buttonColor)
   }
 }
 
@@ -292,18 +289,18 @@ extension SharingCollectionMembersDetailView {
   fileprivate func buttonTitle(for permission: SharingPermission) -> String {
     switch permission {
     case .admin:
-      return CoreLocalization.L10n.Core.KWVaultItem.Collections.Sharing.Roles.Manager.title
+      return CoreL10n.KWVaultItem.Collections.Sharing.Roles.Manager.title
     case .limited:
-      return CoreLocalization.L10n.Core.KWVaultItem.Collections.Sharing.Roles.Editor.title
+      return CoreL10n.KWVaultItem.Collections.Sharing.Roles.Editor.title
     }
   }
 
   fileprivate func buttonTitle(for status: SharingMemberStatus) -> String {
     switch status {
     case .pending:
-      return CoreLocalization.L10n.Core.kwRevokeInvite
+      return CoreL10n.kwRevokeInvite
     default:
-      return CoreLocalization.L10n.Core.kwRevoke
+      return CoreL10n.kwRevoke
     }
   }
 }

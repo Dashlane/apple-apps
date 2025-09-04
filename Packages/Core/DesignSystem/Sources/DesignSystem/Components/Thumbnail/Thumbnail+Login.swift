@@ -2,33 +2,23 @@ import Foundation
 import SwiftUI
 
 extension Thumbnail {
+
+  @ViewBuilder
   public static func login(_ image: Image?) -> some View {
-    BaseThumbnail {
-      LoginThumbnailContentView(image: image)
-    }
-  }
-}
-
-private struct LoginThumbnailContentView: View {
-  let image: Image?
-
-  var body: some View {
     if let image {
-      SquircleImageThumbnailContentView(image)
+      BaseThumbnail {
+        SquircleImageThumbnailContentView(image)
+      }
     } else {
-      IconThumbnailContentView(Image.ds.web.outlined)
-        .background {
-          Rectangle()
-            .foregroundStyle(Color.ds.container.agnostic.neutral.standard)
-        }
+      Thumbnail.VaultItem.login
     }
   }
 }
 
-#Preview("Login") {
+#Preview("Login with image") {
   HStack {
     Thumbnail.login(Image(.backgroundimage))
-      .controlSize(.mini)
+      .controlSize(.small)
     Thumbnail.login(Image(.backgroundimage))
       .foregroundStyle(.purple)
       .controlSize(.regular)
@@ -38,10 +28,10 @@ private struct LoginThumbnailContentView: View {
   }
 }
 
-#Preview("Group") {
+#Preview("Login w/o image") {
   HStack {
     Thumbnail.login(nil)
-      .controlSize(.mini)
+      .controlSize(.small)
     Thumbnail.login(nil)
       .controlSize(.regular)
     Thumbnail.login(nil)

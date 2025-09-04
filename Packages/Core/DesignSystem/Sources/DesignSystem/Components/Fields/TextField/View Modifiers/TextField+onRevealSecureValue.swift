@@ -8,15 +8,8 @@ struct TextFieldOnRevealSecureValueAction {
   }
 }
 
-enum TextFieldOnRevealSecureValueActionKey: EnvironmentKey {
-  static let defaultValue: TextFieldOnRevealSecureValueAction? = nil
-}
-
 extension EnvironmentValues {
-  var textFieldOnRevealSecureValueAction: TextFieldOnRevealSecureValueAction? {
-    get { self[TextFieldOnRevealSecureValueActionKey.self] }
-    set { self[TextFieldOnRevealSecureValueActionKey.self] = newValue }
-  }
+  @Entry var textFieldOnRevealSecureValueAction: TextFieldOnRevealSecureValueAction?
 }
 
 extension View {

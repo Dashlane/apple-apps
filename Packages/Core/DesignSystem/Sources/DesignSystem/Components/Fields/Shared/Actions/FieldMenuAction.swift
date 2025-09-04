@@ -25,6 +25,7 @@ public struct FieldMenuAction<Content: View>: View {
         }
       }
     )
+    .accessibilityLabel(title)
   }
 }
 

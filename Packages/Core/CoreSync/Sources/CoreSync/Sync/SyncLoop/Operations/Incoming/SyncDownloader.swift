@@ -1,6 +1,7 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 
 struct SyncDownloader {
   let apiClient: UserDeviceAPIClient.Sync

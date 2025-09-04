@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Premium {
-  public struct GetPremiumStatus: APIRequest {
+  public struct GetPremiumStatus: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/premium/GetPremiumStatus"
 
     public let api: UserDeviceAPIClient
@@ -26,7 +26,7 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
 }
 
 extension UserDeviceAPIClient.Premium.GetPremiumStatus {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case b2cStatus = "b2cStatus"
       case capabilities = "capabilities"
@@ -34,7 +34,7 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
       case currentTimestampUnix = "currentTimestampUnix"
     }
 
-    public struct B2cStatus: Codable, Equatable, Sendable {
+    public struct B2cStatus: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case statusCode = "statusCode"
         case isTrial = "isTrial"
@@ -49,7 +49,7 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
         case startDateUnix = "startDateUnix"
       }
 
-      public enum StatusCode: String, Sendable, Equatable, CaseIterable, Codable {
+      public enum StatusCode: String, Sendable, Hashable, Codable, CaseIterable {
         case free = "free"
         case subscribed = "subscribed"
         case legacy = "legacy"
@@ -61,7 +61,7 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
         }
       }
 
-      public struct FamilyStatus: Codable, Equatable, Sendable {
+      public struct FamilyStatus: Codable, Hashable, Sendable {
         public enum CodingKeys: String, CodingKey {
           case isAdmin = "isAdmin"
           case familyId = "familyId"
@@ -86,7 +86,7 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
         }
       }
 
-      public enum PlanFeature: String, Sendable, Equatable, CaseIterable, Codable {
+      public enum PlanFeature: String, Sendable, Hashable, Codable, CaseIterable {
         case premium = "premium"
         case essentials = "essentials"
         case premiumplus = "premiumplus"
@@ -99,7 +99,7 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
         }
       }
 
-      public enum PlanType: String, Sendable, Equatable, CaseIterable, Codable {
+      public enum PlanType: String, Sendable, Hashable, Codable, CaseIterable {
         case amazon = "amazon"
         case freeTrial = "free_trial"
         case invoice = "invoice"
@@ -123,7 +123,7 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
         }
       }
 
-      public struct PreviousPlan: Codable, Equatable, Sendable {
+      public struct PreviousPlan: Codable, Hashable, Sendable {
         public enum CodingKeys: String, CodingKey {
           case planName = "planName"
           case endDateUnix = "endDateUnix"
@@ -191,14 +191,14 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
       }
     }
 
-    public struct CapabilitiesElement: Codable, Equatable, Sendable {
+    public struct CapabilitiesElement: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case capability = "capability"
         case enabled = "enabled"
         case info = "info"
       }
 
-      public enum Capability: String, Sendable, Equatable, CaseIterable, Codable {
+      public enum Capability: String, Sendable, Hashable, Codable, CaseIterable {
         case autofillWithPhishingPrevention = "autofillWithPhishingPrevention"
         case sync = "sync"
         case creditMonitoring = "creditMonitoring"
@@ -222,12 +222,15 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
         case sso = "sso"
         case scim = "scim"
         case phoneSupport = "phoneSupport"
+        case canSeeCustomerSupportContacts = "canSeeCustomerSupportContacts"
         case activeDirectorySync = "activeDirectorySync"
         case activityLog = "activityLog"
         case usageReports = "usageReports"
         case adminPolicies = "adminPolicies"
         case secretManagement = "secretManagement"
-        case messageIntegrations = "messageIntegrations"
+        case riskDetection = "riskDetection"
+        case nudges = "nudges"
+        case inAppNudges = "inAppNudges"
         case undecodable
         public init(from decoder: Decoder) throws {
           let container = try decoder.singleValueContainer()
@@ -236,18 +239,19 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
         }
       }
 
-      public struct Info: Codable, Equatable, Sendable {
+      public struct Info: Codable, Hashable, Sendable {
         public enum CodingKeys: String, CodingKey {
           case action = "action"
           case excludedPolicies = "excludedPolicies"
           case limit = "limit"
           case maxFileSize = "maxFileSize"
+          case nudgeTypes = "nudgeTypes"
           case quota = "quota"
           case reason = "reason"
           case whoCanShare = "whoCanShare"
         }
 
-        public enum Action: String, Sendable, Equatable, CaseIterable, Codable {
+        public enum Action: String, Sendable, Hashable, Codable, CaseIterable {
           case enforceFreeze = "enforce_freeze"
           case undecodable
           public init(from decoder: Decoder) throws {
@@ -257,7 +261,19 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
           }
         }
 
-        public struct Quota: Codable, Equatable, Sendable {
+        public enum NudgeTypesElement: String, Sendable, Hashable, Codable, CaseIterable {
+          case compromised = "compromised"
+          case weak = "weak"
+          case reused = "reused"
+          case undecodable
+          public init(from decoder: Decoder) throws {
+            let container = try decoder.singleValueContainer()
+            let rawValue = try container.decode(String.self)
+            self = Self(rawValue: rawValue) ?? .undecodable
+          }
+        }
+
+        public struct Quota: Codable, Hashable, Sendable {
           public enum CodingKeys: String, CodingKey {
             case max = "max"
             case remaining = "remaining"
@@ -278,7 +294,7 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
           }
         }
 
-        public enum Reason: String, Sendable, Equatable, CaseIterable, Codable {
+        public enum Reason: String, Sendable, Hashable, Codable, CaseIterable {
           case inTeam = "in_team"
           case notPremium = "not_premium"
           case noPayment = "no_payment"
@@ -298,7 +314,7 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
           }
         }
 
-        public enum WhoCanShare: String, Sendable, Equatable, CaseIterable, Codable {
+        public enum WhoCanShare: String, Sendable, Hashable, Codable, CaseIterable {
           case adminOnly = "admin_only"
           case everyone = "everyone"
           case undecodable
@@ -313,19 +329,21 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
         public let excludedPolicies: [String]?
         public let limit: Int?
         public let maxFileSize: Int?
+        public let nudgeTypes: [NudgeTypesElement]?
         public let quota: Quota?
         public let reason: Reason?
         public let whoCanShare: WhoCanShare?
 
         public init(
           action: Action? = nil, excludedPolicies: [String]? = nil, limit: Int? = nil,
-          maxFileSize: Int? = nil, quota: Quota? = nil, reason: Reason? = nil,
-          whoCanShare: WhoCanShare? = nil
+          maxFileSize: Int? = nil, nudgeTypes: [NudgeTypesElement]? = nil, quota: Quota? = nil,
+          reason: Reason? = nil, whoCanShare: WhoCanShare? = nil
         ) {
           self.action = action
           self.excludedPolicies = excludedPolicies
           self.limit = limit
           self.maxFileSize = maxFileSize
+          self.nudgeTypes = nudgeTypes
           self.quota = quota
           self.reason = reason
           self.whoCanShare = whoCanShare
@@ -337,6 +355,7 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
           try container.encodeIfPresent(excludedPolicies, forKey: .excludedPolicies)
           try container.encodeIfPresent(limit, forKey: .limit)
           try container.encodeIfPresent(maxFileSize, forKey: .maxFileSize)
+          try container.encodeIfPresent(nudgeTypes, forKey: .nudgeTypes)
           try container.encodeIfPresent(quota, forKey: .quota)
           try container.encodeIfPresent(reason, forKey: .reason)
           try container.encodeIfPresent(whoCanShare, forKey: .whoCanShare)
@@ -361,7 +380,7 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
       }
     }
 
-    public struct B2bStatus: Codable, Equatable, Sendable {
+    public struct B2bStatus: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case statusCode = "statusCode"
         case currentTeam = "currentTeam"
@@ -369,7 +388,7 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
         case pastTeams = "pastTeams"
       }
 
-      public enum StatusCode: String, Sendable, Equatable, CaseIterable, Codable {
+      public enum StatusCode: String, Sendable, Hashable, Codable, CaseIterable {
         case notInTeam = "not_in_team"
         case proposed = "proposed"
         case inTeam = "in_team"
@@ -381,7 +400,7 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
         }
       }
 
-      public struct CurrentTeam: Codable, Equatable, Sendable {
+      public struct CurrentTeam: Codable, Hashable, Sendable {
         public enum CodingKeys: String, CodingKey {
           case planName = "planName"
           case nextBillingDateUnix = "nextBillingDateUnix"
@@ -392,6 +411,7 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
           case teamMembership = "teamMembership"
           case teamInfo = "teamInfo"
           case associatedEmail = "associatedEmail"
+          case hasBeenInTrial = "hasBeenInTrial"
           case hasPaid = "hasPaid"
           case invitationDateUnix = "invitationDateUnix"
           case isRenewalStopped = "isRenewalStopped"
@@ -409,6 +429,7 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
         public let teamMembership: PremiumStatusTeamMembership
         public let teamInfo: PremiumStatusTeamInfo
         public let associatedEmail: String?
+        public let hasBeenInTrial: Bool?
         public let hasPaid: Bool?
         public let invitationDateUnix: Int?
         public let isRenewalStopped: Bool?
@@ -420,9 +441,9 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
           planName: String, nextBillingDateUnix: Int?, isSoftDiscontinued: Bool, teamId: Int,
           planFeature: PremiumStatusPlanFeature, joinDateUnix: Int,
           teamMembership: PremiumStatusTeamMembership, teamInfo: PremiumStatusTeamInfo,
-          associatedEmail: String? = nil, hasPaid: Bool? = nil, invitationDateUnix: Int? = nil,
-          isRenewalStopped: Bool? = nil, isTrial: Bool? = nil, recoveryHash: String? = nil,
-          teamName: String? = nil
+          associatedEmail: String? = nil, hasBeenInTrial: Bool? = nil, hasPaid: Bool? = nil,
+          invitationDateUnix: Int? = nil, isRenewalStopped: Bool? = nil, isTrial: Bool? = nil,
+          recoveryHash: String? = nil, teamName: String? = nil
         ) {
           self.planName = planName
           self.nextBillingDateUnix = nextBillingDateUnix
@@ -433,6 +454,7 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
           self.teamMembership = teamMembership
           self.teamInfo = teamInfo
           self.associatedEmail = associatedEmail
+          self.hasBeenInTrial = hasBeenInTrial
           self.hasPaid = hasPaid
           self.invitationDateUnix = invitationDateUnix
           self.isRenewalStopped = isRenewalStopped
@@ -452,6 +474,7 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
           try container.encode(teamMembership, forKey: .teamMembership)
           try container.encode(teamInfo, forKey: .teamInfo)
           try container.encodeIfPresent(associatedEmail, forKey: .associatedEmail)
+          try container.encodeIfPresent(hasBeenInTrial, forKey: .hasBeenInTrial)
           try container.encodeIfPresent(hasPaid, forKey: .hasPaid)
           try container.encodeIfPresent(invitationDateUnix, forKey: .invitationDateUnix)
           try container.encodeIfPresent(isRenewalStopped, forKey: .isRenewalStopped)
@@ -461,7 +484,7 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
         }
       }
 
-      public struct PastTeamsElement: Codable, Equatable, Sendable {
+      public struct PastTeamsElement: Codable, Hashable, Sendable {
         public enum CodingKeys: String, CodingKey {
           case status = "status"
           case revokeDateUnix = "revokeDateUnix"
@@ -476,7 +499,7 @@ extension UserDeviceAPIClient.Premium.GetPremiumStatus {
           case teamName = "teamName"
         }
 
-        public enum Status: String, Sendable, Equatable, CaseIterable, Codable {
+        public enum Status: String, Sendable, Hashable, Codable, CaseIterable {
           case accepted = "accepted"
           case proposed = "proposed"
           case removed = "removed"

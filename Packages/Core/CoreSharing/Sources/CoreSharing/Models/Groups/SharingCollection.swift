@@ -1,7 +1,9 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 
+@Loggable
 public struct SharingCollection: Codable, Hashable, Identifiable, SharingGroup, Sendable {
   typealias ItemGroupMember = CollectionMember
 

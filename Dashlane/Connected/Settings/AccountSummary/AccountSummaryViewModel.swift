@@ -1,7 +1,8 @@
 import Combine
 import CoreNetworking
+import CorePremium
 import CoreSession
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 import VaultKit
@@ -11,6 +12,7 @@ class AccountSummaryViewModel: ObservableObject, SessionServicesInjecting {
   private let userDeviceAPI: UserDeviceAPIClient
   private var cancellables: Set<AnyCancellable> = []
   let changeContactEmailViewModelFactory: ChangeContactEmailViewModel.Factory
+  let changeLoginEmailFlowViewModelFactory: ChangeLoginEmailFlowViewModel.Factory
 
   @Published
   var contactEmail: String = ""
@@ -19,11 +21,13 @@ class AccountSummaryViewModel: ObservableObject, SessionServicesInjecting {
     session: Session,
     userDeviceAPI: UserDeviceAPIClient,
     accessControl: AccessControlHandler,
-    changeContactEmailViewModelFactory: ChangeContactEmailViewModel.Factory
+    changeContactEmailViewModelFactory: ChangeContactEmailViewModel.Factory,
+    changeLoginEmailFlowViewModelFactory: ChangeLoginEmailFlowViewModel.Factory
   ) {
     self.session = session
     self.userDeviceAPI = userDeviceAPI
     self.changeContactEmailViewModelFactory = changeContactEmailViewModelFactory
+    self.changeLoginEmailFlowViewModelFactory = changeLoginEmailFlowViewModelFactory
   }
 
   @MainActor
@@ -35,7 +39,6 @@ class AccountSummaryViewModel: ObservableObject, SessionServicesInjecting {
       self.contactEmail = self.session.login.email
     }
   }
-
 }
 
 extension AccountSummaryViewModel {
@@ -44,6 +47,8 @@ extension AccountSummaryViewModel {
       session: .mock,
       userDeviceAPI: .fake,
       accessControl: .mock(),
-      changeContactEmailViewModelFactory: .init({ _, _ in .mock }))
+      changeContactEmailViewModelFactory: .init({ _, _ in .mock }),
+      changeLoginEmailFlowViewModelFactory: .init({ .mock })
+    )
   }
 }

@@ -1,10 +1,13 @@
 import Foundation
+import LogFoundation
 
 struct FlexibleMarkerDecoder {
+  @Loggable
   enum DecodeError: Swift.Error {
     case cannotConvertToData
     case noFlexibleSeparator
     case nothingToParse
+    @LogPublicPrivacy
     case wrongType(Any)
   }
 

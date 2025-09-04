@@ -3,12 +3,13 @@ import AutofillKit
 import Combine
 import CoreFeature
 import CorePersonalData
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 import Logger
 import VaultKit
 
-extension AutofillService {
+extension AutofillStateService {
   convenience init(
     vaultItemsStore: VaultItemsStore,
     cryptoEngine: CryptoEngine,
@@ -17,7 +18,6 @@ extension AutofillService {
     snapshotFolderURL: URL
   ) {
     self.init(
-      channel: .fromApp,
       credentialsPublisher: vaultItemsStore.$credentials,
       passkeysPublisher: vaultItemsStore.$passkeys,
       cryptoEngine: cryptoEngine,

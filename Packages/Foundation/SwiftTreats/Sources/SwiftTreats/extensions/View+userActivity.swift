@@ -59,7 +59,7 @@ public struct UserActivityViewModifier: ViewModifier {
       .onDisappear {
         activity.invalidate()
       }
-      .onChange(of: isActive) { isActive in
+      .onChange(of: isActive) { _, isActive in
         if isActive {
           update(activity)
           activity.becomeCurrent()

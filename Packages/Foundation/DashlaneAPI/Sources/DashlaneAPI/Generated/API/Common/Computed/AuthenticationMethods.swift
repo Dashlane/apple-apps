@@ -1,6 +1,6 @@
 import Foundation
 
-public enum AuthenticationMethods: String, Sendable, Equatable, CaseIterable, Codable {
+public enum AuthenticationMethods: String, Sendable, Hashable, Codable, CaseIterable {
   case emailToken = "email_token"
   case totp = "totp"
   case duoPush = "duo_push"

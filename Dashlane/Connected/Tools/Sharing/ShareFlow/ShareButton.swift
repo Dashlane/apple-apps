@@ -29,7 +29,7 @@ struct ShareButton<Label: View>: View {
       L10n.Localizable.teamSpacesSharingDisabledMessageTitle,
       isPresented: $showDisabledAlert,
       actions: {
-        Button(CoreLocalization.L10n.Core.kwButtonOk) {}
+        Button(CoreL10n.kwButtonOk) {}
       },
       message: {
         if let message = model.deactivationReason?.message {
@@ -49,7 +49,7 @@ extension SharingDeactivationReason {
     case .b2bSharingDisabled:
       return L10n.Localizable.teamSpacesSharingDisabledMessageBody
     case .frozenAccount:
-      return CoreLocalization.L10n.Core.notificationFrozenAccountTitle
+      return CoreL10n.notificationFrozenAccountTitle
     }
   }
 }

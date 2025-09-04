@@ -13,12 +13,12 @@ struct AnnouncementCloseButton: View {
         Image.ds.action.close.outlined
           .resizable()
           .renderingMode(.template)
-          .foregroundColor(.ds.text.neutral.quiet)
+          .foregroundStyle(Color.ds.text.neutral.quiet)
           .padding(6)
-          .background(Circle().foregroundColor(Color.ds.container.agnostic.neutral.standard))
+          .background(Circle().foregroundStyle(Color.ds.container.agnostic.neutral.standard))
           .frame(width: 30, height: 30)
       }
     ).padding()
-      .accessibilityLabel(Text(L10n.Core.kwButtonClose))
+      .accessibilityLabel(Text(CoreL10n.kwButtonClose))
   }
 }

@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Premium {
-  public struct GetAppleSubscriptionOfferSignature: APIRequest {
+  public struct GetAppleSubscriptionOfferSignature: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/premium/GetAppleSubscriptionOfferSignature"
 
     public let api: UserDeviceAPIClient
@@ -27,7 +27,7 @@ extension UserDeviceAPIClient.Premium {
 }
 
 extension UserDeviceAPIClient.Premium.GetAppleSubscriptionOfferSignature {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case appBundleID = "appBundleID"
       case productIdentifier = "productIdentifier"
@@ -35,7 +35,7 @@ extension UserDeviceAPIClient.Premium.GetAppleSubscriptionOfferSignature {
       case applicationUsername = "applicationUsername"
     }
 
-    public enum AppBundleID: String, Sendable, Equatable, CaseIterable, Codable {
+    public enum AppBundleID: String, Sendable, Hashable, Codable, CaseIterable {
       case comDashlaneDashlanephonefinaldev = "com.dashlane.dashlanephonefinaldev"
       case comDashlaneDashlanephonefinal = "com.dashlane.dashlanephonefinal"
       case comDashlaneDashlane = "com.dashlane.Dashlane"
@@ -73,7 +73,7 @@ extension UserDeviceAPIClient.Premium.GetAppleSubscriptionOfferSignature {
 }
 
 extension UserDeviceAPIClient.Premium.GetAppleSubscriptionOfferSignature {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case keyIdentifier = "keyIdentifier"
       case nonce = "nonce"

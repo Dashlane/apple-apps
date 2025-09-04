@@ -1,6 +1,6 @@
 import Foundation
 
-public struct UserGroupDownload: Codable, Equatable, Sendable {
+public struct UserGroupDownload: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case groupId = "groupId"
     case name = "name"
@@ -14,7 +14,7 @@ public struct UserGroupDownload: Codable, Equatable, Sendable {
     case teamId = "teamId"
   }
 
-  public enum `Type`: String, Sendable, Equatable, CaseIterable, Codable {
+  public enum `Type`: String, Sendable, Hashable, Codable, CaseIterable {
     case users = "users"
     case teamAdmins = "teamAdmins"
     case undecodable

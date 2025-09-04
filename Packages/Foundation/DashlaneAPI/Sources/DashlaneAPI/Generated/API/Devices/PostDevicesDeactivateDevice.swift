@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Devices {
-  public struct DeactivateDevice: APIRequest {
+  public struct DeactivateDevice: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/devices/DeactivateDevice"
 
     public let api: UserDeviceAPIClient
@@ -24,7 +24,7 @@ extension UserDeviceAPIClient.Devices {
 }
 
 extension UserDeviceAPIClient.Devices.DeactivateDevice {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case deviceId = "deviceId"
     }
@@ -43,7 +43,7 @@ extension UserDeviceAPIClient.Devices.DeactivateDevice {
 }
 
 extension UserDeviceAPIClient.Devices.DeactivateDevice {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case status = "status"
     }

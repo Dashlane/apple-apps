@@ -1,92 +1,78 @@
-#if canImport(UIKit)
-  import Foundation
-  import SwiftUI
-  import CoreSession
-  import SwiftTreats
-  import DashTypes
-  import UIDelight
-  import CoreLocalization
-  import DesignSystem
-  import UIComponents
+import CoreLocalization
+import CoreSession
+import CoreTypes
+import DesignSystem
+import DesignSystemExtra
+import Foundation
+import SwiftTreats
+import SwiftUI
+import UIComponents
+import UIDelight
 
-  public struct BiometryView: View {
-    @StateObject
-    var model: BiometryViewModel
-    let showProgressIndicator: Bool
+public struct BiometryView: View {
+  @StateObject
+  var model: BiometryViewModel
 
-    public init(
-      model: @autoclosure @escaping () -> BiometryViewModel, showProgressIndicator: Bool = true
-    ) {
-      self._model = .init(wrappedValue: model())
-      self.showProgressIndicator = showProgressIndicator
-    }
+  public init(model: @autoclosure @escaping () -> BiometryViewModel) {
+    self._model = .init(wrappedValue: model())
+  }
 
-    public var body: some View {
-      GravityAreaVStack(
-        top: LoginLogo(login: self.model.login),
-        center: centerView
-      )
-      .loginAppearance()
-      .navigationBarBackButtonHidden(true)
-      .toolbar {
-        ToolbarItem(placement: .navigationBarLeading) {
-          BackButton(
-            label: L10n.Core.kwBack,
-            color: .ds.text.neutral.catchy
-          ) {
-            model.cancel()
-          }
-        }
-      }
-      .onAppear {
-        self.model.logAskAuthentication()
-        if !self.model.manualLockOrigin {
+  public var body: some View {
+    GravityAreaVStack(
+      top: LoginLogo(login: self.model.login),
+      center: centerView
+    )
+    .loginAppearance()
+    .navigationBarBackButtonHidden(true)
+    .toolbar {
+      ToolbarItem(placement: .navigationBarLeading) {
+        NativeNavigationBarBackButton(CoreL10n.kwBack) {
           Task {
-            await self.model.validate()
+            await model.perform(.cancel)
           }
         }
       }
-      .reportPageAppearance(.unlockBiometric)
-      .animation(.default, value: showProgressIndicator)
-      .loading(
-        isLoading: model.shouldDisplayProgress && showProgressIndicator,
-        loadingIndicatorOffset: true)
     }
+    .onAppear {
+      Task {
+        if !self.model.manualLockOrigin {
+          await self.model.validateBiometry()
+        }
+      }
+    }
+    .animation(.default, value: model.isPerformingEvent)
+    .reportPageAppearance(.unlockBiometric)
+  }
 
-    var centerView: some View {
-      VStack {
-        Text(L10n.Core.kwLockBiometryTypeLoadingMsg(model.biometryType.displayableName))
-          .foregroundColor(.ds.text.neutral.catchy)
+  var centerView: some View {
+    VStack {
+      Text(CoreL10n.kwLockBiometryTypeLoadingMsg(model.biometryType.displayableName))
+        .foregroundStyle(Color.ds.text.neutral.catchy)
 
-        Button(
-          action: {
-            Task {
-              await self.model.validate()
-            }
-          },
-          label: {
-            Image(asset: model.biometryType == .touchId ? Asset.fingerprint : Asset.faceId)
-              .foregroundColor(.ds.text.neutral.catchy)
+      Button(
+        action: {
+          Task {
+            await model.validateBiometry()
           }
-        )
-        .opacity(!model.shouldDisplayProgress ? 1 : 0.5)
-        .disabled(model.shouldDisplayProgress)
-      }
+        },
+        label: {
+          Image(biometry: model.biometryType)
+            .resizable()
+            .aspectRatio(contentMode: .fit)
+            .frame(width: 58, height: 58)
+            .foregroundStyle(Color.ds.text.neutral.catchy)
+        }
+      )
     }
-
-    private var biometryImage: Image {
-      if model.biometryType == .touchId {
-        return Asset.fingerprint.swiftUIImage
-      } else {
-        return Asset.faceId.swiftUIImage
-      }
-    }
+    .opacity(!model.isPerformingEvent ? 1 : 0.5)
+    .disabled(model.isPerformingEvent)
   }
+}
 
-  struct BiometryView_Previews: PreviewProvider {
-    static var previews: some View {
-      BiometryView(model: .mock(type: .touchId))
-      BiometryView(model: .mock(type: .faceId))
-    }
+struct BiometryView_Previews: PreviewProvider {
+  static var previews: some View {
+    BiometryView(model: .mock(type: .touchId))
+    BiometryView(model: .mock(type: .faceId))
+    BiometryView(model: .mock(type: .opticId))
   }
-#endif
+}

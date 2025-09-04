@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppAPIClient.Account {
-  public struct GetUserTeamDetailsByLogin: APIRequest {
+  public struct GetUserTeamDetailsByLogin: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/account/GetUserTeamDetailsByLogin"
 
     public let api: AppAPIClient
@@ -23,7 +23,7 @@ extension AppAPIClient.Account {
 }
 
 extension AppAPIClient.Account.GetUserTeamDetailsByLogin {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case login = "login"
     }
@@ -42,7 +42,7 @@ extension AppAPIClient.Account.GetUserTeamDetailsByLogin {
 }
 
 extension AppAPIClient.Account.GetUserTeamDetailsByLogin {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case teamUuid = "teamUuid"
       case isSsoEnabled = "isSsoEnabled"

@@ -14,7 +14,9 @@ struct SecretMainSection: View {
 
   var body: some View {
     Section {
-      titleField
+      if model.mode.isEditing {
+        titleField
+      }
 
       contentField
     }
@@ -22,21 +24,21 @@ struct SecretMainSection: View {
 
   private var titleField: some View {
     TextDetailField(
-      title: CoreLocalization.L10n.Core.secretTitle,
+      title: CoreL10n.secretTitle,
       text: $model.item.title,
-      placeholder: CoreLocalization.L10n.Core.KWAuthentifiantIOS.Title.placeholder
+      placeholder: CoreL10n.KWAuthentifiantIOS.Title.placeholder
     )
-    .limitedRights(hasInfoButton: false, item: model.item)
+    .limitedRights(hasInfoButton: false, item: model.item, isFrozen: model.service.isFrozen)
     .textInputAutocapitalization(.words)
   }
 
   @ViewBuilder
   private var contentField: some View {
     NotesDetailField(
-      title: CoreLocalization.L10n.Core.secretContent,
+      title: CoreL10n.secretContent,
       text: $model.item.content
     )
     .actions([.copy(model.copy)], hasAccessory: false)
-    .limitedRights(hasInfoButton: false, item: model.item)
+    .limitedRights(hasInfoButton: false, item: model.item, isFrozen: model.service.isFrozen)
   }
 }

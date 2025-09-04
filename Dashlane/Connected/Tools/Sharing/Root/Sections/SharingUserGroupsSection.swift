@@ -11,14 +11,13 @@ struct SharingUserGroupsSection: View {
 
   var body: some View {
     if let groups = model.userGroups, !groups.isEmpty {
-      LargeHeaderSection(title: L10n.Localizable.kwSharingCenterSectionGroups) {
+      Section(L10n.Localizable.kwSharingCenterSectionGroups) {
         ForEach(groups) { group in
           NavigationLink {
             SharingItemsUserGroupDetailView(model: model.makeDetailViewModel(userGroup: group))
           } label: {
             SharingToolRecipientRow(title: group.name, itemsCount: group.items.count) {
               Thumbnail.User.group
-                .controlSize(.small)
             }
           }
         }
@@ -61,7 +60,7 @@ struct SharingUserGroupsSection_Previews: PreviewProvider {
         )
       }
     }
-    .listStyle(.insetGrouped)
+    .listStyle(.ds.insetGrouped)
     .previewDisplayName("Two accepted groups")
 
     List {
@@ -73,7 +72,7 @@ struct SharingUserGroupsSection_Previews: PreviewProvider {
           userSpacesService: userSpacesService)
       )
     }
-    .listStyle(.insetGrouped)
+    .listStyle(.ds.insetGrouped)
     .previewDisplayName("Empty")
   }
 }

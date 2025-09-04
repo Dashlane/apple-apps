@@ -1,5 +1,6 @@
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 import SwiftTreats
 
 public protocol Searchable {

@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppAPIClient.AuthenticationQA {
-  public struct GetAllTokensForTestLogin: APIRequest {
+  public struct GetAllTokensForTestLogin: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/authentication-qa/GetAllTokensForTestLogin"
 
     public let api: AppAPIClient
@@ -23,7 +23,7 @@ extension AppAPIClient.AuthenticationQA {
 }
 
 extension AppAPIClient.AuthenticationQA.GetAllTokensForTestLogin {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case login = "login"
     }
@@ -42,7 +42,7 @@ extension AppAPIClient.AuthenticationQA.GetAllTokensForTestLogin {
 }
 
 extension AppAPIClient.AuthenticationQA.GetAllTokensForTestLogin {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case teamInviteTokens = "teamInviteTokens"
       case teamFreeTrialTokens = "teamFreeTrialTokens"
@@ -50,9 +50,10 @@ extension AppAPIClient.AuthenticationQA.GetAllTokensForTestLogin {
       case newDeviceToken = "newDeviceToken"
       case deleteToken = "deleteToken"
       case emailSubscriptionTokens = "emailSubscriptionTokens"
+      case changeLoginToken = "changeLoginToken"
     }
 
-    public struct TeamInviteTokensElement: Codable, Equatable, Sendable {
+    public struct TeamInviteTokensElement: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case teamId = "teamId"
         case token = "token"
@@ -73,7 +74,7 @@ extension AppAPIClient.AuthenticationQA.GetAllTokensForTestLogin {
       }
     }
 
-    public struct TeamFreeTrialTokensElement: Codable, Equatable, Sendable {
+    public struct TeamFreeTrialTokensElement: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case token = "token"
       }
@@ -90,7 +91,7 @@ extension AppAPIClient.AuthenticationQA.GetAllTokensForTestLogin {
       }
     }
 
-    public struct EmailSubscriptionTokensElement: Codable, Equatable, Sendable {
+    public struct EmailSubscriptionTokensElement: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case token = "token"
         case email = "email"
@@ -117,12 +118,13 @@ extension AppAPIClient.AuthenticationQA.GetAllTokensForTestLogin {
     public let newDeviceToken: String?
     public let deleteToken: String?
     public let emailSubscriptionTokens: [EmailSubscriptionTokensElement]
+    public let changeLoginToken: String?
 
     public init(
       teamInviteTokens: [TeamInviteTokensElement],
       teamFreeTrialTokens: [TeamFreeTrialTokensElement], resetToken: String?,
       newDeviceToken: String?, deleteToken: String?,
-      emailSubscriptionTokens: [EmailSubscriptionTokensElement]
+      emailSubscriptionTokens: [EmailSubscriptionTokensElement], changeLoginToken: String?
     ) {
       self.teamInviteTokens = teamInviteTokens
       self.teamFreeTrialTokens = teamFreeTrialTokens
@@ -130,6 +132,7 @@ extension AppAPIClient.AuthenticationQA.GetAllTokensForTestLogin {
       self.newDeviceToken = newDeviceToken
       self.deleteToken = deleteToken
       self.emailSubscriptionTokens = emailSubscriptionTokens
+      self.changeLoginToken = changeLoginToken
     }
 
     public func encode(to encoder: Encoder) throws {
@@ -140,6 +143,7 @@ extension AppAPIClient.AuthenticationQA.GetAllTokensForTestLogin {
       try container.encode(newDeviceToken, forKey: .newDeviceToken)
       try container.encode(deleteToken, forKey: .deleteToken)
       try container.encode(emailSubscriptionTokens, forKey: .emailSubscriptionTokens)
+      try container.encode(changeLoginToken, forKey: .changeLoginToken)
     }
   }
 }

@@ -1,4 +1,4 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 import SwiftTreats
@@ -13,11 +13,10 @@ public enum AccountCreationMethodAvailibility: Sendable {
   ) {
     guard isLoginAvailable else { return nil }
 
-    if shouldRegisterViaSSO, let serviceProviderURL = serviceProviderURL {
-      self = .sso(
-        SSOLoginInfo(
-          serviceProviderURL: "\(serviceProviderURL)?redirect=mobile&frag=true",
-          isNitroProvider: isNitroProvider))
+    if shouldRegisterViaSSO, let serviceProviderURL = serviceProviderURL,
+      let url = URL(string: "\(serviceProviderURL)?redirect=mobile&frag=true")
+    {
+      self = .sso(SSOLoginInfo(serviceProviderURL: url, isNitroProvider: isNitroProvider))
       return
     } else {
       self = .masterpassword(isB2BAccount)
@@ -89,8 +88,8 @@ extension AppAPIClient.Account {
   }
 }
 
-public struct SSOLoginInfo: Sendable {
-  public let serviceProviderURL: String
+public struct SSOLoginInfo: Sendable, Hashable {
+  public let serviceProviderURL: URL
   public let isNitroProvider: Bool
 }
 

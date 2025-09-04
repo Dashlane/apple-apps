@@ -66,7 +66,9 @@ struct SlotMachineText: View {
     .frame(maxHeight: .infinity)
     .animation(.easeInOut, value: password.count)
     .animation(.easeOut, value: shouldDisplaySeparator)
-    .onChange(of: password, perform: animate)
+    .onChange(of: password) { _, newValue in
+      animate(to: newValue)
+    }
     .onAppear(perform: {
       animate(to: password)
     })
@@ -74,7 +76,7 @@ struct SlotMachineText: View {
 
   private var separator: some View {
     Rectangle()
-      .foregroundColor(Self.separatorColor)
+      .foregroundStyle(Self.separatorColor)
       .frame(width: 0.5)
 
   }
@@ -142,14 +144,6 @@ struct SlotMachineText: View {
   }
 }
 
-extension Array {
-  func chunked(into size: Int) -> [[Element]] {
-    return stride(from: 0, to: count, by: size).map {
-      Array(self[$0..<Swift.min($0 + size, count)])
-    }
-  }
-}
-
 extension AnyTransition {
   fileprivate static func rollingTransition(withDirection direction: Edge) -> AnyTransition {
     AnyTransition.asymmetric(
@@ -171,22 +165,18 @@ private struct ColoredCharacter: View {
       .font(.system(size: 21).monospaced())
       .lineLimit(1)
       .minimumScaleFactor(0.3)
-      .foregroundColor(Color(passwordChar: character))
+      .foregroundStyle(Color(passwordCharacter: character))
   }
 }
 
-struct AnimatedPasswordText_Previews: PreviewProvider {
-  static var previews: some View {
-    MultiContextPreview {
-      SlotMachineText(password: "t3st")
-        .background(.ds.container.agnostic.neutral.standard)
-        .frame(width: 200, height: 200)
-        .previewLayout(.sizeThatFits)
+#Preview("Short Password", traits: .sizeThatFitsLayout) {
+  SlotMachineText(password: "t3st")
+    .background(.ds.container.agnostic.neutral.standard)
+    .frame(width: 200, height: 200)
+}
 
-      SlotMachineText(password: "t3stsup3rm3g4l0ngt123stsup3rm3g4l0ng")
-        .background(.ds.container.agnostic.neutral.standard)
-        .frame(width: 200, height: 200)
-        .previewLayout(.sizeThatFits)
-    }.previewLayout(.sizeThatFits)
-  }
+#Preview("Long Password", traits: .sizeThatFitsLayout) {
+  SlotMachineText(password: "t3stsup3rm3g4l0ngt123stsup3rm3g4l0ng")
+    .background(.ds.container.agnostic.neutral.standard)
+    .frame(width: 200, height: 200)
 }

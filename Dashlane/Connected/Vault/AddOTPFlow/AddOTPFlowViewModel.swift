@@ -3,11 +3,11 @@ import Combine
 import CoreNetworking
 import CorePersonalData
 import CoreSync
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import Foundation
 import IconLibrary
 import TOTPGenerator
+import UserTrackingFoundation
 import VaultKit
 
 @MainActor
@@ -84,13 +84,16 @@ class AddOTPFlowViewModel: ObservableObject, SessionServicesInjecting, MockVault
     self.matchingCredentialListViewModelFactory = matchingCredentialListViewModelFactory
     self.credentialDetailViewModelFactory = credentialDetailViewModelFactory
     self.completion = completion
-    guard let otp = otpURL?.absoluteString,
-      let info = try? OTPConfiguration(otpString: otp, supportDashlane2FA: false)
-    else {
-      handleScanCompletion(.failure(OTPUrlParserError.incorrectFormat))
-      return
+
+    if otpURL != nil {
+      if let otp = otpURL?.absoluteString,
+        let info = try? OTPConfiguration(otpString: otp, supportDashlane2FA: false)
+      {
+        handleScanCompletion(.success(info))
+      } else {
+        handleScanCompletion(.failure(OTPUrlParserError.incorrectFormat))
+      }
     }
-    handleScanCompletion(.success(info))
   }
 
   func introViewCompletionHandler(action: AddOTPIntroView.Action) {

@@ -1,51 +1,86 @@
 import CorePasswords
 import CoreSession
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import LoginKit
+import StateMachine
 import SwiftUI
+import UserTrackingFoundation
 
 @MainActor
-class AccountCreationFlowViewModel: ObservableObject, AccountCreationFlowDependenciesInjecting {
+class AccountCreationFlowViewModel: ObservableObject, AccountCreationFlowDependenciesInjecting,
+  StateMachineBasedObservableObject
+{
+
+  var isPerformingEvent: Bool = false
+
   enum Step {
     case email
+    case create(AccountCreationType)
+  }
+
+  enum AccountCreationType {
     case masterPassword(email: Email, isB2BAccount: Bool)
-    case create(AccountCreationConfiguration)
+    case sso(email: Email, SSOLoginInfo)
   }
 
   enum CompletionResult {
     case finished(SessionServicesContainer)
     case cancel
-    case login(Login)
-    case startSSO(email: Email, info: SSOLoginInfo)
   }
 
   @Published
-  var steps: [Step] = [.email]
+  var steps: [Step]
 
   let completion: @MainActor (CompletionResult) -> Void
   let evaluator: PasswordEvaluatorProtocol
   let activityReporter: ActivityReporterProtocol
+  let sessionServicesLoader: SessionServicesLoader
+  var stateMachine: AccountCreationStateMachine
   let emailViewModelFactory: AccountEmailViewModel.Factory
-  let masterPasswordAccountCreationModelFactory: MasterPasswordAccountCreationFlowViewModel.Factory
-  let passwordLessAccountCreationModelFactory: PasswordLessAccountCreationFlowViewModel.Factory
+  let regularAccountCreationFlowViewModelFactory: RegularAccountCreationFlowViewModel.Factory
+  let ssoAccountCreationFlowViewModelFactory: SSOAccountCreationFlowViewModel.Factory
 
   private var savedMasterPassword: String?
 
   init(
+    initialStep: AccountCreationFlowViewModel.Step,
+    stateMachine: AccountCreationStateMachine,
     evaluator: PasswordEvaluatorProtocol,
     activityReporter: ActivityReporterProtocol,
+    sessionServicesLoader: SessionServicesLoader,
     emailViewModelFactory: AccountEmailViewModel.Factory,
-    masterPasswordAccountCreationModelFactory: MasterPasswordAccountCreationFlowViewModel.Factory,
-    passwordLessAccountCreationModelFactory: PasswordLessAccountCreationFlowViewModel.Factory,
+    regularAccountCreationFlowViewModelFactory: RegularAccountCreationFlowViewModel.Factory,
+    ssoAccountCreationFlowViewModelFactory: SSOAccountCreationFlowViewModel.Factory,
     completion: @escaping @MainActor (AccountCreationFlowViewModel.CompletionResult) -> Void
   ) {
+    self.stateMachine = stateMachine
     self.evaluator = evaluator
     self.activityReporter = activityReporter
+    self.sessionServicesLoader = sessionServicesLoader
     self.emailViewModelFactory = emailViewModelFactory
-    self.masterPasswordAccountCreationModelFactory = masterPasswordAccountCreationModelFactory
-    self.passwordLessAccountCreationModelFactory = passwordLessAccountCreationModelFactory
+    self.regularAccountCreationFlowViewModelFactory = regularAccountCreationFlowViewModelFactory
+    self.ssoAccountCreationFlowViewModelFactory = ssoAccountCreationFlowViewModelFactory
     self.completion = completion
+    self.steps = [initialStep]
+  }
+
+  func update(
+    for event: AccountCreationStateMachine.Event, from oldState: AccountCreationStateMachine.State,
+    to newState: AccountCreationStateMachine.State
+  ) async {
+    switch (newState, event) {
+    case (.waitingForEmailInput, .start):
+      steps.append(.email)
+    case (.waitingForEmailInput, .cancel):
+      self.steps.removeLast()
+    case (let .regularAccountCreation(_, email, isB2BAccount), _):
+      self.steps.append(.create(.masterPassword(email: email, isB2BAccount: isB2BAccount)))
+    case (let .ssoAccountCreation(_, email, info), _):
+      self.steps.append(.create(.sso(email: email, info)))
+    case (.cancelled, _):
+      self.completion(.cancel)
+    default: break
+    }
   }
 
   func makeEmailViewModel() -> AccountEmailViewModel {
@@ -53,59 +88,28 @@ class AccountCreationFlowViewModel: ObservableObject, AccountCreationFlowDepende
       guard let self = self else {
         return
       }
-
-      switch result {
-      case let .next(email, isB2BAccount):
-        self.steps.append(.masterPassword(email: email, isB2BAccount: isB2BAccount))
-      case .login(let login):
-        self.completion(.login(login))
-      case let .sso(email, info):
-        self.completion(.startSSO(email: email, info: info))
-      case .cancel:
-        self.completion(.cancel)
+      Task {
+        switch result {
+        case let .next(email, isB2BAccount):
+          await self.perform(.userDidEnterEmail(.regular(email, isB2B: isB2BAccount)))
+        case let .sso(email, info):
+          await self.perform(.userDidEnterEmail(.sso(email, info)))
+        case .cancel:
+          await self.perform(.cancel)
+        }
       }
     }
   }
 
-  func makeNewPasswordModel(email: Email) -> NewMasterPasswordViewModel {
-    NewMasterPasswordViewModel(
-      mode: .accountCreation,
-      masterPassword: savedMasterPassword,
-      evaluator: evaluator,
-      activityReporter: activityReporter
+  func makeRegularAccountCreationFlowViewModel(email: Email, isB2BAccount: Bool)
+    -> RegularAccountCreationFlowViewModel
+  {
+    regularAccountCreationFlowViewModelFactory.make(
+      sessionservicesLoader: sessionServicesLoader,
+      stateMachine: stateMachine.makeRegularAccountcreationFlowStateMachine(
+        login: Login(email.address), isB2B: isB2BAccount)
     ) { [weak self] result in
-      guard let self = self else {
-        return
-      }
-
-      switch result {
-      case let .next(masterPassword: masterPassword):
-        self.savedMasterPassword = masterPassword
-        let configuration = AccountCreationConfiguration(
-          email: email, password: masterPassword, accountType: .masterPassword)
-        self.steps.append(.create(configuration))
-      case let .back(masterPassword: masterPassword):
-        self.savedMasterPassword = masterPassword
-        self.steps.removeLast()
-      }
-    }
-  }
-
-  func startPasswordLess(email: Email) {
-    let passwordPasswordGenerator = PasswordGenerator(
-      length: 40, composition: .all, distinguishable: false)
-    let configuration = AccountCreationConfiguration(
-      email: email, password: passwordPasswordGenerator.generate(),
-      accountType: .invisibleMasterPassword)
-    self.steps.append(.create(configuration))
-  }
-
-  func makeMasterPasswordAccountCreationFlow(configuration: AccountCreationConfiguration)
-    -> MasterPasswordAccountCreationFlowViewModel
-  {
-    masterPasswordAccountCreationModelFactory.make(configuration: configuration) {
-      [weak self] result in
-      guard let self = self else {
+      guard let self else {
         return
       }
 
@@ -113,26 +117,42 @@ class AccountCreationFlowViewModel: ObservableObject, AccountCreationFlowDepende
       case let .finished(sessionServices):
         self.completion(.finished(sessionServices))
       case .cancel:
-        self.steps.removeLast()
+        Task {
+          await self.perform(.cancel)
+        }
       }
     }
   }
 
-  func makePasswordLessAccountCreationFlow(configuration: AccountCreationConfiguration)
-    -> PasswordLessAccountCreationFlowViewModel
+  func makeSSOAccountCreationFlowViewModel(email: Email, info: SSOLoginInfo)
+    -> SSOAccountCreationFlowViewModel
   {
-    passwordLessAccountCreationModelFactory.make(configuration: configuration) {
-      [weak self] result in
-      guard let self = self else {
+    ssoAccountCreationFlowViewModelFactory.make(
+      email: email,
+      stateMachine: stateMachine.makeSSOAccountCreationFlowStateMachine(
+        login: Login(email.address), info: info)
+    ) { [weak self] result in
+      guard let self else {
         return
       }
 
-      switch result {
-      case let .finished(sessionServices):
-        self.completion(.finished(sessionServices))
-      case .cancel:
-        self.steps.removeLast()
+      Task {
+        switch result {
+        case let .accountCreated(session):
+          do {
+            let sessionServices = try await self.sessionServicesLoader.load(
+              for: session, context: .accountCreation)
+            self.completion(.finished(sessionServices))
+          } catch {
+            self.completion(.cancel)
+          }
+        case .cancel:
+          Task {
+            await self.perform(.cancel)
+          }
+        }
       }
+
     }
   }
 }

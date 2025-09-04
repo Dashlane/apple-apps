@@ -1,7 +1,8 @@
 import Combine
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 
 public protocol IdentityDashboardSessionDelegate: AnyObject {
   func credentialsDataDidUpdate()
@@ -273,5 +274,15 @@ extension IdentityDashboardSession {
         promise(.success(reusedCredentials))
       }
     }
+  }
+}
+
+extension IdentityDashboardSession {
+  public func isCredentialCompromised(credentialID: String) -> Bool {
+    return credentialsService.isCredentialCompromised(credentialID: credentialID)
+  }
+
+  public func isReused(password: String) async -> Bool {
+    return await self.passwordHealthDataProducer.reusedCount(for: password) > 0
   }
 }

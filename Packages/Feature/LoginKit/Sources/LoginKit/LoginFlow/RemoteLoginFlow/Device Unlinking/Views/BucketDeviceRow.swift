@@ -18,23 +18,25 @@ public struct BucketDeviceRow: View {
   }
 
   var subtitle: String {
-    isCurrent ? L10n.Core.kwDeviceCurrentDevice : device.displayedDate
+    isCurrent ? CoreL10n.kwDeviceCurrentDevice : device.displayedDate
   }
 
   public var body: some View {
     HStack(spacing: 12) {
-      device.platform.imageAsset.swiftUIImage
+      Image(platform: device.platform)
+        .resizable()
+        .aspectRatio(contentMode: .fit)
         .frame(width: 40)
-        .foregroundColor(.secondary)
+        .foregroundStyle(Color.ds.text.brand.quiet)
         .fiberAccessibilityHidden(true)
       VStack(alignment: .leading) {
         Text(device.name)
-          .foregroundColor(.ds.text.neutral.catchy)
+          .foregroundStyle(Color.ds.text.neutral.catchy)
           .font(.headline)
           .lineLimit(2)
 
         Text(subtitle)
-          .foregroundColor(.ds.text.neutral.standard)
+          .foregroundStyle(Color.ds.text.neutral.standard)
           .font(.caption)
 
       }
@@ -45,50 +47,51 @@ public struct BucketDeviceRow: View {
   }
 }
 
-struct BucketDeviceRow_Previews: PreviewProvider {
-  static var previews: some View {
-    MultiContextPreview {
-      VStack(alignment: .leading) {
-        BucketDeviceRow(
-          device: BucketDevice(
-            id: "id",
-            name: "Galaxy S8+",
-            platform: .android,
-            creationDate: Date(),
-            lastUpdateDate: Date(),
-            lastActivityDate: Date().addingTimeInterval(-300),
-            isBucketOwner: false,
-            isTemporary: false)
-        )
-        .background(.ds.background.default)
-        BucketDeviceRow(
-          device: BucketDevice(
-            id: "id",
-            name: "iPad Pro (12.9-inch) (6th generation) (16 GB)",
-            platform: .ipad,
-            creationDate: Date(),
-            lastUpdateDate: Date(),
-            lastActivityDate: Date().addingTimeInterval(-500),
-            isBucketOwner: false,
-            isTemporary: false)
-        )
-        .background(.ds.background.default)
-        BucketDeviceRow(
-          device: BucketDevice(
-            id: "id",
-            name:
-              "Copy of iPad Pro (12.9-inch) (6th generation) (16GB) device of someone with a very long name",
-            platform: .ipad,
-            creationDate: Date(),
-            lastUpdateDate: Date(),
-            lastActivityDate: Date().addingTimeInterval(-5000),
-            isBucketOwner: false,
-            isTemporary: false)
-        )
-        .background(.ds.background.default)
-      }
-    }
-    .previewLayout(.sizeThatFits)
+#Preview("Android Device", traits: .sizeThatFitsLayout) {
+  BucketDeviceRow(
+    device: BucketDevice(
+      id: "id",
+      name: "Galaxy S8+",
+      platform: .android,
+      creationDate: Date(),
+      lastUpdateDate: Date(),
+      lastActivityDate: Date().addingTimeInterval(-300),
+      isBucketOwner: false,
+      isTemporary: false
+    )
+  )
+  .background(.ds.background.default)
+}
 
-  }
+#Preview("iPad Device", traits: .sizeThatFitsLayout) {
+  BucketDeviceRow(
+    device: BucketDevice(
+      id: "id",
+      name: "iPad Pro (12.9-inch) (6th generation) (16 GB)",
+      platform: .ipad,
+      creationDate: Date(),
+      lastUpdateDate: Date(),
+      lastActivityDate: Date().addingTimeInterval(-500),
+      isBucketOwner: false,
+      isTemporary: false
+    )
+  )
+  .background(.ds.background.default)
+}
+
+#Preview("iPad Device - Long Name", traits: .sizeThatFitsLayout) {
+  BucketDeviceRow(
+    device: BucketDevice(
+      id: "id",
+      name:
+        "Copy of iPad Pro (12.9-inch) (6th generation) (16GB) device of someone with a very long name",
+      platform: .ipad,
+      creationDate: Date(),
+      lastUpdateDate: Date(),
+      lastActivityDate: Date().addingTimeInterval(-5000),
+      isBucketOwner: false,
+      isTemporary: false
+    )
+  )
+  .background(.ds.background.default)
 }

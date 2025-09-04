@@ -1,8 +1,8 @@
-import DashTypes
+import CoreTypes
 import Foundation
 import SwiftTreats
 
-public struct KeychainBasedCryptoEngine: DashTypes.CryptoEngine {
+public struct KeychainBasedCryptoEngine: CoreTypes.CryptoEngine {
 
   private func generateCommunicationKey() -> Data {
     Data.random(ofSize: 64)

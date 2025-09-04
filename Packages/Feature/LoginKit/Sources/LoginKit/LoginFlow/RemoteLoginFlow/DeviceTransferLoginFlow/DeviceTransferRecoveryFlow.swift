@@ -1,6 +1,6 @@
 import CoreLocalization
 import CoreSession
-import DashTypes
+import CoreTypes
 import Foundation
 import SwiftUI
 import UIComponents
@@ -18,9 +18,9 @@ struct DeviceTransferRecoveryFlow: View {
           Task {
             switch result {
             case .startRecovery:
-              model.startRecoveryFlow()
+              await model.startRecoveryFlow()
             case .startLostKey:
-              model.resetAccount()
+              await model.resetAccount()
             }
           }
         }
@@ -28,7 +28,7 @@ struct DeviceTransferRecoveryFlow: View {
         DeviceTransferAccountResetView()
       case .recoveryFlow:
         AccountRecoveryKeyLoginFlow(model: model.makeAccountRecoveryFlowModel())
-          .navigationTitle(L10n.Core.accountRecoveryNavigationTitle)
+          .navigationTitle(CoreL10n.accountRecoveryNavigationTitle)
       }
     }
   }
@@ -38,10 +38,8 @@ struct DeviceTransferRecoveryFlow_Preview: PreviewProvider {
   static var previews: some View {
     DeviceTransferRecoveryFlow(
       model: .init(
-        accountRecoveryInfo: AccountRecoveryInfo(
-          login: Login("_"), isEnabled: false, accountType: .invisibleMasterPassword),
-        deviceInfo: .mock,
-        recoveryKeyLoginFlowModelFactory: .init({ _, _, _, _ in
+        login: Login("_"), stateMachine: .mock,
+        recoveryKeyLoginFlowModelFactory: .init({ _, _, _ in
           .mock
         }), completion: { _ in }))
   }

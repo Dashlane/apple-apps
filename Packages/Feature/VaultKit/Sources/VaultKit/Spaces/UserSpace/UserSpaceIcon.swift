@@ -25,12 +25,12 @@ public struct UserSpaceIcon: View, Equatable {
     case .both:
       size
         .allSpaceImage
-        .foregroundColor(.ds.text.brand.standard)
+        .foregroundStyle(Color.ds.text.brand.standard)
 
     case .personal:
       UserSpaceLetterIcon(
-        color: Asset.personalSpaceIconColor.swiftUIColor,
-        title: L10n.Core.teamSpacesPersonalSpaceInitial,
+        color: .ds.text.brand.quiet,
+        title: CoreL10n.teamSpacesPersonalSpaceInitial,
         size: size
       )
 
@@ -65,20 +65,20 @@ private struct UserSpaceLetterIcon: View {
     ZStack {
       if size == .small {
         size.outlineImage
-          .foregroundColor(color)
+          .foregroundStyle(color)
       } else {
         size.backgroundImage
-          .foregroundColor(color)
+          .foregroundStyle(color)
 
         if colorScheme == .dark {
           size.outlineImage
-            .foregroundColor(Color(white: 1, opacity: 0.7))
+            .foregroundStyle(Color(white: 1, opacity: 0.7))
         }
       }
 
       Text(title)
         .font(.system(size: size.fontSize, weight: .bold, design: .monospaced))
-        .foregroundColor(size == .small ? color : .white)
+        .foregroundStyle(size == .small ? color : .white)
     }
     .id(title)
   }
@@ -97,58 +97,60 @@ extension UserSpaceIcon.Size {
   }
 
   var allSpaceImage: Image {
-    Image(asset: Asset.allSpaces)
+    Image.ds.spaces.all.outlined
   }
 
   var backgroundImage: Image {
     switch self {
     case .small:
-      return Image(asset: Asset.teamSpaceSmall)
+      return Image(.teamSpaceSmall)
     case .normal:
-      return Image(asset: Asset.teamSpace)
+      return Image(.teamSpace)
     case .large:
-      return Image(asset: Asset.teamSpaceLarge)
+      return Image(.teamSpaceLarge)
     }
   }
 
   var outlineImage: Image {
     switch self {
     case .small:
-      return Image(asset: Asset.teamSpaceOutlineSmall)
+      return Image(.teamSpaceOutlineSmall)
     case .normal:
-      return Image(asset: Asset.teamSpaceOutline)
+      return Image(.teamSpaceOutline)
     case .large:
-      return Image(asset: Asset.teamSpaceOutlineLarge)
+      return Image(.teamSpaceOutlineLarge)
     }
   }
 }
 
-struct TeamSpaceView_Previews: PreviewProvider {
-  static var previews: some View {
-    MultiContextPreview {
-      Group {
-        HStack {
-          UserSpaceIcon(space: .both, size: .small)
-          UserSpaceIcon(space: .both, size: .normal)
-          UserSpaceIcon(space: .both, size: .large)
-        }
-
-        HStack {
-          UserSpaceIcon(space: .personal, size: .small)
-          UserSpaceIcon(space: .personal, size: .normal)
-          UserSpaceIcon(space: .personal, size: .large)
-        }
-
-        HStack {
-          UserSpaceIcon(space: .team(.mock), size: .small)
-          UserSpaceIcon(space: .team(.mock), size: .normal)
-          UserSpaceIcon(space: .team(.mock), size: .large)
-        }
-      }
-      .padding()
-      .background(Color.ds.background.default)
-    }.previewLayout(.sizeThatFits)
+#Preview("Both Spaces", traits: .sizeThatFitsLayout) {
+  HStack {
+    UserSpaceIcon(space: .both, size: .small)
+    UserSpaceIcon(space: .both, size: .normal)
+    UserSpaceIcon(space: .both, size: .large)
   }
+  .padding()
+  .background(Color.ds.background.default)
+}
+
+#Preview("Personal Space", traits: .sizeThatFitsLayout) {
+  HStack {
+    UserSpaceIcon(space: .personal, size: .small)
+    UserSpaceIcon(space: .personal, size: .normal)
+    UserSpaceIcon(space: .personal, size: .large)
+  }
+  .padding()
+  .background(Color.ds.background.default)
+}
+
+#Preview("Team Space", traits: .sizeThatFitsLayout) {
+  HStack {
+    UserSpaceIcon(space: .team(.mock()), size: .small)
+    UserSpaceIcon(space: .team(.mock()), size: .normal)
+    UserSpaceIcon(space: .team(.mock()), size: .large)
+  }
+  .padding()
+  .background(Color.ds.background.default)
 }
 
 extension Color {

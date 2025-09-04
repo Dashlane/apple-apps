@@ -1,5 +1,7 @@
 import Foundation
+import LogFoundation
 
+@Loggable
 enum BrazeAnnouncementDecodingError: Error {
   case unhandledMessageType
   case wrongNumberOfButtons

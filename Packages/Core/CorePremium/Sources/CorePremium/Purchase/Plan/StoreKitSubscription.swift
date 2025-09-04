@@ -98,6 +98,18 @@ extension StoreKitSubscription {
 
 }
 
+#if os(visionOS)
+  extension Product {
+    func purchase(options: Set<Product.PurchaseOption>) async throws -> Product.PurchaseResult {
+      guard let first = await UIApplication.shared.connectedScenes.first else {
+        return .userCancelled
+      }
+
+      return try await purchase(confirmIn: first, options: options)
+    }
+  }
+#endif
+
 extension StoreKitSubscription.Offer {
   init(_ offer: Product.SubscriptionOffer) {
     id = offer.id

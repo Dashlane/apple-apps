@@ -1,5 +1,6 @@
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 import SwiftTreats
 
 public protocol DocumentAttachable: PersonalDataCodable {
@@ -8,6 +9,7 @@ public protocol DocumentAttachable: PersonalDataCodable {
   var id: Identifier { get }
 }
 
+@Loggable
 struct AnyDocumentAttachable: PersonalDataCodable {
   static var contentType: PersonalDataContentType = .secureNote
 

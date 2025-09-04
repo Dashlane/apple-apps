@@ -1,3 +1,3 @@
-enum COSEKeyType: UInt64, RawRepresentable, Codable {
+public enum COSEKeyType: UInt64, RawRepresentable, Codable {
   case ellipticKey = 2
 }

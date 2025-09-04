@@ -32,7 +32,7 @@ public struct DesignSystemToggle<Label: View>: View {
   public var body: some View {
     HStack(alignment: .firstTextBaseline, spacing: spacing) {
       label
-        .foregroundColor(.ds.text.neutral.standard)
+        .foregroundStyle(Color.ds.text.neutral.standard)
         .multilineTextAlignment(.leading)
         .fixedSize(horizontal: false, vertical: true)
         .frame(maxWidth: .infinity, alignment: .leading)

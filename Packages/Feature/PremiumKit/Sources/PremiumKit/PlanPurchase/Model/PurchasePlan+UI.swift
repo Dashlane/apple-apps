@@ -7,30 +7,30 @@ extension PurchasePlan.Kind {
   var localizedTitle: String {
     switch self {
     case .free:
-      return L10n.Core.plansFreeDescription
+      return CoreL10n.plansFreeDescription
     case .essentials:
-      return L10n.Core.plansEssentialsTitle
+      return CoreL10n.plansEssentialsTitle
     case .advanced:
-      return L10n.Core.plansAdvancedTitle
+      return CoreL10n.plansAdvancedTitle
     case .premium:
-      return L10n.Core.plansPremiumTitle
+      return CoreL10n.plansPremiumTitle
     case .family:
-      return L10n.Core.plansFamilyTitle
+      return CoreL10n.plansFamilyTitle
     }
   }
 
   var localizedDescription: String {
     switch self {
     case .free:
-      return L10n.Core.planScreensFreePlanDescription
+      return CoreL10n.planScreensFreePlanDescription
     case .essentials:
-      return L10n.Core.plansEssentialsDescription
+      return CoreL10n.plansEssentialsDescription
     case .advanced:
-      return L10n.Core.plansAdvancedDescription
+      return CoreL10n.plansAdvancedDescription
     case .premium:
-      return L10n.Core.plansPremiumDescription
+      return CoreL10n.plansPremiumDescription
     case .family:
-      return L10n.Core.plansFamilyDescription
+      return CoreL10n.plansFamilyDescription
     }
   }
 }

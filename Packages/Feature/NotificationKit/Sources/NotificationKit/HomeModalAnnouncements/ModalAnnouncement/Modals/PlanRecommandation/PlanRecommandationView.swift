@@ -1,9 +1,10 @@
 import CoreLocalization
-import CoreUserTracking
 import DesignSystem
 import SwiftUI
+import SwiftUILottie
 import UIComponents
 import UIDelight
+import UserTrackingFoundation
 
 struct PlanRecommandationView: View {
 
@@ -38,13 +39,13 @@ struct PlanRecommandationView: View {
           LottieView(.diamond, loopMode: .loop, animated: true)
             .scaleEffect(1.6)
             .frame(width: 218, height: 163, alignment: .center)
-          Text(L10n.Core.actionItemTrialUpgradeRecommendationTitle)
+          Text(CoreL10n.actionItemTrialUpgradeRecommendationTitle)
             .font(.title)
             .fontWeight(.bold)
             .multilineTextAlignment(.center)
           Text(text)
             .font(.callout)
-            .foregroundColor(.ds.text.neutral.standard)
+            .foregroundStyle(Color.ds.text.neutral.standard)
           Button(buttonText, action: viewModel.learnMore)
             .buttonStyle(.designSystem(.titleOnly))
             .padding(.top, 36)
@@ -54,7 +55,7 @@ struct PlanRecommandationView: View {
         .padding()
       }
     )
-    .backgroundColorIgnoringSafeArea(.ds.background.default)
+    .background(Color.ds.background.default, ignoresSafeAreaEdges: .all)
     .reportPageAppearance(.trialUpgradeSuggestion)
     .onAppear {
       viewModel.markPlanRecommandationHasBeenShown()
@@ -66,25 +67,21 @@ extension PlanRecommandationView {
   var text: String {
     switch viewModel.recommendedPlan {
     case .premium:
-      return L10n.Core.actionItemTrialUpgradeRecommendationDescriptionPremium
+      return CoreL10n.actionItemTrialUpgradeRecommendationDescriptionPremium
     }
   }
 
   var buttonText: String {
     switch viewModel.recommendedPlan {
     case .premium:
-      return L10n.Core.currentPlanCtaPremium
+      return CoreL10n.currentPlanCtaPremium
     }
   }
 }
 
-struct PlanRecommandationView_Previews: PreviewProvider {
-  static var previews: some View {
-    MultiContextPreview(deviceRange: .mainScreenSizes) {
-      PlanRecommandationView(
-        viewModel: .init(
-          deepLinkingService: NotificationKitDeepLinkingServiceMock(),
-          activityReporter: .mock, userSettings: .mock))
-    }
-  }
+#Preview {
+  PlanRecommandationView(
+    viewModel: .init(
+      deepLinkingService: NotificationKitDeepLinkingServiceMock(),
+      activityReporter: .mock, userSettings: .mock))
 }

@@ -1,12 +1,13 @@
 import Combine
 import CoreCrypto
 import CoreSession
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import DesignSystem
 import Foundation
+import LogFoundation
 import LoginKit
+import UserTrackingFoundation
 
 @MainActor
 class AddNewDeviceViewModel: ObservableObject, SessionServicesInjecting {
@@ -151,7 +152,7 @@ extension AddNewDeviceViewModel {
   static func mock(accountType: CoreSession.AccountType) -> AddNewDeviceViewModel {
     AddNewDeviceViewModel(
       session: .mock(accountType: accountType), apiClient: .fake, activityReporter: .mock,
-      sessionCryptoEngineProvider: SessionCryptoEngineProvider(logger: LoggerMock()),
+      sessionCryptoEngineProvider: SessionCryptoEngineProvider(logger: .mock),
       securityChallengeFlowModelFactory: .init({ _, _, _, _ in
         .mock
       }), qrCodeViaSystemCamera: nil)
@@ -185,6 +186,7 @@ extension AddNewDeviceViewModel {
 }
 
 extension AddNewDeviceViewModel {
+  @Loggable
   enum Error {
     case timeout
     case generic

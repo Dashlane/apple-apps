@@ -1,5 +1,6 @@
 import CoreLocalization
 import CorePersonalData
+import DashlaneAPI
 import Foundation
 
 extension Secret: VaultItem, SecureItem {
@@ -13,20 +14,24 @@ extension Secret: VaultItem, SecureItem {
 
   public var localizedSubtitle: String {
     guard !secured else {
-      return L10n.Core.Secrets.protectedMessage
+      return CoreL10n.Secrets.protectedMessage
     }
     return displaySubtitle ?? ""
   }
 
   public static var localizedName: String {
-    L10n.Core.mainMenuSecrets
+    CoreL10n.mainMenuSecrets
   }
 
   public static var addTitle: String {
-    L10n.Core.addASecret
+    CoreL10n.addASecret
   }
 
   public static var nativeMenuAddTitle: String {
-    return L10n.Core.addSecret
+    return CoreL10n.addSecret
+  }
+
+  public func isAssociated(to: PremiumStatusTeamInfo) -> Bool {
+    return true
   }
 }

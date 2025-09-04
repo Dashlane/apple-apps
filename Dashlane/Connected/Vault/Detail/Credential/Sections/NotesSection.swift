@@ -13,11 +13,11 @@ struct NotesSection: View {
   var body: some View {
     Section {
       NotesDetailField(
-        title: CoreLocalization.L10n.Core.KWAuthentifiantIOS.note,
+        title: CoreL10n.KWAuthentifiantIOS.note,
         text: $model.item.note
       )
       .actions([.copy(model.copy)], hasAccessory: false)
-      .limitedRights(item: model.item)
+      .limitedRights(item: model.item, isFrozen: model.service.isFrozen)
       .fiberFieldType(.note)
     }
   }

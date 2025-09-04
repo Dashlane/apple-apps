@@ -1,5 +1,6 @@
 import CoreLocalization
-import DashTypes
+import CoreTypes
+import DesignSystemExtra
 import MessageUI
 import SwiftTreats
 import SwiftUI
@@ -24,7 +25,6 @@ public struct RateAppView: View {
 
   public var body: some View {
     mainView
-      .modifier(AlertStyle())
       .sheet(
         isPresented: $isMailViewPresented,
         onDismiss: { dismiss() },
@@ -36,12 +36,12 @@ public struct RateAppView: View {
         "",
         isPresented: $isMailAlertPresented,
         actions: {
-          Button(L10n.Core.kwButtonOk) {
+          Button(CoreL10n.kwButtonOk) {
             dismiss()
           }
         },
         message: {
-          Text(L10n.Core.kwSharingNoEmailAccount)
+          Text(CoreL10n.kwSharingNoEmailAccount)
         }
       )
       .onAppear {
@@ -50,71 +50,51 @@ public struct RateAppView: View {
   }
 
   private var mainView: some View {
-    VStack(spacing: 10) {
-      Image(asset: Asset.sendLove)
+    NativeAlert(spacing: 10) {
+      Image(.sendLove)
         .resizable()
         .aspectRatio(contentMode: .fit)
-        .foregroundColor(.ds.text.brand.standard)
+        .foregroundStyle(Color.ds.text.brand.standard)
         .padding(.horizontal, 70.0)
         .padding(.vertical, 30)
-      Text(L10n.Core.kwSendLoveHeadingPasswordchanger)
+      Text(CoreL10n.kwSendLoveHeadingPasswordchanger)
         .font(.callout)
         .multilineTextAlignment(.center)
         .padding(.horizontal)
-      Text(L10n.Core.kwSendLoveSubheadingPasswordchanger)
+      Text(CoreL10n.kwSendLoveSubheadingPasswordchanger)
         .font(.caption)
         .multilineTextAlignment(.center)
         .padding(.horizontal)
-      VStack(spacing: 0) {
-        Divider()
-        Button(
-          L10n.Core.kwSendLove,
-          action: {
-            viewModel.rateApp()
-            dismiss()
-          }
-        )
-        .foregroundColor(.ds.text.brand.standard)
-        Divider()
-        Button(
-          L10n.Core.kwSendFeedback,
-          action: {
-            if MFMailComposeViewController.canSendMail() {
-              self.isMailViewPresented = true
-            } else {
-              self.isMailAlertPresented = true
-            }
-          })
-        Divider()
-        Button(
-          L10n.Core.kwSendLoveNothanksbuttonPasswordchanger,
-          action: {
-            viewModel.cancel()
-            dismiss()
-          })
+    } buttons: {
+      Button(CoreL10n.kwSendLove) {
+        viewModel.rateApp()
+        dismiss()
       }
 
+      Button(CoreL10n.kwSendFeedback) {
+        if MFMailComposeViewController.canSendMail() {
+          self.isMailViewPresented = true
+        } else {
+          self.isMailAlertPresented = true
+        }
+      }
+      Button(CoreL10n.kwSendLoveNothanksbuttonPasswordchanger, role: .cancel) {
+        viewModel.cancel()
+        dismiss()
+      }
     }
-    .buttonStyle(RateAppButtonStyle())
-    .foregroundColor(.ds.text.neutral.standard)
+    .alertButtonsLayout(.vertical)
+    .foregroundStyle(Color.ds.text.neutral.standard)
     .padding(.top)
   }
 }
 
-private struct RateAppButtonStyle: ButtonStyle {
-  func makeBody(configuration: Configuration) -> some View {
-    configuration.label
-      .font(.callout)
-      .padding(.all, 15)
-      .frame(maxWidth: .infinity)
-      .contentShape(Rectangle())
-  }
-}
-
-struct RateAppView_Previews: PreviewProvider {
-  static var previews: some View {
-    MultiContextPreview {
-      RateAppView(viewModel: .init(login: .init("_"), sender: .braze, userSettings: .mock))
-    }
-  }
+#Preview {
+  RateAppView(
+    viewModel: .init(
+      login: .init("_"),
+      sender: .braze,
+      userSettings: .mock
+    )
+  )
 }

@@ -1,6 +1,7 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import SwiftTreats
 
 public struct AccountCreationInfo: Encodable, Sendable {
   public let login: String
@@ -59,5 +60,38 @@ public struct AccountCreationInfo: Encodable, Sendable {
     self.sharingKeys = sharingKeys
     self.consents = consents
     self.accountType = accountType
+  }
+}
+
+extension AccountCreationInfo {
+
+  public enum Origin: String {
+    case iOS
+  }
+
+  public init(
+    email: String,
+    appVersion: String,
+    settings: CoreSessionSettings,
+    consents: [Consent],
+    sharingKeys: AccountCreateUserSharingKeys,
+    origin: Origin,
+    accountType: DashlaneAPI.AccountType
+  ) {
+    self.init(
+      login: email,
+      contactEmail: email,
+      appVersion: appVersion,
+      platform: AccountCreateUserPlatform(rawValue: Platform.passwordManager.rawValue)
+        ?? .serverIphone,
+      settings: settings,
+      deviceName: Device.name,
+      origin: origin.rawValue,
+      abTestingVersion: "0.0.0.0",
+      country: System.country,
+      language: System.language,
+      sharingKeys: sharingKeys,
+      consents: consents,
+      accountType: accountType)
   }
 }

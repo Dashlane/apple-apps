@@ -1,5 +1,5 @@
 import CoreCategorizer
-import DashTypes
+import CoreTypes
 import DesignSystem
 import SecurityDashboard
 import SwiftUI
@@ -47,7 +47,7 @@ struct UnresolvedAlertView: View {
       cell(for: alert)
     }
     .navigationTitle(L10n.Localizable.actionItemBreachTitle)
-    .backgroundColorIgnoringSafeArea(.ds.background.default)
+    .background(Color.ds.background.default, ignoresSafeAreaEdges: .all)
     .reportPageAppearance(.notificationSecurityDetails)
   }
 
@@ -55,28 +55,24 @@ struct UnresolvedAlertView: View {
   func cell(for alert: UnresolvedAlert) -> some View {
     VStack(alignment: .leading, spacing: 8) {
       HStack {
-        Image(
-          asset: alert.alert.breach.kind == .default
-            ? FiberAsset.securityBreachRegular : FiberAsset.securityBreachDataleak
-        )
-        .accessibilityHidden(true)
+        BreachIcon(kind: alert.alert.breach.kind)
         VStack {
           if let title = alert.title {
-            Text(AttributedString(title))
+            Text(title)
               .font(.footnote)
           }
         }
       }
 
-      Text(AttributedString(alert.message))
+      Text(alert.message)
 
       if let actionable = alert.actionableMessage {
-        Text(AttributedString(actionable.message))
-        Image(uiImage: actionable.icon)
+        Text(actionable.message)
+        actionable.icon
       }
 
       if let actionable = alert.postActionableMessage {
-        Text(AttributedString(actionable))
+        Text(actionable)
       }
 
       Button(
@@ -88,7 +84,7 @@ struct UnresolvedAlertView: View {
         label: {
           Text(L10n.Localizable.securityAlertViewButton)
             .bold()
-            .foregroundColor(Color.ds.text.danger.quiet)
+            .foregroundStyle(Color.ds.text.danger.quiet)
         }
       )
       .frame(maxWidth: .infinity, alignment: .trailing)
@@ -102,4 +98,31 @@ struct UnresolvedAlertView: View {
 
     dismiss()
   }
+}
+
+private struct BreachIcon: View {
+  let kind: BreachKind
+
+  var image: Image {
+    switch kind {
+    case .default:
+      .ds.notification.outlined
+    case .dataLeak:
+      .ds.feature.darkWebMonitoring.outlined
+    }
+  }
+
+  var body: some View {
+    image
+      .foregroundStyle(Color.white)
+      .padding(14)
+      .background(Color.ds.container.expressive.danger.catchy.idle, in: Circle())
+      .frame(width: 44, height: 44)
+      .accessibilityHidden(true)
+  }
+}
+
+#Preview {
+  BreachIcon(kind: .dataLeak)
+  BreachIcon(kind: .default)
 }

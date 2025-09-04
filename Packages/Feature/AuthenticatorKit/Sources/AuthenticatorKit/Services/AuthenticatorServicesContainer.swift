@@ -2,11 +2,12 @@ import CoreCategorizer
 import CoreKeychain
 import CorePersonalData
 import CoreSession
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DomainParser
 import Foundation
 import IconLibrary
+import LogFoundation
+import UserTrackingFoundation
 
 public protocol AuthenticatorServicesContainer: DependenciesContainer {
   var databaseService: AuthenticatorDatabaseServiceProtocol { get }

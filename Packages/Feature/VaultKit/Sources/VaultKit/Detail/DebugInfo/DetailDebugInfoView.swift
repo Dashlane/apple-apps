@@ -44,14 +44,14 @@ struct DetailDebugInfoView: View {
         Spacer()
       }
       .padding()
-      .navigationTitle(L10n.Core.debugInfoTitle)
+      .navigationTitle(CoreL10n.debugInfoTitle)
       .navigationBarTitleDisplayMode(.inline)
       .interactiveDismissDisabled()
       .toolbar {
-        Button(CoreLocalization.L10n.Core.kwButtonClose) {
+        Button(CoreL10n.kwButtonClose) {
           isDebugInfoShown = false
         }
-        .foregroundColor(.ds.text.brand.standard)
+        .foregroundStyle(Color.ds.text.brand.standard)
       }
       .onPreferenceChange(DebugInfoPreferenceKey.self) { value in
         debugInfoText = value
@@ -63,12 +63,12 @@ struct DetailDebugInfoView: View {
   private var buttons: some View {
     Section {
       VStack {
-        Button(L10n.Core.debugInfoCopyAllInformation) {
+        Button(CoreL10n.debugInfoCopyAllInformation) {
           copyDebugInfoToClipboard()
-          toast(L10n.Core.kwCopied, image: .ds.feedback.success.outlined)
+          toast(CoreL10n.kwCopied, image: .ds.feedback.success.outlined)
         }
 
-        Button(L10n.Core.debugInfoTakeAScreenshot) {
+        Button(CoreL10n.debugInfoTakeAScreenshot) {
           takeScreenshot()
         }
         .activitySheet($screenshotShareActivityItem)
@@ -164,7 +164,7 @@ struct DebugField: View {
       Text("\(label): \(value)")
         .fixedSize(horizontal: false, vertical: true)
         .frame(maxWidth: .infinity, alignment: .leading)
-        .foregroundColor(.ds.text.neutral.quiet)
+        .foregroundStyle(Color.ds.text.neutral.quiet)
         .textSelection(.enabled)
         .preference(key: DebugInfoPreferenceKey.self, value: "\(label): \(value)\n")
       Divider()

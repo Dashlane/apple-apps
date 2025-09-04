@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppAPIClient.Analytics {
-  public struct GetAnalyticsIds: APIRequest {
+  public struct GetAnalyticsIds: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/analytics/GetAnalyticsIds"
 
     public let api: AppAPIClient
@@ -23,7 +23,7 @@ extension AppAPIClient.Analytics {
 }
 
 extension AppAPIClient.Analytics.GetAnalyticsIds {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case login = "login"
     }
@@ -42,7 +42,7 @@ extension AppAPIClient.Analytics.GetAnalyticsIds {
 }
 
 extension AppAPIClient.Analytics.GetAnalyticsIds {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case devicesAnalyticsIds = "devicesAnalyticsIds"
       case userAnalyticsId = "userAnalyticsId"

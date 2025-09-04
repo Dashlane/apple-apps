@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Sync {
-  public struct GetLatestContent: APIRequest {
+  public struct GetLatestContent: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/sync/GetLatestContent"
 
     public let api: UserDeviceAPIClient
@@ -27,7 +27,7 @@ extension UserDeviceAPIClient.Sync {
 }
 
 extension UserDeviceAPIClient.Sync.GetLatestContent {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case timestamp = "timestamp"
       case transactions = "transactions"
@@ -58,7 +58,7 @@ extension UserDeviceAPIClient.Sync.GetLatestContent {
 }
 
 extension UserDeviceAPIClient.Sync.GetLatestContent {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case transactions = "transactions"
       case timestamp = "timestamp"
@@ -70,7 +70,7 @@ extension UserDeviceAPIClient.Sync.GetLatestContent {
       case keys = "keys"
     }
 
-    public struct TransactionsElement: Codable, Equatable, Sendable {
+    public struct TransactionsElement: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case backupDate = "backupDate"
         case identifier = "identifier"
@@ -110,7 +110,7 @@ extension UserDeviceAPIClient.Sync.GetLatestContent {
       }
     }
 
-    public struct Sharing2: Codable, Equatable, Sendable {
+    public struct Sharing2: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case itemGroups = "itemGroups"
         case items = "items"
@@ -118,7 +118,7 @@ extension UserDeviceAPIClient.Sync.GetLatestContent {
         case collections = "collections"
       }
 
-      public struct ItemGroupsElement: Codable, Equatable, Sendable {
+      public struct ItemGroupsElement: Codable, Hashable, Sendable {
         public enum CodingKeys: String, CodingKey {
           case id = "id"
           case revision = "revision"
@@ -139,7 +139,7 @@ extension UserDeviceAPIClient.Sync.GetLatestContent {
         }
       }
 
-      public struct ItemsElement: Codable, Equatable, Sendable {
+      public struct ItemsElement: Codable, Hashable, Sendable {
         public enum CodingKeys: String, CodingKey {
           case id = "id"
           case timestamp = "timestamp"
@@ -160,7 +160,7 @@ extension UserDeviceAPIClient.Sync.GetLatestContent {
         }
       }
 
-      public struct UserGroupsElement: Codable, Equatable, Sendable {
+      public struct UserGroupsElement: Codable, Hashable, Sendable {
         public enum CodingKeys: String, CodingKey {
           case id = "id"
           case revision = "revision"
@@ -181,7 +181,7 @@ extension UserDeviceAPIClient.Sync.GetLatestContent {
         }
       }
 
-      public struct CollectionsElement: Codable, Equatable, Sendable {
+      public struct CollectionsElement: Codable, Hashable, Sendable {
         public enum CodingKeys: String, CodingKey {
           case id = "id"
           case revision = "revision"
@@ -226,7 +226,7 @@ extension UserDeviceAPIClient.Sync.GetLatestContent {
       }
     }
 
-    public struct Keys: Codable, Equatable, Sendable {
+    public struct Keys: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case publicKey = "publicKey"
         case privateKey = "privateKey"

@@ -1,13 +1,14 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import StateMachine
 import SwiftTreats
 
-@MainActor
 public struct DeviceTransferLoginFlowStateMachine: StateMachine {
 
-  public enum State: Hashable {
+  @Loggable
+  public enum State: Hashable, Sendable {
     case awaitingTransferType(Login)
 
     case startSecurityChallengeFlow(SecurityChallengeFlowStateMachine.State, Login)
@@ -25,14 +26,15 @@ public struct DeviceTransferLoginFlowStateMachine: StateMachine {
 
     case completed(RemoteLoginSession)
 
-    case recovery(AccountRecoveryInfo, DeviceInfo)
+    case recovery(AccountRecoveryInfo)
 
     case cancel
 
     case error(StateMachineError)
   }
 
-  public enum Event {
+  @Loggable
+  public enum Event: Sendable {
     case startSecurityChallengeFlow(Login)
 
     case startQRCodeFlow
@@ -63,14 +65,18 @@ public struct DeviceTransferLoginFlowStateMachine: StateMachine {
   let deviceInfo: DeviceInfo
   let cryptoEngineProvider: CryptoEngineProvider
   let logger: Logger
+  let sessionCleaner: SessionCleanerProtocol
+  let remoteLogger: RemoteLogger
 
   public init(
     login: Login?,
     deviceInfo: DeviceInfo,
     apiClient: AppAPIClient,
     sessionsContainer: SessionsContainerProtocol,
+    sessionCleaner: SessionCleanerProtocol,
     logger: Logger,
-    cryptoEngineProvider: CryptoEngineProvider
+    cryptoEngineProvider: CryptoEngineProvider,
+    remoteLogger: RemoteLogger
   ) {
     if let login {
       state = .awaitingTransferType(login)
@@ -82,10 +88,12 @@ public struct DeviceTransferLoginFlowStateMachine: StateMachine {
     self.deviceInfo = deviceInfo
     self.cryptoEngineProvider = cryptoEngineProvider
     self.logger = logger
+    self.sessionCleaner = sessionCleaner
+    self.remoteLogger = remoteLogger
   }
 
-  mutating public func transition(with event: Event) async {
-    logger.logInfo("Received event \(event)")
+  mutating public func transition(with event: Event) async throws {
+    logger.info("Received event \(event)")
     switch (state, event) {
     case (.awaitingTransferType, let .startSecurityChallengeFlow(login)):
       state = .startSecurityChallengeFlow(.startSecurityChallengeTransfer(.initializing), login)
@@ -116,7 +124,7 @@ public struct DeviceTransferLoginFlowStateMachine: StateMachine {
     case (_, let .startRecovery(login)):
       do {
         let info = try await apiClient.accountRecoveryInfo(for: login)
-        state = .recovery(info, deviceInfo)
+        state = .recovery(info)
       } catch {
         state = .error(StateMachineError(underlyingError: error))
       }
@@ -125,7 +133,7 @@ public struct DeviceTransferLoginFlowStateMachine: StateMachine {
     case (.startThirdPartyOTPFlow, let .otpDidFinish(data)):
       await loadAccount(with: data)
     case (_, let .errorOccurred(error)):
-      self.state = .error(StateMachineError(underlyingError: error))
+      self.state = .error(error)
     case (.recovery, let .accountRecoveryDidFinish(data)):
       if data.transferData.accountType == .invisibleMasterPassword {
         self.state = .pin(data)
@@ -133,11 +141,14 @@ public struct DeviceTransferLoginFlowStateMachine: StateMachine {
         self.state = .readyToLoadAccount(data)
       }
     default:
-      let errorMessage = "Unexpected \(event) event for the state \(state)"
-      logger.error(errorMessage)
+      let errorMessage: LogMessage = "Unexpected \(event) event for the state \(state)"
+      logger.fatal(errorMessage)
+      throw InvalidTransitionError<Self>(event: event, state: state)
     }
-    logger.logInfo("Transition to state: \(state)")
+    let state = state
+    logger.info("Transition to state: \(state)")
   }
+
   mutating private func receivedDataFromSender(
     _ receivedData: AccountTransferInfo,
     transferMethod: TransferMethod
@@ -154,7 +165,7 @@ public struct DeviceTransferLoginFlowStateMachine: StateMachine {
             .initialize(otpOption.pushType), otpOption, receivedData)
           return
         }
-        state = .error(StateMachineError(underlyingError: StateMachineError.ErrorType.unknown))
+        state = .error(.unknown)
         logger.error("No authTicket found, cannot continue")
         return
       }
@@ -207,7 +218,7 @@ public struct DeviceTransferLoginFlowStateMachine: StateMachine {
       verificationMethod: loginData.verificationMethod,
       serverKey: deviceRegistrationResponse.serverKey,
       remoteKeys: deviceRegistrationResponse.remoteKeys)
-
+    remoteLogger.configureReportedDeviceId(deviceRegistrationResponse.deviceAccessKey)
     let remoteLoginSession: RemoteLoginSession
     switch loginData.transferData.accountType {
     case .masterPassword, .invisibleMasterPassword:
@@ -236,7 +247,7 @@ public struct DeviceTransferLoginFlowStateMachine: StateMachine {
         loginData.transferData.masterKey,
         login: loginData.transferData.login,
         authTicket: loginData.authTicket,
-        remoteKey: ssoKeys.remoteKey,
+        remoteKey: ssoKeys.keys.remoteKey,
         data: registrationData,
         isRecoveryLogin: loginData.isRecoveryLogin,
         newMasterPassword: loginData.newMasterPassword,
@@ -294,7 +305,7 @@ public struct DeviceTransferLoginFlowStateMachine: StateMachine {
 
 }
 
-public enum TransferMethod: String, Hashable {
+public enum TransferMethod: String, Hashable, Sendable {
   case accountRecoveryKey
   case qrCode
   case securityChallenge
@@ -304,5 +315,36 @@ extension AppAPIClient {
   func authTicket(fromToken token: String, login: String) async throws -> AuthTicket {
     let result = try await authentication.performExtraDeviceVerification(login: login, token: token)
     return AuthTicket(value: result.authTicket)
+  }
+}
+
+extension DeviceTransferLoginFlowStateMachine {
+  public func makeQRCodeFlowStateMachine(state: QRCodeFlowStateMachine.State)
+    -> QRCodeFlowStateMachine
+  {
+    QRCodeFlowStateMachine(
+      appAPIClient: apiClient, sessionCryptoEngineProvider: cryptoEngineProvider,
+      sessionCleaner: sessionCleaner, state: state, logger: logger)
+  }
+
+  public func makeSecurityChallengeFlowStateMachine(state: SecurityChallengeFlowStateMachine.State)
+    -> SecurityChallengeFlowStateMachine
+  {
+    SecurityChallengeFlowStateMachine(state: state, appAPIClient: apiClient, logger: logger)
+  }
+
+  public func makeThirdPartyOTPLoginStateMachine(
+    login: Login, state: ThirdPartyOTPLoginStateMachine.State, option: ThirdPartyOTPOption
+  ) -> ThirdPartyOTPLoginStateMachine {
+    ThirdPartyOTPLoginStateMachine(
+      initialState: state, login: login, option: option, apiClient: apiClient, logger: logger)
+  }
+
+  public func makeDeviceTransferRecoveryFlowStateMachine(accountRecoveryInfo: AccountRecoveryInfo)
+    -> DeviceTransferRecoveryFlowStateMachine
+  {
+    DeviceTransferRecoveryFlowStateMachine(
+      state: .initialize, appAPIClient: apiClient, cryptoEngineProvider: cryptoEngineProvider,
+      accountRecoveryInfo: accountRecoveryInfo, deviceInfo: deviceInfo, logger: logger)
   }
 }

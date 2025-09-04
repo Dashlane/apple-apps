@@ -1,5 +1,5 @@
 import Combine
-import DashTypes
+import CoreTypes
 import Foundation
 
 public struct IconCache: Sendable {

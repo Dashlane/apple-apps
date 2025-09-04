@@ -1,7 +1,8 @@
 import CoreLocalization
 import CoreSession
-import DashTypes
+import CoreTypes
 import DesignSystem
+import DesignSystemExtra
 import Foundation
 import SwiftUI
 import UIComponents
@@ -27,55 +28,22 @@ public struct DeviceTransferLoginFlow: View {
             }
           }
           .navigationBarBackButtonHidden()
-          .toolbar {
-            ToolbarItem(
-              placement: .topBarLeading,
-              content: {
-                BackButton(
-                  label: L10n.Core.kwBack,
-                  action: {
-                    Task {
-                      await model.perform(.cancel)
-                    }
-                  })
-              })
-          }
+          .toolbar(content: cancelToolbar)
+
         case let .securityChallenge(login):
           DeviceTransferSecurityChallengeFlow(
             model: model.makeSecurityChallengeFlowModel(login: login)
-          ).navigationBarBackButtonHidden()
-            .toolbar {
-              ToolbarItem(
-                placement: .topBarLeading,
-                content: {
-                  BackButton(
-                    label: L10n.Core.kwBack,
-                    action: {
-                      Task {
-                        await model.perform(.cancel)
-                      }
-                    })
-                })
-            }
+          )
+          .navigationBarBackButtonHidden()
+          .toolbar(content: cancelToolbar)
         case let .qrcode(login, state):
           DeviceTransferQRCodeFlow(
             model: model.makeDeviceToDeviceQRCodeLoginFlowModel(login: login, state: state),
             progressState: $model.progressState
           )
           .navigationBarBackButtonHidden()
-          .toolbar {
-            ToolbarItem(
-              placement: .topBarLeading,
-              content: {
-                BackButton(
-                  label: L10n.Core.kwBack,
-                  action: {
-                    Task {
-                      await model.perform(.cancel)
-                    }
-                  })
-              })
-          }
+          .toolbar(content: cancelToolbar)
+
         case let .otp(initialState, option, data):
           DeviceTransferOTPLoginView(
             viewModel: model.makeDeviceToDeviceOTPLoginViewModel(
@@ -92,29 +60,41 @@ public struct DeviceTransferLoginFlow: View {
               model.skipBiometry(with: registerData)
             }
           }
-        case let .recoveryFlow(info, deviceInfo):
-          DeviceTransferRecoveryFlow(
-            model: model.makeAccountRecoveryFlowModel(info: info, deviceInfo: deviceInfo))
+        case let .recoveryFlow(info):
+          DeviceTransferRecoveryFlow(model: model.makeAccountRecoveryFlowModel(info: info))
         }
         if model.isInProgress {
-          ProgressionView(state: $model.progressState)
+          LottieProgressionFeedbacksView(state: model.progressState)
             .navigationBarBackButtonHidden()
         }
       }
+
     }.animation(.default, value: model.isInProgress)
       .fullScreenCover(item: $model.error) { error in
         errorView(for: error)
       }
   }
 
+  private func cancelToolbar() -> some ToolbarContent {
+    ToolbarItem(placement: .topBarLeading) {
+      NativeNavigationBarBackButton(CoreL10n.kwBack, action: cancel)
+    }
+  }
+
+  private func cancel() {
+    Task {
+      await model.perform(.cancel)
+    }
+  }
+
   func errorView(for error: TransferError) -> some View {
     switch error {
     case .unknown:
       return FeedbackView(
-        title: L10n.Core.Mpless.D2d.Untrusted.genericErrorTitle,
-        message: L10n.Core.Mpless.D2d.Untrusted.genericErrorMessage,
+        title: CoreL10n.Mpless.D2d.Untrusted.genericErrorTitle,
+        message: CoreL10n.Mpless.D2d.Untrusted.genericErrorMessage,
         primaryButton: (
-          L10n.Core.Mpless.D2d.Untrusted.genericErrorCta,
+          CoreL10n.Mpless.D2d.Untrusted.genericErrorCta,
           {
             Task {
               await model.perform(.cancel)
@@ -122,17 +102,17 @@ public struct DeviceTransferLoginFlow: View {
           }
         ),
         secondaryButton: (
-          L10n.Core.Mpless.D2d.Untrusted.genericErrorSupportCta,
+          CoreL10n.Mpless.D2d.Untrusted.genericErrorSupportCta,
           {
             UIApplication.shared.open(DashlaneURLFactory.request)
           }
         ))
     case .timeout:
       return FeedbackView(
-        title: L10n.Core.Mpless.D2d.Untrusted.timeoutErrorTitle,
-        message: L10n.Core.Mpless.D2d.Untrusted.timeoutErrorMessage,
+        title: CoreL10n.Mpless.D2d.Untrusted.timeoutErrorTitle,
+        message: CoreL10n.Mpless.D2d.Untrusted.timeoutErrorMessage,
         primaryButton: (
-          L10n.Core.Mpless.D2d.Untrusted.timeoutErrorCta,
+          CoreL10n.Mpless.D2d.Untrusted.timeoutErrorCta,
           {
             Task {
               await model.perform(.cancel)

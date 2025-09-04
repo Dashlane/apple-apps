@@ -3,7 +3,6 @@ import CoreLocalization
 import DesignSystem
 import TipKit
 
-@available(iOS 17, macOS 14, *)
 public struct VaultItemDragDropTip: Tip {
 
   public static let dragAndDropEvent: Event = Event(id: "itemDragAndDrop")

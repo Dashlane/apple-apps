@@ -1,7 +1,8 @@
+import CoreTypes
 import CyrilKit
-import DashTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import SwiftTreats
 
 public typealias UserKeyProvider = @SharingActor () throws -> SharingAsymmetricKey<UserId>
@@ -33,7 +34,6 @@ public struct SharingEngine<UIDatabase: SharingUIDatabase> {
     sharingClientAPI: SharingClientAPI,
     personalDataDB: SharingPersonalDataDB,
     cryptoProvider: SharingCryptoProvider,
-    autoRevokeUsersWithInvalidProposeSignature: Bool,
     logger: Logger
   ) {
     self.userKeyStore = UserKeyStore()
@@ -59,7 +59,6 @@ public struct SharingEngine<UIDatabase: SharingUIDatabase> {
       database: operationDatabase,
       cryptoProvider: cryptoProvider,
       personalDataDB: personalDataDB,
-      autoRevokeUsersWithInvalidProposeSignature: autoRevokeUsersWithInvalidProposeSignature,
       logger: logger)
   }
 
@@ -101,7 +100,6 @@ extension SharingEngine where UIDatabase == SQLiteDatabase {
     apiClient: UserDeviceAPIClient.SharingUserdevice,
     personalDataDB: SharingPersonalDataDB,
     cryptoProvider: SharingCryptoProvider,
-    autoRevokeUsersWithInvalidProposeSignature: Bool,
     logger: Logger
   ) async throws {
     let sqlDatabase = try SQLiteDatabase(url: url)
@@ -113,7 +111,6 @@ extension SharingEngine where UIDatabase == SQLiteDatabase {
       sharingClientAPI: SharingClientAPIImpl(apiClient: apiClient),
       personalDataDB: personalDataDB,
       cryptoProvider: cryptoProvider,
-      autoRevokeUsersWithInvalidProposeSignature: autoRevokeUsersWithInvalidProposeSignature,
       logger: logger)
 
     if let keys = userKeys {

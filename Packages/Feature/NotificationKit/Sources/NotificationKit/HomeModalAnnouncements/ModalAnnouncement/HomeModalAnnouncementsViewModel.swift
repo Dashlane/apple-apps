@@ -2,9 +2,9 @@ import BrazeKit
 import Combine
 import CorePremium
 import CoreSettings
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import Foundation
+import UserTrackingFoundation
 
 public class HomeModalAnnouncementsViewModel: ObservableObject, HomeAnnouncementsServicesInjecting {
 
@@ -95,7 +95,7 @@ extension HomeModalAnnouncementsScheduler {
   static var mock: HomeModalAnnouncementsScheduler {
     .init(
       brazeInAppModalAnnouncementFactory: .init({ .mock }),
-      rateAppModalAnnouncement: .init({ .mock }),
+      rateAppModalAnnouncement: .init({ .mock() }),
       freeTrialAnnouncement: .init({ .mock }),
       planRecommandationAnnouncement: .init({ .mock }),
       autofillActivationAnnouncement: .init({ .mock }),

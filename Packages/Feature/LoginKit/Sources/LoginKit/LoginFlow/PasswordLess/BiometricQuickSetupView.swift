@@ -4,7 +4,7 @@ import SwiftTreats
 import SwiftUI
 
 public struct BiometricQuickSetupView: View {
-  let l10n = L10n.Core.PasswordlessAccountCreation.Biometry.self
+  let l10n = CoreL10n.PasswordlessAccountCreation.Biometry.self
 
   public enum CompletionResult {
     case useBiometry
@@ -25,7 +25,7 @@ public struct BiometricQuickSetupView: View {
         Image(biometry: biometry)
           .resizable()
           .aspectRatio(contentMode: .fit)
-          .foregroundColor(.ds.text.brand.standard)
+          .foregroundStyle(Color.ds.text.brand.standard)
           .frame(width: 60)
         description
       }
@@ -68,17 +68,6 @@ struct BiometricQuickSetupView_Previews: PreviewProvider {
   static var previews: some View {
     BiometricQuickSetupView(biometry: .faceId) { _ in
 
-    }
-  }
-}
-
-extension Image {
-  init(biometry: Biometry) {
-    switch biometry {
-    case .touchId:
-      self = .ds.fingerprint.outlined
-    case .faceId:
-      self = .ds.faceId.outlined
     }
   }
 }

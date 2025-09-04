@@ -41,7 +41,7 @@ public struct AppNitroEncryptionAPIClient: APIClient {
 }
 
 extension AppAPIClient {
-  func makeAppNitroEncryptionAPIClient() throws -> AppNitroEncryptionAPIClient {
+  public func makeAppNitroEncryptionAPIClient() throws -> AppNitroEncryptionAPIClient {
     let configuration = try NitroEncryptionAPIConfiguration(
       info: configuration.info,
       environment: .init(environment: configuration.environment),
@@ -66,5 +66,34 @@ extension NitroEncryptionAPIConfiguration.Environment {
         self = .staging(info)
     #endif
     }
+  }
+}
+
+extension AppNitroEncryptionAPIClient {
+  public static var fake: AppNitroEncryptionAPIClient {
+    return .mock(using: .init())
+  }
+
+  public static func mock(using mockEngine: APIMockerEngine) -> AppNitroEncryptionAPIClient {
+    let appCredentials = AppCredentials(accessKey: "", secretKey: "")
+    let signer = RequestSigner(
+      appCredentials: appCredentials,
+      userCredentials: nil,
+      timeshiftProvider: .mock())
+
+    let configuration = try! NitroEncryptionAPIConfiguration(info: .mock)
+
+    return AppNitroEncryptionAPIClient(
+      engine: mockEngine,
+      signer: signer,
+      configuration: configuration,
+      timeshiftProvider: .mock(),
+      appCredentials: appCredentials)
+  }
+
+  public static func mock(@APIMockBuilder _ requests: () -> [any MockedRequest])
+    -> AppNitroEncryptionAPIClient
+  {
+    return .mock(using: APIMockerEngine(requests: requests))
   }
 }

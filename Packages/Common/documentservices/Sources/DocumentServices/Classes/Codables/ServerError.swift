@@ -1,8 +1,12 @@
 import Foundation
+import LogFoundation
 
+@Loggable
 public struct ServerError: Error, Codable {
   public let code: Int
+  @LogPublicPrivacy
   public let message: String
+  @LogPublicPrivacy
   public let content: String?
 }
 

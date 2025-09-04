@@ -35,16 +35,16 @@ public struct AccountRecoveryKeyTextField: View {
 
   public var body: some View {
     DS.TextField(
-      L10n.Core.recoveryKeySettingsLabel, text: formattedRecoveryKey,
+      CoreL10n.recoveryKeySettingsLabel, text: formattedRecoveryKey,
       feedback: {
         if showNoMatchError {
-          Text(L10n.Core.recoveryKeyActivationConfirmationError)
-            .foregroundColor(.ds.text.danger.quiet)
+          Text(CoreL10n.recoveryKeyActivationConfirmationError)
+            .foregroundStyle(Color.ds.text.danger.quiet)
             .font(.callout)
         }
       }
     )
-    .onChange(of: recoveryKey) { newValue in
+    .onChange(of: recoveryKey) { _, newValue in
       recoveryKey = newValue.components(separatedBy: CharacterSet.alphanumerics.inverted).joined()
         .uppercased()
     }

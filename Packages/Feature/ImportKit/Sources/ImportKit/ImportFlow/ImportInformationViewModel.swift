@@ -1,6 +1,6 @@
-import CoreUserTracking
 import Foundation
 import UniformTypeIdentifiers
+import UserTrackingFoundation
 
 public class ImportInformationViewModel: ObservableObject, ImportKitServicesInjecting {
 

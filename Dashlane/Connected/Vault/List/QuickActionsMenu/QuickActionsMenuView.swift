@@ -3,10 +3,10 @@ import CoreFeature
 import CoreLocalization
 import CorePersonalData
 import CoreSharing
-import CoreUserTracking
 import DesignSystem
 import SwiftUI
 import UIDelight
+import UserTrackingFoundation
 import VaultKit
 
 struct QuickActionsMenuView: View {
@@ -20,6 +20,9 @@ struct QuickActionsMenuView: View {
   @Environment(\.toast)
   private var toast
 
+  @Environment(\.accessControl)
+  private var accessControl
+
   @Environment(\.vaultItemRowCollectionActions)
   private var collectionActions
 
@@ -31,9 +34,6 @@ struct QuickActionsMenuView: View {
 
   @State
   private var showSharingDisabledAlert: Bool = false
-
-  @State
-  private var showSharingFlow: Bool = false
 
   @State
   private var showSharing: Bool = false
@@ -49,42 +49,31 @@ struct QuickActionsMenuView: View {
   }
 
   var body: some View {
-    DS.FieldAction.Menu(CoreLocalization.L10n.Core.kwActions, image: .ds.action.more.outlined) {
-      copyButton
-      editButton
-      shareButton
-      collectionActionsButtons
-      DeleteMenuButton {
-        Task {
-          deleteRequest.itemDeleteBehavior = try await model.deleteBehaviour()
-          deleteRequest.isPresented = true
-        }
-      }
+    DS.FieldAction.Menu(CoreL10n.kwActions, image: .ds.action.more.outlined) {
+      menuButtons
+        .onAppear(perform: model.onAppear)
     }
     .alert(
       model.item.limitedRightsAlertTitle,
       isPresented: $showLimitedRightsAlert,
       actions: {
-        Button(CoreLocalization.L10n.Core.kwButtonOk) {}
+        Button(CoreL10n.kwButtonOk) {}
       }
     )
     .deleteItemAlert(request: $deleteRequest, deleteAction: model.delete)
     .background {
       Rectangle()
-        .foregroundColor(.clear)
+        .foregroundStyle(.clear)
         .alert(
           L10n.Localizable.teamSpacesSharingDisabledMessageTitle,
           isPresented: $showSharingDisabledAlert,
           actions: {
-            Button(CoreLocalization.L10n.Core.kwButtonOk) {}
+            Button(CoreL10n.kwButtonOk) {}
           },
           message: {
             Text(L10n.Localizable.teamSpacesSharingDisabledMessageBody)
           }
         )
-    }
-    .onTapGesture(count: 1) {
-      model.reportAppearance()
     }
     .sheet(isPresented: $showSharing) {
       ShareFlowView(model: self.model.shareFlowViewModelFactory.make(items: [self.model.item]))
@@ -97,10 +86,25 @@ struct QuickActionsMenuView: View {
     }
   }
 
+  @ViewBuilder private var menuButtons: some View {
+    copyButton
+    editButton
+    shareButton
+    collectionActionsButtons
+    DeleteMenuButton {
+      Task {
+        deleteRequest.itemDeleteBehavior = try await model.deleteBehaviour()
+        deleteRequest.isPresented = true
+      }
+    }
+  }
+
   private func onCopyAction(_ result: ActionableVaultItemRowViewModel.CopyResult) {
     switch result {
     case .success(let fieldType):
-      UINotificationFeedbackGenerator().notificationOccurred(.success)
+      #if os(iOS)
+        UINotificationFeedbackGenerator().notificationOccurred(.success)
+      #endif
       toast(fieldType.pasteboardMessage, image: .ds.action.copy.outlined)
     case .limitedRights:
       self.showLimitedRightsAlert = true
@@ -128,7 +132,12 @@ extension QuickActionsMenuView {
         if model.sharingDeactivationReason != nil {
           showSharingDisabledAlert = true
         } else {
-          showSharing = true
+          accessControl.requestAccess(to: model.item) { access in
+            guard access else {
+              return
+            }
+            showSharing = true
+          }
         }
       } label: {
         HStack {
@@ -148,7 +157,7 @@ extension QuickActionsMenuView {
         editAction()
       } label: {
         HStack {
-          Text(CoreLocalization.L10n.Core.kwEdit)
+          Text(CoreL10n.kwEdit)
           Image.ds.action.edit.outlined
         }
       }
@@ -181,7 +190,10 @@ extension QuickActionsMenuView {
       Button {
         switch action {
         case .addToACollection:
-          showCollectionAddition = true
+          accessControl.requestAccess(to: model.item) { success in
+            guard success else { return }
+            showCollectionAddition = true
+          }
         case .removeFromACollection:
           showCollectionRemoval = true
         case .removeFromThisCollection(let action):
@@ -206,14 +218,10 @@ extension QuickActionsMenuView {
       switch completion {
       case .create(let collectionName):
         try? model.addItem(toNewCollectionNamed: collectionName)
-        toast(
-          CoreLocalization.L10n.Core.KWVaultItem.Changes.saved, image: .ds.feedback.success.outlined
-        )
+        toast(CoreL10n.KWVaultItem.Changes.saved, image: .ds.feedback.success.outlined)
       case .select(let collection):
         try? model.addItem(to: collection)
-        toast(
-          CoreLocalization.L10n.Core.KWVaultItem.Changes.saved, image: .ds.feedback.success.outlined
-        )
+        toast(CoreL10n.KWVaultItem.Changes.saved, image: .ds.feedback.success.outlined)
       case .cancel:
         break
       }
@@ -227,9 +235,7 @@ extension QuickActionsMenuView {
     ) { completion in
       if case .done(let collectionsRemoved) = completion {
         try? model.removeItem(from: collectionsRemoved)
-        toast(
-          CoreLocalization.L10n.Core.KWVaultItem.Changes.saved, image: .ds.feedback.success.outlined
-        )
+        toast(CoreL10n.KWVaultItem.Changes.saved, image: .ds.feedback.success.outlined)
       }
       showCollectionRemoval = false
     }
@@ -250,7 +256,7 @@ extension Definition.Field {
     case .number: return L10n.Localizable.pasteboardCopyNumber
     case .fiscalNumber: return L10n.Localizable.pasteboardCopyFiscalNumber
     case .otpCode: return L10n.Localizable.pasteboardCopyOtpCode
-    default: return CoreLocalization.L10n.Core.kwCopied
+    default: return CoreL10n.kwCopied
     }
   }
 }

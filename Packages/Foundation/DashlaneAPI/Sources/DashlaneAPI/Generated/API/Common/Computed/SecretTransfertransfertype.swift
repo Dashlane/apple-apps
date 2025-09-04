@@ -1,6 +1,6 @@
 import Foundation
 
-public enum SecretTransfertransfertype: String, Sendable, Equatable, CaseIterable, Codable {
+public enum SecretTransfertransfertype: String, Sendable, Hashable, Codable, CaseIterable {
   case universal = "universal"
   case proximity = "proximity"
   case undecodable

@@ -45,11 +45,11 @@ extension RateAppConfig {
       daysBeforeFirstRequest: "7",
       daysForRequestFrequency: "60",
       maxDeclineResponse: "2",
-      title: L10n.Core.kwSendLoveHeadingPasswordchanger,
-      body: L10n.Core.kwSendLoveSubheadingPasswordchanger,
-      action: L10n.Core.kwSendLoveSendlovebuttonPasswordchanger,
-      feedbackAction: L10n.Core.kwSendLoveFeedbackbuttonPasswordchanger,
-      declineAction: L10n.Core.kwSendLoveNothanksbuttonPasswordchanger,
+      title: CoreL10n.kwSendLoveHeadingPasswordchanger,
+      body: CoreL10n.kwSendLoveSubheadingPasswordchanger,
+      action: CoreL10n.kwSendLoveSendlovebuttonPasswordchanger,
+      feedbackAction: CoreL10n.kwSendLoveFeedbackbuttonPasswordchanger,
+      declineAction: CoreL10n.kwSendLoveNothanksbuttonPasswordchanger,
       oneOffBlast: nil,
       controller: nil)
   }

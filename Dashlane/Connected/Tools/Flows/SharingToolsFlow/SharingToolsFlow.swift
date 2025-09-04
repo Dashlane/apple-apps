@@ -16,7 +16,6 @@ struct SharingToolsFlow: View {
       case .root:
         SharingToolView(model: viewModel.sharingToolViewModelFactory.make())
           .environment(\.showVaultItem, viewModel.makeShowVaultItemAction())
-          .navigationBarHidden(false)
       case let .credentialDetails(item):
         VaultDetailView(model: viewModel.makeDetailViewModel(), itemDetailViewType: .viewing(item))
       }

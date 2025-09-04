@@ -29,20 +29,20 @@ enum PremiumExpirationNoticeDate: Equatable {
     switch self {
     case .expired:
       return PremiumNotificationInfo(
-        title: L10n.Core.noBackupSyncPremiumRenewalTitle,
-        message: L10n.Core.noBackupSyncPremiumRenewalMsg)
+        title: CoreL10n.noBackupSyncPremiumRenewalTitle,
+        message: CoreL10n.noBackupSyncPremiumRenewalMsg)
     case .lessThanADayToExpire:
       return PremiumNotificationInfo(
-        title: L10n.Core.renewalNoticeReminderDminus1Title,
-        message: L10n.Core.renewalNoticeReminderDminus1Msg)
+        title: CoreL10n.renewalNoticeReminderDminus1Title,
+        message: CoreL10n.renewalNoticeReminderDminus1Msg)
     case .lessThanFiveDaysToExpire(let days):
       return PremiumNotificationInfo(
-        title: L10n.Core.renewalNoticeReminderDminus5Title,
-        message: L10n.Core.renewalNoticeReminderDminus5Msg(days))
+        title: CoreL10n.renewalNoticeReminderDminus5Title,
+        message: CoreL10n.renewalNoticeReminderDminus5Msg(days))
     case .lessThanTwentyFiveDaysToExpire(let daysLeft):
       return PremiumNotificationInfo(
-        title: L10n.Core.renewalNoticeReminderDminus25Title,
-        message: L10n.Core.renewalNoticeReminderDminus25Msg(daysLeft))
+        title: CoreL10n.renewalNoticeReminderDminus25Title,
+        message: CoreL10n.renewalNoticeReminderDminus25Msg(daysLeft))
     }
   }
 }

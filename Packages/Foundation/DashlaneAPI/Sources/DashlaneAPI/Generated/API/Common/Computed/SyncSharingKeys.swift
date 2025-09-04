@@ -1,6 +1,6 @@
 import Foundation
 
-public struct SyncSharingKeys: Codable, Equatable, Sendable {
+public struct SyncSharingKeys: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case privateKey = "privateKey"
     case publicKey = "publicKey"

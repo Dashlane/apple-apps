@@ -2,7 +2,6 @@ import CSVParser
 import CorePersonalData
 import Foundation
 import TOTPGenerator
-import VaultKit
 
 enum LastpassImportableItem {
   case credential(Credential)

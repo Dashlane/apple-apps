@@ -45,7 +45,7 @@ public struct VaultForEach<Header: View, Row: View>: View {
                 Button {
                   delete(element.item)
                 } label: {
-                  Label(L10n.Core.kwDelete, systemImage: "trash.fill")
+                  Label(CoreL10n.kwDelete, systemImage: "trash.fill")
                     .labelStyle(.titleAndIcon)
                 }
                 .tint(.ds.container.expressive.danger.catchy.idle)
@@ -57,23 +57,19 @@ public struct VaultForEach<Header: View, Row: View>: View {
   }
 }
 
-extension Array where Element == DataSection {
-  fileprivate static var preview: [Element] = [
-    .init(
-      name: "Credentials",
-      items: [
-        Credential(login: "_", title: "Credential 1", password: "12345"),
-        Credential(login: "_", title: "Credential 2", password: "123456"),
-        Credential(login: "_", title: "Credential 3", password: "123457"),
-      ]
-    )
-  ]
-}
-
 #Preview {
   List {
     VaultForEach(
-      sections: .preview,
+      sections: [
+        DataSection(
+          name: "Credentials",
+          items: [
+            Credential(login: "_", title: "Credential 1", password: "12345"),
+            Credential(login: "_", title: "Credential 2", password: "123456"),
+            Credential(login: "_", title: "Credential 3", password: "123457"),
+          ]
+        )
+      ],
       header: { section in
         Text(section.name)
       },

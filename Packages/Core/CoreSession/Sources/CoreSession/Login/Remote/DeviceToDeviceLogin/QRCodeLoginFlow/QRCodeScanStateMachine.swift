@@ -1,12 +1,13 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import StateMachine
 import SwiftTreats
 
-@MainActor
 public struct QRCodeScanStateMachine: StateMachine {
 
+  @Loggable
   public enum State: Hashable, Sendable {
     case waitingForQRCodeScan
     case readyForTransfer(QRCodeTransferInfo)
@@ -15,12 +16,14 @@ public struct QRCodeScanStateMachine: StateMachine {
     case transferError(StateMachineError)
   }
 
+  @Loggable
   public enum Event: Hashable {
     case requestTransferInfo
     case beginTransfer(withID: String)
-    case sendTransferData(response: AppAPIClient.Mpless.StartTransfer.Response)
+    case sendTransferData(AppAPIClient.Mpless.StartTransfer.Response)
   }
 
+  @Loggable
   public enum Error: Swift.Error {
     case couldNotGeneratePublicKey
     case couldNotDecrypt
@@ -53,7 +56,7 @@ public struct QRCodeScanStateMachine: StateMachine {
     self.logger = logger
   }
 
-  public mutating func transition(with event: Event) async {
+  public mutating func transition(with event: Event) async throws {
     logger.info("Received \(event) event")
     switch (state, event) {
     case (.waitingForQRCodeScan, .requestTransferInfo):
@@ -63,9 +66,12 @@ public struct QRCodeScanStateMachine: StateMachine {
     case (.transferring, let .sendTransferData(info)):
       await transferData(with: info)
     default:
-      let errorMessage = "Unexpected \(event) event for the state \(state)"
-      logger.error(errorMessage)
+      let errorMessage: LogMessage = "Unexpected \(event) event for the state \(state)"
+      logger.fatal(errorMessage)
+      throw InvalidTransitionError<Self>(event: event, state: state)
     }
+    let state = state
+    logger.info("Transition to state: \(state)")
   }
 
   private mutating func qrCodeTransferInfo() async {
@@ -88,7 +94,6 @@ public struct QRCodeScanStateMachine: StateMachine {
         QRCodeTransferInfo(
           qrCodeURL: qrCodeUrl, transferId: info.transferId,
           accountRecoveryInfo: accountRecoveryInfo))
-      logger.logInfo("Transition to \(state) state")
     } catch {
       logger.error("Qrcode qdevice transfer failed", error: error)
       state = .transferError(StateMachineError(underlyingError: error))
@@ -101,7 +106,6 @@ public struct QRCodeScanStateMachine: StateMachine {
         transferId: transferId,
         cryptography: .init(algorithm: .directHKDFSHA256, ellipticCurve: .x25519))
       state = .transferring(response)
-      logger.logInfo("Transition to \(state) state")
     } catch {
       logger.error("Qrcode device transfer failed", error: error)
       state = .transferError(StateMachineError(underlyingError: error))
@@ -129,7 +133,6 @@ public struct QRCodeScanStateMachine: StateMachine {
       let validData = try await AccountTransferInfo(
         receivedData: decodedData, apiClient: appAPIClient)
       state = .transferCompleted(validData)
-      logger.logInfo("Transition to \(state) state")
     } catch {
       logger.error("Qrcode device transfer failed", error: error)
       state = .transferError(StateMachineError(underlyingError: error))
@@ -143,13 +146,13 @@ extension QRCodeScanStateMachine {
       login: nil,
       state: .waitingForQRCodeScan,
       appAPIClient: .fake,
-      sessionCryptoEngineProvider: FakeCryptoEngineProvider(),
+      sessionCryptoEngineProvider: .mock(),
       qrDeviceTransferCrypto: ECDHMock.mock(),
-      logger: LoggerMock())
+      logger: .mock)
   }
 }
 
-extension AppAPIClient.Mpless.StartTransfer.Response: Hashable {
+extension AppAPIClient.Mpless.StartTransfer.Response: @retroactive Hashable {
   public func hash(into hasher: inout Hasher) {
     hasher.combine(encryptedData)
     hasher.combine(publicKey)

@@ -2,6 +2,8 @@ import SwiftTreats
 import SwiftUI
 
 public struct ObfuscatedDisplayField<Content: View, Actions: View>: View {
+  @Environment(\.defaultFieldActionsHidden) private var defaultFieldActionsHidden
+
   @State private var isRevealed = false
 
   private let actions: Actions
@@ -39,8 +41,10 @@ public struct ObfuscatedDisplayField<Content: View, Actions: View>: View {
     DisplayField(label) {
       contentProvider(!isRevealed)
     } actions: {
+      if !defaultFieldActionsHidden {
+        DS.FieldAction.RevealSecureContent(reveal: $isRevealed)
+      }
       actions
-      DS.FieldAction.RevealSecureContent(reveal: $isRevealed)
     }
   }
 }
@@ -75,6 +79,11 @@ public struct ObfuscatedDisplayFieldFormattedContentView: View {
       ObfuscatedDisplayFieldFormattedValueContentView(
         value,
         format: .cardNumber(obfuscated: obfuscated)
+      )
+    case let .obfuscated(maxLength):
+      ObfuscatedDisplayFieldFormattedValueContentView(
+        value,
+        format: .obfuscated(obfuscated: obfuscated, maxLength: maxLength)
       )
     }
   }
@@ -229,6 +238,37 @@ private struct CustomPreviewContent: View {
       "Irish BIC (HSBC Bank)",
       value: "HSBCIE2D",
       format: .accountIdentifier(.bic)
+    ) {
+      DS.FieldAction.CopyContent {
+      }
+    }
+  }
+}
+
+#Preview("Regular") {
+  List {
+    ObfuscatedDisplayField(
+      "Generated password",
+      value: "_",
+      format: .obfuscated()
+    ) {
+      DS.FieldAction.CopyContent {
+      }
+    }
+
+    ObfuscatedDisplayField(
+      "Generated password",
+      value: "MyStrongPassword123###",
+      format: .obfuscated(maxLength: 17)
+    ) {
+      DS.FieldAction.CopyContent {
+      }
+    }
+
+    ObfuscatedDisplayField(
+      "Note",
+      value: "Test note",
+      format: .obfuscated(maxLength: 4)
     ) {
       DS.FieldAction.CopyContent {
       }

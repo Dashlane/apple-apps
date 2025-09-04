@@ -12,25 +12,34 @@ struct AccountRecoveryKeyStatusDetailView: View {
   @State
   var showAlert = false
 
+  @Environment(\.accessControl)
+  var accessControl
+
   var body: some View {
     List {
       Section(footer: Text(model.footerLabel).textStyle(.body.helper.regular)) {
-        DS.Toggle(CoreLocalization.L10n.Core.recoveryKeySettingsLabel, isOn: $model.isEnabled)
-          .highPriorityGesture(
-            TapGesture()
-              .onEnded {
-                if !model.isEnabled {
+        DS.Toggle(
+          CoreL10n.recoveryKeySettingsLabel,
+          isOn: Binding(
+            get: { model.isEnabled },
+            set: { newValue in
+              accessControl.requestAccess(for: .authenticationSetup) { success in
+                guard success else { return }
+
+                if newValue {
                   model.presentedSheet = .activation
+                  model.isEnabled = newValue
                 } else {
                   showAlert = true
                 }
               }
-          )
+            }
+          ))
       }
       .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
     }
-    .listAppearance(.insetGrouped)
-    .navigationTitle(CoreLocalization.L10n.Core.recoveryKeySettingsLabel)
+    .listStyle(.ds.insetGrouped)
+    .navigationTitle(CoreL10n.recoveryKeySettingsLabel)
     .fullScreenCover(
       item: $model.presentedSheet,
       onDismiss: {
@@ -42,16 +51,16 @@ struct AccountRecoveryKeyStatusDetailView: View {
           AccountRecoveryActivationFlow(model: model.makeAccountRecoveryActivationFlowModel())
         case .error:
           FeedbackView(
-            title: CoreLocalization.L10n.Core.kwExtSomethingWentWrong,
-            message: CoreLocalization.L10n.Core.recoveryKeyActivationFailureMessage,
+            title: CoreL10n.kwExtSomethingWentWrong,
+            message: CoreL10n.recoveryKeyActivationFailureMessage,
             primaryButton: (
-              CoreLocalization.L10n.Core.modalTryAgain,
+              CoreL10n.modalTryAgain,
               {
                 model.deactivate()
               }
             ),
             secondaryButton: (
-              CoreLocalization.L10n.Core.cancel,
+              CoreL10n.cancel,
               {
                 model.presentedSheet = nil
               }
@@ -64,7 +73,7 @@ struct AccountRecoveryKeyStatusDetailView: View {
       L10n.Localizable.recoveryKeyDeactivationAlertTitle,
       isPresented: $showAlert,
       actions: {
-        Button(CoreLocalization.L10n.Core.cancel, role: .cancel) {
+        Button(CoreL10n.cancel, role: .cancel) {
           model.isEnabled = true
         }
         Button(L10n.Localizable.recoveryKeyDeactivationAlertCta, role: .destructive) {

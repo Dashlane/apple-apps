@@ -48,6 +48,9 @@ private struct VaultSearchSubview<InitialView: View>: View {
   @ObservedObject
   var model: VaultSearchViewModel
 
+  @State
+  private var isPresentingImportView = false
+
   init(
     model: VaultSearchViewModel,
     initialView: () -> InitialView
@@ -80,32 +83,37 @@ private struct VaultSearchSubview<InitialView: View>: View {
     .mainMenuShortcut(.search) {
       model.isSearchActive = true
     }
-    .onChange(of: isSearching) { newValue in
+    .onChange(of: isSearching) { _, newValue in
       self.model.isSearchActive = newValue
     }
+    .sheet(
+      isPresented: $isPresentingImportView,
+      content: {
+        ImportView(importSource: .vaultList)
+      })
   }
 
   private var addButton: some View {
     AddVaultButton(
-      category: .none,
-      onTap: model.onAddItemDropdown
-    ) { model.add(type: $0) }
+      isImportEnabled: true, category: nil,
+      onAction: { action in
+        switch action {
+        case .add(let type):
+          model.add(type: type)
+        case .import:
+          isPresentingImportView = true
+        }
+      }
+    )
     .fiberAccessibilityLabel(Text(L10n.Localizable.accessibilityAddToVault))
     .fiberAccessibilityRemoveTraits(.isImage)
   }
 }
 
 extension View {
-  fileprivate func searchActive(_ isActive: Bool) -> some View {
-    overlay(
-      SearchBarIntrospectController(isActive: isActive)
-        .frame(width: 0, height: 0)
-    )
-  }
-
   @ViewBuilder
   fileprivate func iPhoneOnlyBackground() -> some View {
-    if !Device.isIpadOrMac {
+    if !Device.is(.pad, .mac, .vision) {
       self.background(Color.ds.background.default)
     } else {
       self
@@ -122,24 +130,13 @@ private struct SearchModifier: ViewModifier {
   private let prompt = L10n.Localizable.itemsTabSearchPlaceholder
 
   func body(content: Content) -> some View {
-    if #available(iOS 17, *) {
-      content
-        .searchable(
-          text: $searchCriteria,
-          isPresented: $isPresented,
-          placement: placement,
-          prompt: prompt
-        )
-    } else {
-      content
-        .searchable(
-          text: $searchCriteria,
-          placement: placement,
-          prompt: prompt
-
-        )
-        .searchActive(isPresented)
-    }
+    content
+      .searchable(
+        text: $searchCriteria,
+        isPresented: $isPresented,
+        placement: placement,
+        prompt: prompt
+      )
   }
 }
 

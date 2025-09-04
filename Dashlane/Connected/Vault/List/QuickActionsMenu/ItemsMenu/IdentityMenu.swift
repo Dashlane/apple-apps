@@ -1,6 +1,6 @@
 import CorePersonalData
-import CoreUserTracking
 import SwiftUI
+import UserTrackingFoundation
 
 struct IdentityMenu: View {
   var identity: Identity

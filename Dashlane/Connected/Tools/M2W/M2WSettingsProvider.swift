@@ -1,6 +1,6 @@
 import CoreSession
 import CoreSettings
-import DashTypes
+import CoreTypes
 import Foundation
 
 protocol M2WSettingsProvider {

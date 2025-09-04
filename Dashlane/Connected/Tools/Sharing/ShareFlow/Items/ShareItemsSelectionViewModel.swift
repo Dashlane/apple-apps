@@ -1,7 +1,7 @@
 import Combine
 import CorePersonalData
 import CorePremium
-import DashTypes
+import CoreTypes
 import Foundation
 import VaultKit
 

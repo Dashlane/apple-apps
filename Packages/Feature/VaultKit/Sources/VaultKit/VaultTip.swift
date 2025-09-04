@@ -1,7 +1,6 @@
 import DesignSystem
 import TipKit
 
-@available(iOS 17, macOS 14, *)
 public enum VaultTip: View {
   case itemDragAndDrop
 

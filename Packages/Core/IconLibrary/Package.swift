@@ -3,7 +3,7 @@ import PackageDescription
 let package = Package(
   name: "IconLibrary",
   platforms: [
-    .iOS(.v16)
+    .iOS(.v17)
   ],
   products: [
     .library(
@@ -12,22 +12,23 @@ let package = Package(
     )
   ],
   dependencies: [
-    .package(path: "../../Foundation/DashTypes"),
+    .package(path: "../../Core/CoreTypes"),
     .package(path: "../../Foundation/UIDelight"),
     .package(path: "../../Foundation/DashlaneAPI"),
+    .package(path: "../../Foundation/LogFoundation"),
     .package(path: "../../Core/DesignSystem"),
-    .package(path: "../../Plugins/swiftgen-plugin"),
     .package(url: "_", from: "1.0.0"),
   ],
   targets: [
     .target(
       name: "IconLibrary",
       dependencies: [
-        .product(name: "DashTypes", package: "DashTypes"),
+        .product(name: "CoreTypes", package: "CoreTypes"),
         .product(name: "DesignSystem", package: "DesignSystem"),
         .product(name: "UIDelight", package: "UIDelight"),
         .product(name: "DashlaneAPI", package: "DashlaneAPI"),
         .product(name: "OrderedCollections", package: "swift-collections"),
+        .product(name: "LogFoundation", package: "LogFoundation"),
       ],
       swiftSettings: [
         .enableExperimentalFeature("StrictConcurrency")

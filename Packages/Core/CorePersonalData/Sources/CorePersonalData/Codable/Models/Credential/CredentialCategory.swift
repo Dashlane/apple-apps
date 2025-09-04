@@ -1,6 +1,8 @@
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 
+@Loggable
 @PersonalData("AUTH_CATEGORY")
 public struct CredentialCategory: Equatable, Identifiable {
   @CodingKey("categoryName")

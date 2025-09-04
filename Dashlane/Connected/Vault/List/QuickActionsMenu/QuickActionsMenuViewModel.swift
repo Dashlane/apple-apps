@@ -1,14 +1,14 @@
 import Combine
-import CoreActivityLogs
 import CoreFeature
 import CorePersonalData
 import CorePremium
 import CoreSettings
 import CoreSharing
-import CoreUserTracking
-import DashTypes
+import CoreTeamAuditLogs
+import CoreTypes
 import Foundation
 import SwiftTreats
+import UserTrackingFoundation
 import VaultKit
 
 @MainActor
@@ -48,7 +48,7 @@ class QuickActionsMenuViewModel: SessionServicesInjecting, MockVaultConnectedInj
     vaultStateService: VaultStateServiceProtocol,
     userSpacesService: UserSpacesService,
     activityReporter: ActivityReporterProtocol,
-    activityLogsService: ActivityLogsServiceProtocol,
+    teamAuditLogsService: TeamAuditLogsServiceProtocol,
     shareFlowViewModelFactory: ShareFlowViewModel.Factory,
     origin: ActionableVaultItemRowViewModel.Origin,
     pasteboardService: PasteboardServiceProtocol,
@@ -75,7 +75,7 @@ class QuickActionsMenuViewModel: SessionServicesInjecting, MockVaultConnectedInj
       vaultCollectionDatabase: vaultCollectionDatabase,
       vaultCollectionsStore: vaultCollectionsStore,
       activityReporter: activityReporter,
-      activityLogsService: activityLogsService
+      teamAuditLogsService: teamAuditLogsService
     )
 
     vaultCollectionsStore
@@ -109,6 +109,15 @@ class QuickActionsMenuViewModel: SessionServicesInjecting, MockVaultConnectedInj
 }
 
 extension QuickActionsMenuViewModel {
+
+  func onAppear() {
+    self.reportAppearance()
+
+    if origin == .search {
+      vaultItemDatabase.updateLastUseDate(of: [item], origin: [.search])
+    }
+  }
+
   func deleteBehaviour() async throws -> ItemDeleteBehaviour {
     try await sharingService.deleteBehaviour(for: item.id)
   }
@@ -245,7 +254,7 @@ extension QuickActionsMenuViewModel {
     }
   }
 
-  func reportAppearance() {
+  private func reportAppearance() {
     let vaultItemType = item.vaultItemType
     activityReporter.report(
       UserEvent.OpenVaultItemDropdown(dropdownType: .quickActions, itemType: vaultItemType))
@@ -261,10 +270,10 @@ extension QuickActionsMenuViewModel {
       vaultItemDatabase: MockVaultKitServicesContainer().vaultItemDatabase,
       vaultCollectionDatabase: MockVaultKitServicesContainer().vaultCollectionDatabase,
       vaultCollectionsStore: MockVaultConnectedContainer().vaultCollectionsStore,
-      vaultStateService: .mock,
+      vaultStateService: .mock(),
       userSpacesService: .mock(),
       activityReporter: .mock,
-      activityLogsService: .mock(),
+      teamAuditLogsService: .mock(),
       shareFlowViewModelFactory: .init { _, _, _ in .mock() },
       origin: .home,
       pasteboardService: .mock(),

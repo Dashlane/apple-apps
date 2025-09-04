@@ -1,24 +1,26 @@
 import CoreLocalization
-import DashTypes
+import CoreTypes
 import DesignSystem
 import Foundation
 import SwiftUI
 import UIComponents
 
-enum MigrationCompletionType {
+enum MigrationDecision {
   case cancel
   case migrate
 }
 
 struct SSOMigrationView: View {
-  let completion: (MigrationCompletionType) -> Void
+  let completion: (MigrationDecision) -> Void
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 21) {
-      Image(asset: FiberAsset.ssoOutlined)
-        .renderingMode(.template)
-        .foregroundColor(.ds.text.brand.standard)
+    ScrollView {
       VStack(alignment: .leading, spacing: 24) {
+        Image.ds.sso.outlined
+          .resizable()
+          .aspectRatio(contentMode: .fit)
+          .frame(width: 99)
+          .foregroundStyle(Color.ds.text.brand.standard)
         Text(L10n.Localizable.ssoMigrationTitle).font(.headline)
         Group {
           Text(L10n.Localizable.ssoMigrationMessage)
@@ -34,37 +36,33 @@ struct SSOMigrationView: View {
             })
         }
         .font(.caption)
-        .foregroundColor(.ds.text.neutral.quiet)
+        .foregroundStyle(Color.ds.text.neutral.quiet)
+        .lineLimit(nil)
 
         Infobox(L10n.Localizable.ssoMigrationNote)
-
-        Button(L10n.Localizable.activateSSOButtonTitle) {
-          completion(.migrate)
-        }
-        .buttonStyle(.designSystem(.titleOnly))
-        .padding(.top, 17)
-
       }
+      .padding(.horizontal, 24)
     }
-    .padding(.horizontal, 24)
+    .scrollBounceBehavior(.basedOnSize)
+    .safeAreaInset(edge: .bottom) {
+      Button(L10n.Localizable.activateSSOButtonTitle) {
+        completion(.migrate)
+      }
+      .buttonStyle(.designSystem(.titleOnly))
+      .padding(.horizontal, 24)
+      .padding(.bottom, 10)
+    }
     .navigationBarBackButtonHidden(true)
     .toolbar {
       ToolbarItem(placement: .navigationBarLeading) {
-        NavigationBarButton(
-          action: { self.completion(.cancel) }, title: CoreLocalization.L10n.Core.cancel)
+        Button(CoreL10n.cancel) { self.completion(.cancel) }
       }
     }
   }
 }
 
-extension SSOMigrationView: NavigationBarStyleProvider {
-  var navigationBarStyle: NavigationBarStyle {
-    return .transparent()
-  }
-}
-
-struct SSOMigrationView_Previews: PreviewProvider {
-  static var previews: some View {
+#Preview {
+  NavigationStack {
     SSOMigrationView { _ in }
   }
 }

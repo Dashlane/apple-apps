@@ -1,11 +1,12 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import StateMachine
 
-@MainActor
 public struct PassphraseVerificationStateMachine: StateMachine {
 
+  @Loggable
   public enum State: Hashable, Sendable {
     case initializing
     case transferCompleted(AccountTransferInfo)
@@ -13,7 +14,8 @@ public struct PassphraseVerificationStateMachine: StateMachine {
     case cancelled
   }
 
-  public enum Event {
+  @Loggable
+  public enum Event: Sendable {
     case requestTransferData
     case cancel
   }
@@ -39,17 +41,20 @@ public struct PassphraseVerificationStateMachine: StateMachine {
     self.logger = logger
   }
 
-  mutating public func transition(with event: Event) async {
-    logger.logInfo("Received event \(event)")
+  mutating public func transition(with event: Event) async throws {
+    logger.info("Received event \(event)")
     switch (state, event) {
     case (.initializing, .requestTransferData):
       await requestTransferData()
     case (_, .cancel):
       state = .cancelled
     default:
-      let errorMessage = "Unexpected \(event) event for the state \(state)"
-      logger.error(errorMessage)
+      let errorMessage: LogMessage = "Unexpected \(event) event for the state \(state)"
+      logger.fatal(errorMessage)
+      throw InvalidTransitionError<Self>(event: event, state: state)
     }
+    let state = state
+    logger.info("Transition to state: \(state)")
   }
 
   mutating private func requestTransferData() async {
@@ -59,7 +64,6 @@ public struct PassphraseVerificationStateMachine: StateMachine {
       let decodedData: DeviceToDeviceTransferData = try secretBox.open(
         DeviceToDeviceTransferData.self, from: transferInfo.encryptedData, nonce: transferInfo.nonce
       )
-      logger.logInfo("Transition to state: \(state)")
       let validData = try await AccountTransferInfo(receivedData: decodedData, apiClient: apiClient)
       state = .transferCompleted(validData)
     } catch let error as URLError where error.code == .timedOut {
@@ -77,6 +81,6 @@ extension PassphraseVerificationStateMachine {
   public static var mock: PassphraseVerificationStateMachine {
     PassphraseVerificationStateMachine(
       initialState: .initializing, apiClient: .fake, transferId: "transferId",
-      secretBox: DeviceTransferSecretBoxMock.mock(), logger: LoggerMock())
+      secretBox: DeviceTransferSecretBoxMock.mock(), logger: .mock)
   }
 }

@@ -1,6 +1,6 @@
 import Combine
 import CorePersonalData
-import DashTypes
+import CoreTypes
 import Foundation
 import TOTPGenerator
 

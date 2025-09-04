@@ -40,7 +40,7 @@ extension FeatureBadge {
       case .beta:
         return L10n.Localizable.localPasswordChangerSettingsNote
       case .upgrade:
-        return CoreLocalization.L10n.Core.paywallUpgradetag
+        return CoreL10n.paywallUpgradetag
       }
     }
 

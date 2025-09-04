@@ -35,18 +35,18 @@ struct PremiumAnnouncementsView: View {
 
   var specialOfferView: some View {
     Infobox(
-      L10n.Core.specialOfferAnnouncementTitle,
-      description: L10n.Core.specialOfferAnnouncementBody
+      CoreL10n.specialOfferAnnouncementTitle,
+      description: CoreL10n.specialOfferAnnouncementBody
     ) {
-      Button(L10n.Core.paywallUpgradetag) {
+      Button(CoreL10n.paywallUpgradetag) {
         self.model.showSettings()
       }
     }
   }
 
   var failedAutoRenewalView: some View {
-    Infobox(L10n.Core.failedAutorenewalAnnouncementTitle) {
-      Button(L10n.Core.failedAutorenewalAnnouncementAction) {
+    Infobox(CoreL10n.failedAutorenewalAnnouncementTitle) {
+      Button(CoreL10n.failedAutorenewalAnnouncementAction) {
         self.model.openAppleUpdatePaymentsPage()
       }
     }
@@ -54,7 +54,7 @@ struct PremiumAnnouncementsView: View {
   }
 
   var premiumExpiredView: some View {
-    Infobox(L10n.Core.announcePremiumExpiredBody) {
+    Infobox(CoreL10n.announcePremiumExpiredBody) {
       premiumPurchaseCTA
     }
     .style(mood: .danger)
@@ -69,11 +69,11 @@ struct PremiumAnnouncementsView: View {
 
   var premiumPurchaseCTA: some View {
     if model.isPremiumTrial {
-      Button(L10n.Core.currentPlanCtaPremium) {
+      Button(CoreL10n.currentPlanCtaPremium) {
         model.showPremium()
       }
     } else {
-      Button(L10n.Core.announcePremiumExpiredCta) {
+      Button(CoreL10n.announcePremiumExpiredCta) {
         model.showPremium()
       }
     }

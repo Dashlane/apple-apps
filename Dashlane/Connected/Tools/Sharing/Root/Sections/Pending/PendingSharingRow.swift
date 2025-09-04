@@ -12,7 +12,7 @@ struct PendingSharingRow<Content: View>: View {
   typealias Action = PendingSharingRowAction
 
   @State
-  var inProgress: Bool = false
+  var inProgressAction: Action?
 
   @State
   var showError: Bool = false
@@ -24,27 +24,23 @@ struct PendingSharingRow<Content: View>: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
+      label
+
       HStack {
-        label
-        Spacer()
-        if inProgress {
-          ProgressView()
-        }
-      }
-      HStack {
+        let disabled = inProgressAction != nil
         Spacer()
         declineButton
-          .disabled(inProgress)
+          .disabled(disabled)
 
         acceptButton
-          .disabled(inProgress)
+          .disabled(disabled)
       }.controlSize(.mini)
     }
     .padding(.vertical, 8)
     .alert(L10n.Localizable.kwSharingCenterUnknownErrorAlertTitle, isPresented: $showError) {
 
     }
-    .animation(.easeInOut, value: inProgress)
+    .animation(.easeInOut, value: inProgressAction)
     .buttonStyle(.plain)
   }
 
@@ -54,6 +50,8 @@ struct PendingSharingRow<Content: View>: View {
     }
     .buttonStyle(.designSystem(.titleOnly))
     .style(mood: .neutral, intensity: .supershy)
+    .buttonDisplayProgressIndicator(inProgressAction == .refuse)
+    .disabled(inProgressAction == .accept)
   }
 
   var acceptButton: some View {
@@ -62,17 +60,19 @@ struct PendingSharingRow<Content: View>: View {
     }
     .buttonStyle(.designSystem(.titleOnly))
     .style(mood: .brand, intensity: .catchy)
+    .buttonDisplayProgressIndicator(inProgressAction == .accept)
   }
 
   func perform(_ action: Action) {
     Task {
       showError = false
-      inProgress = true
+      inProgressAction = action
+      defer {
+        inProgressAction = nil
+      }
       do {
         try await self.action(action)
-        inProgress = false
       } catch {
-        inProgress = false
         showError = true
       }
     }
@@ -96,7 +96,7 @@ struct PendingSharingRow_Previews: PreviewProvider {
           Text("Failing Item")
         }
       }
-    }.listStyle(.insetGrouped)
+    }.listStyle(.ds.insetGrouped)
 
   }
 }

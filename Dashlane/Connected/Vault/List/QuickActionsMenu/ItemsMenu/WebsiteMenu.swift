@@ -1,6 +1,6 @@
 import CorePersonalData
-import CoreUserTracking
 import SwiftUI
+import UserTrackingFoundation
 
 struct WebsiteMenu: View {
   var website: PersonalWebsite

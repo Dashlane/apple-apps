@@ -1,6 +1,8 @@
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 
+@Loggable
 public enum XMLDataType: String, Codable, Hashable {
   case address = "KWAddress"
   case bankAccount = "KWBankStatement"
@@ -28,6 +30,7 @@ public enum XMLDataType: String, Codable, Hashable {
   case taxNumber = "KWFiscalStatement"
   case website = "KWPersonalWebsite"
   case passkey = "KWPasskey"
+  case wifi = "KWWiFi"
 }
 
 extension XMLDataType {
@@ -83,6 +86,8 @@ extension XMLDataType {
       self = .passkey
     case .secret:
       self = .secret
+    case .wifi:
+      self = .wifi
     }
   }
 }
@@ -139,6 +144,8 @@ extension PersonalDataContentType {
       self = .passkey
     case .secret:
       self = .secret
+    case .wifi:
+      self = .wifi
     case .dataChangeSets:
       return nil
     }

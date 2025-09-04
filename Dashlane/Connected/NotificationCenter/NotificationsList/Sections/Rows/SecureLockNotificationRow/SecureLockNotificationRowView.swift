@@ -7,24 +7,34 @@ struct SecureLockNotificationRowView: View {
   @ObservedObject
   var model: SecureLockNotificationRowViewModel
 
+  @Environment(\.accessControl)
+  var accessControl
+
   var body: some View {
     BaseNotificationRowView(
       icon: model.notification.icon,
       title: model.notification.title,
       description: model.notification.description,
-      onTap: model.didTapOnEnableSecureLock
+      notificationState: model.notification.state,
+      onTap: {
+        accessControl.requestAccess(for: .authenticationSetup) { success in
+          guard success else { return }
+          model.didTapOnEnableSecureLock()
+        }
+      }
     )
     .alert(
       presentMPStoredInKeychainAlertTitle,
       isPresented: $model.presentMPStoredInKeychainAlert,
       actions: {
-        Button(CoreLocalization.L10n.Core.kwButtonOk, action: model.enableSecureLock)
-        Button(CoreLocalization.L10n.Core.cancel) {}
+        Button(CoreL10n.kwButtonOk, action: model.enableSecureLock)
+        Button(CoreL10n.cancel) {}
       }
     )
     .overFullScreen(isPresented: $model.choosePinCode) {
       PinCodeSelection(model: model.pinCodeViewModel())
     }
+
   }
 
   var presentMPStoredInKeychainAlertTitle: String {

@@ -4,11 +4,11 @@ import CoreLocalization
 import CorePasswords
 import CorePersonalData
 import CoreSettings
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import Foundation
 import SwiftUI
 import UIDelight
+import UserTrackingFoundation
 
 public enum PasswordGeneratorMode {
   public enum StandaloneAction {
@@ -179,15 +179,11 @@ public class PasswordGeneratorViewModel: ObservableObject {
 
   private func accessibilityNotificationPasswordRefreshed() {
     let message: String = [
-      L10n.Core.accessibilityGeneratedPasswordRefreshed, passwordStrength.funFact,
+      CoreL10n.accessibilityGeneratedPasswordRefreshed, passwordStrength.funFact,
     ]
     .compactMap { $0 }
     .joined(separator: "\n")
-    #if canImport(UIKit)
-      UIAccessibility.fiberPost(.announcement, argument: message)
-    #elseif canImport(AppKit)
-      NSAccessibility.fiberPost(notification: message)
-    #endif
+    UIAccessibility.fiberPost(.announcement, argument: message)
   }
 
   private func copy() {
@@ -230,15 +226,15 @@ extension PasswordStrength {
   public var funFact: String {
     switch self {
     case .veryGuessable:
-      return L10n.Core.passwordGeneratorStrengthVeryGuessabble
+      return CoreL10n.passwordGeneratorStrengthVeryGuessabble
     case .tooGuessable:
-      return L10n.Core.passwordGeneratorStrengthTooGuessable
+      return CoreL10n.passwordGeneratorStrengthTooGuessable
     case .somewhatGuessable:
-      return L10n.Core.passwordGeneratorStrengthSomewhatGuessable
+      return CoreL10n.passwordGeneratorStrengthSomewhatGuessable
     case .safelyUnguessable:
-      return L10n.Core.passwordGeneratorStrengthSafelyUnguessable
+      return CoreL10n.passwordGeneratorStrengthSafelyUnguessable
     case .veryUnguessable:
-      return L10n.Core.passwordGeneratorStrengthVeryUnguessable
+      return CoreL10n.passwordGeneratorStrengthVeryUnguessable
     }
   }
 }
@@ -304,7 +300,7 @@ extension PasswordGeneratorViewModel {
       passwordEvaluator: .mock(),
       sessionActivityReporter: .mock,
       userSettings: UserSettings(internalStore: .mock()),
-      vaultStateService: .mock,
+      vaultStateService: .mock(),
       deeplinkingService: MockVaultKitServicesContainer().deeplinkService,
       pasteboardService: .mock())
   }

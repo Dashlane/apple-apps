@@ -1,7 +1,8 @@
+import CoreTypes
 import CryptoKit
 import CyrilKit
-import DashTypes
 import Foundation
+import LogFoundation
 
 public protocol AuthenticationKeychainCryptoEngineProvider {
   func keychainCryptoEngine(using key: CyrilKit.SymmetricKey) throws -> CryptoEngine
@@ -82,6 +83,7 @@ extension AuthenticationKeychainCryptoEngine {
     case password
   }
 
+  @Loggable
   public struct DecryptError: Error {
     public let errors: [DecryptKeyStrategy: Error]
   }

@@ -1,6 +1,6 @@
 import Foundation
 
-public struct AccountMigrationInfos: Hashable {
+public struct AccountMigrationInfos: Hashable, Sendable {
   public let session: Session
   public let type: SSOMigrationType
   public let ssoAuthenticationInfo: SSOAuthenticationInfo

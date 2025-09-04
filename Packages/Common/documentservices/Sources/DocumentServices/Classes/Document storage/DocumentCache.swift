@@ -1,7 +1,10 @@
 import Foundation
+import LogFoundation
 import SwiftTreats
 
+@Loggable
 struct DocumentCacheError: Error {
+  @LogPublicPrivacy
   let message: String
   public init(_ message: String) {
     self.message = message

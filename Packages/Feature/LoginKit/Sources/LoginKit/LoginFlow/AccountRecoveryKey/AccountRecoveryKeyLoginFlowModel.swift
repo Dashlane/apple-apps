@@ -1,10 +1,10 @@
 import CorePasswords
 import CoreSession
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 import StateMachine
+import UserTrackingFoundation
 
 @MainActor
 public final class AccountRecoveryKeyLoginFlowModel: StateMachineBasedObservableObject,
@@ -18,7 +18,7 @@ public final class AccountRecoveryKeyLoginFlowModel: StateMachineBasedObservable
 
   enum Step {
     case verification(VerificationMethod, DeviceInfo)
-    case recoveryKeyInput(_ authTicket: AuthTicket)
+    case recoveryKeyInput(AuthTicket, CoreSession.AccountType)
     case changeMasterPassword(CoreSession.MasterKey, AuthTicket)
   }
 
@@ -28,9 +28,9 @@ public final class AccountRecoveryKeyLoginFlowModel: StateMachineBasedObservable
   @Published var showNoMatchError: Bool = false
 
   private let login: Login
-  private let accountType: CoreSession.AccountType
 
-  public var stateMachine: AccountRecoveryKeyLoginFlowStateMachine
+  @Published public var stateMachine: AccountRecoveryKeyLoginFlowStateMachine
+  @Published public var isPerformingEvent: Bool = false
 
   private let passwordEvaluator: PasswordEvaluatorProtocol
   private let activityReporter: ActivityReporterProtocol
@@ -43,10 +43,7 @@ public final class AccountRecoveryKeyLoginFlowModel: StateMachineBasedObservable
 
   public init(
     login: Login,
-    accountType: CoreSession.AccountType,
-    loginType: AccountRecoveryKeyLoginFlowStateMachine.LoginType,
-    appAPIClient: AppAPIClient,
-    cryptoEngineProvider: CryptoEngineProvider,
+    stateMachine: AccountRecoveryKeyLoginFlowStateMachine,
     passwordEvaluator: PasswordEvaluatorProtocol,
     activityReporter: ActivityReporterProtocol,
     accountVerificationFlowModelFactory: AccountVerificationFlowModel.Factory,
@@ -55,21 +52,13 @@ public final class AccountRecoveryKeyLoginFlowModel: StateMachineBasedObservable
     completion: @escaping @MainActor (AccountRecoveryKeyLoginFlowModel.Completion) -> Void
   ) {
     self.login = login
-    self.accountType = accountType
     self.completion = completion
     self.passwordEvaluator = passwordEvaluator
     self.activityReporter = activityReporter
     self.accountVerificationFlowModelFactory = accountVerificationFlowModelFactory
     self.accountRecoveryKeyLoginViewModelFactory = accountRecoveryKeyLoginViewModelFactory
     self.newMasterPasswordViewModelFactory = newMasterPasswordViewModelFactory
-    self.stateMachine = .init(
-      initialState: .loading,
-      login: login,
-      loginType: loginType,
-      accountType: accountType,
-      appAPIClient: appAPIClient,
-      cryptoEngineProvider: cryptoEngineProvider
-    )
+    self.stateMachine = stateMachine
 
     start(login: login)
   }
@@ -93,16 +82,15 @@ public final class AccountRecoveryKeyLoginFlowModel: StateMachineBasedObservable
     accountVerificationFlowModelFactory.make(
       login: login,
       mode: .masterPassword,
-      verificationMethod: method,
-      deviceInfo: deviceInfo
+      stateMachine: stateMachine.makeAccountVerificationStateMachine()
     ) { [weak self] completion in
       self?.handleAccountVerificationFlowViewModelCompletion(completion, verificationMethod: method)
     }
   }
 
-  func makeAccountRecoveryKeyLoginViewModel(authTicket: AuthTicket)
-    -> AccountRecoveryKeyLoginViewModel
-  {
+  func makeAccountRecoveryKeyLoginViewModel(
+    authTicket: AuthTicket, accountType: CoreSession.AccountType
+  ) -> AccountRecoveryKeyLoginViewModel {
     accountRecoveryKeyLoginViewModelFactory.make(accountType: accountType) {
       [weak self] recoveryKey in
       await self?.perform(.getMasterKey(recoveryKey: recoveryKey, authTicket))
@@ -143,8 +131,8 @@ extension AccountRecoveryKeyLoginFlowModel {
       showError = true
     case .accountVerification(let verificationMethod, let deviceInfo):
       steps.append(.verification(verificationMethod, deviceInfo))
-    case .recoveryKeyInput(let authTicket):
-      steps.append(.recoveryKeyInput(authTicket))
+    case let .recoveryKeyInput(authTicket, accountType):
+      steps.append(.recoveryKeyInput(authTicket, accountType))
     case .masterPasswordChangeNeeded(let masterKey, let authTicket):
       steps.append(.changeMasterPassword(masterKey, authTicket))
     case let .completed(result):
@@ -191,13 +179,10 @@ extension AccountRecoveryKeyLoginFlowModel {
   static var mock: AccountRecoveryKeyLoginFlowModel {
     AccountRecoveryKeyLoginFlowModel(
       login: "_",
-      accountType: .invisibleMasterPassword,
-      loginType: .local(.otp2User(AuthTicket(value: "authTicket")), .mock),
-      appAPIClient: .fake,
-      cryptoEngineProvider: SessionCryptoEngineProvider(logger: LoggerMock.mock),
+      stateMachine: .mock,
       passwordEvaluator: PasswordEvaluatorMock.mock(),
       activityReporter: .mock,
-      accountVerificationFlowModelFactory: .init { _, _, _, _, _, _ in
+      accountVerificationFlowModelFactory: .init { _, _, _, _, _ in
         .mock(verificationMethod: .emailToken)
       },
       accountRecoveryKeyLoginViewModelFactory: .init { _, _ in .mock() },

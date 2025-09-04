@@ -1,7 +1,7 @@
-import DashTypes
+import CoreTypes
 import Foundation
 
-public protocol SessionsContainerProtocol {
+public protocol SessionsContainerProtocol: Sendable {
   func fetchCurrentLogin() throws -> Login?
 
   func saveCurrentLogin(_ login: Login?) throws
@@ -30,7 +30,6 @@ public protocol SessionsContainerProtocol {
     to newMasterKey: MasterKey,
     remoteKey: Data?,
     cryptoConfig: CryptoRawConfig,
-    accountMigrationType: AccountMigrationType,
     loginOTPOption: ThirdPartyOTPOption?
   ) throws -> MigratingSession
 
@@ -42,6 +41,8 @@ public protocol SessionsContainerProtocol {
     throws -> Session
 
   func localAccountsInfo() throws -> [(Login, SessionInfo?)]
+
+  func update(_ session: Session, to login: Login) throws -> Session
 }
 
 public struct MigratingSession {

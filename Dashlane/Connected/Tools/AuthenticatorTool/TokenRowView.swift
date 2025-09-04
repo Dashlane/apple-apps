@@ -56,10 +56,10 @@ struct TokenRowView: View {
         HStack(spacing: 8) {
           Text(model.title)
             .font(.headline)
-            .foregroundColor(.ds.text.neutral.catchy)
+            .foregroundStyle(Color.ds.text.neutral.catchy)
           if model.isDashlaneToken {
             Text(model.dashlaneTokenCaption.uppercased())
-              .foregroundColor(.ds.text.brand.standard)
+              .foregroundStyle(Color.ds.text.brand.standard)
               .font(.caption2)
               .padding(4)
               .background(.ds.container.expressive.brand.quiet.idle)
@@ -69,7 +69,7 @@ struct TokenRowView: View {
         if !model.subtitle.isEmpty {
           Text(model.subtitle)
             .font(.caption)
-            .foregroundColor(.ds.text.neutral.quiet)
+            .foregroundStyle(Color.ds.text.neutral.quiet)
             .fiberAccessibilityHidden(rowMode == .view)
         }
       }
@@ -79,7 +79,7 @@ struct TokenRowView: View {
         label: {
           Image(systemName: "chevron.down")
             .rotationEffect(rowMode == .expanded ? .degrees(-180) : .degrees(0))
-            .foregroundColor(.ds.text.neutral.standard)
+            .foregroundStyle(Color.ds.text.neutral.standard)
             .opacity(rowMode == .edition ? 0 : 1)
             .fiberAccessibilityHidden(rowMode == .edition)
         }

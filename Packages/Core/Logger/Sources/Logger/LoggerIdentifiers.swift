@@ -1,5 +1,5 @@
-import DashTypes
 import Foundation
+import LogFoundation
 
 public enum AppLoggerIdentifier: String, LoggerIdentifier, CaseIterable {
   case accountCreation
@@ -52,7 +52,7 @@ public enum AppLoggerIdentifier: String, LoggerIdentifier, CaseIterable {
 
   case inAppPurchase
 
-  case activityLogs
+  case teamAuditLogs
 
   public var stringValue: String { return self.rawValue.lowercased() }
 }

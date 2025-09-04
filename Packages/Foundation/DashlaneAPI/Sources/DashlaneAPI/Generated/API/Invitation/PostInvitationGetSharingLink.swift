@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppAPIClient.Invitation {
-  public struct GetSharingLink: APIRequest {
+  public struct GetSharingLink: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/invitation/GetSharingLink"
 
     public let api: AppAPIClient
@@ -24,7 +24,7 @@ extension AppAPIClient.Invitation {
 }
 
 extension AppAPIClient.Invitation.GetSharingLink {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case userKey = "userKey"
     }
@@ -43,7 +43,7 @@ extension AppAPIClient.Invitation.GetSharingLink {
 }
 
 extension AppAPIClient.Invitation.GetSharingLink {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case sharingId = "sharingId"
     }

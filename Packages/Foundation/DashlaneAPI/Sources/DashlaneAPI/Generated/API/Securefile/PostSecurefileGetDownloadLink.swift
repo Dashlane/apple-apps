@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Securefile {
-  public struct GetDownloadLink: APIRequest {
+  public struct GetDownloadLink: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/securefile/GetDownloadLink"
 
     public let api: UserDeviceAPIClient
@@ -22,7 +22,7 @@ extension UserDeviceAPIClient.Securefile {
 }
 
 extension UserDeviceAPIClient.Securefile.GetDownloadLink {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case key = "key"
     }
@@ -41,7 +41,7 @@ extension UserDeviceAPIClient.Securefile.GetDownloadLink {
 }
 
 extension UserDeviceAPIClient.Securefile.GetDownloadLink {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case url = "url"
     }

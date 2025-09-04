@@ -1,6 +1,7 @@
 import Combine
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 
 public final class SyncedSettingsService {
   let database: ApplicationDatabase
@@ -87,11 +88,12 @@ extension SyncedSettingsService {
     SyncedSettingsService(
       database: ApplicationDBStack.mock(),
       initialSettings: Settings(cryptoConfig: .init(fixedSalt: nil, marker: ""), email: "_"),
-      logger: LoggerMock())
+      logger: .mock)
   }
 }
 
 extension SyncedSettingsService {
+  @Loggable
   public enum Error: Swift.Error {
     case settingsNotFound
   }

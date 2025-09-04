@@ -2,9 +2,21 @@ import SwiftUI
 
 public struct ListItem<Content: View, Actions: View>: View {
   @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+  @Environment(\.container) var container
 
   private let content: Content
   private let actions: Actions
+
+  private var listRowInsets: EdgeInsets? {
+    return switch container {
+    case .list(.insetGrouped):
+      EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 0)
+    case .list(.plain):
+      EdgeInsets(top: 0, leading: 16, bottom: 0, trailing: 8)
+    case .root:
+      nil
+    }
+  }
 
   public init(
     @ViewBuilder content: () -> Content,
@@ -82,29 +94,13 @@ public struct ListItem<Content: View, Actions: View>: View {
     }
     .frame(minHeight: 40)
     .padding(.vertical, 8)
-    .listRowInsets(
-      .custom(hasActions: hasActions)
-    )
+    .listRowInsets(listRowInsets)
     .transformEnvironment(\.dynamicTypeSize) { typeSize in
       guard dynamicTypeSize > .accessibility2 else { return }
       typeSize = .accessibility2
     }
   }
 
-  private var hasActions: Bool { Actions.self == EmptyView.self }
-}
-
-extension EdgeInsets {
-  fileprivate static func custom(hasActions: Bool) -> EdgeInsets? {
-    return EdgeInsets(
-      top: 0,
-      leading: 16,
-      bottom: 0,
-      trailing: hasActions ? 20 : 8
-    )
-  }
-
-  fileprivate var vertical: Double { top + bottom }
 }
 
 private struct PreviewContent: View {
@@ -133,7 +129,7 @@ private struct PreviewContent: View {
         }
       } leadingAccessory: {
         Thumbnail.User.single(nil)
-          .controlSize(.mini)
+          .controlSize(.small)
       } actions: {
         FieldAction.CopyContent(action: {})
         FieldAction.Button(
@@ -154,7 +150,7 @@ private struct PreviewContent: View {
         badge: "Badge",
         leadingAccessory: {
           Thumbnail.User.single(nil)
-            .controlSize(.mini)
+            .controlSize(.small)
         },
         actions: {
           FieldAction.CopyContent(action: {})
@@ -168,7 +164,7 @@ private struct PreviewContent: View {
 
       ListItem(title: "Test", description: "") {
         Thumbnail.User.single(nil)
-          .controlSize(.mini)
+          .controlSize(.small)
       }
 
       ListItem(title: "Title", description: "This is a longer description") {
@@ -186,7 +182,7 @@ private struct PreviewContent: View {
         }
       } leadingAccessory: {
         Thumbnail.User.group
-          .controlSize(.mini)
+          .controlSize(.small)
       } actions: {
         FieldAction.CopyContent(action: {})
       }
@@ -201,7 +197,7 @@ private struct PreviewContent: View {
         }
       } leadingAccessory: {
         Thumbnail.User.single(nil)
-          .controlSize(.mini)
+          .controlSize(.small)
       } actions: {
         FieldAction.Menu("More", image: .ds.action.more.outlined) {
           FieldAction.Button("Action", image: .ds.action.add.outlined) {}
@@ -209,7 +205,7 @@ private struct PreviewContent: View {
         FieldAction.CopyContent(action: {})
       }
     }
-    .listAppearance(.insetGrouped)
+    .listStyle(.ds.insetGrouped)
     .tint(.ds.text.brand.quiet)
     .searchable(text: $searchText)
     .highlightedValue(searchText)

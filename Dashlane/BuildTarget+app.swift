@@ -1,4 +1,4 @@
-import DashTypes
+import CoreTypes
 
 extension BuildTarget {
   static var current: BuildTarget {

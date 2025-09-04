@@ -1,9 +1,11 @@
 import Combine
 import CoreCategorizer
+import CoreMainMenu
 import CorePersonalData
 import CoreSession
 import CoreSync
 import DesignSystem
+import LogFoundation
 import LoginKit
 import Lottie
 import SwiftTreats
@@ -13,9 +15,10 @@ import UIDelight
 import UIKit
 import VaultKit
 
-class ConnectedCoordinator: NSObject, Coordinator, SubcoordinatorOwner {
+final class ConnectedCoordinator: NSObject, Coordinator, SubcoordinatorOwner {
   let sessionServices: SessionServicesContainer
   let window: UIWindow
+  let appRootNavigationViewController: UINavigationController
   var subcoordinator: Coordinator?
   let lockCoordinator: LockCoordinator
   let modalCoordinator: ModalCoordinator
@@ -25,17 +28,12 @@ class ConnectedCoordinator: NSObject, Coordinator, SubcoordinatorOwner {
   private weak var logoutHandler: SessionLifeCycleHandler?
   private var syncStatusSubscription: AnyCancellable?
 
-  lazy var connectedViewController: UIViewController = {
-    let services = self.sessionServices
-    return DashlaneHostingViewController(
-      rootView: ConnectedRootView(model: services.makeConnectedRootViewModel()))
-  }()
-
   private let mainMenuHandler: SessionMainMenuHandler
 
   init(
     sessionServices: SessionServicesContainer,
     window: UIWindow,
+    appRootNavigationViewController: UINavigationController,
     logoutHandler: SessionLifeCycleHandler,
     applicationMainMenuHandler: ApplicationMainMenuHandler
   ) {
@@ -47,36 +45,33 @@ class ConnectedCoordinator: NSObject, Coordinator, SubcoordinatorOwner {
     self.modalCoordinator = .init(baseWindow: window, sessionServices: sessionServices)
     self.onboardingService = sessionServices.onboardingService
     self.logoutHandler = logoutHandler
+    self.appRootNavigationViewController = appRootNavigationViewController
+
+    let logger = sessionServices.appServices.rootLogger
     self.appTrackingTransparencyService = AppTrackingTransparencyService(
-      sessionServices: sessionServices)
+      logger: logger[.appTrackingTransparency])
     self.mainMenuHandler = SessionMainMenuHandler(
       applicationHandler: applicationMainMenuHandler,
       syncService: sessionServices.syncService,
       bridge: MainMenuBarBridge.shared,
-      logger: sessionServices.appServices.rootLogger)
+      logger: logger)
   }
 
   func start() {
-    showConnectedView()
+    LoadingOverlayWindowCoordinator.shared.dismiss()
+
+    configureAppearance()
+
+    showStartingView()
+
     syncStatusSubscription = sessionServices.syncService.$syncStatus
       .receive(on: DispatchQueue.main)
       .sink { [weak self] status in
         self?.syncStatusDidChange(to: status)
       }
-
-    if case .accountCreation = sessionServices.loadingContext {
-      appTrackingTransparencyService.requestAuthorization()
-    }
-
-    if onboardingService.shouldShowAccountCreationOnboarding {
-      Task {
-        await DefaultAnimationCache.sharedCache.preloadAnimationsForGuidedOnboarding()
-      }
-    }
-    configureAppearance()
   }
 
-  func configureAppearance() {
+  private func configureAppearance() {
     UITableView.appearance().backgroundColor = UIColor.ds.background.default
     UITableView.appearance().sectionHeaderTopPadding = 0.0
   }
@@ -88,49 +83,45 @@ class ConnectedCoordinator: NSObject, Coordinator, SubcoordinatorOwner {
     completion()
   }
 
-  private func showConnectedView() {
-    if onboardingService.shouldShowAccountCreationOnboarding {
-      showOnboarding()
-    } else if let biometry = Device.biometryType,
-      onboardingService.shouldShowFastLocalSetupForFirstLogin
-    {
+  private func showStartingView() {
+    if let biometry = Device.biometryType, onboardingService.shouldShowFastLocalSetupForFirstLogin {
       showFastLocalSetup(for: biometry)
-    } else if Device.isMac, onboardingService.shouldShowFastLocalSetupForFirstLogin {
+    } else if Device.is(.mac), onboardingService.shouldShowFastLocalSetupForFirstLogin {
       showFastLocalSetupForRememberMasterPassword()
     } else {
-      transitionToConnectedViewController()
+      showConnectedView()
     }
   }
 
-  func transitionToConnectedViewController() {
-    let backgroundViewController = makeBackgroundViewController()
-    self.window.rootViewController = connectedViewController
+  func showConnectedView() {
+    let newRootViewController = makeConnectedViewController()
 
-    self.window.rootViewController?.present(backgroundViewController, animated: false) {
-      backgroundViewController.dismiss(animated: true) {
+    Task {
+      if case .accountCreation = self.sessionServices.loadingContext {
+        await self.appTrackingTransparencyService.requestAuthorization()
+      } else {
+        await self.sessionServices.appServices.notificationService.requestUserAuthorization()
+      }
 
-        if self.onboardingService.shouldShowBiometricsOrPinOnboardingForSSO {
-          self.showBiometricsOrPinOnboarding()
-        } else {
-          self.finishLaunch()
-        }
+      self.window.rootViewController = newRootViewController
+      if self.onboardingService.shouldShowBiometricsOrPinOnboardingForSSO {
+        self.showBiometricsOrPinOnboarding()
+      } else {
+        self.finishLaunch()
       }
     }
   }
 
-  func makeBackgroundViewController() -> UIViewController {
-    let backgroundViewController = UIViewController()
-    backgroundViewController.view = self.window.rootViewController?.view.snapshotView(
-      afterScreenUpdates: false)
-    backgroundViewController.transitioningDelegate = self
-    backgroundViewController.modalPresentationStyle = .fullScreen
-    return backgroundViewController
+  func makeConnectedViewController() -> UIViewController {
+    let services = self.sessionServices
+    let model = services.makeConnectedRootViewModel()
+    let lockPlaceholder = Image(uiImage: window.imageFromLayer())
+    let view = ConnectedRootView(model: model, onLoginLockPlaceholder: lockPlaceholder)
+
+    return MainMenuHandlerHostingViewController(rootView: view)
   }
 
   func finishLaunch() {
-    sessionServices.lockService.locker.screenLocker?.suspendMomentarelyPrivacyShutter()
-
-    self.sessionServices.appServices.notificationService.requestUserAuthorization()
     self.lockCoordinator.start()
     self.modalCoordinator.start()
     self.setupDeepLinking()
@@ -138,21 +129,8 @@ class ConnectedCoordinator: NSObject, Coordinator, SubcoordinatorOwner {
     self.showVersionValidityAlertIfNeeded()
     self.configure2FAEnforcement()
     self.sessionServices.lockService.locker.didLoadSession()
-  }
-}
 
-extension ConnectedCoordinator: UIViewControllerTransitioningDelegate {
-  func animationController(forDismissed dismissed: UIViewController)
-    -> UIViewControllerAnimatedTransitioning?
-  {
-    return LockAnimator(isOpening: true)
-  }
-
-  func animationController(
-    forPresented presented: UIViewController, presenting: UIViewController, source: UIViewController
-  ) -> UIViewControllerAnimatedTransitioning? {
-
-    return LockAnimator(isOpening: false)
+    appRootNavigationViewController.popToRootViewController(animated: false)
   }
 }
 
@@ -187,13 +165,5 @@ extension ConnectedCoordinator {
         self.window.rootViewController?.present(alert, animated: true)
         versionValidityService.messageShown(for: status)
       }.store(in: &subscriptions)
-  }
-}
-
-extension AppTrackingTransparencyService {
-  fileprivate convenience init(sessionServices: SessionServicesContainer) {
-    self.init(
-      authenticatedABTestingService: sessionServices.authenticatedABTestingService,
-      logger: sessionServices.appServices.rootLogger[.appTrackingTransparency])
   }
 }

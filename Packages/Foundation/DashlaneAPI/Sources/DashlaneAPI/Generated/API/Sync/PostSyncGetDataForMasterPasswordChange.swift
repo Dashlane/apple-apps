@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Sync {
-  public struct GetDataForMasterPasswordChange: APIRequest {
+  public struct GetDataForMasterPasswordChange: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/sync/GetDataForMasterPasswordChange"
 
     public let api: UserDeviceAPIClient
@@ -26,14 +26,14 @@ extension UserDeviceAPIClient.Sync.GetDataForMasterPasswordChange {
 }
 
 extension UserDeviceAPIClient.Sync.GetDataForMasterPasswordChange {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case timestamp = "timestamp"
       case otpStatus = "otpStatus"
       case data = "data"
     }
 
-    public enum OtpStatus: String, Sendable, Equatable, CaseIterable, Codable {
+    public enum OtpStatus: String, Sendable, Hashable, Codable, CaseIterable {
       case disabled = "disabled"
       case newDevice = "newDevice"
       case login = "login"
@@ -45,13 +45,13 @@ extension UserDeviceAPIClient.Sync.GetDataForMasterPasswordChange {
       }
     }
 
-    public struct DataValue: Codable, Equatable, Sendable {
+    public struct DataValue: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case transactions = "transactions"
         case sharingKeys = "sharingKeys"
       }
 
-      public struct TransactionsElement: Codable, Equatable, Sendable {
+      public struct TransactionsElement: Codable, Hashable, Sendable {
         public enum CodingKeys: String, CodingKey {
           case backupDate = "backupDate"
           case identifier = "identifier"

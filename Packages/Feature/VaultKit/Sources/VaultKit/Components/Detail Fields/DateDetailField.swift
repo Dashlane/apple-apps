@@ -1,87 +1,49 @@
+import CoreLocalization
+import DesignSystem
 import SwiftTreats
 import SwiftUI
 import UIComponents
 
-public enum DateRange {
-  case future
-  case past
-  case closed(start: Date, end: Date)
-  case from(_ date: Date)
-  case to(_ date: Date)
-
-  var minimumDate: Date? {
-    switch self {
-    case .future:
-      return Date()
-    case let .closed(startDate, _), let .from(startDate):
-      return startDate
-    default:
-      return nil
-    }
-  }
-
-  var maximumDate: Date? {
-    switch self {
-    case .past:
-      return Date()
-    case let .closed(_, endDate), let .to(endDate):
-      return endDate
-    default:
-      return nil
-    }
-  }
-}
-
 public struct DateDetailField: DetailField {
   public let title: String
+  public let range: DateFieldRange?
 
   @Binding
   var date: Date?
 
-  var formatter: DateFormatter
-
   @Environment(\.detailMode)
   var detailMode
-
-  let range: DateRange
-  let mode: FiberDatePickerMode
 
   public init(
     title: String,
     date: Binding<Date?>,
-    formatter: DateFormatter = DateFormatter.birthDateFormatter,
-    range: DateRange,
-    mode: FiberDatePickerMode = .default
+    range: DateFieldRange? = nil
   ) {
     self.title = title
     self._date = date
     self.range = range
-    self.mode = mode
-    self.formatter = formatter
   }
 
   public var body: some View {
-    ZStack {
-      datePicker
-        .modifier(FocusingOnTapModifier())
+    DS.Draft.DateField(
+      title,
+      date: $date,
+      in: range
+    ) {
 
     }
-    .labeled(title)
-    .frame(maxWidth: .infinity, alignment: .leading)
-    .animation(.easeOut, value: date)
+    .fieldEditionDisabled(!detailMode.isEditing, appearance: .discrete)
   }
+}
 
-  private var datePicker: some View {
-    DatePickerView(
-      $date,
-      dateFormatter: formatter,
-      mode: mode,
-      maximumDate: range.maximumDate,
-      minimumDate: range.minimumDate
-    )
-    .contentShape(Rectangle())
-    .disabled(!detailMode.isEditing)
-
+extension DateDetailField {
+  public init(
+    title: String,
+    date: Binding<Date?>
+  ) {
+    self.title = title
+    self._date = date
+    self.range = nil
   }
 }
 
@@ -93,22 +55,7 @@ struct DateDetailField_Previews: PreviewProvider {
       DateDetailField(
         title: "Date",
         date: .constant(date),
-        range: .future,
-        mode: .default)
-    }
-  }
-}
-
-private struct FocusingOnTapModifier: ViewModifier {
-  @FocusState
-  var isFocused: Bool
-
-  func body(content: Content) -> some View {
-    Button {
-      isFocused = true
-    } label: {
-      content
-        .focused($isFocused)
+        range: .future)
     }
   }
 }

@@ -1,3 +1,4 @@
+import CorePersonalData
 import CoreSharing
 import DesignSystem
 import SwiftTreats
@@ -27,10 +28,6 @@ public struct ItemsList<RowView: View, Header: View, Footer: View>: View {
 
   @State
   var itemToDelete: VaultItem?
-
-  private var sectionIndexesPadding: CGFloat {
-    sections.count > 1 ? 10 : 0
-  }
 
   public init(
     sections: [DataSection],
@@ -77,16 +74,19 @@ public struct ItemsList<RowView: View, Header: View, Footer: View>: View {
   }
 
   public var body: some View {
-    list
-      .deleteItemAlert(request: $deleteRequest, deleteAction: deleteItem)
-      .eraseToAnyView()
+    List {
+      listContent
+    }
+    .listStyle(.ds.plain)
+    .deleteItemAlert(request: $deleteRequest, deleteAction: deleteItem)
   }
 
   @ViewBuilder
-  var list: some View {
-    List {
+  private var listContent: some View {
+    Group {
       header
         .listRowSeparator(.hidden)
+
       Section {
         VaultForEach(
           sections: sections,
@@ -105,15 +105,23 @@ public struct ItemsList<RowView: View, Header: View, Footer: View>: View {
               isSuggestedItem: section.isSuggestedItems,
               isInCollectionSection: section.collectionName != nil
             )
+            .padding(.top, item.id == section.items.first?.id ? 8 : 0)
+            .padding(.bottom, item.id == section.items.last?.id ? 8 : 0)
           }
-        ).accessibilitySortPriority(.list)
+        )
+        .accessibilitySortPriority(.list)
       }
-      .disableHeaderCapitalization()
 
-      footer
+      if let footer = footer {
+        Section {
+          footer
+        }
+        .listRowInsets(.init(top: 0, leading: 0, bottom: 0, trailing: 0))
+        .listSectionSpacing(8)
         .listRowSeparator(.hidden)
+      }
     }
-    .listAppearance(.plain)
+    .listRowBackground(Color.ds.background.default)
   }
 
   @ViewBuilder
@@ -121,8 +129,9 @@ public struct ItemsList<RowView: View, Header: View, Footer: View>: View {
     HStack(spacing: 6) {
       if !section.name.isEmpty {
         Text(section.name)
-          .font(.headline)
-          .foregroundColor(.ds.text.neutral.quiet)
+          .textCase(.uppercase)
+          .textStyle(.title.supporting.small)
+          .foregroundStyle(Color.ds.text.neutral.quiet)
           .accessibilityLabel(section.name.lowercased())
       }
 
@@ -134,7 +143,6 @@ public struct ItemsList<RowView: View, Header: View, Footer: View>: View {
     }
     .padding(.leading, 16)
     .listRowInsets(EdgeInsets(top: 0, leading: 0, bottom: 0, trailing: 0))
-    .listRowBackground(Color.ds.background.default)
   }
 
   private func row(for item: VaultItem, isSuggestedItem: Bool, isInCollectionSection: Bool)
@@ -147,9 +155,6 @@ public struct ItemsList<RowView: View, Header: View, Footer: View>: View {
     )
 
     return rowProvider(itemRowConfig)
-      .listRowInsets(EdgeInsets(top: 12, leading: 20, bottom: 12, trailing: 10))
-      .listRowBackground(Color.ds.background.default)
-      .padding(.trailing, sectionIndexesPadding)
   }
 
   private func deleteRow(for item: VaultItem) {

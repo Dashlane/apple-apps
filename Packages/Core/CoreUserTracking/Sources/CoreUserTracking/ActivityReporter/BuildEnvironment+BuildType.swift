@@ -1,6 +1,7 @@
-import DashTypes
+import CoreTypes
 import Foundation
 import SwiftTreats
+import UserTrackingFoundation
 
 extension BuildEnvironment {
   var buildType: Definition.BuildType {

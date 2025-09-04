@@ -1,7 +1,7 @@
 import Foundation
 
 extension UnsignedAPIClient.Monitoring {
-  public struct ReportClientException: APIRequest {
+  public struct ReportClientException: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/monitoring/ReportClientException"
 
     public let api: UnsignedAPIClient
@@ -34,7 +34,7 @@ extension UnsignedAPIClient.Monitoring {
 }
 
 extension UnsignedAPIClient.Monitoring.ReportClientException {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case action = "action"
       case message = "message"

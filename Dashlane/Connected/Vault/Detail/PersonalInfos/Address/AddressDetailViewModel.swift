@@ -1,16 +1,17 @@
 import Combine
-import CoreActivityLogs
 import CoreFeature
 import CoreLocalization
 import CorePersonalData
 import CorePremium
 import CoreSession
 import CoreSettings
-import CoreUserTracking
-import DashTypes
+import CoreTeamAuditLogs
+import CoreTypes
 import DocumentServices
 import Foundation
+import LogFoundation
 import UIComponents
+import UserTrackingFoundation
 import VaultKit
 
 class AddressDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting,
@@ -68,7 +69,7 @@ class AddressDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting,
     activityReporter: ActivityReporterProtocol,
     iconViewModelProvider: @escaping (VaultItem) -> VaultItemIconViewModel,
     logger: Logger,
-    activityLogsService: ActivityLogsServiceProtocol,
+    teamAuditLogsService: TeamAuditLogsServiceProtocol,
     regionInformationService: RegionInformationService,
     userSettings: UserSettings,
     documentStorageService: DocumentStorageService,
@@ -79,7 +80,6 @@ class AddressDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting,
     self.init(
       service: .init(
         item: item,
-        canLock: session.authenticationMethod.supportsLock,
         mode: mode,
         vaultItemDatabase: vaultItemDatabase,
         vaultItemsStore: vaultItemsStore,
@@ -91,7 +91,7 @@ class AddressDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting,
         documentStorageService: documentStorageService,
         deepLinkService: deepLinkService,
         activityReporter: activityReporter,
-        activityLogsService: activityLogsService,
+        teamAuditLogsService: teamAuditLogsService,
         iconViewModelProvider: iconViewModelProvider,
         attachmentSectionFactory: attachmentSectionFactory,
         logger: logger,
@@ -134,7 +134,7 @@ class AddressDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting,
   private func setupName() {
     if mode.isAdding {
       let count = vaultItemsStore.addresses.count + 1
-      item.name = "\(CoreLocalization.L10n.Core.kwAddressIOS) \(count)"
+      item.name = "\(CoreL10n.kwAddressIOS) \(count)"
     }
   }
 

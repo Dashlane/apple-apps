@@ -1,13 +1,13 @@
 import CoreCrypto
 import CoreLocalization
 import CoreSession
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 import StateMachine
 import SwiftTreats
 import UIDelight
+import UserTrackingFoundation
 
 @MainActor
 public class DeviceTransferLoginFlowModel: LoginKitServicesInjecting {
@@ -27,19 +27,20 @@ public class DeviceTransferLoginFlowModel: LoginKitServicesInjecting {
     case otp(ThirdPartyOTPLoginStateMachine.State, ThirdPartyOTPOption, AccountTransferInfo)
     case pin(RegistrationData)
     case biometry(Biometry, RegistrationData)
-    case recoveryFlow(AccountRecoveryInfo, DeviceInfo)
+    case recoveryFlow(AccountRecoveryInfo)
   }
 
   @Published
   var steps: [Step]
 
-  public var stateMachine: DeviceTransferLoginFlowStateMachine
+  @Published public var stateMachine: DeviceTransferLoginFlowStateMachine
+  @Published public var isPerformingEvent: Bool = false
 
   @Published
   var isInProgress = false
 
   @Published
-  var progressState: ProgressionState = .inProgress(L10n.Core.deviceToDeviceLoginProgress)
+  var progressState: ProgressionState = .inProgress(CoreL10n.deviceToDeviceLoginProgress)
 
   @Published
   var error: TransferError?
@@ -47,12 +48,12 @@ public class DeviceTransferLoginFlowModel: LoginKitServicesInjecting {
   public init(
     login: Login?,
     deviceInfo: DeviceInfo,
+    stateMachine: DeviceTransferLoginFlowStateMachine,
     activityReporter: ActivityReporterProtocol,
     totpFactory: DeviceTransferOTPLoginViewModel.Factory,
     deviceToDeviceLoginFlowViewModelFactory: DeviceTransferQRCodeFlowModel.Factory,
     securityChallengeFlowModelFactory: DeviceTransferSecurityChallengeFlowModel.Factory,
     deviceTransferRecoveryFlowModelFactory: DeviceTransferRecoveryFlowModel.Factory,
-    deviceTransferLoginFlowStateMachineFactory: DeviceTransferLoginFlowStateMachine.Factory,
     completion: @escaping @MainActor (Result<DeviceTransferQRCodeFlowModel.Completion, Error>) ->
       Void
   ) {
@@ -68,8 +69,7 @@ public class DeviceTransferLoginFlowModel: LoginKitServicesInjecting {
     self.completion = completion
     self.deviceTransferRecoveryFlowModelFactory = deviceTransferRecoveryFlowModelFactory
     self.totpFactory = totpFactory
-    self.stateMachine = deviceTransferLoginFlowStateMachineFactory.make(
-      login: login, deviceInfo: deviceInfo)
+    self.stateMachine = stateMachine
   }
 
   func deviceTransferTypeSelected(event: DeviceTransferLoginFlowStateMachine.Event) async {
@@ -117,7 +117,7 @@ extension DeviceTransferLoginFlowModel {
   private func logCompletion(
     isRecoveryLogin: Bool, biometry: Bool, transferMethod: Definition.TransferMethod
   ) {
-    self.activityReporter.reportPageShown(CoreUserTracking.Page.loginDeviceTransferSuccess)
+    self.activityReporter.reportPageShown(UserTrackingFoundation.Page.loginDeviceTransferSuccess)
     if isRecoveryLogin {
       self.activityReporter.report(
         UserEvent.TransferNewDevice(
@@ -135,7 +135,11 @@ extension DeviceTransferLoginFlowModel {
 @MainActor
 extension DeviceTransferLoginFlowModel {
   func makeSecurityChallengeFlowModel(login: Login) -> DeviceTransferSecurityChallengeFlowModel {
-    securityChallengeFlowModelFactory.make(login: login) { [weak self] result in
+    securityChallengeFlowModelFactory.make(
+      login: login,
+      stateMachine: stateMachine.makeSecurityChallengeFlowStateMachine(
+        state: .startSecurityChallengeTransfer(.initializing))
+    ) { [weak self] result in
       guard let self = self else {
         return
       }
@@ -146,7 +150,9 @@ extension DeviceTransferLoginFlowModel {
   func makeDeviceToDeviceQRCodeLoginFlowModel(login: Login?, state: QRCodeFlowStateMachine.State)
     -> DeviceTransferQRCodeFlowModel
   {
-    deviceToDeviceLoginFlowViewModelFactory.make(login: login, state: state) { [weak self] result in
+    deviceToDeviceLoginFlowViewModelFactory.make(
+      login: login, stateMachine: stateMachine.makeQRCodeFlowStateMachine(state: state)
+    ) { [weak self] result in
       guard let self = self else {
         return
       }
@@ -197,7 +203,8 @@ extension DeviceTransferLoginFlowModel {
     data: AccountTransferInfo
   ) -> DeviceTransferOTPLoginViewModel {
     totpFactory.make(
-      initialState: initialState,
+      stateMachine: stateMachine.makeThirdPartyOTPLoginStateMachine(
+        login: data.login, state: initialState, option: option),
       login: data.login,
       option: option
     ) { [weak self] completionType in
@@ -220,11 +227,11 @@ extension DeviceTransferLoginFlowModel {
     }
   }
 
-  func makeAccountRecoveryFlowModel(info: AccountRecoveryInfo, deviceInfo: DeviceInfo)
-    -> DeviceTransferRecoveryFlowModel
-  {
+  func makeAccountRecoveryFlowModel(info: AccountRecoveryInfo) -> DeviceTransferRecoveryFlowModel {
     return deviceTransferRecoveryFlowModelFactory.make(
-      accountRecoveryInfo: info, deviceInfo: deviceInfo,
+      login: info.login,
+      stateMachine: stateMachine.makeDeviceTransferRecoveryFlowStateMachine(
+        accountRecoveryInfo: info),
       completion: { [weak self] result in
         guard let self = self else {
           return
@@ -289,8 +296,8 @@ extension DeviceTransferLoginFlowModel: StateMachineBasedObservableObject {
           .completed(session, LoginFlowLogInfo(loginMode: .deviceTransfer, verificationMode: .none))
         ))
 
-    case (let .recovery(info, deviceInfo), _):
-      self.steps.append(.recoveryFlow(info, deviceInfo))
+    case (let .recovery(info), _):
+      self.steps.append(.recoveryFlow(info))
     case (.error, _):
       self.error = .unknown
     case (let .startThirdPartyOTPFlow(initialState, option, data), _):

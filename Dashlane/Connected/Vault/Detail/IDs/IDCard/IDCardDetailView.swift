@@ -16,36 +16,34 @@ struct IDCardDetailView: View {
     DetailContainerView(service: model.service) {
       Section {
         if model.mode.isEditing {
-          DS.Select(
-            CoreLocalization.L10n.Core.KWIDCardIOS.localeFormat,
-            values: CountryCodeNamePair.countries,
+          PickerDetailField(
+            title: CoreL10n.KWIDCardIOS.localeFormat,
             selection: $model.item.nationality,
-            textualRepresentation: \.name
-          ) { country in
-            Text(country.name)
-          }
+            elements: CountryCodeNamePair.countries,
+            content: { country in
+              Text(country?.name ?? "")
+            })
         } else {
           DS.DisplayField(
-            CoreLocalization.L10n.Core.KWIDCardIOS.localeFormat,
+            CoreL10n.KWIDCardIOS.localeFormat,
             text: model.item.nationality?.name ?? CountryCodeNamePair.defaultCountry.name
           )
         }
 
         if model.mode.isEditing {
-          DS.Select(
-            CoreLocalization.L10n.Core.KWIDCardIOS.linkedIdentity,
-            values: model.identities,
+          PickerDetailField(
+            title: CoreL10n.KWIDCardIOS.linkedIdentity,
             selection: $model.item.linkedIdentity,
-            textualRepresentation: \.displayName,
-            unspecifiedValueOptionLabel: L10n.Localizable.other
-          ) { identity in
-            Text(identity.displayName)
-          }
+            elements: model.identities,
+            allowEmptySelection: true,
+            content: { identity in
+              Text(identity?.displayName ?? L10n.Localizable.other)
+            })
         }
 
         if !model.mode.isEditing {
           DS.DisplayField(
-            CoreLocalization.L10n.Core.KWIDCardIOS.fullname,
+            CoreL10n.KWIDCardIOS.fullname,
             text: model.displayFullName
           )
         }
@@ -53,34 +51,34 @@ struct IDCardDetailView: View {
         if model.item.linkedIdentity == nil {
           if model.mode.isEditing {
             DS.TextField(
-              CoreLocalization.L10n.Core.KWIDCardIOS.fullname,
+              CoreL10n.KWIDCardIOS.fullname,
               text: $model.item.fullName
             )
 
-            DS.Select(
-              CoreLocalization.L10n.Core.KWIDCardIOS.sex,
-              values: Gender.allCases,
+            PickerDetailField(
+              title: CoreL10n.KWIDCardIOS.sex,
               selection: $model.item.sex,
-              textualRepresentation: \.localized
-            ) { gender in
-              Text(gender.localized)
-            }
+              elements: Gender.allCases,
+              content: { gender in
+                Text(gender?.localized ?? "")
+              })
+
           } else if model.item.sex != nil {
             DS.DisplayField(
-              CoreLocalization.L10n.Core.KWIDCardIOS.sex,
+              CoreL10n.KWIDCardIOS.sex,
               text: model.item.genderString
             )
           }
 
           DateDetailField(
-            title: CoreLocalization.L10n.Core.KWIDCardIOS.dateOfBirth,
+            title: CoreL10n.KWIDCardIOS.dateOfBirth,
             date: $model.item.dateOfBirth,
             range: .past)
         }
 
         if model.mode.isEditing || !model.item.number.isEmpty {
           TextDetailField(
-            title: CoreLocalization.L10n.Core.KWIDCardIOS.number,
+            title: CoreL10n.KWIDCardIOS.number,
             text: $model.item.number,
             actions: [.copy(model.copy)]
           )
@@ -89,12 +87,12 @@ struct IDCardDetailView: View {
         }
 
         DateDetailField(
-          title: CoreLocalization.L10n.Core.KWIDCardIOS.deliveryDate,
+          title: CoreL10n.KWIDCardIOS.deliveryDate,
           date: $model.item.deliveryDate,
           range: .past)
 
         DateDetailField(
-          title: CoreLocalization.L10n.Core.KWIDCardIOS.expireDate,
+          title: CoreL10n.KWIDCardIOS.expireDate,
           date: $model.item.expireDate,
           range: .future)
       }

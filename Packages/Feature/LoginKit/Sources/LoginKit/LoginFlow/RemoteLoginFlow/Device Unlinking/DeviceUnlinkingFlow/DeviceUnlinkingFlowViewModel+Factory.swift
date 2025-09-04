@@ -1,6 +1,6 @@
 import CoreSession
-import CoreUserTracking
 import Foundation
+import UserTrackingFoundation
 
 extension DeviceUnlinkingFlowViewModel {
   func showLimitedNumberOfDevicesView(mode: DeviceUnlinker.UnlinkMode) {

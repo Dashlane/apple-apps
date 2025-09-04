@@ -16,10 +16,10 @@ struct MasterPasswordResetActivationView: View {
 
   var body: some View {
     DS.Toggle(L10n.Localizable.resetMasterPasswordSettingsItemTitle, isOn: $viewModel.isToggleOn)
-      .onChange(
-        of: viewModel.isToggleOn, perform: { viewModel.handleToggleValueChange(newValue: $0) }
-      )
-      .onChange(of: viewModel.displayMasterPasswordChallenge) { display in
+      .onChange(of: viewModel.isToggleOn) { _, newValue in
+        viewModel.handleToggleValueChange(newValue: newValue)
+      }
+      .onChange(of: viewModel.displayMasterPasswordChallenge) { _, display in
         guard display else {
           masterPasswordChallengeItem = nil
           return
@@ -44,7 +44,7 @@ struct MasterPasswordResetActivationView: View {
     Alert(
       title: Text(L10n.Localizable.kwWrongMasterPasswordMessage),
       message: nil,
-      dismissButton: .default(Text(CoreLocalization.L10n.Core.kwButtonOk), action: completion))
+      dismissButton: .default(Text(CoreL10n.kwButtonOk), action: completion))
   }
 
   private func makeBiometricActivationAlert(completion: @escaping (Confirmed) -> Void) -> Alert {

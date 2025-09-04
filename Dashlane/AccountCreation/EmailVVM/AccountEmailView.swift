@@ -1,6 +1,7 @@
 import Combine
+import CoreLocalization
 import CoreSession
-import DashTypes
+import CoreTypes
 import DesignSystem
 import Foundation
 import LoginKit
@@ -41,7 +42,7 @@ struct AccountEmailView: View {
   @ToolbarContentBuilder
   private var toolbarContent: some ToolbarContent {
     ToolbarItem(placement: .navigationBarLeading) {
-      NavigationBarButton(L10n.Localizable.minimalisticOnboardingEmailFirstBack) {
+      Button(L10n.Localizable.minimalisticOnboardingEmailFirstBack) {
         model.cancel()
       }
     }
@@ -51,7 +52,7 @@ struct AccountEmailView: View {
           .frame(width: 20, height: 20)
           .padding(.horizontal, 4)
       } else {
-        NavigationBarButton(
+        Button(
           action: {
             Task {
               await validate()
@@ -70,15 +71,15 @@ struct AccountEmailView: View {
   var descriptionView: some View {
     VStack(alignment: .leading, spacing: 0) {
       Text(L10n.Localizable.minimalisticOnboardingEmailFirstTitle)
-        .font(DashlaneFont.custom(24, .medium).font)
+        .textStyle(.title.section.medium)
         .fixedSize(horizontal: false, vertical: true)
         .padding(.top, 56)
         .padding(.horizontal, 24)
-        .foregroundColor(.ds.text.neutral.catchy)
+        .foregroundStyle(Color.ds.text.neutral.catchy)
 
       Text(L10n.Localizable.minimalisticOnboardingEmailFirstSubtitle)
-        .font(.body)
-        .foregroundColor(.ds.text.neutral.standard)
+        .textStyle(.body.standard.regular)
+        .foregroundStyle(Color.ds.text.neutral.standard)
         .fixedSize(horizontal: false, vertical: true)
         .padding(.top, 8)
         .padding(.horizontal, 24)
@@ -94,6 +95,12 @@ struct AccountEmailView: View {
         if !model.email.isEmpty {
           DS.FieldAction.ClearContent(text: $model.email)
         }
+      },
+      feedback: {
+        if let errorMessage = model.bubbleErrorMessage {
+          FieldTextualFeedback(errorMessage)
+            .style(.error)
+        }
       }
     )
     .focused($isEmailFieldFocused)
@@ -108,21 +115,20 @@ struct AccountEmailView: View {
     .textContentType(.emailAddress)
     .keyboardType(.emailAddress)
     .submitLabel(.next)
-    .bubbleErrorMessage(text: $model.bubbleErrorMessage)
     .padding(.horizontal, 20)
     .padding(.top, 24)
-    .alert(presenting: $model.currentAlert)
+    .alert(
+      Text(CoreL10n.validityStatusExpiredVersionNoUpdateTitle),
+      isPresented: $model.showVersionInvalidAlert,
+      actions: {
+        Button(CoreL10n.validityStatusExpiredVersionNoUpdateClose, role: .cancel) {}
+      }, message: { Text(CoreL10n.validityStatusExpiredVersionNoUpdateDesc) })
+
   }
 
   private func validate() async {
     UIApplication.shared.endEditing()
     await model.validate()
-  }
-}
-
-extension AccountEmailView: NavigationBarStyleProvider {
-  var navigationBarStyle: UIComponents.NavigationBarStyle {
-    .transparent(tintColor: .ds.text.neutral.standard, statusBarStyle: .default)
   }
 }
 

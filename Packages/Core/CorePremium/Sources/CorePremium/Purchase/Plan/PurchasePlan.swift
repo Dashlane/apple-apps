@@ -64,7 +64,7 @@ extension PurchasePlan {
   }
 
   public var introductoryOfferPeriod: StoreKitSubscription.Period? {
-    return subscription.period
+    return subscription.introductoryOffer?.period
   }
 
   public var isPeriodIdenticalToIntroductoryOfferPeriod: Bool {

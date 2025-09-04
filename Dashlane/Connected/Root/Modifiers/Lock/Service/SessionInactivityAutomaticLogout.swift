@@ -1,7 +1,7 @@
 import Combine
 import CorePremium
 import CoreSession
-import DashTypes
+import CoreTypes
 import Foundation
 import LoginKit
 import UIKit

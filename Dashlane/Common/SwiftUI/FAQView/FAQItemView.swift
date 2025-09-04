@@ -62,7 +62,7 @@ struct FAQItemView: View {
             }
           }
         }
-        .font(Device.isMac ? .subheadline : .footnote)
+        .font(Device.is(.mac) ? .subheadline : .footnote)
       }
     }
     .frame(maxWidth: .infinity, alignment: .leading)

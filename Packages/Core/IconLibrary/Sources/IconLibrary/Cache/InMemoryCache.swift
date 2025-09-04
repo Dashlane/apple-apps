@@ -4,7 +4,7 @@ import OrderedCollections
 import UIKit
 
 @MainActor
-public final class InMemoryCache: Sendable {
+public final class InMemoryCache {
   enum CacheEntry {
     case inProgress(Task<IconCache, Error>)
     case ready(IconCache)

@@ -1,6 +1,6 @@
 import Foundation
 
-public enum Permission: String, Sendable, Equatable, CaseIterable, Codable {
+public enum Permission: String, Sendable, Hashable, Codable, CaseIterable {
   case admin = "admin"
   case limited = "limited"
   case undecodable

@@ -1,7 +1,8 @@
 import CoreKeychain
 import CoreSession
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 
 public struct SessionCleaner: SessionCleanerProtocol {
   let keychainService: AuthenticationKeychainServiceProtocol

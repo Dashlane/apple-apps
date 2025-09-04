@@ -147,31 +147,3 @@ struct VersionValidityAlert {
     UIApplication.shared.open(URL(string: url)!)
   }
 }
-
-extension VersionValidityAlert {
-  static func errorAlert() -> UIAlertController {
-    let alert = UIAlertController(
-      title: L10n.Localizable.validityStatusExpiredVersionNoUpdateTitle,
-      message: L10n.Localizable.validityStatusExpiredVersionNoUpdateDesc,
-      preferredStyle: .alert)
-    let action = UIAlertAction(
-      title: L10n.Localizable.validityStatusExpiredVersionNoUpdateClose,
-      style: .default)
-    alert.addAction(action)
-    return alert
-  }
-
-  static func errorAlert() -> AlertContent {
-    return .init(
-      title: L10n.Localizable.validityStatusExpiredVersionNoUpdateTitle,
-      message: L10n.Localizable.validityStatusExpiredVersionNoUpdateDesc,
-      buttons: .one(.init(title: L10n.Localizable.validityStatusExpiredVersionNoUpdateClose)))
-  }
-
-  static func errorAlert() -> Alert {
-    return .init(
-      title: Text(L10n.Localizable.validityStatusExpiredVersionNoUpdateTitle),
-      message: Text(L10n.Localizable.validityStatusExpiredVersionNoUpdateDesc),
-      dismissButton: .cancel(Text(L10n.Localizable.validityStatusExpiredVersionNoUpdateClose)))
-  }
-}

@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Authentication {
-  public struct CompleteTOTPActivation: APIRequest {
+  public struct CompleteTOTPActivation: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/authentication/CompleteTOTPActivation"
 
     public let api: UserDeviceAPIClient

@@ -4,27 +4,29 @@ import Foundation
 import VaultKit
 import WatchConnectivity
 
-public class AppWatchAppCommunicator: NSObject {
+public final class AppWatchAppCommunicator: NSObject {
   private let vaultItemsStore: VaultItemsStore
-  private var session: WCSession?
+  private let session: WCSession
   private let applicationContext = WatchApplicationContext()
   private var cancellable: AnyCancellable?
 
-  init(vaultItemsStore: VaultItemsStore) {
+  init?(vaultItemsStore: VaultItemsStore) {
+    guard WCSession.isSupported() else { return nil }
     self.vaultItemsStore = vaultItemsStore
-    super.init()
-    setup()
-  }
+    session = WCSession.default
 
-  private func setup() {
-    if session == nil && WCSession.isSupported() {
-      session = WCSession.default
-      session!.delegate = self
-      session!.activate()
+    super.init()
+
+    session.delegate = self
+
+    if session.activationState != .activated {
+      session.activate()
     }
+
     cancellable = vaultItemsStore.$credentials.sink { [weak self] credentials in
       self?.updateTokens(for: credentials)
     }
+
   }
 
   func updateTokens(for credentials: [Credential]) {
@@ -49,10 +51,12 @@ public class AppWatchAppCommunicator: NSObject {
 
   private func sendContext() {
     do {
-      let dict = try applicationContext.toDict()
-      if session?.activationState == .activated {
-        try session?.updateApplicationContext(dict)
+      guard session.activationState == .activated else {
+        return
       }
+
+      let dict = try applicationContext.toDict()
+      try session.updateApplicationContext(dict)
     } catch {}
   }
 }

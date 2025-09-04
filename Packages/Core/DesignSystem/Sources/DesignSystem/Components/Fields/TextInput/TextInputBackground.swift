@@ -1,22 +1,23 @@
 import SwiftUI
 import UIDelight
 
-struct TextInputBackground: View {
+package struct TextInputBackground: View {
   @Environment(\.style) private var style
   @Environment(\.isEnabled) private var isEnabled
-  @Environment(\.fieldAppearance) private var appearance
+  @Environment(\.container) private var container
 
   @ScaledMetric private var backgroundCornerRadius = 10
   @ScaledMetric private var backgroundStrokeWidth = 1
 
   private let isFocused: Bool
 
-  init(isFocused: Bool) {
+  package init(isFocused: Bool) {
     self.isFocused = isFocused
   }
 
-  var body: some View {
-    if appearance == .standalone {
+  package var body: some View {
+    switch container {
+    case .list(.plain), .root:
       ZStack {
         RoundedRectangle(
           cornerRadius: backgroundCornerRadius - (backgroundStrokeWidth / 2),
@@ -32,12 +33,12 @@ struct TextInputBackground: View {
         )
         .opacity(isEnabled ? 1 : 0)
         .animation(.easeInOut, value: isFocused)
-        .animation(.easeInOut, value: isFocused)
 
         RoundedRectangle(cornerRadius: backgroundCornerRadius, style: .continuous)
           .fill(Color.backgroundColor(isEnabled: isEnabled))
       }
-    } else {
+
+    case .list(.insetGrouped):
       Color.clear
     }
   }
@@ -71,13 +72,13 @@ extension Color {
       .disabled(true)
     TextInputBackground(isFocused: false)
       .frame(height: 44)
-      .fieldAppearance(.grouped)
+      .containerContext(.list(.insetGrouped))
     TextInputBackground(isFocused: true)
       .frame(height: 44)
-      .fieldAppearance(.grouped)
+      .containerContext(.list(.insetGrouped))
   }
   .padding(.horizontal)
-  .backgroundColorIgnoringSafeArea(.ds.background.alternate)
+  .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
 }
 
 #Preview("Danger") {
@@ -91,12 +92,12 @@ extension Color {
       .disabled(true)
     TextInputBackground(isFocused: false)
       .frame(height: 44)
-      .fieldAppearance(.grouped)
+      .containerContext(.list(.insetGrouped))
     TextInputBackground(isFocused: true)
       .frame(height: 44)
-      .fieldAppearance(.grouped)
+      .containerContext(.list(.insetGrouped))
   }
   .padding(.horizontal)
-  .backgroundColorIgnoringSafeArea(.ds.background.alternate)
+  .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
   .style(.error)
 }

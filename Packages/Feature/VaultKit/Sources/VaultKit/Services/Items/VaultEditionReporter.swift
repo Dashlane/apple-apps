@@ -1,7 +1,7 @@
 import CorePersonalData
 import CorePremium
-import CoreUserTracking
 import UIComponents
+import UserTrackingFoundation
 
 extension ActivityReporterProtocol {
   var vaultEdition: VaultEditionReporter { .init(activityReporter: self) }

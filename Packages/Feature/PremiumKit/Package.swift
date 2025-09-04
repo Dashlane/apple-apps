@@ -3,7 +3,7 @@ import PackageDescription
 let package = Package(
   name: "PremiumKit",
   platforms: [
-    .iOS(.v16)
+    .iOS(.v17)
   ],
   products: [
     .library(
@@ -20,7 +20,7 @@ let package = Package(
     .package(path: "../../Core/CoreFeature"),
     .package(path: "../../Core/CoreLocalization"),
     .package(path: "../../Foundation/SwiftTreats"),
-    .package(path: "../../Plugins/swiftgen-plugin"),
+    .package(path: "../../Foundation/LogFoundation"),
     .package(path: "../../Core/IconLibrary"),
     .package(path: "../../Foundation/UIDelight"),
     .package(path: "../../Core/UIComponents"),
@@ -45,6 +45,7 @@ let package = Package(
         .product(name: "IconLibrary", package: "IconLibrary"),
         .product(name: "UIComponents", package: "UIComponents"),
         .product(name: "UIDelight", package: "UIDelight"),
+        .product(name: "LogFoundation", package: "LogFoundation"),
       ],
       resources: [.process("Resources")]
     ),

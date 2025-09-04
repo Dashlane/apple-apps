@@ -1,6 +1,7 @@
 import CoreFeature
 import CoreLocalization
 import CorePremium
+import CoreTypes
 import DesignSystem
 import SwiftUI
 import UIComponents
@@ -39,20 +40,20 @@ struct ActivePlanSettingsSection: View {
   var title: some View {
     Text(plan.localizedTitle)
       .frame(maxWidth: .infinity, alignment: .leading)
-      .font(.custom(GTWalsheimPro.bold.name, size: 26, relativeTo: .title))
-      .foregroundColor(.ds.text.neutral.standard)
+      .textStyle(.title.section.medium)
+      .foregroundStyle(Color.ds.text.neutral.standard)
   }
 
   @ViewBuilder
   var subtitle: some View {
     if let info = status.localizedInfo {
       Text(info)
-        .font(.subheadline)
-        .foregroundColor(.ds.text.neutral.quiet)
+        .textStyle(.body.reduced.regular)
+        .foregroundStyle(Color.ds.text.neutral.quiet)
     } else if showFrozenRestrictions {
-      Text(CoreLocalization.L10n.Core.settingsHeaderFrozenAcountWarning)
-        .font(.subheadline)
-        .foregroundColor(.ds.text.danger.standard)
+      Text(CoreL10n.settingsHeaderFrozenAcountWarning)
+        .textStyle(.body.reduced.regular)
+        .foregroundStyle(Color.ds.text.danger.standard)
     }
   }
 
@@ -62,15 +63,15 @@ struct ActivePlanSettingsSection: View {
       Button(action: showPurchase) {
         Text(action.localizedTitle)
       }
-      .accentColor(.ds.text.brand.standard)
-      .foregroundColor(.ds.text.brand.standard)
+      .tint(.ds.text.brand.standard)
+      .foregroundStyle(Color.ds.text.brand.standard)
     }
   }
 
   var learnMoreAboutFrozen: some View {
-    Button(CoreLocalization.L10n.Core.settingsHeaderFrozenAcountLearnMore) {
+    Button(CoreL10n.settingsHeaderFrozenAcountLearnMore) {
       learnMore()
-    }.foregroundColor(.ds.text.neutral.standard)
+    }.foregroundStyle(Color.ds.text.neutral.standard)
   }
 }
 
@@ -125,14 +126,6 @@ extension CorePremium.Status.B2cStatus {
     } else {
       return L10n.expiresSubtitle(dateText)
     }
-  }
-
-  fileprivate func daysToExpiration() -> Int? {
-    guard let endDate = endDate else {
-      return nil
-    }
-
-    return Calendar.current.dateComponents([.day], toStartOfTheDayOf: endDate).day
   }
 }
 
@@ -198,7 +191,7 @@ struct PremiumStatusSectionView_Previews: PreviewProvider {
           status: CorePremium.Status.Mock.legacy.b2cStatus, vaultState: .default, showPurchase: {},
           learnMore: {})
       }
-      .listAppearance(.insetGrouped)
+      .listStyle(.ds.insetGrouped)
       .previewDisplayName("Free and trial")
     }
 
@@ -211,7 +204,7 @@ struct PremiumStatusSectionView_Previews: PreviewProvider {
         showPurchase: {}, learnMore: {})
 
     }
-    .listAppearance(.insetGrouped)
+    .listStyle(.ds.insetGrouped)
     .previewDisplayName("Premium")
 
     List {
@@ -222,7 +215,7 @@ struct PremiumStatusSectionView_Previews: PreviewProvider {
         status: CorePremium.Status.Mock.premiumFreeOfCharge.b2cStatus, vaultState: .default,
         showPurchase: {}, learnMore: {})
     }
-    .listAppearance(.insetGrouped)
+    .listStyle(.ds.insetGrouped)
     .previewDisplayName("Special Premium")
 
     List {
@@ -233,7 +226,7 @@ struct PremiumStatusSectionView_Previews: PreviewProvider {
         status: CorePremium.Status.Mock.premiumPlusWithoutAutoRenew.b2cStatus, vaultState: .default,
         showPurchase: {}, learnMore: {})
     }
-    .listAppearance(.insetGrouped)
+    .listStyle(.ds.insetGrouped)
     .previewDisplayName("Premium Plus")
 
     List {
@@ -250,7 +243,7 @@ struct PremiumStatusSectionView_Previews: PreviewProvider {
         status: CorePremium.Status.Mock.familyPlusInvitee.b2cStatus, vaultState: .default,
         showPurchase: {}, learnMore: {})
     }
-    .listAppearance(.insetGrouped)
+    .listStyle(.ds.insetGrouped)
     .previewDisplayName("Family")
   }
 }

@@ -1,6 +1,6 @@
 import Foundation
 
-public struct SettingsConfiguration {
+public struct SettingsConfiguration: Sendable {
   public let modelURL: URL
   public let storeURL: URL
 

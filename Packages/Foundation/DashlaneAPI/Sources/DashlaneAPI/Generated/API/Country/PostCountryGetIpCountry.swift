@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppAPIClient.Country {
-  public struct GetIpCountry: APIRequest {
+  public struct GetIpCountry: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/country/GetIpCountry"
 
     public let api: AppAPIClient
@@ -26,7 +26,7 @@ extension AppAPIClient.Country.GetIpCountry {
 }
 
 extension AppAPIClient.Country.GetIpCountry {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case country = "country"
       case isEu = "isEu"

@@ -10,6 +10,7 @@ extension Thumbnail {
     case bankAccount
     case idCard
     case socialSecurityCard
+    case fiscalInformation
     case driversLicense
     case passport
     case taxNumber
@@ -20,10 +21,14 @@ extension Thumbnail {
     case phoneNumber
     case website
     case attachment
+    case login
+    case wifi
 
     public var body: some View {
       BaseThumbnail {
         switch self {
+        case .login:
+          SquircleIconThumbnailContentView(Image.ds.web.outlined)
         case .secureNote:
           SquircleIconThumbnailContentView(Image.ds.item.secureNote.outlined)
         case .passkey:
@@ -36,6 +41,8 @@ extension Thumbnail {
           SquircleIconThumbnailContentView(Image.ds.item.id.outlined)
         case .socialSecurityCard:
           SquircleIconThumbnailContentView(Image.ds.item.socialSecurity.outlined)
+        case .fiscalInformation:
+          SquircleIconThumbnailContentView(Image.ds.item.taxNumber.outlined)
         case .driversLicense:
           SquircleIconThumbnailContentView(Image.ds.item.driversLicense.outlined)
         case .passport:
@@ -56,6 +63,8 @@ extension Thumbnail {
           SquircleIconThumbnailContentView(Image.ds.web.outlined)
         case .attachment:
           SquircleIconThumbnailContentView(Image.ds.attachment.outlined)
+        case .wifi:
+          SquircleIconThumbnailContentView(Image.ds.item.wifi.outlined)
         }
       }
     }
@@ -65,7 +74,7 @@ extension Thumbnail {
 #Preview("Secure Note") {
   HStack {
     Thumbnail.VaultItem.secureNote
-      .controlSize(.mini)
+      .controlSize(.small)
     Thumbnail.VaultItem.secureNote
       .foregroundStyle(.yellow)
       .controlSize(.regular)
@@ -78,7 +87,7 @@ extension Thumbnail {
 #Preview("Payment Card") {
   HStack {
     Thumbnail.VaultItem.paymentCard
-      .controlSize(.mini)
+      .controlSize(.small)
     Thumbnail.VaultItem.paymentCard
       .foregroundStyle(.mint)
       .controlSize(.regular)

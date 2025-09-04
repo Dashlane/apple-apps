@@ -1,5 +1,5 @@
 import CoreLocalization
-import DashTypes
+import CoreTypes
 import DesignSystem
 import Foundation
 import SwiftUI
@@ -15,36 +15,36 @@ struct DeviceTransferAccountResetView: View {
       overlayView
     }
     .navigationBarTitleDisplayMode(.inline)
-    .navigationTitle(L10n.Core.deviceToDeviceNavigationTitle)
+    .navigationTitle(CoreL10n.deviceToDeviceNavigationTitle)
     .loginAppearance()
   }
 
   var mainView: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 16) {
-        Text(L10n.Core.Mpless.D2d.Untrusted.resetIntroTitle)
+        Text(CoreL10n.Mpless.D2d.Untrusted.resetIntroTitle)
           .textStyle(.title.section.large)
           .foregroundStyle(Color.ds.text.neutral.catchy)
-        MarkdownText(L10n.Core.Mpless.D2d.Untrusted.resetIntroMessage)
+        MarkdownText(CoreL10n.Mpless.D2d.Untrusted.resetIntroMessage)
           .textStyle(.body.standard.regular)
           .foregroundStyle(Color.ds.text.neutral.standard)
         Spacer()
       }
       .padding(24)
     }
-    .backgroundColorIgnoringSafeArea(.ds.background.alternate)
+    .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
   }
 
   var overlayView: some View {
     VStack(spacing: 8) {
       Spacer()
-      Button(L10n.Core.Mpless.D2d.Untrusted.resetIntroPrimaryCta) {
+      Button(CoreL10n.Mpless.D2d.Untrusted.resetIntroPrimaryCta) {
         openURL(DashlaneURLFactory.resetAccountInfo)
       }
       .buttonStyle(.designSystem(.titleOnly))
       .style(mood: .brand, intensity: .catchy)
 
-      Button(L10n.Core.Mpless.D2d.Untrusted.resetIntroSecondaryCta) {
+      Button(CoreL10n.Mpless.D2d.Untrusted.resetIntroSecondaryCta) {
         openURL(DashlaneURLFactory.accountRecoveryInfo)
       }
       .buttonStyle(.designSystem(.titleOnly))

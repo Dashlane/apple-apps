@@ -1,6 +1,6 @@
 import CoreLocalization
 import CorePersonalData
-import DashTypes
+import CoreTypes
 import Foundation
 import SwiftUI
 
@@ -10,7 +10,7 @@ extension Passport: VaultItem {
   }
 
   public var localizedTitle: String {
-    L10n.Core.kwPassportIOS
+    CoreL10n.kwPassportIOS
   }
 
   public var localizedSubtitle: String {
@@ -18,15 +18,15 @@ extension Passport: VaultItem {
   }
 
   public static var localizedName: String {
-    L10n.Core.kwPassportIOS
+    CoreL10n.kwPassportIOS
   }
 
   public static var addTitle: String {
-    L10n.Core.kwadddatakwPassportIOS
+    CoreL10n.kwadddatakwPassportIOS
   }
 
   public static var nativeMenuAddTitle: String {
-    L10n.Core.addPassport
+    CoreL10n.addPassport
   }
 }
 

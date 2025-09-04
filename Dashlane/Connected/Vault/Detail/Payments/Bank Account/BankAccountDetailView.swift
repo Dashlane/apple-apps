@@ -18,15 +18,15 @@ struct BankAccountDetailView: View {
       Section {
         if model.mode.isEditing {
           TextDetailField(
-            title: CoreLocalization.L10n.Core.KWBankStatementIOS.bankAccountName,
+            title: CoreL10n.KWBankStatementIOS.bankAccountName,
             text: $model.item.name,
-            placeholder: CoreLocalization.L10n.Core.KWBankStatementIOS.BankAccountName.placeholder
+            placeholder: CoreL10n.KWBankStatementIOS.BankAccountName.placeholder
           )
           .textInputAutocapitalization(.words)
         }
 
         PickerDetailField(
-          title: CoreLocalization.L10n.Core.KWBankStatementIOS.localeFormat,
+          title: CoreL10n.KWBankStatementIOS.localeFormat,
           selection: $model.selectedCountry,
           elements: CountryCodeNamePair.countries
         ) { country in
@@ -34,18 +34,15 @@ struct BankAccountDetailView: View {
         }
 
         TextDetailField(
-          title: CoreLocalization.L10n.Core.KWBankStatementIOS.bankAccountOwner,
-          text: $model.item.owner
+          title: CoreL10n.KWBankStatementIOS.bankAccountOwner, text: $model.item.owner
         )
         .textInputAutocapitalization(.words)
 
         SecureDetailField(
-          title: CoreLocalization.L10n.Core.KWBankStatementIOS.bicFieldTitle(
-            for: model.item.bicVariant),
+          title: CoreL10n.KWBankStatementIOS.bicFieldTitle(for: model.item.bicVariant),
           text: $model.item.bic,
           onRevealAction: model.sendUsageLog,
-          formatter: .uppercase,
-          obfuscatingFormatter: .obfuscatedCode,
+          format: .accountIdentifier(.bic),
           actions: [.copy(model.copy)]
         )
         .actions([.copy(model.copy), .largeDisplay])
@@ -53,12 +50,10 @@ struct BankAccountDetailView: View {
         .fiberFieldType(.bankAccountBIC)
 
         SecureDetailField(
-          title: CoreLocalization.L10n.Core.KWBankStatementIOS.ibanFieldTitle(
-            for: model.item.ibanVariant),
+          title: CoreL10n.KWBankStatementIOS.ibanFieldTitle(for: model.item.ibanVariant),
           text: $model.item.iban,
           onRevealAction: model.sendUsageLog,
-          formatter: .uppercase,
-          obfuscatingFormatter: .obfuscatedCode,
+          format: .accountIdentifier(.iban),
           actions: [.copy(model.copy)]
         )
         .actions([.copy(model.copy), .largeDisplay])
@@ -67,11 +62,11 @@ struct BankAccountDetailView: View {
 
         if !model.banks.isEmpty {
           PickerDetailField(
-            title: CoreLocalization.L10n.Core.KWBankStatementIOS.bankAccountBank,
+            title: CoreL10n.KWBankStatementIOS.bankAccountBank,
             selection: $model.selectedBank,
             elements: model.banks
           ) { bank in
-            Text(bank?.name ?? CoreLocalization.L10n.Core.kwLinkedDefaultOther)
+            Text(bank?.name ?? CoreL10n.kwLinkedDefaultOther)
           }
         }
       }

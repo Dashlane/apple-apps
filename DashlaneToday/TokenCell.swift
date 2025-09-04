@@ -10,7 +10,13 @@ final public class TokenCell: UITableViewCell {
 
   func showInfo(title: String, subtitle: String?) {
     let bundle = Bundle(for: MessageView.self)
-    let banner = bundle.loadNibNamed("MessageView", owner: nil, options: nil)!.first as! MessageView
+    guard
+      let banner = bundle.loadNibNamed("MessageView", owner: nil, options: nil)?.first
+        as? MessageView
+    else {
+      assertionFailure("Failed to load MessageView.xib")
+      return
+    }
     banner.frame = self.bounds
     banner.autoresizingMask = [.flexibleWidth, .flexibleHeight]
     banner.backgroundColor = UIColor(red: 0.13, green: 0.71, blue: 0.20, alpha: 1.0)

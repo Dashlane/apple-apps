@@ -2,26 +2,14 @@ import Foundation
 import SwiftTreats
 
 enum UnsupportedDevice: String, CaseIterable {
-  case iPhoneX = "iPhone10,3"
-  case iPhoneXBis = "iPhone10,6"
-  case iPhone8Plus = "iPhone10,2"
-  case iPhone8PlusBis = "iPhone10,5"
-  case iPhone8 = "iPhone10,1"
-  case iPhone8Bis = "iPhone10,4"
-  case iPadGen5 = "iPad6,11"
-  case iPadGen5Bis = "iPad6,12"
-  case iPadPro97Inch = "iPad6,3"
-  case iPadPro97InchBis = "iPad6,4"
-  case iPadPro129InchGen1 = "iPad6,7"
-  case iPadPro129InchGen1Bis = "iPad6,8"
-  case macBookPro15Inch2017 = "MacBookPro14,3"
-  case macBookPro13Inch20174Thunderbolt = "MacBookPro14,1"
-  case macBookPro13Inch20172Thunderbolt = "MacBookPro14,2"
-  case macBook12Inch2017 = "MacBook10,1"
-  case iMacPro2017 = "iMacPro1,1"
-  case iMac5K21Inch2017 = "iMac18,3"
-  case iMac4K215Inch2017 = "iMac18,2"
-  case iMac215Inch2017 = "iMac18,1"
+  case iPadGen6 = "iPad7,5"
+  case iPadGen6Bis = "iPad7,6"
+  case iPadPro105Inch = "iPad7,3"
+  case iPadPro105InchBis = "iPad7,4"
+  case iPadPro129InchGen2 = "iPad7,1"
+  case iPadPro129InchGen2Bis = "iPad7,2"
+  case macBookAir13Inch2019 = "MacBookAir8,2"
+  case macBookAir13Inch2018 = "MacBookAir8,1"
 }
 
 public class UpdateOperatingSystemAnnouncement: HomeModalAnnouncement,
@@ -75,7 +63,7 @@ public struct DeviceInformation: DeviceInformationProvider {
 
   public init() {
     modelName = Device.hardwareName
-    if #unavailable(iOS 17) {
+    if #unavailable(iOS 18) {
       self.systemWillBeDropped = true
     } else {
       self.systemWillBeDropped = false
@@ -156,7 +144,7 @@ internal class UpdateOperatingSystemCacheMock: UpdateOperatingSystemCacheProtoco
 extension UpdateOperatingSystemAnnouncement {
 
   static func mock(
-    modelName: String = UnsupportedDevice.iPhone8.rawValue,
+    modelName: String = UnsupportedDevice.iPadGen6.rawValue,
     systemWillBeDropped: Bool = true,
     canDisplayAnnouncement: Bool = false
   ) -> UpdateOperatingSystemAnnouncement {
@@ -167,7 +155,7 @@ extension UpdateOperatingSystemAnnouncement {
   }
 
   static func mock(
-    modelName: String = UnsupportedDevice.iPhone8.rawValue,
+    modelName: String = UnsupportedDevice.iPadGen6.rawValue,
     systemWillBeDropped: Bool = true,
     cache: UpdateOperatingSystemCacheProtocol
   ) -> UpdateOperatingSystemAnnouncement {

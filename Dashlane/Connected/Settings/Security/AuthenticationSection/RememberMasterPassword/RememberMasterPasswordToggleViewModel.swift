@@ -1,6 +1,6 @@
 import Combine
 import CorePremium
-import DashTypes
+import CoreTypes
 import Foundation
 import SwiftUI
 

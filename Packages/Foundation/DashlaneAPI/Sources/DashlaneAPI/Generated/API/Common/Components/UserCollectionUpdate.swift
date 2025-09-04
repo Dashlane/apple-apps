@@ -1,6 +1,6 @@
 import Foundation
 
-public struct UserCollectionUpdate: Codable, Equatable, Sendable {
+public struct UserCollectionUpdate: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case login = "login"
     case collectionKey = "collectionKey"

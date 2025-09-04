@@ -15,16 +15,16 @@ public struct ImportErrorView: View {
   @State
   private var showDocumentPicker: Bool = false
 
-  let model: ImportViewModel
+  let model: OldImportViewModel
   let action: @MainActor (Action) -> Void
 
   public var body: some View {
     VStack(alignment: .leading) {
       Spacer()
 
-      Image(asset: Asset.importError)
-        .resizable()
-        .frame(width: 96, height: 96)
+      DS.ExpressiveIcon(.ds.feedback.fail.outlined)
+        .style(mood: .danger, intensity: .quiet)
+        .controlSize(.large)
         .padding(.leading, 16)
 
       Spacer()
@@ -39,9 +39,8 @@ public struct ImportErrorView: View {
       Spacer()
         .frame(height: 30)
     }
-    .backgroundColorIgnoringSafeArea(.ds.background.alternate)
-    .navigationTitle(L10n.Core.m2WImportGenericImportScreenHeader)
-    .navigationBarStyle(.transparent(tintColor: .ds.text.brand.standard, titleColor: nil))
+    .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
+    .navigationTitle(CoreL10n.m2WImportGenericImportScreenHeader)
     .documentPicker(open: model.kind.contentTypes, isPresented: $showDocumentPicker) { data in
       data.map { self.action(.importCompleted(data: $0)) }
     }
@@ -51,24 +50,25 @@ public struct ImportErrorView: View {
   private func ctaButtons() -> some View {
     switch model.step {
     case .extract:
-      Button(L10n.Core.m2WImportGenericImportErrorScreenBrowse) {
+      Button(CoreL10n.m2WImportGenericImportErrorScreenBrowse) {
         self.showDocumentPicker = true
       }
       .buttonStyle(.designSystem(.titleOnly))
       .padding(.horizontal, 16)
     case .save:
       VStack {
-        Button(L10n.Core.m2WImportGenericImportErrorScreenTryAgain) {
+        Button(CoreL10n.m2WImportGenericImportErrorScreenTryAgain) {
           self.save()
         }
         .buttonStyle(.designSystem(.titleOnly))
-        .padding(.horizontal, 16)
 
-        Button(L10n.Core.m2WImportGenericImportErrorScreenBrowse) {
+        Button(CoreL10n.m2WImportGenericImportErrorScreenBrowse) {
           self.showDocumentPicker = true
         }
-        .buttonStyle(BorderlessActionButtonStyle())
+        .buttonStyle(.designSystem(.titleOnly))
+        .style(intensity: .supershy)
       }
+      .padding(.horizontal, 16)
     }
   }
 
@@ -103,24 +103,24 @@ extension ImportErrorView {
   }
 
   fileprivate var title: some View {
-    return Text(L10n.Core.m2WImportGenericImportErrorScreenPrimaryTitle)
+    return Text(CoreL10n.m2WImportGenericImportErrorScreenPrimaryTitle)
   }
 
   @ViewBuilder
   fileprivate var description: some View {
     switch model.step {
     case .extract:
-      Text(L10n.Core.m2WImportGenericImportErrorScreenSecondaryTitle)
+      Text(CoreL10n.m2WImportGenericImportErrorScreenSecondaryTitle)
     case .save:
-      Text(L10n.Core.m2WImportGenericImportErrorScreenGenericSecondaryTitle)
+      Text(CoreL10n.m2WImportGenericImportErrorScreenGenericSecondaryTitle)
     }
   }
 
   fileprivate var styledTitle: some View {
     title
       .frame(maxWidth: 400, alignment: .leading)
-      .font(DashlaneFont.custom(28, .medium).font)
-      .foregroundColor(.ds.text.neutral.catchy)
+      .textStyle(.title.section.large)
+      .foregroundStyle(Color.ds.text.neutral.catchy)
       .multilineTextAlignment(.leading)
       .padding(.horizontal, 16)
   }
@@ -129,7 +129,7 @@ extension ImportErrorView {
     description
       .frame(maxWidth: 400, alignment: .leading)
       .font(.body.weight(.light))
-      .foregroundColor(.ds.text.neutral.standard)
+      .foregroundStyle(Color.ds.text.neutral.standard)
       .multilineTextAlignment(.leading)
       .padding(.horizontal, 16)
   }
@@ -138,7 +138,7 @@ extension ImportErrorView {
     Text(attributedHelpInfo)
       .frame(maxWidth: 400, alignment: .leading)
       .font(.body.weight(.light))
-      .foregroundColor(.ds.text.neutral.standard)
+      .foregroundStyle(Color.ds.text.neutral.standard)
       .multilineTextAlignment(.leading)
       .padding(.horizontal, 16)
   }
@@ -148,9 +148,9 @@ extension ImportErrorView {
 extension ImportErrorView {
 
   fileprivate var attributedHelpInfo: AttributedString {
-    let troubleshootString = L10n.Core.m2WImportGenericImportErrorScreenTroubleshootingLink
+    let troubleshootString = CoreL10n.m2WImportGenericImportErrorScreenTroubleshootingLink
     let troubleshootURL = URL(string: "_")!
-    let descriptionString = L10n.Core.m2WImportGenericImportErrorScreenTroubleshooting
+    let descriptionString = CoreL10n.m2WImportGenericImportErrorScreenTroubleshooting
 
     return attributedString(
       for: descriptionString, hyperlinks: [troubleshootString: troubleshootURL])
@@ -173,10 +173,6 @@ extension ImportErrorView {
 
 }
 
-struct ImportErrorView_Previews: PreviewProvider {
-  static var previews: some View {
-    MultiContextPreview(deviceRange: .some([.iPhone8, .iPhone11, .iPadPro])) {
-      ImportErrorView(model: DashImportViewModel.mock, action: { _ in })
-    }
-  }
+#Preview {
+  ImportErrorView(model: DashImportViewModel.mock) { _ in }
 }

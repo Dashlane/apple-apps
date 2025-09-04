@@ -9,8 +9,8 @@ if ProcessInfo.processInfo.environment["BUILD_TYPE"] == "nightly" {
 let package = Package(
   name: "DashlaneAPI",
   platforms: [
-    .iOS(.v16),
-    .macOS(.v13),
+    .iOS(.v17),
+    .macOS(.v14),
   ],
   products: [
     .library(

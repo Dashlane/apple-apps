@@ -1,8 +1,9 @@
 import Combine
-import DashTypes
+import CoreMainMenu
+import CoreTypes
 import Foundation
+import LogFoundation
 import SwiftTreats
-import UIComponents
 import UIKit
 import VaultKit
 
@@ -32,7 +33,7 @@ class SessionMainMenuHandler: MainMenuHandler {
     syncKeyboardShortcut = SyncKeyboardShortcut(
       syncService: syncService, refreshMenuBar: menuSystemPublisher)
     menuBuilder = .init(syncShortcut: syncKeyboardShortcut, logger: logger)
-    guard Device.isIpadOrMac else { return }
+    guard Device.is(.pad, .mac, .vision) else { return }
 
     bridge.$dynamicShortcuts.sink {
       self.dynamicShortcuts = $0

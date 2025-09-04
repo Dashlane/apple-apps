@@ -1,30 +1,17 @@
 import AuthenticationServices
 import Combine
-import DashTypes
+import CoreTypes
 import Foundation
 
 public protocol IdentityStore {
   func getState(_ completion: @escaping (ASCredentialIdentityStoreState) -> Void)
 
-  @available(iOS, introduced: 12.0, deprecated: 17.0)
-  func saveCredentialIdentities(
-    _ credentialIdentities: [ASPasswordCredentialIdentity], completion: ((Bool, Error?) -> Void)?)
-  @available(iOS 17.0, *)
   func saveCredentialIdentities(
     _ credentialIdentities: [ASCredentialIdentity], completion: ((Bool, Error?) -> Void)?)
 
-  @available(iOS, introduced: 12.0, deprecated: 17.0)
-  func removeCredentialIdentities(
-    _ credentialIdentities: [ASPasswordCredentialIdentity], completion: ((Bool, Error?) -> Void)?)
-  @available(iOS 17.0, *)
   func removeCredentialIdentities(
     _ credentialIdentities: [ASCredentialIdentity], completion: ((Bool, Error?) -> Void)?)
 
-  @available(iOS, introduced: 12.0, deprecated: 17.0)
-  func replaceCredentialIdentities(
-    with newCredentialIdentities: [ASPasswordCredentialIdentity],
-    completion: ((Bool, Error?) -> Void)?)
-  @available(iOS 17.0, *)
   func replaceCredentialIdentities(
     _ newCredentialIdentities: [ASCredentialIdentity], completion: ((Bool, Error?) -> Void)?)
 
@@ -40,17 +27,6 @@ extension IdentityStore {
     }
   }
 
-  @available(iOS, introduced: 12.0, deprecated: 17.0)
-  func saveCredentialIdentities(_ credentialIdentities: [ASPasswordCredentialIdentity]) async throws
-  {
-    try await withCheckedThrowingContinuation { continuation in
-      saveCredentialIdentities(credentialIdentities) { success, error in
-        continuation.resume(withSuccess: success, error: error)
-      }
-    }
-  }
-
-  @available(iOS 17.0, macOS 14.0, *)
   func saveCredentialIdentities(_ credentialIdentities: [ASCredentialIdentity]) async throws {
     try await withCheckedThrowingContinuation { continuation in
       saveCredentialIdentities(credentialIdentities) { success, error in
@@ -59,18 +35,6 @@ extension IdentityStore {
     }
   }
 
-  @available(iOS, introduced: 12.0, deprecated: 17.0)
-  func removeCredentialIdentities(_ credentialIdentities: [ASPasswordCredentialIdentity])
-    async throws
-  {
-    try await withCheckedThrowingContinuation { continuation in
-      removeCredentialIdentities(credentialIdentities) { success, error in
-        continuation.resume(withSuccess: success, error: error)
-      }
-    }
-  }
-
-  @available(iOS 17.0, macOS 14.0, *)
   func removeCredentialIdentities(_ credentialIdentities: [ASCredentialIdentity]) async throws {
     try await withCheckedThrowingContinuation { continuation in
       removeCredentialIdentities(credentialIdentities) { success, error in
@@ -79,18 +43,6 @@ extension IdentityStore {
     }
   }
 
-  @available(iOS, introduced: 12.0, deprecated: 17.0)
-  func replaceCredentialIdentities(with newCredentialIdentities: [ASPasswordCredentialIdentity])
-    async throws
-  {
-    try await withCheckedThrowingContinuation { continuation in
-      replaceCredentialIdentities(with: newCredentialIdentities) { success, error in
-        continuation.resume(withSuccess: success, error: error)
-      }
-    }
-  }
-
-  @available(iOS 17.0, macOS 14.0, *)
   func replaceCredentialIdentities(_ newCredentialIdentities: [ASCredentialIdentity]) async throws {
     try await withCheckedThrowingContinuation { continuation in
       replaceCredentialIdentities(newCredentialIdentities) { success, error in

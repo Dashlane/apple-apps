@@ -1,4 +1,5 @@
 import Combine
+import CoreFeature
 import CoreLocalization
 import CorePersonalData
 import CorePremium
@@ -36,6 +37,7 @@ class SidebarViewModel: ObservableObject, SessionServicesInjecting {
   private let vaultCollectionsStore: VaultCollectionsStore
   private let userSpacesService: UserSpacesService
   private let deeplinkingService: DeepLinkingServiceProtocol
+  private let toolsService: ToolsServiceProtocol
 
   let vaultCollectionEditionServiceFactory: VaultCollectionEditionService.Factory
   let settingsFlowViewModelFactory: SettingsFlowViewModel.Factory
@@ -44,7 +46,8 @@ class SidebarViewModel: ObservableObject, SessionServicesInjecting {
   private var cancellables: Set<AnyCancellable> = []
 
   init(
-    toolsService: ToolsService,
+    featureService: FeatureServiceProtocol,
+    premiumStatusServicesSuit: PremiumStatusServicesSuit,
     userSpacesService: UserSpacesService,
     vaultCollectionsStore: VaultCollectionsStore,
     deeplinkingService: DeepLinkingServiceProtocol,
@@ -60,6 +63,9 @@ class SidebarViewModel: ObservableObject, SessionServicesInjecting {
     self.settingsFlowViewModelFactory = settingsFlowViewModelFactory
     self.collectionNamingViewModelFactory = collectionNamingViewModelFactory
     self.vaultCollectionEditionServiceFactory = vaultCollectionEditionServiceFactory
+    self.toolsService = ToolsService(
+      featureService: featureService,
+      capabilityService: premiumStatusServicesSuit.capabilityService)
     toolsService
       .displayableTools()
       .assign(to: &$tools)
@@ -109,9 +115,7 @@ extension SidebarViewModel {
 
   func add(_ items: [VaultItem], to collection: VaultCollection, with toast: ToastAction) {
     Task {
-      if #available(iOS 17, macOS 14, *) {
-        await VaultItemDragDropTip.dragAndDropEvent.donate()
-      }
+      await VaultItemDragDropTip.dragAndDropEvent.donate()
     }
 
     let items = items.filter { !collection.contains($0) }
@@ -135,10 +139,10 @@ extension SidebarViewModel {
 
       let toastText: String
       if items.count > 1 {
-        toastText = CoreLocalization.L10n.Core.KWVaultItem.Collections.Toast.ItemAdded
+        toastText = CoreL10n.KWVaultItem.Collections.Toast.ItemAdded
           .plural(items.count, collection.name)
       } else {
-        toastText = CoreLocalization.L10n.Core.KWVaultItem.Collections.Toast.ItemAdded
+        toastText = CoreL10n.KWVaultItem.Collections.Toast.ItemAdded
           .singular(1, collection.name)
       }
       toast(toastText, image: .ds.feedback.success.outlined)

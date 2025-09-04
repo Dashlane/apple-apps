@@ -1,7 +1,7 @@
 import DesignSystem
 import Foundation
-import NotificationCenter
 import SwiftUI
+import SwiftUILottie
 import UIComponents
 import UIDelight
 
@@ -79,7 +79,7 @@ struct OnboardingChecklistItemView: View {
     VStack(alignment: .center) {
       if completed {
         Image.ds.feedback.success.outlined
-          .foregroundColor(.ds.text.neutral.quiet)
+          .foregroundStyle(Color.ds.text.neutral.quiet)
           .padding(.top, 3)
           .padding(.leading, 2)
           .fiberAccessibilityHidden(true)
@@ -97,8 +97,12 @@ struct OnboardingChecklistItemView: View {
       VStack(alignment: .leading, spacing: 8) {
         Text(action.title)
           .textStyle(.title.section.medium)
-          .foregroundColor(completed ? .ds.text.neutral.quiet : .ds.text.neutral.catchy)
+          .foregroundStyle(completed ? Color.ds.text.neutral.quiet : Color.ds.text.neutral.catchy)
           .fixedSize(horizontal: false, vertical: true)
+          .contentShape(
+            .hoverEffect, RoundedRectangle(cornerRadius: 4, style: .continuous).inset(by: -5)
+          )
+          .hoverEffect(isEnabled: !showDetails && !completed)
         if showDetails && !completed {
           Text(action.caption)
             .textStyle(.body.reduced.regular)
@@ -156,12 +160,6 @@ extension OnboardingChecklistAction {
       return L10n.Localizable.onboardingChecklistAccessibilityHintActivateAutofill
     case .addFirstPasswordsManually:
       return L10n.Localizable.onboardingChecklistAccessibilityHintAddPasswords
-    case .importFromBrowser:
-      return L10n.Localizable.onboardingChecklistAccessibilityHintImportFromBrowser
-    case .fixBreachedAccounts:
-      return L10n.Localizable.onboardingChecklistAccessibilityHintFixBreachedAccounts
-    case .seeScanResult:
-      return L10n.Localizable.onboardingChecklistAccessibilityHintSeeScanResult
     case .mobileToDesktop:
       return L10n.Localizable.onboardingChecklistAccessibilityHintM2W
     }

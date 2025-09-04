@@ -1,6 +1,6 @@
 import Foundation
 
-public enum MplessTransferAlgorithm: String, Sendable, Equatable, CaseIterable, Codable {
+public enum MplessTransferAlgorithm: String, Sendable, Hashable, Codable, CaseIterable {
   case directHKDFSHA256 = "direct+HKDF-SHA-256"
   case undecodable
   public init(from decoder: Decoder) throws {

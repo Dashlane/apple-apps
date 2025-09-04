@@ -1,7 +1,7 @@
-import CoreUserTracking
 import CryptoKit
 import Foundation
 import TOTPGenerator
+import UserTrackingFoundation
 
 extension OTPInfo {
 

@@ -1,9 +1,6 @@
 #if canImport(Combine)
   import Combine
 #endif
-#if canImport(CoreActivityLogs)
-  import CoreActivityLogs
-#endif
 #if canImport(CoreCategorizer)
   import CoreCategorizer
 #endif
@@ -12,9 +9,6 @@
 #endif
 #if canImport(CoreLocalization)
   import CoreLocalization
-#endif
-#if canImport(CoreMedia)
-  import CoreMedia
 #endif
 #if canImport(CorePersonalData)
   import CorePersonalData
@@ -34,11 +28,14 @@
 #if canImport(CoreSpotlight)
   import CoreSpotlight
 #endif
-#if canImport(CoreUserTracking)
-  import CoreUserTracking
+#if canImport(CoreTeamAuditLogs)
+  import CoreTeamAuditLogs
 #endif
-#if canImport(DashTypes)
-  import DashTypes
+#if canImport(CoreUserTracking)
+  import UserTrackingFoundation
+#endif
+#if canImport(CoreTypes)
+  import CoreTypes
 #endif
 #if canImport(DesignSystem)
   import DesignSystem
@@ -58,8 +55,8 @@
 #if canImport(PDFKit)
   import PDFKit
 #endif
-#if canImport(QuickLook)
-  import QuickLook
+#if canImport(SwiftTreats)
+  import SwiftTreats
 #endif
 #if canImport(SwiftUI)
   import SwiftUI
@@ -84,24 +81,6 @@ extension VaultKitServicesContainer {
       capabilityService: capabilityService,
       shouldDisplayRenameAlert: shouldDisplayRenameAlert,
       itemPublisher: itemPublisher
-    )
-  }
-
-}
-
-extension VaultKitServicesContainer {
-
-  public func makeAttachmentRowViewModel(
-    attachment: Attachment, attachmentPublisher: AnyPublisher<Attachment, Never>,
-    editingItem: DocumentAttachable, deleteAction: @escaping (Attachment) -> Void
-  ) -> AttachmentRowViewModel {
-    return AttachmentRowViewModel(
-      attachment: attachment,
-      attachmentPublisher: attachmentPublisher,
-      editingItem: editingItem,
-      database: database,
-      documentStorageService: documentStorageService,
-      deleteAction: deleteAction
     )
   }
 
@@ -202,7 +181,8 @@ extension VaultKitServicesContainer {
       vaultStateService: vaultKitVaultStateService,
       deeplinkingService: vaultKitDeepLinkingService,
       collectionNamingViewModelFactory: InjectedFactory(makeCollectionNamingViewModel),
-      collectionRowViewModelFactory: InjectedFactory(makeCollectionRowViewModel)
+      collectionRowViewModelFactory: InjectedFactory(makeCollectionRowViewModel),
+      vaultItemsStore: vaultServicesSuit.vaultItemsStore
     )
   }
 
@@ -269,7 +249,7 @@ extension VaultKitServicesContainer {
       sharingService: vaultKitSharingService,
       userSpacesService: userSpacesService,
       activityReporter: reporter,
-      activityLogsService: activityLogsService
+      teamAuditLogsService: teamAuditLogsService
     )
   }
 
@@ -284,25 +264,10 @@ extension VaultKitServicesContainer {
       collection: collection,
       logger: logger,
       activityReporter: reporter,
-      activityLogsService: activityLogsService,
+      teamAuditLogsService: teamAuditLogsService,
       vaultCollectionDatabase: vaultServicesSuit.vaultCollectionDatabase,
       vaultCollectionsStore: vaultServicesSuit.vaultCollectionsStore,
       sharingService: vaultKitSharingService
-    )
-  }
-
-}
-
-extension VaultKitServicesContainer {
-
-  public func makeVaultItemDatabase() -> VaultItemDatabase {
-    return VaultItemDatabase(
-      logger: logger,
-      database: database,
-      sharingService: vaultKitSharingServiceHandler,
-      featureService: vaultKitFeatureService,
-      userSpacesService: userSpacesService,
-      activityLogsService: activityLogsService
     )
   }
 
@@ -316,7 +281,6 @@ extension VaultKitServicesContainer {
       domainIconLibrary: domainIconLibrary
     )
   }
-
 }
 
 extension VaultKitServicesContainer {
@@ -328,6 +292,18 @@ extension VaultKitServicesContainer {
       vaultItemsStore: vaultServicesSuit.vaultItemsStore,
       userSettings: vaultKitUserSettings,
       spotlightIndexer: spotlightIndexer
+    )
+  }
+
+}
+
+extension VaultKitServicesContainer {
+
+  public func makeVaultStateService() -> VaultStateService {
+    return VaultStateService(
+      vaultItemsLimitService: vaultServicesSuit.vaultItemsLimitService,
+      premiumStatusProvider: premiumStatusProvider,
+      featureService: vaultKitFeatureService
     )
   }
 
@@ -355,32 +331,6 @@ extension InjectedFactory where T == _AddAttachmentButtonViewModelFactory {
 
 extension AddAttachmentButtonViewModel {
   public typealias Factory = InjectedFactory<_AddAttachmentButtonViewModelFactory>
-}
-
-public typealias _AttachmentRowViewModelFactory = (
-  _ attachment: Attachment,
-  _ attachmentPublisher: AnyPublisher<Attachment, Never>,
-  _ editingItem: DocumentAttachable,
-  _ deleteAction: @escaping (Attachment) -> Void
-) -> AttachmentRowViewModel
-
-extension InjectedFactory where T == _AttachmentRowViewModelFactory {
-
-  public func make(
-    attachment: Attachment, attachmentPublisher: AnyPublisher<Attachment, Never>,
-    editingItem: DocumentAttachable, deleteAction: @escaping (Attachment) -> Void
-  ) -> AttachmentRowViewModel {
-    return factory(
-      attachment,
-      attachmentPublisher,
-      editingItem,
-      deleteAction
-    )
-  }
-}
-
-extension AttachmentRowViewModel {
-  public typealias Factory = InjectedFactory<_AttachmentRowViewModelFactory>
 }
 
 public typealias _AttachmentsListViewModelFactory = (
@@ -635,4 +585,18 @@ extension InjectedFactory where T == _VaultItemsSpotlightServiceFactory {
 
 extension VaultItemsSpotlightService {
   internal typealias Factory = InjectedFactory<_VaultItemsSpotlightServiceFactory>
+}
+
+public typealias _VaultStateServiceFactory = (
+) -> VaultStateService
+
+extension InjectedFactory where T == _VaultStateServiceFactory {
+
+  public func make() -> VaultStateService {
+    return factory()
+  }
+}
+
+extension VaultStateService {
+  public typealias Factory = InjectedFactory<_VaultStateServiceFactory>
 }

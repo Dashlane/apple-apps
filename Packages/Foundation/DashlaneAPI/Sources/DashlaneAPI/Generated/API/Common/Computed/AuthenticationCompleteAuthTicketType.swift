@@ -1,6 +1,6 @@
 import Foundation
 
-public enum AuthenticationCompleteAuthTicketType: String, Sendable, Equatable, CaseIterable, Codable
+public enum AuthenticationCompleteAuthTicketType: String, Sendable, Hashable, Codable, CaseIterable
 {
   case sso = "sso"
   case masterPassword = "master_password"

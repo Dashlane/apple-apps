@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Payments {
-  public struct VerifyApplestoreReceipt: APIRequest {
+  public struct VerifyApplestoreReceipt: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/payments/VerifyApplestoreReceipt"
 
     public let api: UserDeviceAPIClient
@@ -28,7 +28,7 @@ extension UserDeviceAPIClient.Payments {
 }
 
 extension UserDeviceAPIClient.Payments.VerifyApplestoreReceipt {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case receipt = "receipt"
       case amount = "amount"
@@ -38,7 +38,7 @@ extension UserDeviceAPIClient.Payments.VerifyApplestoreReceipt {
       case transactionIdentifier = "transactionIdentifier"
     }
 
-    public enum Context: String, Sendable, Equatable, CaseIterable, Codable {
+    public enum Context: String, Sendable, Hashable, Codable, CaseIterable {
       case postLaunch = "postLaunch"
       case purchase = "purchase"
       case updates = "updates"
@@ -82,7 +82,7 @@ extension UserDeviceAPIClient.Payments.VerifyApplestoreReceipt {
 }
 
 extension UserDeviceAPIClient.Payments.VerifyApplestoreReceipt {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case success = "success"
       case planType = "planType"

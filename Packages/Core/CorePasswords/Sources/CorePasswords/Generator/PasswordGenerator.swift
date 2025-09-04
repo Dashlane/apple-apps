@@ -1,6 +1,7 @@
+import CoreTypes
 import Foundation
 
-public struct PasswordGenerator {
+public struct PasswordGenerator: PasswordGeneratorProtocol {
   let availableCharacters: [Character]
   let characterSets: [Set<Character>]
   let length: Int

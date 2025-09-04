@@ -44,9 +44,9 @@ struct BrazeAnnouncementExtraKeys {
 extension [BrazeAnnouncementExtraKeys.Device] {
 
   func shouldExcludeCurrentDevice() -> Bool {
-    if Device.isMac {
+    if Device.is(.mac) {
       return self.contains(.mac)
-    } else if Device.isIpad {
+    } else if Device.is(.pad) {
       return self.contains(.iPad)
     } else {
       return self.contains(.iPhone)

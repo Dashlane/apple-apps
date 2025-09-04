@@ -1,5 +1,5 @@
 import Combine
-import DashTypes
+import CoreTypes
 import DatabaseFoundation
 import Foundation
 import GRDB

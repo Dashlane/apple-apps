@@ -1,5 +1,6 @@
 import CoreLocalization
 import DesignSystem
+import DesignSystemExtra
 import Foundation
 import SwiftUI
 import UIComponents
@@ -21,10 +22,10 @@ struct AccountRecoveryKeyPreviewView: View {
     }
     .scrollContentBackgroundStyle(.alternate)
     .overlay(overlayButton)
-    .navigationTitle(CoreLocalization.L10n.Core.recoveryKeySettingsLabel)
+    .navigationTitle(CoreL10n.recoveryKeySettingsLabel)
     .toolbar {
       ToolbarItem(placement: .navigationBarLeading) {
-        BackButton(color: .accentColor) {
+        NativeNavigationBarBackButton {
           showAlert = true
         }
       }
@@ -36,7 +37,7 @@ struct AccountRecoveryKeyPreviewView: View {
               UIPasteboard.general.string = recoveryKey.recoveryKeyFormatted
             },
             label: {
-              Text(CoreLocalization.L10n.Core.kwCopy)
+              Text(CoreL10n.kwCopy)
             })
         #endif
       }
@@ -47,15 +48,14 @@ struct AccountRecoveryKeyPreviewView: View {
       isPresented: $showAlert,
       content: {
         Alert(
-          title: Text(CoreLocalization.L10n.Core.accountRecoveryKeyCancelAlertTitle),
-          message: Text(CoreLocalization.L10n.Core.accountRecoveryKeyCancelAlertMessage),
+          title: Text(CoreL10n.accountRecoveryKeyCancelAlertTitle),
+          message: Text(CoreL10n.accountRecoveryKeyCancelAlertMessage),
           primaryButton: Alert.Button.destructive(
-            Text(CoreLocalization.L10n.Core.accountRecoveryKeyCancelAlertCta),
+            Text(CoreL10n.accountRecoveryKeyCancelAlertCta),
             action: {
               dismiss()
             }),
-          secondaryButton: .cancel(
-            Text(CoreLocalization.L10n.Core.accountRecoveryKeyCancelAlertCancelCta)))
+          secondaryButton: .cancel(Text(CoreL10n.accountRecoveryKeyCancelAlertCancelCta)))
       }
     )
     .loginAppearance()
@@ -67,28 +67,23 @@ struct AccountRecoveryKeyPreviewView: View {
         .multilineTextAlignment(.leading)
         .lineLimit(nil)
         .fixedSize(horizontal: false, vertical: true)
-        .font(
-          .custom(
-            GTWalsheimPro.regular.name,
-            size: 28,
-            relativeTo: .title
-          )
-          .weight(.medium)
-        )
-        .foregroundColor(.ds.text.neutral.catchy)
+        .textStyle(.title.section.large)
+        .foregroundStyle(Color.ds.text.neutral.catchy)
       message(Text(L10n.Localizable.recoveryKeyActivationPreviewMessage1))
       message(Text(L10n.Localizable.recoveryKeyActivationPreviewMessage2))
         .padding(.bottom, 16)
       Text(recoveryKey.recoveryKeyFormatted)
         .font(.system(size: 16).monospaced())
-        .foregroundColor(.ds.text.neutral.standard)
+        .foregroundStyle(Color.ds.text.neutral.standard)
         .multilineTextAlignment(.leading)
         .fixedSize(horizontal: false, vertical: true)
         .frame(maxWidth: .infinity, alignment: .leading)
         .padding(16)
-        .background(
-          RoundedRectangle(cornerRadius: 10, style: .continuous)
-            .fill(Color.ds.container.agnostic.neutral.supershy)
+        .background(.ds.container.agnostic.neutral.supershy)
+        .clipShape(RoundedRectangle(cornerRadius: 10))
+        .contentShape(
+          .contextMenuPreview,
+          RoundedRectangle(cornerRadius: 10)
         )
         .contextMenu {
           Button(
@@ -96,9 +91,9 @@ struct AccountRecoveryKeyPreviewView: View {
               UIPasteboard.general.string = recoveryKey.recoveryKeyFormatted
             },
             label: {
-              Text(CoreLocalization.L10n.Core.kwCopy)
+              Text(CoreL10n.kwCopy)
               Image(systemName: "doc.on.doc")
-                .fiberAccessibilityLabel(Text(CoreLocalization.L10n.Core.kwCopy))
+                .fiberAccessibilityLabel(Text(CoreL10n.kwCopy))
             })
         }
       Spacer()
@@ -117,6 +112,7 @@ struct AccountRecoveryKeyPreviewView: View {
         label: {
           Text(L10n.Localizable.recoveryKeyActivationPreviewCta)
             .fixedSize(horizontal: false, vertical: true)
+            .frame(maxWidth: .infinity)
         }
       )
       .buttonStyle(.designSystem(.titleOnly))
@@ -131,8 +127,8 @@ struct AccountRecoveryKeyPreviewView: View {
       .multilineTextAlignment(.leading)
       .lineLimit(nil)
       .fixedSize(horizontal: false, vertical: true)
-      .foregroundColor(.ds.text.neutral.standard)
-      .font(.body)
+      .foregroundStyle(Color.ds.text.neutral.standard)
+      .textStyle(.body.standard.regular)
   }
 }
 

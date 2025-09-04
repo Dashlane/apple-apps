@@ -107,6 +107,25 @@ public struct OTPConfiguration: Equatable, Hashable, Codable, Sendable {
   }
 }
 
+extension OTPConfiguration {
+  public func generate(_ date: Date = Date()) -> String {
+    let counter: UInt64? =
+      if case let .hotp(tokenCounter) = type {
+        tokenCounter
+      } else {
+        nil
+      }
+
+    return TOTPGenerator.generate(
+      with: type,
+      for: date,
+      digits: digits,
+      algorithm: algorithm,
+      secret: secret,
+      currentCounter: counter)
+  }
+}
+
 extension String {
   fileprivate func secretData() throws -> Data {
     guard let data = base32DecodedData as Data? else {

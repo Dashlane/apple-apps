@@ -1,6 +1,7 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 
 public typealias PublicBreachesData = (revision: Int, breaches: Set<PublicBreach>)
 

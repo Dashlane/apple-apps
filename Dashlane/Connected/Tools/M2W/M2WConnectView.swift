@@ -1,8 +1,8 @@
-import CoreUserTracking
 import DesignSystem
 import SwiftUI
 import UIComponents
 import UIDelight
+import UserTrackingFoundation
 
 struct M2WConnectView: View {
 
@@ -15,26 +15,26 @@ struct M2WConnectView: View {
 
   var body: some View {
     VStack(alignment: .center, spacing: 8) {
-      Image(asset: FiberAsset.m2wConnect)
+      Image(.Onboarding.m2WConnect)
         .padding(.bottom, 65)
         .fiberAccessibilityLabel(Text("dashlane.com/addweb"))
 
       Text(L10n.Localizable.m2WConnectScreenTitle)
         .frame(maxWidth: 400)
-        .font(DashlaneFont.custom(28, .medium).font)
-        .foregroundColor(.ds.text.neutral.catchy)
+        .textStyle(.specialty.spotlight.small)
+        .foregroundStyle(Color.ds.text.neutral.catchy)
         .multilineTextAlignment(.center)
         .padding(.horizontal, 32)
 
       Text(L10n.Localizable.m2WConnectScreenSubtitle)
         .frame(maxWidth: 400)
-        .font(.body.weight(.light))
-        .foregroundColor(.ds.text.neutral.standard)
+        .textStyle(.body.standard.regular)
+        .foregroundStyle(Color.ds.text.neutral.standard)
         .multilineTextAlignment(.center)
         .padding(.horizontal, 32)
     }
-    .frame(maxHeight: .infinity, alignment: .center)
-    .backgroundColorIgnoringSafeArea(.ds.background.alternate)
+    .frame(maxWidth: .infinity, maxHeight: .infinity, alignment: .center)
+    .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
     .navigationBarBackButtonHidden(true)
     .toolbar {
       toolbarContent
@@ -44,8 +44,10 @@ struct M2WConnectView: View {
   @ToolbarContentBuilder
   private var toolbarContent: some ToolbarContent {
     ToolbarItem(placement: .navigationBarLeading) {
-      Button(action: { completion(.didTapCancel) }, title: L10n.Localizable.m2WConnectScreenCancel)
-        .foregroundColor(.ds.text.brand.standard)
+      Button(L10n.Localizable.m2WConnectScreenCancel) {
+        completion(.didTapCancel)
+      }
+      .foregroundStyle(Color.ds.text.brand.standard)
     }
 
     ToolbarItem(placement: .navigationBarTrailing) {
@@ -56,7 +58,7 @@ struct M2WConnectView: View {
             .bold()
         }
       )
-      .foregroundColor(.ds.text.brand.standard)
+      .foregroundStyle(Color.ds.text.brand.standard)
     }
   }
 }

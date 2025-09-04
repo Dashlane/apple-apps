@@ -10,3 +10,9 @@ public protocol DeepLinkingServiceProtocol {
 public struct FakeDeepLinkingService: DeepLinkingServiceProtocol {
   public func handle(_ action: DeepLinkAction) {}
 }
+
+extension DeepLinkingServiceProtocol {
+  public static var mock: DeepLinkingServiceProtocol {
+    FakeDeepLinkingService()
+  }
+}

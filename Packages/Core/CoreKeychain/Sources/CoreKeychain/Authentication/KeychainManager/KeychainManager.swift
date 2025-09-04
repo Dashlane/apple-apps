@@ -1,14 +1,10 @@
+import CoreTypes
 import CryptoKit
 import Foundation
 import LocalAuthentication
 
 public typealias UserLogin = String
 typealias KeychainData = [String: Any]
-
-enum KeychainItemStatus: Equatable {
-  case found(accessible: KeychainAccessMode)
-  case notFound
-}
 
 protocol KeychainManager {
   var cryptoEngine: AuthenticationKeychainCryptoEngine { get }

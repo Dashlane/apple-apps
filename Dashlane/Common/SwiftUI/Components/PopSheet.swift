@@ -25,7 +25,7 @@ struct PopSheet {
     }
 
     public static func cancel(_ action: (() -> Void)? = {}) -> Button {
-      Button(kind: .cancel, label: Text(CoreLocalization.L10n.Core.cancel), action: action)
+      Button(kind: .cancel, label: Text(CoreL10n.cancel), action: action)
     }
 
     public static func destructive(_ label: Text, action: (() -> Void)? = {}) -> Button {
@@ -64,7 +64,7 @@ struct PopSheet {
     VStack(spacing: 0) {
       self.title
         .font(.subheadline)
-        .foregroundColor(.ds.text.neutral.quiet)
+        .foregroundStyle(Color.ds.text.neutral.quiet)
         .padding()
       ForEach(self.buttons.filter({ $0.kind != .cancel })) { button in
         Divider()
@@ -79,7 +79,7 @@ struct PopSheet {
 
             if button.kind == .destructive {
               button.label
-                .foregroundColor(.red)
+                .foregroundStyle(.red)
                 .frame(maxWidth: .infinity)
                 .contentShape(Rectangle())
             } else {
@@ -90,7 +90,7 @@ struct PopSheet {
 
           }
         )
-        .accentColor(.ds.text.brand.standard)
+        .tint(.ds.text.brand.standard)
         .padding()
       }
     }
@@ -105,7 +105,7 @@ extension View {
     arrowEdge: Edge = .bottom, content: @escaping () -> PopSheet
   ) -> some View {
     Group {
-      if Device.isIpadOrMac {
+      if Device.is(.pad, .mac, .vision) {
         popover(
           isPresented: isPresented,
           attachmentAnchor: attachmentAnchor,

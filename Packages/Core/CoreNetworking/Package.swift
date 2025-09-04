@@ -21,19 +21,19 @@ if let envPointer = getenv("BUILD_TYPE") {
 let package = Package(
   name: "CoreNetworking",
   platforms: [
-    .iOS(.v16)
+    .iOS(.v17)
   ],
   products: [
     .library(name: "CoreNetworking", targets: ["CoreNetworking"])
   ],
   dependencies: [
-    .package(path: "../../Foundation/DashTypes"),
+    .package(path: "../../Core/CoreTypes"),
     .package(path: "../../Foundation/DashlaneAPI"),
   ],
   targets: [
     .target(
       name: "CoreNetworking",
-      dependencies: ["DashTypes", "DashlaneAPI"],
+      dependencies: ["CoreTypes", "DashlaneAPI"],
       swiftSettings: swiftSettings)
   ]
 )

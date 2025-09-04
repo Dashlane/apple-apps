@@ -1,5 +1,5 @@
+import CoreTypes
 import CyrilKit
-import DashTypes
 import Foundation
 
 extension SharingUpdater {
@@ -33,7 +33,9 @@ extension SharingUpdater {
           nextRequest += UpdateRequest(error: error)
           logger.error("item is not up to date")
         } catch {
-          logger.fatal("Cannot upload item \(keyPair.id) in group \(group.id)", error: error)
+          logger.fatal(
+            "Cannot upload item \(keyPair.id, privacy: .public) in group \(group.id, privacy: .public)",
+            error: error)
           continue
         }
       }

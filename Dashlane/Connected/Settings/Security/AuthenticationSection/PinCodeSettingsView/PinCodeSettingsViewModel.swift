@@ -1,8 +1,8 @@
 import Combine
 import CorePremium
 import CoreSession
+import CoreTypes
 import CryptoKit
-import DashTypes
 import Foundation
 import LoginKit
 import SwiftUI

@@ -1,23 +1,28 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 
+@Loggable
 public struct User<Group: SharingGroup>: Codable, Hashable, Identifiable, SharingGroupMember,
   Sendable
 {
   public typealias Target = UserId
 
+  @LogPublicPrivacy
   public let id: String
   public let parentGroupId: Identifier
   let userGroupId: Identifier?
   let itemGroupId: Identifier?
   let collectionId: Identifier?
   public let referrer: String
+  @LogPublicPrivacy
   public var status: SharingMemberStatus
   public var encryptedGroupKey: String?
   public var permission: SharingPermission
   public var proposeSignature: String?
   public var acceptSignature: String?
+  @LogPublicPrivacy
   public var rsaStatus: RSAStatus
 
   public var signatureId: String {

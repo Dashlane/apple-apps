@@ -2,10 +2,10 @@ import AuthenticatorKit
 import Combine
 import CorePersonalData
 import CorePremium
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import Foundation
 import TOTPGenerator
+import UserTrackingFoundation
 import VaultKit
 
 class OTPDatabaseService: AuthenticatorDatabaseServiceProtocol {

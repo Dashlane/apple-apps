@@ -1,4 +1,4 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 
@@ -17,8 +17,8 @@ extension SharingEngine {
         let adminGroups = itemGroup.userGroupMembers.filter { $0.permission == .admin }
         let hasOtherAdmin = !adminUsers.isEmpty || !adminGroups.isEmpty
         if hasOtherAdmin {
-          try await personalDataDB.reCreateAcceptedItem(with: id)
-          try await self.refuse(itemGroup.info)
+          try await personalDataDB.reCreateAcceptedItem(with: id, markOldItemAsPending: true)
+          try await self.refuse(itemGroup.info, userAuditLogDetails: nil)
         } else {
           let usersToRevoke = itemGroup.users.filter { $0.id != userId }
           let userGroupsToRevoke = itemGroup.userGroupMembers
@@ -28,11 +28,10 @@ extension SharingEngine {
             users: usersToRevoke,
             userGroupMembers: userGroupsToRevoke,
             userAuditLogDetails: nil)
-
         }
 
       case .limited:
-        try await self.refuse(itemGroup.info)
+        try await self.refuse(itemGroup.info, userAuditLogDetails: nil)
       default: break
 
       }

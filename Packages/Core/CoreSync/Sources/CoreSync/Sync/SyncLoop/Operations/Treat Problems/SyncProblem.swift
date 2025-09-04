@@ -1,4 +1,4 @@
-import DashTypes
+import CoreTypes
 import Foundation
 
 enum SyncProblem: Equatable, Hashable {

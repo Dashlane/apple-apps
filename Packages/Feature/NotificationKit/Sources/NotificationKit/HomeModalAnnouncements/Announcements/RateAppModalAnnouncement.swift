@@ -1,6 +1,7 @@
+import CorePremium
 import CoreSession
 import CoreSettings
-import DashTypes
+import CoreTypes
 import Foundation
 import SwiftTreats
 import UIKit
@@ -15,6 +16,7 @@ public class RateAppModalAnnouncement: HomeModalAnnouncement, HomeAnnouncementsS
 
   private let login: Login
   private let userSettings: UserSettings
+  private let premiumStatusProvider: PremiumStatusProvider
 
   var isOneOffBlastMode: Bool {
     guard let oneOffBlast = self.rateConfig.oneOffBlast else {
@@ -30,13 +32,20 @@ public class RateAppModalAnnouncement: HomeModalAnnouncement, HomeAnnouncementsS
 
   public init(
     session: Session,
-    userSettings: UserSettings
+    userSettings: UserSettings,
+    premiumStatusProvider: PremiumStatusProvider
   ) {
     self.login = session.login
     self.userSettings = userSettings
+    self.premiumStatusProvider = premiumStatusProvider
   }
 
   func shouldDisplay() -> Bool {
+
+    guard !isFreeB2CUser else {
+      return false
+    }
+
     if isOneOffBlastMode {
       userSettings[.rateApplastOneOffBlast] = rateConfig.oneOffBlast
       return true
@@ -80,10 +89,31 @@ public class RateAppModalAnnouncement: HomeModalAnnouncement, HomeAnnouncementsS
     guard shouldDisplay() else { return nil }
     return .overScreen(.rateApp)
   }
+
+  var isFreeB2CUser: Bool {
+    let status = premiumStatusProvider.status
+
+    guard status.b2bStatus?.statusCode != .inTeam else {
+      return false
+    }
+
+    let b2cStatus = status.b2cStatus
+    guard b2cStatus.statusCode == .free else {
+      return false
+    }
+    return true
+  }
 }
 
 extension RateAppModalAnnouncement {
-  static var mock: RateAppModalAnnouncement {
-    .init(session: .mock, userSettings: .mock)
+  static func mock(
+    status: Status = Status(
+      b2cStatus: .init(
+        statusCode: .free,
+        isTrial: false,
+        autoRenewal: false),
+      capabilities: [])
+  ) -> RateAppModalAnnouncement {
+    .init(session: .mock, userSettings: .mock, premiumStatusProvider: .mock(status: status))
   }
 }

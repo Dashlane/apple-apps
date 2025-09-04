@@ -1,11 +1,13 @@
 import CommonCrypto
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 import SwiftTreats
 
-actor OnDiskRemoteFileCache {
+struct OnDiskRemoteFileCache {
   private static let etagFilenameSuffix = "Etag"
 
+  @Loggable
   enum Error: Swift.Error {
     case cannotCreateObfuscatedCacheKey
   }

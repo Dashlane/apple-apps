@@ -1,6 +1,7 @@
+import CoreTypes
 import CryptoKit
-import DashTypes
 import Foundation
+import LogFoundation
 import Sodium
 
 public struct DeviceTransferCryptoEngine: Sendable {
@@ -11,6 +12,7 @@ public struct DeviceTransferCryptoEngine: Sendable {
 
   public typealias Nonce = [UInt8]
 
+  @Loggable
   enum CryptoError: Error {
     case couldNotDecrypt
     case couldNotEncrypt

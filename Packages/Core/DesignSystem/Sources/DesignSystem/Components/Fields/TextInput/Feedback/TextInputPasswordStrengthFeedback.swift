@@ -1,22 +1,8 @@
 import CoreLocalization
 import SwiftUI
-
-#if canImport(UIKit)
-  import UIKit
-#endif
+import UIKit
 
 public struct TextInputPasswordStrengthFeedback: View {
-  private static let colorfulColors: [Color] = [
-    Color("pride1"),
-    Color("pride2"),
-    Color("pride3"),
-    Color("pride4"),
-    Color("pride5"),
-    Color("pride6"),
-    Color("pride7"),
-    Color("pride8"),
-  ]
-
   public enum Strength: Int, CaseIterable {
     case weakest = 1
     case weak
@@ -42,7 +28,7 @@ public struct TextInputPasswordStrengthFeedback: View {
         .frame(height: height)
       Text(accessoryText(for: strength))
         .textStyle(.body.helper.regular)
-        .foregroundColor(Color.accessoryTextForegroundColor(for: strength, colorful: colorful))
+        .foregroundStyle(Color.accessoryTextForegroundColor(for: strength, colorful: colorful))
         .frame(maxHeight: .infinity)
         .fixedSize(horizontal: false, vertical: true)
         .animation(.easeOut(duration: 0.25), value: strength)
@@ -50,7 +36,7 @@ public struct TextInputPasswordStrengthFeedback: View {
     .padding(.top, topPadding)
     .accessibilityElement(children: .ignore)
     .accessibilityLabel(Text(accessoryText(for: strength)))
-    .onChange(of: strength) { newStrength in
+    .onChange(of: strength) { _, newStrength in
       makeAccessibilityAnnouncement(for: newStrength)
     }
   }
@@ -59,7 +45,7 @@ public struct TextInputPasswordStrengthFeedback: View {
   private var strengthView: some View {
     if colorful && strength == .strong {
       HStack(spacing: 0) {
-        ForEach(Self.colorfulColors, id: \.self) { color in
+        ForEach(Color.prideColors, id: \.self) { color in
           color
         }
       }
@@ -67,11 +53,11 @@ public struct TextInputPasswordStrengthFeedback: View {
     } else {
       ZStack(alignment: .leading) {
         Capsule(style: .circular)
-          .foregroundColor(.ds.border.neutral.quiet.idle)
+          .foregroundStyle(Color.ds.border.neutral.quiet.idle)
         let fillPercentage = CGFloat(strength.rawValue) / CGFloat(Strength.allCases.count)
         ProgressBarLayout(progress: fillPercentage) {
           Capsule(style: .circular)
-            .foregroundColor(.strengthBarColor(for: strength))
+            .foregroundStyle(Color.strengthBarColor(for: strength))
         }
       }
       .animation(.spring(response: 0.35), value: strength)
@@ -81,25 +67,38 @@ public struct TextInputPasswordStrengthFeedback: View {
   private func accessoryText(for strength: Strength) -> String {
     switch strength {
     case .weakest:
-      return L10n.Core.passwordGeneratorStrengthVeryGuessabble
+      return CoreL10n.passwordGeneratorStrengthVeryGuessabble
     case .weak:
-      return L10n.Core.passwordGeneratorStrengthTooGuessable
+      return CoreL10n.passwordGeneratorStrengthTooGuessable
     case .acceptable:
-      return L10n.Core.passwordGeneratorStrengthSomewhatGuessable
+      return CoreL10n.passwordGeneratorStrengthSomewhatGuessable
     case .good:
-      return L10n.Core.passwordGeneratorStrengthSafelyUnguessable
+      return CoreL10n.passwordGeneratorStrengthSafelyUnguessable
     case .strong:
-      return L10n.Core.passwordGeneratorStrengthVeryUnguessable
+      return CoreL10n.passwordGeneratorStrengthVeryUnguessable
     }
   }
 
   private func makeAccessibilityAnnouncement(for strength: Strength) {
-    #if canImport(UIKit)
-      UIAccessibility.post(
-        notification: .announcement,
-        argument: accessoryText(for: strength)
-      )
-    #endif
+    UIAccessibility.post(
+      notification: .announcement,
+      argument: accessoryText(for: strength)
+    )
+  }
+}
+
+extension Color {
+  public static var prideColors: [Color] {
+    [
+      Color("pride1"),
+      Color("pride2"),
+      Color("pride3"),
+      Color("pride4"),
+      Color("pride5"),
+      Color("pride6"),
+      Color("pride7"),
+      Color("pride8"),
+    ]
   }
 }
 

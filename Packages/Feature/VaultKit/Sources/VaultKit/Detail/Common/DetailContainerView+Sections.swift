@@ -9,7 +9,7 @@ extension DetailContainerView {
   @ViewBuilder
   var itemOrganizationSection: some View {
     if model.availableUserSpaces.count > 1 || showCollections {
-      Section(CoreLocalization.L10n.Core.KWVaultItem.Organization.Section.title) {
+      Section(CoreL10n.KWVaultItem.Organization.Section.title) {
         if model.availableUserSpaces.count > 1 {
           SpaceSelectorRow(
             selectedUserSpace: model.selectedUserSpace,
@@ -37,8 +37,8 @@ extension DetailContainerView {
       items: model.availableUserSpaces,
       selectionDidChange: model.saveIfViewing
     )
-    .buttonStyle(ColoredButtonStyle(color: .ds.text.neutral.catchy))
-    .navigationTitle(L10n.Core.KWAuthentifiantIOS.spaceId)
+    .tint(.ds.text.neutral.catchy)
+    .navigationTitle(CoreL10n.KWAuthentifiantIOS.spaceId)
     .navigationBarTitleDisplayMode(.inline)
   }
 
@@ -73,8 +73,8 @@ extension DetailContainerView {
           switch alert {
           case .errorWhileDeletingFiles:
             return Alert(
-              title: Text(L10n.Core.kwExtSomethingWentWrong),
-              dismissButton: Alert.Button.default(Text(L10n.Core.kwButtonOk))
+              title: Text(CoreL10n.kwExtSomethingWentWrong),
+              dismissButton: Alert.Button.default(Text(CoreL10n.kwButtonOk))
             )
           }
         }
@@ -99,7 +99,7 @@ extension DetailContainerView {
     }
 
     if model.item is Secret {
-      return isDocumentStorageSecretsEnabled
+      return true
     }
 
     return false
@@ -107,13 +107,13 @@ extension DetailContainerView {
 
   @ViewBuilder
   var preferencesSection: some View {
-    if model.canShowLock {
+    if model.canShowLock && authenticationMethod?.supportsLock == true {
       Section(
-        header: Text(CoreLocalization.L10n.Core.KWVaultItem.Preferences.Section.title),
-        footer: Text(CoreLocalization.L10n.Core.KWVaultItem.Preferences.SecureToggle.message)
+        header: Text(CoreL10n.KWVaultItem.Preferences.Section.title),
+        footer: Text(CoreL10n.KWVaultItem.Preferences.SecureToggle.message)
       ) {
         DS.Toggle(
-          CoreLocalization.L10n.Core.KWVaultItem.Preferences.SecureToggle.title,
+          CoreL10n.KWVaultItem.Preferences.SecureToggle.title,
           isOn: Binding(
             get: { (model.item as? SecureItem)?.secured ?? false },
             set: { newValue in
@@ -134,9 +134,8 @@ extension DetailContainerView {
 
   var deleteSection: some View {
     Section {
-      Button(L10n.Core.kwDelete, action: askDelete)
-        .buttonStyle(DetailRowButtonStyle(.destructive))
-        .deleteItemAlert(request: $deleteRequest, deleteAction: delete)
+      Button(CoreL10n.kwDelete, action: askDelete)
+        .foregroundStyle(Color.ds.text.danger.standard)
     }
   }
 }

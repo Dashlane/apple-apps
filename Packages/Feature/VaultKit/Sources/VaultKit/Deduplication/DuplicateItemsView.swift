@@ -19,8 +19,8 @@ public struct DuplicateItemsView: View {
       VStack(alignment: .leading) {
         switch viewModel.state {
         case .loading:
-          ProgressViewBox()
-            .tint(.ds.text.brand.standard)
+          ProgressView()
+            .progressViewStyle(.indeterminate)
         case .foundDuplicates(let items):
           VStack {
             Text(
@@ -37,7 +37,7 @@ public struct DuplicateItemsView: View {
                 userSpace: userSpace,
                 vaultIconViewModelFactory: viewModel.vaultItemIconViewModelFactory)
             }
-            .listStyle(.plain)
+            .listStyle(.ds.plain)
 
             Button("Remove") {
               viewModel.confirmDeduplication(for: items)
@@ -47,6 +47,7 @@ public struct DuplicateItemsView: View {
           }
         case .noDuplicates:
           Text("No duplicates found")
+            .foregroundStyle(Color.ds.text.neutral.standard)
         }
       }
       .padding()
@@ -54,7 +55,7 @@ public struct DuplicateItemsView: View {
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .navigationBarLeading) {
-          Button(CoreLocalization.L10n.Core.cancel) {
+          Button(CoreL10n.cancel) {
             dismiss()
           }
         }

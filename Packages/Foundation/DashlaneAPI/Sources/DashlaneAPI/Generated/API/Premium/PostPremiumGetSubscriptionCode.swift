@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Premium {
-  public struct GetSubscriptionCode: APIRequest {
+  public struct GetSubscriptionCode: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/premium/GetSubscriptionCode"
 
     public let api: UserDeviceAPIClient
@@ -26,7 +26,7 @@ extension UserDeviceAPIClient.Premium.GetSubscriptionCode {
 }
 
 extension UserDeviceAPIClient.Premium.GetSubscriptionCode {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case subscriptionCode = "subscriptionCode"
     }

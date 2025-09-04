@@ -1,7 +1,8 @@
+import CoreTypes
 import CyrilKit
-import DashTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 
 struct SharingKeysHandler {
   let sharingKeysStore: SharingKeysStore

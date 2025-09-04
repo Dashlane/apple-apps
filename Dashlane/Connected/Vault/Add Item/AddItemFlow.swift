@@ -32,7 +32,6 @@ struct AddItemFlow: View {
         )
         .detailContainerViewSpecificBackButton(.close)
         .detailContainerViewSpecificDismiss(.init { viewModel.completion(.dismiss) })
-        .navigationBarHidden(true)
         .toasterOn()
       case .detail(let type):
         VaultDetailView(
@@ -40,7 +39,6 @@ struct AddItemFlow: View {
           dismiss: .init({ viewModel.completion(.dismiss) })
         )
         .detailContainerViewSpecificBackButton(.close)
-        .navigationBarHidden(true)
         .toasterOn()
       case .autofillDemoDummyFields(let credential):
         autofillDemoDummyFields(credential)

@@ -17,7 +17,7 @@ public struct FieldClearContentButton: View {
           action: { text.wrappedValue = "" },
           label: {
             Label {
-              Text(L10n.Core.accessibilityClearText)
+              Text(CoreL10n.accessibilityClearText)
             } icon: {
               Image.ds.action.clearContent.filled
                 .resizable()
@@ -25,19 +25,13 @@ public struct FieldClearContentButton: View {
             }
           }
         )
-        .accessibilityLabel(Text(L10n.Core.accessibilityClearText))
+        .accessibilityLabel(Text(CoreL10n.accessibilityClearText))
         .style(mood: .neutral)
         .tint(.ds.container.expressive.neutral.catchy.idle)
       }
     }
-    .onChange(of: text.wrappedValue) { newValue in
-      displayButton(!newValue.isEmpty)
-    }
-  }
-
-  private func displayButton(_ display: Bool) {
-    withAnimation(.spring(response: 0.3, dampingFraction: 0.5)) {
-      displayButton = display
+    .onChange(of: text.wrappedValue) { _, newValue in
+      displayButton = !newValue.isEmpty
     }
   }
 }

@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.SharingUserdevice {
-  public struct RevokeItemGroupMembers: APIRequest {
+  public struct RevokeItemGroupMembers: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/sharing-userdevice/RevokeItemGroupMembers"
 
     public let api: UserDeviceAPIClient
@@ -28,7 +28,7 @@ extension UserDeviceAPIClient.SharingUserdevice {
 }
 
 extension UserDeviceAPIClient.SharingUserdevice.RevokeItemGroupMembers {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case revision = "revision"
       case groupId = "groupId"
@@ -39,7 +39,7 @@ extension UserDeviceAPIClient.SharingUserdevice.RevokeItemGroupMembers {
       case users = "users"
     }
 
-    public enum Origin: String, Sendable, Equatable, CaseIterable, Codable {
+    public enum Origin: String, Sendable, Hashable, Codable, CaseIterable {
       case autoInvalid = "auto_invalid"
       case manual = "manual"
       case undecodable

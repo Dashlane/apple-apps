@@ -1,6 +1,6 @@
 import Foundation
 
-public struct CollectionDownload: Codable, Equatable, Sendable {
+public struct CollectionDownload: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case uuid = "uuid"
     case name = "name"

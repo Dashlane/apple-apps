@@ -1,7 +1,7 @@
 import CoreCrypto
 import CoreLocalization
 import CoreSession
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 import StateMachine
@@ -17,7 +17,6 @@ public class DeviceTransferPassphraseViewModel: ObservableObject, LoginKitServic
   }
 
   let words: [String]
-  let transferId: String
   let completion: (CompletionType) -> Void
 
   @Published
@@ -25,25 +24,21 @@ public class DeviceTransferPassphraseViewModel: ObservableObject, LoginKitServic
 
   @Published
   var progressState: ProgressionState = .inProgress(
-    L10n.Core.Mpless.D2d.Universal.Untrusted.loadingAccount)
+    CoreL10n.Mpless.D2d.Universal.Untrusted.loadingAccount)
 
-  public var stateMachine: PassphraseVerificationStateMachine
+  @Published public var stateMachine: PassphraseVerificationStateMachine
+  @Published public var isPerformingEvent: Bool = false
 
   public init(
-    initialState: PassphraseVerificationStateMachine.State,
+    stateMachine: PassphraseVerificationStateMachine,
     words: [String],
-    transferId: String,
-    secretBox: DeviceTransferSecretBox,
-    passphraseStateMachineFactory: PassphraseVerificationStateMachine.Factory,
     completion: @escaping (DeviceTransferPassphraseViewModel.CompletionType) -> Void
   ) {
     self.words = words
-    self.transferId = transferId
-    self.stateMachine = passphraseStateMachineFactory.make(
-      initialState: initialState, transferId: transferId, secretBox: secretBox)
+    self.stateMachine = stateMachine
     self.completion = completion
     Task {
-      try await perform(.requestTransferData)
+      await perform(.requestTransferData)
     }
   }
 
@@ -75,13 +70,8 @@ extension DeviceTransferPassphraseViewModel: StateMachineBasedObservableObject {
 extension DeviceTransferPassphraseViewModel {
   static var mock: DeviceTransferPassphraseViewModel {
     DeviceTransferPassphraseViewModel(
-      initialState: .initializing,
+      stateMachine: .mock,
       words: ["One", "Two", "Three", "Four", "Five"],
-      transferId: "transferId",
-      secretBox: DeviceTransferSecretBoxMock.mock(),
-      passphraseStateMachineFactory: .init({ _, _, _ in
-        .mock
-      }),
       completion: { _ in })
   }
 }

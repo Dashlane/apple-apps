@@ -1,5 +1,5 @@
 import CoreImage
-import DashTypes
+import CoreTypes
 import Foundation
 import PDFKit
 import SwiftUI
@@ -122,72 +122,74 @@ extension [OTPInfo] {
   }
 }
 
-let otpInfos: [OTPInfo] = [
-  .mock,
-  .mockWithRecoveryCodes,
-  .mock, .mockWithRecoveryCodes,
-  .mock,
-  .mockWithRecoveryCodes,
-  .mockWithRecoveryCodes,
-  .mock, .mockWithRecoveryCodes,
-  .mock,
-  .mockWithRecoveryCodes,
-  .mock,
-  .mockWithRecoveryCodes,
-  .mockWithRecoveryCodes,
-  .mock,
-]
+#if DEBUG
+  let otpInfos: [OTPInfo] = [
+    .mock,
+    .mockWithRecoveryCodes,
+    .mock, .mockWithRecoveryCodes,
+    .mock,
+    .mockWithRecoveryCodes,
+    .mockWithRecoveryCodes,
+    .mock, .mockWithRecoveryCodes,
+    .mock,
+    .mockWithRecoveryCodes,
+    .mock,
+    .mockWithRecoveryCodes,
+    .mockWithRecoveryCodes,
+    .mock,
+  ]
 
-#Preview("QR Code") {
-  OTPExport(info: otpInfos[0]).qrCode
-    .resizable()
-    .interpolation(.none)
-    .aspectRatio(contentMode: .fit)
-    .frame(width: 300.0, height: 300.0)
-}
-
-#Preview("View") {
-  ScrollView {
-    ExportList(
-      otps: otpInfos.map {
-        OTPExport(info: $0)
-      }
-    )
-    .frame(width: 800)
-  }
-}
-
-#Preview("PDF") {
-  PDFKitView(document: try! PDFDocument(url: otpInfos.makePDF())!)
-}
-
-#Preview("Image") {
-  ScrollView(.vertical) {
-    otpInfos.makeImage()
+  #Preview("QR Code") {
+    OTPExport(info: otpInfos[0]).qrCode
       .resizable()
+      .interpolation(.none)
       .aspectRatio(contentMode: .fit)
-
-  }
-}
-
-struct PDFKitView: UIViewRepresentable {
-  let pdfDocument: PDFDocument
-
-  init(document: PDFDocument) {
-    self.pdfDocument = document
+      .frame(width: 300.0, height: 300.0)
   }
 
-  func makeUIView(context: Context) -> PDFView {
-    let pdfView = PDFView()
-    pdfView.document = pdfDocument
-    pdfView.autoScales = true
-    return pdfView
+  #Preview("View") {
+    ScrollView {
+      ExportList(
+        otps: otpInfos.map {
+          OTPExport(info: $0)
+        }
+      )
+      .frame(width: 800)
+    }
   }
 
-  func updateUIView(_ pdfView: PDFView, context: Context) {
-    pdfView.document = pdfDocument
+  #Preview("PDF") {
+    PDFKitView(document: try? PDFDocument(url: otpInfos.makePDF())!)
   }
-}
+
+  #Preview("Image") {
+    ScrollView(.vertical) {
+      otpInfos.makeImage()
+        .resizable()
+        .aspectRatio(contentMode: .fit)
+
+    }
+  }
+
+  struct PDFKitView: UIViewRepresentable {
+    let pdfDocument: PDFDocument?
+
+    init(document: PDFDocument?) {
+      self.pdfDocument = document
+    }
+
+    func makeUIView(context: Context) -> PDFView {
+      let pdfView = PDFView()
+      pdfView.document = pdfDocument
+      pdfView.autoScales = true
+      return pdfView
+    }
+
+    func updateUIView(_ pdfView: PDFView, context: Context) {
+      pdfView.document = pdfDocument
+    }
+  }
+#endif
 
 extension CIImage {
   func renderedCGImage() -> CGImage? {

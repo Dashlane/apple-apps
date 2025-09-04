@@ -11,7 +11,7 @@ extension Address: VaultItem {
   }
 
   public var localizedTitle: String {
-    name.isEmpty ? L10n.Core.kwAddressIOS : name
+    name.isEmpty ? CoreL10n.kwAddressIOS : name
   }
 
   public var localizedSubtitle: String {
@@ -21,34 +21,34 @@ extension Address: VaultItem {
   }
 
   public static var localizedName: String {
-    L10n.Core.kwAddressIOS
+    CoreL10n.kwAddressIOS
   }
 
   public static var addTitle: String {
-    L10n.Core.kwadddatakwAddressIOS
+    CoreL10n.kwadddatakwAddressIOS
   }
 
   public static var nativeMenuAddTitle: String {
-    L10n.Core.addAddress
+    CoreL10n.addAddress
   }
 }
 
-extension L10n.Core.KWAddressIOS {
+extension CoreL10n.KWAddressIOS {
   public static func stateFieldTitle(for variant: StateVariant) -> String {
     switch variant {
     case .county:
-      return L10n.Core.KWAddressIOS.county
+      return CoreL10n.KWAddressIOS.county
     case .state:
-      return L10n.Core.KWAddressIOS.state
+      return CoreL10n.KWAddressIOS.state
     }
   }
 
   public static func zipCodeFieldTitle(for variant: StateVariant) -> String {
     switch variant {
     case .county:
-      return L10n.Core.KWAddressIOS.postcode
+      return CoreL10n.KWAddressIOS.postcode
     case .state:
-      return L10n.Core.KWAddressIOS.zipCode
+      return CoreL10n.KWAddressIOS.zipCode
     }
   }
 }

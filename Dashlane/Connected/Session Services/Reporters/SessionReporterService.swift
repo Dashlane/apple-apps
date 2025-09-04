@@ -2,17 +2,16 @@ import Combine
 import CoreFeature
 import CoreSession
 import CoreSettings
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 import LoginKit
+import UserTrackingFoundation
 import VaultKit
 
 final class SessionReporterService: DependenciesContainer {
   let activityReporter: ActivityReporterProtocol
   let deviceInformation: DeviceInformationReporting
-  let loginMetricsReporter: LoginMetricsReporter
   let syncService: SyncService
   let reportSettings: KeyedSettings<ReporterSettingsKey>
   let vaultReportService: VaultReportService
@@ -23,7 +22,6 @@ final class SessionReporterService: DependenciesContainer {
   init(
     activityReporter: ActivityReporterProtocol,
     deviceInformation: DeviceInformationReporting,
-    loginMetricsReporter: LoginMetricsReporter,
     syncService: SyncService,
     settings: LocalSettingsStore,
     vaultReportService: VaultReportService,
@@ -31,18 +29,10 @@ final class SessionReporterService: DependenciesContainer {
   ) {
     self.activityReporter = activityReporter
     self.deviceInformation = deviceInformation
-    self.loginMetricsReporter = loginMetricsReporter
     self.syncService = syncService
     self.reportSettings = settings.keyed(by: ReporterSettingsKey.self)
     self.vaultReportService = vaultReportService
     self.reportUserSettingsService = reportUserSettingsService
-  }
-
-  func postLoadReport(for loadingContext: SessionLoadingContext) {
-    reportPerformanceMetrics(for: loadingContext)
-    loginMetricsReporter.reset()
-    deviceInformation.report()
-
   }
 
   func configureReportOnSync() {
@@ -60,15 +50,6 @@ final class SessionReporterService: DependenciesContainer {
       deviceInformation.reportOnLogout()
     }
     activityReporter.flush()
-  }
-
-  private func reportPerformanceMetrics(for loadingContext: SessionLoadingContext) {
-    if let performanceLogInfo = loginMetricsReporter.getPerformanceLogInfo(.login),
-      let measureName = loadingContext.measureName
-    {
-      activityReporter.report(performanceLogInfo.performanceUserEvent(for: measureName))
-      loginMetricsReporter.resetTimer(.login)
-    }
   }
 }
 

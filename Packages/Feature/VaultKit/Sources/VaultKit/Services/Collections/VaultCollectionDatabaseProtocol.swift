@@ -1,8 +1,9 @@
 import Combine
 import CorePersonalData
 import CoreSharing
-import CoreUserTracking
-import DashTypes
+import CoreTypes
+import LogFoundation
+import UserTrackingFoundation
 
 public protocol VaultCollectionDatabaseProtocol {
   func collectionsPublisher() -> AnyPublisher<[VaultCollection], Never>
@@ -27,17 +28,17 @@ public protocol VaultCollectionDatabaseProtocol {
 }
 
 extension VaultCollectionDatabaseProtocol where Self == VaultCollectionDatabase {
-  static func mock(
+  public static func mock(
     driver: DatabaseDriver = InMemoryDatabaseDriver(),
     sharingService: SharingServiceProtocol = SharingServiceMock()
   ) -> VaultCollectionDatabase {
     return .init(
-      logger: LoggerMock(),
+      logger: .mock,
       database: .mock(driver: driver),
       sharingService: sharingService,
       userSpacesService: .mock(),
       activityReporter: ActivityReporterMock(),
-      activityLogsService: .mock()
+      teamAuditLogsService: .mock()
     )
   }
 }

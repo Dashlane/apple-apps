@@ -4,17 +4,16 @@ import SecurityDashboard
 import SwiftUI
 
 private protocol PopupAlertShowable {
-  func generateMessage() -> NSAttributedString
+  func generateMessage() -> AttributedString
 }
 
 struct PopupAlert {
 
   let alert: PopupAlertProtocol
   let title: String
-  let message: NSAttributedString
+  let message: AttributedString
 
   init(_ popupAlert: PopupAlertProtocol) {
-
     self.alert = popupAlert
     self.title = popupAlert.title
 
@@ -22,185 +21,169 @@ struct PopupAlert {
       fatalError()
     }
 
-    let content = NSMutableAttributedString(string: "\n")
+    var content: AttributedString = .init("\n", attributes: .alertDefault)
     content.append(showableAlert.generateMessage())
     self.message = content
   }
 }
 
 extension DashlaneSixPopupAlert: PopupAlertShowable {
-  func generateMessage() -> NSAttributedString {
-    let description: NSAttributedString? = {
-      guard let description = self.description else { return nil }
-      return description.attributedString(withContentAttributes: redTextAttributes)
-    }()
+  func generateMessage() -> AttributedString {
+    let description: AttributedString? =
+      if let description = self.description {
+        description.attributedString(withContentAttributes: .danger)
+      } else {
+        nil
+      }
 
-    let dataInvolved: NSAttributedString? = {
-      guard let details = self.details else { return nil }
-      return details.attributedString(withContentJoinedBy: ", ", attributes: redTextAttributes)
-    }()
+    let dataInvolved: AttributedString? =
+      if let details = self.details {
+        details.attributedString(withContentJoinedBy: ", ", attributes: .danger)
+      } else {
+        nil
+      }
 
-    let recommendation: NSAttributedString? = {
-      guard let alertRecommendation = self.recommendation else { return nil }
-      return alertRecommendation.attributedString(withContentAttributes: semiboldTextAttributes)
-    }()
+    let recommendation: AttributedString? =
+      if let alertRecommendation = self.recommendation {
+        alertRecommendation.attributedString(withContentAttributes: .semibold)
+      } else {
+        nil
+      }
 
-    let message = NSMutableAttributedString(
-      attributedString: [
-        description,
-        dataInvolved,
-        recommendation,
-      ]
-      .compactMap { $0 }
-      .joined(by: "\n\n")
-    )
-    .overrideAllString(with: defaultTextAttributes)
-
-    return message
+    return [
+      description,
+      dataInvolved,
+      recommendation,
+    ]
+    .compactMap { $0 }
+    .joined(by: .separator)
+    .mergingAttributes(.alertDefault, mergePolicy: .keepCurrent)
   }
 }
 
 extension DataLeakHiddenPopupAlert: PopupAlertShowable {
-  func generateMessage() -> NSAttributedString {
-    let date: NSAttributedString? = {
-      guard let alertDate = self.date else { return nil }
-      return alertDate.attributedString(withContentAttributes: redTextAttributes)
-    }()
+  func generateMessage() -> AttributedString {
+    let date: AttributedString? =
+      if let alertDate = self.date {
+        alertDate.attributedString(withContentAttributes: .danger)
+      } else {
+        nil
+      }
 
-    let dataInvolved: NSAttributedString? = {
-      guard let details = self.details else { return nil }
-      return details.attributedString(withContentJoinedBy: ", ", attributes: redTextAttributes)
-    }()
+    let dataInvolved: AttributedString? =
+      if let details = self.details {
+        details.attributedString(withContentJoinedBy: ", ", attributes: .danger)
+      } else {
+        nil
+      }
 
-    let explanations: NSAttributedString? = {
-      guard let alertExplanations = self.explanations else { return nil }
-      let title = NSMutableAttributedString(
-        string: alertExplanations.title.data, attributes: boldTextAttributes)
-      let message = NSAttributedString(string: "\n\(alertExplanations.contents.first!)")
-      title.append(message)
-      return title
-    }()
+    let explanations: AttributedString? =
+      if let alertExplanations = self.explanations {
+        AttributedString(alertExplanations.title.data, attributes: .bold)
+          + AttributedString("\n\(alertExplanations.contents.first!)", attributes: .semibold)
+      } else {
+        nil
+      }
 
-    let message = NSMutableAttributedString(
-      attributedString: [
-        date,
-        dataInvolved,
-        explanations,
-      ]
-      .compactMap { $0 }
-      .joined(by: "\n\n")
-    )
-    .overrideAllString(with: defaultTextAttributes)
-
-    return message
+    return [
+      date,
+      dataInvolved,
+      explanations,
+    ]
+    .compactMap { $0 }
+    .joined(by: .separator)
+    .mergingAttributes(.alertDefault, mergePolicy: .keepCurrent)
   }
 }
 
 extension DataLeakContentPopupAlert: PopupAlertShowable {
-  func generateMessage() -> NSAttributedString {
-    let dataInvolved: NSAttributedString? = {
-      guard let details = self.details else { return nil }
-      return details.attributedString(withContentAttributes: redTextAttributes, splittedBy: "_")
-    }()
+  func generateMessage() -> AttributedString {
+    let dataInvolved: AttributedString? =
+      if let details = self.details {
+        details.attributedString(withContentAttributes: .danger, splittedBy: "_")
+      } else {
+        nil
+      }
 
-    let message = NSMutableAttributedString(
-      attributedString: [
-        dataInvolved
-      ]
-      .compactMap { $0 }
-      .joined(by: "\n\n")
-    )
-    .overrideAllString(with: defaultTextAttributes)
-
-    return message
+    return [
+      dataInvolved
+    ]
+    .compactMap { $0 }
+    .joined(by: .separator)
+    .mergingAttributes(.alertDefault, mergePolicy: .keepCurrent)
   }
 }
 
 extension DataLeakPlaintextPopupAlert: PopupAlertShowable {
 
-  func generateMessage() -> NSAttributedString {
-
-    let alertDate = date?.attributedString(withContentAttributes: boldTextAttributes)
-    let affectedPasswords = details?.attributedString(withContentAttributes: redTextAttributes)
-
+  func generateMessage() -> AttributedString {
+    let alertDate = date?.attributedString(withContentAttributes: .bold)
+    let affectedPasswords = details?.attributedString(withContentAttributes: .danger)
     let otherCredentialsImpacted = self.recommendation?.attributedString(
-      withContentAttributes: redTextAttributes)
+      withContentAttributes: .danger)
 
-    let message = [
+    return [
       alertDate,
       affectedPasswords,
       otherCredentialsImpacted,
     ]
     .compactMap { $0 }
-    .joined(by: "\n\n")
-    .overrideAllString(with: defaultTextAttributes)
-
-    return message
+    .joined(by: .separator)
+    .mergingAttributes(.alertDefault, mergePolicy: .keepCurrent)
   }
 
 }
 
-private var messageFontSize: CGFloat = 13.0
-
-private var defaultTextAttributes: [NSAttributedString.Key: NSObject] {
-  let font = UIFont.systemFont(ofSize: messageFontSize, weight: .regular)
-  let fontMetrics = UIFontMetrics(forTextStyle: .body)
-  return [NSAttributedString.Key.font: fontMetrics.scaledFont(for: font)]
-}
-
-private var redTextAttributes: [NSAttributedString.Key: NSObject] {
-  let font = UIFont.systemFont(ofSize: messageFontSize, weight: .medium)
-  let fontMetrics = UIFontMetrics(forTextStyle: .body)
-  return [
-    NSAttributedString.Key.foregroundColor: UIColor(Color.ds.text.danger.quiet),
-    NSAttributedString.Key.font: fontMetrics.scaledFont(for: font),
-  ]
-}
-
-private var semiboldTextAttributes: [NSAttributedString.Key: NSObject] {
-  let font = UIFont.systemFont(ofSize: messageFontSize, weight: .semibold)
-  let fontMetrics = UIFontMetrics(forTextStyle: .body)
-  return [
-    NSAttributedString.Key.foregroundColor: UIColor(Color.ds.text.neutral.standard),
-    NSAttributedString.Key.font: fontMetrics.scaledFont(for: font),
-  ]
-}
-
-private var boldTextAttributes: [NSAttributedString.Key: NSObject] {
-  let font = UIFont.systemFont(ofSize: messageFontSize, weight: .bold)
-  let fontMetrics = UIFontMetrics(forTextStyle: .body)
-  return [
-    NSAttributedString.Key.foregroundColor: UIColor.ds.text.neutral.standard,
-    NSAttributedString.Key.font: fontMetrics.scaledFont(for: font),
-  ]
-}
-
-extension Array where Element == NSAttributedString {
-  fileprivate func joined(by separator: String) -> NSMutableAttributedString {
-    return self.reduce(NSMutableAttributedString()) {
-      (result, attributedStringToAppend) -> NSMutableAttributedString in
-      if result.string.count > 0 {
-        result.append(NSAttributedString(string: separator))
-      }
-      result.append(attributedStringToAppend)
-      return result
-    }
+extension Font {
+  fileprivate static var alertFont: Font {
+    Font.footnote
   }
 }
 
-extension NSMutableAttributedString {
+extension AttributeContainer {
+  fileprivate static var alertDefault: AttributeContainer {
+    var container = AttributeContainer()
+    container.font = .alertFont
+    return container
+  }
 
-  fileprivate func overrideAllString(with attributes: [NSAttributedString.Key: Any])
-    -> NSMutableAttributedString
-  {
-    let newAttributedString = NSMutableAttributedString(string: self.string, attributes: attributes)
+  fileprivate static var danger: AttributeContainer {
+    var container = AttributeContainer()
+    container.foregroundColor = Color.ds.text.danger.quiet
+    container.font = .alertFont.weight(.medium)
 
-    self.enumerateAttributes(
-      in: NSRange.init(location: 0, length: self.string.count),
-      options: .longestEffectiveRangeNotRequired
-    ) { (attributes, range, _) in
-      newAttributedString.addAttributes(attributes, range: range)
+    return container
+  }
+
+  fileprivate static var semibold: AttributeContainer {
+    var container = AttributeContainer()
+    container.font = .alertFont.weight(.semibold)
+    return container
+  }
+
+  fileprivate static var bold: AttributeContainer {
+    var container = AttributeContainer()
+    container.font = .alertFont.weight(.bold)
+    return container
+  }
+}
+
+extension Collection<AttributedString> {
+  func joined(by separator: AttributedString) -> AttributedString {
+    guard let first = self.first else {
+      return AttributedString("")
     }
-    return newAttributedString
+
+    var result = first
+    for item in self.dropFirst() {
+      result += separator + item
+    }
+    return result
+  }
+}
+
+extension AttributedString {
+  static var separator: AttributedString {
+    "\n\n"
   }
 }

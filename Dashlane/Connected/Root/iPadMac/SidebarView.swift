@@ -17,11 +17,11 @@ struct SidebarView: View {
   @ScaledMetric
   private var sharedIconSize: CGFloat = 12
 
-  @FeatureState(.vaultSecrets)
-  var areSecretsEnabled
-
   @CapabilityState(.secretManagement)
   var secretManagementStatus
+
+  @FeatureState(.wifiCredential)
+  var isWiFiCredentialEnabled
 
   @Environment(\.toast)
   var toast
@@ -29,7 +29,7 @@ struct SidebarView: View {
   var body: some View {
     List(selection: $model.selection) {
       Section {
-        SidebarLabel(CoreLocalization.L10n.Core.mainMenuHomePage, image: .ds.home.outlined)
+        SidebarLabel(CoreL10n.mainMenuHomePage, image: .ds.home.outlined)
           .tag(NavigationItem.home)
 
         SidebarLabel(L10n.Localizable.tabNotificationsTitle, image: .ds.notification.outlined)
@@ -65,7 +65,6 @@ struct SidebarView: View {
         Image.ds.settings.outlined
       }
       .accessibilityLabel(L10n.Localizable.tabSettingsTitle)
-      .buttonStyle(.colored(Color.ds.text.brand.standard))
     }
     .mainMenuShortcut(
       .preferences,
@@ -102,7 +101,7 @@ struct SidebarView: View {
           Spacer()
           if let status = tool.badgeStatus {
             FeatureBadge(status)
-              .style(mood: Device.isMac ? .neutral : .brand, intensity: .quiet)
+              .style(mood: Device.is(.mac) ? .neutral : .brand, intensity: .quiet)
           }
         }
         .tag(toolSelection)
@@ -130,7 +129,7 @@ struct SidebarView: View {
             Image.ds.shared.outlined
               .resizable()
               .frame(width: sharedIconSize, height: sharedIconSize)
-              .foregroundColor(.ds.text.neutral.quiet)
+              .foregroundStyle(Color.ds.text.neutral.quiet)
           }
         }
         .badge(Text("\(collection.itemIds.count)"))
@@ -146,8 +145,7 @@ struct SidebarView: View {
           titleVisibility: .visible,
           presenting: model.itemsCollectionAddition,
           actions: { itemsCollectionAddition in
-            Button(CoreLocalization.L10n.Core.KWVaultItem.Collections.Sharing.AdditionAlert.button)
-            {
+            Button(CoreL10n.KWVaultItem.Collections.Sharing.AdditionAlert.button) {
               model.confirmAddition(
                 of: itemsCollectionAddition.items,
                 to: itemsCollectionAddition.collection,
@@ -175,20 +173,24 @@ struct SidebarView: View {
   }
 
   private var itemCategories: [ItemCategory] {
-    let isSecretsManagementAvailable = areSecretsEnabled && secretManagementStatus.isAvailable
-    if isSecretsManagementAvailable {
-      return ItemCategory.allCases
-    } else {
-      return ItemCategory.allCases.filter { $0 != .secrets }
-    }
+    ItemCategory.allCases.lazy
+      .filter { category in
+        switch category {
+        case .secrets:
+          return secretManagementStatus.isAvailable
+        case .wifi:
+          return isWiFiCredentialEnabled
+        default:
+          return true
+        }
+      }
   }
 
   private var confirmationDialogTitle: String {
     if (model.itemsCollectionAddition?.items.count ?? 0) > 1 {
-      return CoreLocalization.L10n.Core.KWVaultItem.Collections.Sharing.AdditionAlert.Title.plural
+      return CoreL10n.KWVaultItem.Collections.Sharing.AdditionAlert.Title.plural
     } else if let item = model.itemsCollectionAddition?.items.first {
-      return CoreLocalization.L10n.Core.KWVaultItem.Collections.Sharing.AdditionAlert.title(
-        item.localizedTitle)
+      return CoreL10n.KWVaultItem.Collections.Sharing.AdditionAlert.title(item.localizedTitle)
     } else {
       return ""
     }
@@ -199,12 +201,9 @@ struct SidebarView: View {
   {
     if items.count > 1 {
       return Text(
-        CoreLocalization.L10n.Core.KWVaultItem.Collections.Sharing.AdditionAlert.Message.plural(
-          collection.name))
+        CoreL10n.KWVaultItem.Collections.Sharing.AdditionAlert.Message.plural(collection.name))
     } else {
-      return Text(
-        CoreLocalization.L10n.Core.KWVaultItem.Collections.Sharing.AdditionAlert.message(
-          collection.name))
+      return Text(CoreL10n.KWVaultItem.Collections.Sharing.AdditionAlert.message(collection.name))
     }
   }
 }
@@ -244,9 +243,8 @@ extension SidebarLabel {
 struct SidebarView_Previews: PreviewProvider {
   static var previews: some View {
     let model = SidebarViewModel(
-      toolsService: .mock(capabilities: [
-        .init(capability: .secureWiFi, enabled: false, info: .init(reason: .inTeam))
-      ]),
+      featureService: .mock(),
+      premiumStatusServicesSuit: .mock,
       userSpacesService: MockServicesContainer().userSpacesService,
       vaultCollectionsStore: MockVaultKitServicesContainer().vaultCollectionsStore,
       deeplinkingService: DeepLinkingService.fakeService,

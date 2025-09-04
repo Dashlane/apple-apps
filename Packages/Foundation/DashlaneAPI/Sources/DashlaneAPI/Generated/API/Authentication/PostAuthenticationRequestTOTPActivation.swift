@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Authentication {
-  public struct RequestTOTPActivation: APIRequest {
+  public struct RequestTOTPActivation: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/authentication/RequestTOTPActivation"
 
     public let api: UserDeviceAPIClient
@@ -24,7 +24,7 @@ extension UserDeviceAPIClient.Authentication {
 }
 
 extension UserDeviceAPIClient.Authentication.RequestTOTPActivation {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case phoneNumber = "phoneNumber"
       case country = "country"
@@ -47,7 +47,7 @@ extension UserDeviceAPIClient.Authentication.RequestTOTPActivation {
 }
 
 extension UserDeviceAPIClient.Authentication.RequestTOTPActivation {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case seed = "seed"
       case serverKey = "serverKey"

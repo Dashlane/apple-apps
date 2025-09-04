@@ -1,7 +1,9 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import SwiftTreats
+import UserTrackingFoundation
 
 public protocol UserTrackingAppActivityReporterCryptoEngineProvider {
   func trackingDataCryptoEngine(forKey data: Data) throws -> CryptoEngine

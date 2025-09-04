@@ -1,7 +1,7 @@
 import Foundation
 
 extension UnsignedNitroEncryptionAPIClient.Time {
-  public struct GetRemoteTime: APIRequest {
+  public struct GetRemoteTime: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/time/GetRemoteTime"
 
     public let api: UnsignedNitroEncryptionAPIClient
@@ -16,7 +16,7 @@ extension UnsignedNitroEncryptionAPIClient.Time {
 }
 
 extension UnsignedNitroEncryptionAPIClient.Time.GetRemoteTime {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case timestamp = "timestamp"
     }

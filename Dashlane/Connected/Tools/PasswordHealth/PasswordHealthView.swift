@@ -2,7 +2,6 @@ import CoreLocalization
 import CorePersonalData
 import DesignSystem
 import SwiftUI
-import UIComponents
 import VaultKit
 
 struct PasswordHealthView: View {
@@ -27,6 +26,67 @@ struct PasswordHealthView: View {
   }
 
   var body: some View {
+    landingView
+      .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
+      .navigationTitle(L10n.Localizable.identityDashboardTitle)
+      .navigationBarTitleDisplayMode(.inline)
+      .toolbar {
+        ToolbarItem(placement: .navigationBarTrailing) {
+          UserSpaceSwitcher(model: viewModel.userSpaceSwitcherViewModelFactory.make())
+        }
+      }
+      .reportPageAppearance(.toolsPasswordHealthOverview)
+  }
+
+  @ViewBuilder
+  private var landingView: some View {
+    switch viewModel.viewState {
+    case .loading:
+      EmptyView()
+    case .intro:
+      introView
+    case .summary:
+      summaryView
+    }
+  }
+
+  @ViewBuilder
+  private var introView: some View {
+    ToolIntroView(
+      icon: ExpressiveIcon(.ds.feature.passwordHealth.outlined),
+      title: CoreL10n.PasswordHealthIntro.title
+    ) {
+      FeatureCard {
+        FeatureRow(
+          asset: ExpressiveIcon(.ds.item.login.outlined),
+          title: CoreL10n.PasswordHealthIntro.subtitle1,
+          description: CoreL10n.PasswordHealthIntro.description1
+        )
+
+        FeatureRow(
+          asset: ExpressiveIcon(.ds.tip.outlined),
+          title: CoreL10n.PasswordHealthIntro.subtitle2,
+          description: CoreL10n.PasswordHealthIntro.description2
+        )
+
+        FeatureRow(
+          asset: ExpressiveIcon(.ds.healthPositive.outlined),
+          title: CoreL10n.PasswordHealthIntro.subtitle3,
+          description: CoreL10n.PasswordHealthIntro.description3
+        )
+      }
+
+      Button {
+        action(.addPasswords)
+      } label: {
+        Label(CoreL10n.PasswordHealthIntro.cta, icon: .ds.arrowRight.outlined)
+      }
+      .buttonStyle(.designSystem(.iconTrailing(.sizeToFit)))
+    }
+  }
+
+  @ViewBuilder
+  private var summaryView: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 0) {
         PasswordHealthSummaryView(viewModel: viewModel, action: action)
@@ -39,11 +99,8 @@ struct PasswordHealthView: View {
             )
           }
         } else {
-          Infobox(
-            CoreLocalization.L10n.Core.frozenAccountTitle,
-            description: CoreLocalization.L10n.Core.frozenAccountMessage
-          ) {
-            Button(CoreLocalization.L10n.Core.frozenAccountAction) {
+          Infobox(CoreL10n.frozenAccountTitle, description: CoreL10n.frozenAccountMessage) {
+            Button(CoreL10n.frozenAccountAction) {
               viewModel.displayPaywall()
             }
           }
@@ -54,15 +111,6 @@ struct PasswordHealthView: View {
       .padding(.horizontal, 16)
       .padding(.bottom, 16)
     }
-    .backgroundColorIgnoringSafeArea(.ds.background.alternate)
-    .navigationTitle(L10n.Localizable.identityDashboardTitle)
-    .navigationBarTitleDisplayMode(.inline)
-    .toolbar {
-      ToolbarItem(placement: .navigationBarTrailing) {
-        UserSpaceSwitcher(model: viewModel.userSpaceSwitcherViewModelFactory.make())
-      }
-    }
-    .reportPageAppearance(.toolsPasswordHealthOverview)
   }
 }
 

@@ -1,6 +1,7 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 
 public struct AppStoreServicesSuit: DependenciesContainer {
   public let purchaseService: PurchaseService
@@ -25,18 +26,10 @@ public struct AppStoreServicesSuit: DependenciesContainer {
       receiptVerificationService: receiptVerificationService,
       logger: logger)
 
-    if #available(iOS 16.4, *) {
-      self.productInfoUpdater = await ProductInfoUpdater(
-        purchaseService: purchaseService,
-        statusProvider: statusProvider,
-        logger: logger)
-    } else {
-      self.productInfoUpdater = await ProductInfoUpdater(
-        purchaseService: purchaseService,
-        statusProvider: statusProvider,
-        updateProductOrder: { _ in },
-        logger: logger)
-    }
+    self.productInfoUpdater = await ProductInfoUpdater(
+      purchaseService: purchaseService,
+      statusProvider: statusProvider,
+      logger: logger)
   }
 
 }

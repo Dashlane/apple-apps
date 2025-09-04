@@ -1,9 +1,10 @@
 import CoreCrypto
 import CoreKeychain
+import CoreTypes
 import CoreUserTracking
 import CyrilKit
-import DashTypes
 import Foundation
+import UserTrackingFoundation
 
 extension SessionCryptoEngineProvider:
   CoreKeychain.AuthenticationKeychainCryptoEngineProvider,

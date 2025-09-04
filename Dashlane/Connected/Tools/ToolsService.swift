@@ -1,7 +1,7 @@
 import Combine
 import CoreFeature
 import CorePremium
-import DashTypes
+import CoreTypes
 import Foundation
 import SwiftTreats
 
@@ -31,7 +31,7 @@ struct ToolsService: ToolsServiceProtocol {
   private func isAvailable(_ item: ToolsItem) -> Bool {
     switch item {
     case .passwordGenerator:
-      return Device.isIpadOrMac
+      return Device.is(.pad, .mac, .vision)
     case .identityDashboard:
       return true
     case .secureWifi:
@@ -39,13 +39,13 @@ struct ToolsService: ToolsServiceProtocol {
     case .multiDevices:
       return true
     case .contacts:
-      return !Device.isIpadOrMac
+      return !Device.is(.pad, .mac, .vision)
     case .darkWebMonitoring:
       return true
     case .authenticator:
       return featureService.isEnabled(.authenticatorTool)
     case .collections:
-      return !Device.isIpadOrMac
+      return !Device.is(.pad, .mac, .vision)
     }
   }
 

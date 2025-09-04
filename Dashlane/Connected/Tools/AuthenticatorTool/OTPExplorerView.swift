@@ -1,13 +1,8 @@
-import AuthenticatorKit
 import CoreLocalization
-import CorePersonalData
-import CoreUserTracking
-import DashTypes
 import DesignSystem
-import SwiftTreats
 import SwiftUI
-import UIComponents
 import UIDelight
+import UserTrackingFoundation
 import VaultKit
 
 struct OTPExplorerView: View {
@@ -25,18 +20,72 @@ struct OTPExplorerView: View {
   }
 
   var body: some View {
+    landingView
+      .animation(.easeOut, value: isCredentialListExpanded)
+      .navigationTitle(L10n.Localizable.otpToolName)
+      .navigationBarTitleDisplayMode(.inline)
+      .scrollContentBackgroundStyle(.alternate)
+  }
+
+  @ViewBuilder
+  private var landingView: some View {
+    switch viewModel.viewState {
+    case .loading:
+      EmptyView()
+    case .intro:
+      introView
+    case .ready:
+      otpListView
+    }
+  }
+
+  private var introView: some View {
+    ToolIntroView(
+      icon: ExpressiveIcon(.ds.feature.authenticator.outlined),
+      title: CoreL10n.AuthenticatorIntro.title
+    ) {
+      FeatureCard {
+        FeatureRow(
+          asset: ExpressiveIcon(.ds.vault.outlined),
+          title: CoreL10n.AuthenticatorIntro.subtitle1,
+          description: CoreL10n.AuthenticatorIntro.description1
+        )
+
+        FeatureRow(
+          asset: ExpressiveIcon(.ds.protection.outlined),
+          title: CoreL10n.AuthenticatorIntro.subtitle2,
+          description: CoreL10n.AuthenticatorIntro.description2
+        )
+
+        FeatureRow(
+          asset: ExpressiveIcon(.ds.feature.passwordHealth.outlined),
+          title: CoreL10n.AuthenticatorIntro.subtitle3,
+          description: CoreL10n.AuthenticatorIntro.description3
+        )
+      }
+
+      Button {
+        viewModel.startAddCredentialFlow()
+      } label: {
+        Label(
+          CoreL10n.AuthenticatorIntro.cta,
+          icon: .ds.arrowRight.outlined
+        )
+      }
+      .buttonStyle(.designSystem(.iconTrailing(.sizeToFit)))
+    }
+  }
+
+  private var otpListView: some View {
     ScrollView {
       VStack(spacing: 32) {
         main
         if !isCredentialListExpanded {
           faqSection
         }
-      }.padding(16)
+      }
+      .padding(16)
     }
-    .animation(.easeOut, value: isCredentialListExpanded)
-    .navigationTitle(L10n.Localizable.otpToolName)
-    .navigationBarTitleDisplayMode(.inline)
-    .scrollContentBackgroundStyle(.alternate)
   }
 
   @ViewBuilder
@@ -53,7 +102,7 @@ struct OTPExplorerView: View {
   private var faqSection: some View {
     VStack(alignment: .leading, spacing: 8) {
       Text(L10n.Localizable.otpToolFaq)
-        .foregroundColor(.ds.text.neutral.quiet)
+        .foregroundStyle(Color.ds.text.neutral.quiet)
         .font(.footnote)
         .fontWeight(.medium)
         .accessibilityAddTraits(.isHeader)
@@ -70,18 +119,16 @@ struct OTPExplorerView: View {
       Image.ds.healthPositive.outlined
         .resizable()
         .renderingMode(.template)
-        .foregroundColor(.ds.text.brand.quiet)
+        .foregroundStyle(Color.ds.text.brand.quiet)
         .frame(width: 96, height: 96)
 
       VStack(spacing: 8) {
         Text(L10n.Localizable.otpTool2fasetupForAll)
-          .font(
-            .custom(GTWalsheimPro.regular.name, size: 20, relativeTo: .largeTitle).weight(.medium)
-          )
-          .foregroundColor(.ds.text.neutral.catchy)
+          .textStyle(.title.section.medium)
+          .foregroundStyle(Color.ds.text.neutral.catchy)
         Text(L10n.Localizable.otpTool2fasetupForAllSubtitle)
-          .font(.body)
-          .foregroundColor(.ds.text.neutral.standard)
+          .textStyle(.body.standard.regular)
+          .foregroundStyle(Color.ds.text.neutral.standard)
           .multilineTextAlignment(.center)
       }
       Button(L10n.Localizable.otptoolAddLoginCta, action: viewModel.startAddCredentialFlow)
@@ -110,8 +157,8 @@ struct OTPExplorerView: View {
         }
       )
     }
-    .background(RoundedRectangle(cornerRadius: 8).foregroundColor(.ds.background.default))
-    .onChange(of: isCredentialListExpanded) { newValue in
+    .background(RoundedRectangle(cornerRadius: 8).foregroundStyle(Color.ds.background.default))
+    .onChange(of: isCredentialListExpanded) { _, newValue in
       if newValue {
         report?(UserEvent.Click(button: .seeAll))
       }
@@ -121,14 +168,12 @@ struct OTPExplorerView: View {
   private var otpCompatibleCredentials: some View {
     VStack(alignment: .leading) {
       Text(L10n.Localizable.otpTool2faCompatibleLoginsTitle)
-        .font(
-          .custom(GTWalsheimPro.regular.name, size: 20, relativeTo: .largeTitle).weight(.medium)
-        )
-        .foregroundColor(.ds.text.neutral.catchy)
+        .textStyle(.title.section.medium)
+        .foregroundStyle(Color.ds.text.neutral.catchy)
         .accessibilityAddTraits(.isHeader)
       credentialsList
 
-      Button(CoreLocalization.L10n.Core._2faSetupCta) {
+      Button(CoreL10n._2faSetupCta) {
         viewModel.startSetupOTPFlow()
       }
       .buttonStyle(.designSystem(.titleOnly))
@@ -141,9 +186,9 @@ struct OTPExplorerView: View {
       Text(
         isCredentialListExpanded ? L10n.Localizable.otpToolSeeLess : L10n.Localizable.otpToolSeeAll
       )
-      .foregroundColor(.ds.text.brand.quiet)
+      .foregroundStyle(Color.ds.text.brand.quiet)
       Image(systemName: isCredentialListExpanded ? "chevron.up" : "chevron.down")
-        .foregroundColor(.ds.text.brand.standard)
+        .foregroundStyle(Color.ds.text.brand.standard)
     }
     .frame(height: 50)
     .font(.headline)
@@ -151,31 +196,28 @@ struct OTPExplorerView: View {
 
   private var noCompatibleLogins: some View {
     VStack(spacing: 32) {
-      Image(asset: FiberAsset.pictoAuthenticator)
+      Image.ds.feature.authenticator.outlined
         .resizable()
         .renderingMode(.template)
-        .foregroundColor(.ds.text.brand.quiet)
+        .foregroundStyle(Color.ds.text.brand.quiet)
         .frame(width: 84, height: 84)
       VStack(spacing: 8) {
         Text(L10n.Localizable.otpToolNo2faLogins)
-          .font(
-            .custom(GTWalsheimPro.regular.name, size: 20, relativeTo: .largeTitle).weight(.medium)
-          )
-          .foregroundColor(.ds.text.neutral.catchy)
+          .textStyle(.title.section.medium)
+          .foregroundStyle(Color.ds.text.neutral.catchy)
 
         Text(L10n.Localizable.otpToolNo2faLoginsSubtitle)
-          .font(.callout)
-          .foregroundColor(.ds.text.neutral.standard)
+          .textStyle(.body.standard.regular)
+          .foregroundStyle(Color.ds.text.neutral.standard)
       }
       VStack {
         Button(L10n.Localizable.otpToolAddCredentialCta, action: viewModel.startAddCredentialFlow)
           .buttonStyle(.designSystem(.titleOnly))
-        Button(
-          action: { viewModel.startSetupOTPFlow() },
-          title: L10n.Localizable.otpToolSetupCta
-        )
-        .buttonStyle(BorderlessActionButtonStyle())
-        .foregroundColor(.ds.text.neutral.standard)
+        Button(L10n.Localizable.otpToolSetupCta) {
+          viewModel.startSetupOTPFlow()
+        }
+        .buttonStyle(.designSystem(.titleOnly))
+        .style(intensity: .supershy)
       }
     }
   }
@@ -209,7 +251,6 @@ extension FAQItem {
         title: L10n.Localizable.otpToolFaqHelpDescription,
         link: .init(label: L10n.Localizable.kwHelpCenter, url: helpCenterContactURL)))
   }
-
 }
 
 #Preview {

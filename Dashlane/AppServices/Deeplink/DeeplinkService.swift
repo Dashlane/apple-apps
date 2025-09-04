@@ -1,8 +1,7 @@
 import Combine
 import CorePersonalData
 import CoreSpotlight
-import DashTypes
-import Foundation
+import CoreTypes
 import LoginKit
 import NotificationKit
 import SwiftTreats

@@ -8,10 +8,6 @@ extension Identity {
     .identity
   }
 
-  public var listIcon: VaultItemIcon {
-    .identity
-  }
-
   public static var addIcon: SwiftUI.Image {
     .ds.item.personalInfo.outlined
   }

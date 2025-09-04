@@ -5,15 +5,8 @@ public enum IconAlignment {
   case trailing
 }
 
-struct IconAlignmentKey: EnvironmentKey {
-  static let defaultValue = IconAlignment.leading
-}
-
 extension EnvironmentValues {
-  var iconAlignment: IconAlignment {
-    get { self[IconAlignmentKey.self] }
-    set { self[IconAlignmentKey.self] = newValue }
-  }
+  @Entry var iconAlignment: IconAlignment = .leading
 }
 
 extension View {

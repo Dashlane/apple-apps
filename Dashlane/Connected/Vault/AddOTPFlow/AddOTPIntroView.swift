@@ -1,13 +1,13 @@
 import Combine
 import CoreLocalization
 import CorePersonalData
-import CoreUserTracking
 import DesignSystem
 import Foundation
 import SwiftTreats
 import SwiftUI
 import UIComponents
 import UIDelight
+import UserTrackingFoundation
 import VaultKit
 
 struct AddOTPIntroView: View {
@@ -23,21 +23,20 @@ struct AddOTPIntroView: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 16) {
-      Image.ds.healthPositive.outlined
-        .resizable()
-        .foregroundColor(.ds.text.brand.standard)
-        .aspectRatio(contentMode: .fit)
-        .frame(width: 80)
+      DS.ExpressiveIcon(.ds.healthPositive.outlined)
+        .style(mood: .brand, intensity: .quiet)
+        .controlSize(.large)
         .fiberAccessibilityHidden(true)
 
       Text(title)
-        .font(.custom(GTWalsheimPro.medium.name, size: 26, relativeTo: .title).weight(.medium))
+        .textStyle(.title.section.medium)
+        .foregroundStyle(Color.ds.text.neutral.catchy)
         .accessibilityAddTraits(.isHeader)
       Text(L10n.Localizable._2faSetupIntroSubtitle).font(.body)
         .minimumScaleFactor(0.6)
-        .foregroundColor(.ds.text.neutral.standard)
+        .foregroundStyle(Color.ds.text.neutral.standard)
       explanation.fixedSize(horizontal: false, vertical: true)
-        .foregroundColor(.ds.text.neutral.standard)
+        .foregroundStyle(Color.ds.text.neutral.standard)
       learnMore
       Spacer()
       actions
@@ -46,7 +45,7 @@ struct AddOTPIntroView: View {
     .navigationBarBackButtonHidden(true)
     .toolbar {
       ToolbarItem(placement: .navigationBarLeading) {
-        NavigationBarButton(CoreLocalization.L10n.Core.cancel) {
+        Button(CoreL10n.cancel) {
           completion(.cancel)
         }
       }
@@ -57,24 +56,24 @@ struct AddOTPIntroView: View {
 
   private var title: String {
     guard let credentialTitle = credential?.displayTitle else {
-      return CoreLocalization.L10n.Core._2faSetupCta
+      return CoreL10n._2faSetupCta
     }
     return L10n.Localizable._2faSetupIntroTitle(credentialTitle)
   }
 
   private var actions: some View {
     VStack(alignment: .leading, spacing: 16) {
-      if !Device.isMac {
+      if !Device.is(.mac) {
         Button(L10n.Localizable._2faSetupIntroScanQRCode) {
           completion(.scanQRCode)
         }
         .buttonStyle(.designSystem(.titleOnly))
       }
-      Button(
-        action: {
-          completion(.enterToken(credential))
-        }, title: L10n.Localizable._2faSetupIntroSetupWithCode
-      ).buttonStyle(BorderlessActionButtonStyle())
+      Button(L10n.Localizable._2faSetupIntroSetupWithCode) {
+        completion(.enterToken(credential))
+      }
+      .buttonStyle(.designSystem(.titleOnly))
+      .style(intensity: .supershy)
 
     }
   }
@@ -111,7 +110,7 @@ struct AddOTPIntroView: View {
       UIApplication.shared.open(URL(string: "_")!, options: [:])
     } label: {
       Text(L10n.Localizable._2faSetupIntroLearnMore)
-        .foregroundColor(.ds.text.brand.quiet)
+        .foregroundStyle(Color.ds.text.brand.quiet)
         .multilineTextAlignment(.leading)
     }
     .accessibilityAddTraits(.isLink)
@@ -125,7 +124,7 @@ struct AddOTPIntroView_Previews: PreviewProvider {
     NavigationView {
       AddOTPIntroView(credential: PersonalDataMock.Credentials.amazon, completion: { _ in })
     }
-    .navigationTitle(Text("Heeey").foregroundColor(.black))
+    .navigationTitle(Text("Heeey").foregroundStyle(.black))
     .previewDevice("iPhone SE (2nd generation)")
     .navigationBarTitleDisplayMode(.inline)
   }

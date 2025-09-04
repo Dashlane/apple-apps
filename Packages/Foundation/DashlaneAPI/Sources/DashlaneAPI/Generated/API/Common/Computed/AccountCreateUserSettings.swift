@@ -1,6 +1,6 @@
 import Foundation
 
-public struct AccountCreateUserSettings: Codable, Equatable, Sendable {
+public struct AccountCreateUserSettings: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case content = "content"
     case time = "time"

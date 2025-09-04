@@ -1,9 +1,8 @@
 import DesignSystem
-import Foundation
 import SwiftUI
 
 extension ItemCategory {
-  public var icon: SwiftUI.Image {
+  public var icon: Image {
     switch self {
     case .credentials:
       return .ds.item.login.outlined
@@ -17,8 +16,8 @@ extension ItemCategory {
       return .ds.item.id.outlined
     case .secrets:
       return .ds.item.secret.outlined
+    case .wifi:
+      return .ds.item.wifi.outlined
     }
   }
-
-  public var placeholderIcon: SwiftUI.Image { icon }
 }

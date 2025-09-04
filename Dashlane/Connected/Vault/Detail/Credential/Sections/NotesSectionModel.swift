@@ -1,10 +1,10 @@
 import Combine
 import CorePersonalData
 import CoreSettings
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import Foundation
 import SwiftUI
+import UserTrackingFoundation
 import VaultKit
 
 class NotesSectionModel: DetailViewModelProtocol, SessionServicesInjecting,

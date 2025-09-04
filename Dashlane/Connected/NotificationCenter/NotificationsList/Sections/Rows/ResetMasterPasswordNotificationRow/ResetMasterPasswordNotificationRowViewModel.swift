@@ -2,7 +2,7 @@ import Combine
 import CoreKeychain
 import CoreSession
 import CoreSettings
-import DashTypes
+import CoreTypes
 import Foundation
 import LoginKit
 import NotificationKit

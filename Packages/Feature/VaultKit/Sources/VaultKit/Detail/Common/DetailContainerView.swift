@@ -3,9 +3,11 @@ import CoreFeature
 import CoreLocalization
 import CorePersonalData
 import CorePremium
-import DashTypes
+import CoreSession
+import CoreTypes
 import DesignSystem
 import DocumentServices
+import LogFoundation
 import SwiftTreats
 import SwiftUI
 import UIComponents
@@ -22,16 +24,15 @@ public struct DetailContainerView<Content: View, SharingSection: View, Item: Vau
   @Environment(\.dismiss) public var dismissAction
   @Environment(\.isPresented) private var isPresented
   @Environment(\.toast) var toast
+  @Environment(\.authenticationMethod) var authenticationMethod: AuthenticationMethod?
 
   @State var deleteRequest: DeleteVaultItemRequest = .init()
   @State var showCancelConfirmationDialog: Bool = false
   @State var showCollectionAddition: Bool = false
   @State var showSpaceSelector: Bool = false
-  @State var titleHeight: CGFloat? = DetailDimension.defaultNavigationBarHeight
 
   @FeatureState(.documentStorageAllItems) var isDocumentStorageAllItemsEnabled: Bool
   @FeatureState(.documentStorageIds) var isDocumentStorageIdsEnabled: Bool
-  @FeatureState(.documentStorageSecrets) var isDocumentStorageSecretsEnabled: Bool
 
   let content: Content
   let sharingSection: SharingSection
@@ -47,64 +48,61 @@ public struct DetailContainerView<Content: View, SharingSection: View, Item: Vau
   }
 
   public var body: some View {
-    ZStack(alignment: .top) {
-      list
-        .editionDisabled(!model.mode.isEditing, appearance: .discrete)
-        .overlay(loadingView)
-        .onReceive(model.eventPublisher) { event in
-          switch event {
-          case .copy(let success):
-            onCopyAction(success)
-          case .cancel:
-            showCancelConfirmationDialog = true
-          default:
-            event.toastMessage.map { toast($0, image: event.toastIcon) }
+    list
+      .fieldEditionDisabled(!model.mode.isEditing, appearance: .discrete)
+      .overlay(loadingView)
+      .onReceive(model.eventPublisher) { event in
+        switch event {
+        case .copy(let success):
+          onCopyAction(success)
+        case .askConfirmationCancel:
+          showCancelConfirmationDialog = true
+        default:
+          event.toastMessage.map { toast($0, image: event.toastIcon) }
+        }
+      }
+      .userActivity(.viewItem, isActive: model.advertiseUserActivity) { activity in
+        activity.update(with: model.item)
+      }
+      .onAppear(perform: model.reportDetailViewAppearance)
+      .makeShortcuts(
+        model: model,
+        edit: { model.mode = .updating },
+        save: { save() },
+        cancel: { model.mode = .viewing },
+        close: { dismiss() },
+        delete: askDelete
+      )
+      .confirmationDialog(
+        CoreL10n.KWVaultItem.UnsavedChanges.title,
+        isPresented: $showCancelConfirmationDialog,
+        titleVisibility: .visible,
+        actions: {
+          Button(CoreL10n.KWVaultItem.UnsavedChanges.leave, role: .destructive) {
+            model.confirmCancel()
           }
+          Button(CoreL10n.KWVaultItem.UnsavedChanges.keepEditing, role: .cancel) {}
+        },
+        message: {
+          Text(CoreL10n.KWVaultItem.UnsavedChanges.message)
+        }
+      )
+      .deleteItemAlert(request: $deleteRequest, deleteAction: delete)
+      .navigationBarBackButtonHidden(shouldHideBackButton)
+      .toolbar {
+        ToolbarItem(placement: .navigationBarLeading) {
+          leadingButton
         }
 
-      navigationBar
-    }
-    .navigationBarBackButtonHidden(true)
-    .userActivity(.viewItem, isActive: model.advertiseUserActivity) { activity in
-      activity.update(with: model.item)
-    }
-    .onAppear(perform: model.reportDetailViewAppearance)
-    .makeShortcuts(
-      model: model,
-      edit: { model.mode = .updating },
-      save: { save() },
-      cancel: { model.mode = .viewing },
-      close: { dismiss() },
-      delete: askDelete
-    )
-    .confirmationDialog(
-      L10n.Core.KWVaultItem.UnsavedChanges.title,
-      isPresented: $showCancelConfirmationDialog,
-      titleVisibility: .visible,
-      actions: {
-        Button(L10n.Core.KWVaultItem.UnsavedChanges.leave, role: .destructive) {
-          model.confirmCancel()
+        ToolbarItem(placement: .navigationBarTrailing) {
+          trailingButton
         }
-        Button(L10n.Core.KWVaultItem.UnsavedChanges.keepEditing, role: .cancel) {}
-      },
-      message: {
-        Text(L10n.Core.KWVaultItem.UnsavedChanges.message)
       }
-    )
-    .simultaneousGesture(
-      DragGesture(minimumDistance: 20, coordinateSpace: .global)
-        .onEnded { value in
-          let horizontalAmount = value.translation.width
-          if horizontalAmount > 0 && (value.location.x - horizontalAmount) < 10
-            && !model.mode.isEditing && !Device.isMac
-          {
-            dismiss()
-          }
-        })
+      .loading(model.isSaving)
   }
 
   private var list: some View {
-    DetailList(offsetEnabled: model.mode == .viewing, titleHeight: $titleHeight) {
+    DetailList(title: title) {
       content
 
       itemOrganizationSection
@@ -123,9 +121,11 @@ public struct DetailContainerView<Content: View, SharingSection: View, Item: Vau
       if case .updating = model.mode {
         deleteSection
       }
+    } titleAccessory: {
+      titleAccessory
     }
+    .detailListCollapseMode(model.mode.isEditing ? .always : .onScroll)
     .environment(\.detailMode, model.mode)
-    .fieldAppearance(.grouped)
     .navigation(isActive: $showSpaceSelector) {
       spaceSelectorList
     }
@@ -140,6 +140,7 @@ public struct DetailContainerView<Content: View, SharingSection: View, Item: Vau
       VStack {
         Spacer()
         ProgressView()
+          .progressViewStyle(.indeterminate)
           .tint(.ds.text.brand.standard)
         Spacer()
       }
@@ -147,45 +148,31 @@ public struct DetailContainerView<Content: View, SharingSection: View, Item: Vau
       .background(Color.ds.container.expressive.neutral.quiet.active)
       .edgesIgnoringSafeArea(.all)
       .fiberAccessibilityElement(children: .combine)
-      .fiberAccessibilityLabel(Text(L10n.Core.accessibilityDeletingItem))
+      .fiberAccessibilityLabel(Text(CoreL10n.accessibilityDeletingItem))
     }
   }
 }
 
 extension DetailContainerView {
-  fileprivate var navigationBar: some View {
-    NavigationBar(
-      leading:
-        leadingButton
-        .id(model.mode),
-      title:
-        title
-        .accessibilityAddTraits(.isHeader)
-        .transition(AnyTransition.move(edge: .top).combined(with: .opacity))
-        .foregroundColor(.ds.text.neutral.catchy),
-      titleAccessory: titleAccessory,
-      trailing:
-        trailingButton
-        .id(model.mode),
-      height: !model.mode.isEditing ? titleHeight : nil
-    )
-    .accentColor(.ds.text.brand.standard)
+  fileprivate var shouldHideBackButton: Bool {
+    model.mode.isEditing || specificBackButton == .close
   }
 
   @ViewBuilder
   fileprivate var leadingButton: some View {
     if case .updating = model.mode {
-      Button(L10n.Core.kwEditClose) {
+      Button(CoreL10n.kwEditClose) {
         withAnimation(.easeInOut) {
           model.cancel()
         }
       }
+      .foregroundStyle(Color.ds.text.brand.standard)
     } else if model.mode.isAdding {
-      Button(L10n.Core.cancel, action: dismiss)
+      Button(CoreL10n.cancel, action: dismiss)
+        .foregroundStyle(Color.ds.text.brand.standard)
     } else if specificBackButton == .close {
-      Button(L10n.Core.kwButtonClose, action: dismiss)
-    } else if canDismiss || specificBackButton == .back {
-      BackButton(color: .ds.text.brand.standard, action: dismiss)
+      Button(CoreL10n.kwButtonClose, action: dismiss)
+        .foregroundStyle(Color.ds.text.brand.standard)
     }
   }
 
@@ -193,14 +180,13 @@ extension DetailContainerView {
     model.mode.isAdding || isPresented
   }
 
-  @ViewBuilder
-  fileprivate var title: some View {
+  fileprivate var title: Text {
     if case .viewing = model.mode {
       Text(model.item.localizedTitle)
     } else if model.mode.isAdding {
       Text(model.item.addTitle)
     } else if case .updating = model.mode {
-      Text(L10n.Core.kwEdit)
+      Text(CoreL10n.kwEdit)
     } else {
       Text(model.item.localizedTitle)
     }
@@ -216,20 +202,22 @@ extension DetailContainerView {
   fileprivate var trailingButton: some View {
     if model.mode.isEditing {
       if !model.isSaving {
-        Button(L10n.Core.kwSave) {
+        Button(CoreL10n.kwSave) {
           withAnimation(.easeInOut) {
             save()
           }
         }
         .disabled(!model.canSave)
-        .loading(isLoading: model.isSaving)
+        .foregroundStyle(
+          model.canSave ? Color.ds.text.brand.standard : Color.ds.text.oddity.disabled)
       }
     } else {
-      Button(L10n.Core.kwEdit) {
+      Button(CoreL10n.kwEdit) {
         withAnimation(.easeInOut) {
           model.mode = .updating
         }
       }
+      .foregroundStyle(Color.ds.text.brand.standard)
     }
   }
 }
@@ -249,10 +237,12 @@ extension DetailServiceEvent {
   fileprivate var toastMessage: String? {
     switch self {
     case .domainsUpdate:
-      return L10n.Core.KWAuthentifiantIOS.Domains.update
+      return CoreL10n.KWAuthentifiantIOS.Domains.update
     case .save:
-      return L10n.Core.KWVaultItem.Changes.saved
-    case .cancel, .copy:
+      return CoreL10n.KWVaultItem.Changes.saved
+    case .wifiConnection:
+      return CoreL10n.WiFi.Toast.connected
+    case .askConfirmationCancel, .copy:
       return nil
     }
   }
@@ -263,32 +253,22 @@ extension DetailServiceEvent {
       return .ds.action.copy.outlined
     case .save, .domainsUpdate:
       return .ds.feedback.success.outlined
-    case .cancel:
+    case .wifiConnection:
+      return .ds.item.wifi.outlined
+    case .askConfirmationCancel:
       return nil
     }
   }
 }
 
-struct DetailContainerView_Previews: PreviewProvider {
-  private static let credential: Credential = {
-    var amazon = PersonalDataMock.Credentials.amazon
-    amazon.creationDatetime = Date().substract(days: 30)
-    amazon.userModificationDatetime = Date().substract(days: 2)
-    return amazon
-  }()
+#Preview {
+  var amazon = PersonalDataMock.Credentials.amazon
+  amazon.creationDatetime = Date().substract(days: 30)
+  amazon.userModificationDatetime = Date().substract(days: 2)
 
-  static var previews: some View {
-    MultiContextPreview {
-      DetailContainerView(service: .mock(item: credential, mode: .viewing)) {
-        Section {
-          Text("Content")
-        }
-      }
-      DetailContainerView(service: .mock(item: credential, mode: .updating)) {
-        Section {
-          Text("Content")
-        }
-      }
+  return DetailContainerView(service: .mock(item: amazon, mode: .viewing)) {
+    Section {
+      Text("Content")
     }
   }
 }

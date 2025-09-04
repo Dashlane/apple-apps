@@ -1,6 +1,7 @@
 import CoreLocalization
+import DesignSystemExtra
+import LoginKit
 import SwiftUI
-import UIComponents
 import UIDelight
 import VaultKit
 
@@ -10,6 +11,9 @@ struct ShareItemsSelectionView: View {
 
   @Environment(\.dismiss)
   var dismiss
+
+  @Environment(\.accessControl)
+  var accessControl
 
   init(model: @escaping @autoclosure () -> ShareItemsSelectionViewModel) {
     self._model = .init(wrappedValue: model())
@@ -31,7 +35,7 @@ struct ShareItemsSelectionView: View {
   private func rowView(for input: ItemRowViewConfiguration) -> some View {
     let item = input.vaultItem
 
-    return SelectionRow(isSelected: model.isSelected(item)) {
+    return NativeSelectionRow(isSelected: model.isSelected(item), spacing: 16) {
       VaultItemRow(
         item: item,
         userSpace: model.userSpacesService.configuration.displayedUserSpace(for: item),
@@ -41,14 +45,20 @@ struct ShareItemsSelectionView: View {
     }.onTapWithFeedback {
       model.toggle(item)
     }
+    .listRowInsets(.init(top: 0, leading: 16, bottom: 0, trailing: 16))
   }
 
   @ToolbarContentBuilder
   var toolbarContent: some ToolbarContent {
     ToolbarItem(placement: .navigationBarLeading) {
-      Button(CoreLocalization.L10n.Core.cancel) {
-        dismiss()
-      }
+      Button(
+        action: {
+          dismiss()
+        },
+        label: {
+          Text(CoreL10n.cancel)
+            .foregroundStyle(Color.ds.text.brand.standard)
+        })
     }
 
     ToolbarItem(placement: .navigationBarTrailing) {
@@ -58,9 +68,22 @@ struct ShareItemsSelectionView: View {
         selectedItemsCount == 1
         ? L10n.Localizable.sharingItemSelected(selectedItemsCount)
         : L10n.Localizable.sharingItemsSelected(selectedItemsCount)
-      Button(CoreLocalization.L10n.Core.kwNext + suffix) {
-        model.complete()
-      }
+
+      Button(
+        action: {
+          accessControl.requestAccess(to: model.selectedItems.values) { access in
+            guard access else {
+              return
+            }
+
+            model.complete()
+          }
+        },
+        label: {
+          Text(CoreL10n.kwNext + suffix)
+            .foregroundStyle(Color.ds.text.brand.standard)
+        }
+      )
       .disabled(model.selectedItems.isEmpty)
       .accessibilityLabel(a11yLabel)
     }

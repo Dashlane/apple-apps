@@ -1,12 +1,24 @@
+import Combine
 import Foundation
 import Network
 
-class NetworkReachability {
+protocol NetworkReachabilityProtocol {
+  var isConnectedPublisher: AnyPublisher<Bool, Never> { get }
+  var isConnected: Bool { get }
+}
+
+class NetworkReachability: NetworkReachabilityProtocol {
+
   let queue = DispatchQueue(label: "Monitor")
   let monitor = NWPathMonitor()
   var interfaceType: NWInterface.InterfaceType?
   @Published
   var isConnected: Bool = false
+
+  var isConnectedPublisher: AnyPublisher<Bool, Never> {
+    $isConnected.eraseToAnyPublisher()
+  }
+
   init() {
     monitor.pathUpdateHandler = { path in
       if path.usesInterfaceType(.wifi) {
@@ -19,10 +31,23 @@ class NetworkReachability {
     }
     monitor.start(queue: queue)
   }
+}
 
-  init(isConnected: Bool, interfaceType: NWInterface.InterfaceType? = .wifi) {
-    self.isConnected = isConnected
-    self.interfaceType = interfaceType
+class NetworkReachabilityMock: NetworkReachabilityProtocol {
+
+  @Published
+  var isConnected: Bool
+
+  var isConnectedPublisher: AnyPublisher<Bool, Never> {
+    Just(isConnected).eraseToAnyPublisher()
   }
 
+  init(isConnected: Bool) {
+    self.isConnected = isConnected
+  }
+}
+extension NetworkReachabilityProtocol where Self == NetworkReachabilityMock {
+  static func mock(isConnected: Bool = true) -> NetworkReachabilityProtocol {
+    NetworkReachabilityMock(isConnected: isConnected)
+  }
 }

@@ -1,7 +1,7 @@
 import CoreKeychain
 import CoreSession
 import CoreSettings
-import DashTypes
+import CoreTypes
 import Foundation
 import LoginKit
 import SwiftTreats
@@ -185,7 +185,7 @@ extension SecureLockConfigurator {
   }
 
   var canActivateRememberMasterPassword: Bool {
-    return Device.isMac
+    return Device.is(.mac)
   }
 
   func enableRememberMasterPassword() throws {
@@ -199,38 +199,12 @@ extension SecureLockConfigurator {
 
 }
 
-extension AuthenticationKeychainServiceProtocol {
-  fileprivate func saveMasterKey(
-    _ masterKey: CoreSession.MasterKey,
-    for login: Login,
-    accessMode: KeychainAccessMode
-  ) throws {
-    switch masterKey {
-    case let .masterPassword(masterPassword, serverKey):
-      try save(
-        .masterPassword(masterPassword),
-        for: login,
-        expiresAfter: AuthenticationKeychainService.defaultPasswordValidityPeriod,
-        accessMode: accessMode)
-      if let serverKey = serverKey {
-        try saveServerKey(serverKey, for: login)
-      }
-    case .ssoKey(let key):
-      try save(
-        .key(key),
-        for: login,
-        expiresAfter: AuthenticationKeychainService.defaultRemoteKeyValidityPeriod,
-        accessMode: accessMode)
-    }
-  }
-}
-
 extension SecureLockConfigurator {
   static var mock: SecureLockConfigurator {
 
     return SecureLockConfigurator(
       session: .mock,
-      keychainService: .mock,
+      keychainService: .mock(),
       settings: .mock())
   }
 }

@@ -21,16 +21,18 @@ struct DeviceTransferPendingRequestView: View {
   var body: some View {
     ZStack {
       if model.isLoading {
-        ProgressionView(state: $model.progressState)
+        LottieProgressionFeedbacksView(state: model.progressState)
       } else {
         ScrollView {
           mainView
-        }.backgroundColorIgnoringSafeArea(Color.ds.background.alternate)
+        }
         overlayView
           .navigationTitle(L10n.Localizable.Mpless.D2d.trustedNavigationTitle)
           .navigationBarTitleDisplayMode(.inline)
       }
     }
+    .frame(maxHeight: .infinity, alignment: .top)
+    .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
     .animation(.default, value: model.isLoading)
   }
 
@@ -38,21 +40,21 @@ struct DeviceTransferPendingRequestView: View {
     VStack(alignment: .leading, spacing: 16) {
       Text(L10n.Localizable.Mpless.D2d.Universal.pendingTransferTitle)
         .font(.title)
-        .foregroundColor(.ds.text.neutral.catchy)
+        .foregroundStyle(Color.ds.text.neutral.catchy)
       Text(L10n.Localizable.Mpless.D2d.Universal.pendingTransferMessage)
         .font(.body)
-        .foregroundColor(.ds.text.neutral.standard)
+        .foregroundStyle(Color.ds.text.neutral.standard)
       VStack(alignment: .leading, spacing: 12) {
         Text(model.pendingTransfer.receiver.deviceName)
           .textStyle(.body.standard.strong)
-          .foregroundColor(.ds.text.neutral.catchy)
+          .foregroundStyle(Color.ds.text.neutral.catchy)
           .frame(maxWidth: .infinity, alignment: .leading)
         Text(model.displayLocation)
           .textStyle(.body.standard.strong)
-          .foregroundColor(.ds.text.neutral.catchy)
+          .foregroundStyle(Color.ds.text.neutral.catchy)
         Text(model.displayDate())
           .textStyle(.body.standard.strong)
-          .foregroundColor(.ds.text.neutral.catchy)
+          .foregroundStyle(Color.ds.text.neutral.catchy)
 
       }
       .padding(.horizontal, 24)

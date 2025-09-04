@@ -31,32 +31,30 @@ public struct LimitedNumberOfDeviceView: View {
     }
     .padding(26)
     .loginAppearance()
-    #if canImport(UIKit)
-      .navigationBarBackButtonHidden(true)
-      .toolbar {
-        ToolbarItem(placement: .navigationBarLeading) {
-          NavigationBarButton(L10n.Core.kwLogOut, action: logout)
-        }
+    .navigationBarBackButtonHidden(true)
+    .toolbar {
+      ToolbarItem(placement: .navigationBarLeading) {
+        Button(CoreL10n.kwLogOut, action: logout)
       }
-    #endif
+    }
   }
 
   private var header: some View {
     VStack(alignment: .center, spacing: 13) {
-      VStack(spacing: 10) {
-        Image(asset: Asset.multidevices)
+      VStack(spacing: 14) {
+        Image(.multidevices)
 
         Text(mode.title)
-          .font(DashlaneFont.custom(26, .bold).font)
+          .textStyle(.title.section.large)
           .fixedSize(horizontal: false, vertical: true)
       }
 
       Text(mode.description)
-        .font(.body)
-        .foregroundColor(.ds.text.neutral.standard)
+        .textStyle(.body.standard.regular)
+        .foregroundStyle(Color.ds.text.neutral.standard)
 
       if case DeviceUnlinker.UnlinkMode.multiple = mode {
-        Infobox(L10n.Core.deviceUnlinkUnlinkDevicePremiumFeatureDescription)
+        Infobox(CoreL10n.deviceUnlinkUnlinkDevicePremiumFeatureDescription)
       }
     }
     .multilineTextAlignment(.center)
@@ -64,7 +62,7 @@ public struct LimitedNumberOfDeviceView: View {
 
   private var actions: some View {
     VStack(alignment: .center, spacing: 5) {
-      Button(L10n.Core.deviceUnlinkingLimitedPremiumCta, action: upgrade)
+      Button(CoreL10n.deviceUnlinkingLimitedPremiumCta, action: upgrade)
       Button(mode.unlinkButtonLabel, action: unlink)
         .style(mood: .brand, intensity: .quiet)
 
@@ -89,27 +87,27 @@ extension DeviceUnlinker.UnlinkMode {
   fileprivate var title: String {
     switch self {
     case .monobucket:
-      return L10n.Core.deviceUnlinkingLimitedTitle
+      return CoreL10n.deviceUnlinkingLimitedTitle
     case let .multiple(limit):
-      return L10n.Core.deviceUnlinkLimitedMultiDevicesTitle(limit)
+      return CoreL10n.deviceUnlinkLimitedMultiDevicesTitle(limit)
     }
   }
 
   fileprivate var description: String {
     switch self {
     case .monobucket:
-      return L10n.Core.deviceUnlinkingLimitedDescription
+      return CoreL10n.deviceUnlinkingLimitedDescription
     case .multiple:
-      return L10n.Core.deviceUnlinkLimitedMultiDevicesDescription
+      return CoreL10n.deviceUnlinkLimitedMultiDevicesDescription
     }
   }
 
   fileprivate var unlinkButtonLabel: String {
     switch self {
     case .monobucket:
-      return L10n.Core.deviceUnlinkingLimitedUnlinkCta
+      return CoreL10n.deviceUnlinkingLimitedUnlinkCta
     case .multiple:
-      return L10n.Core.deviceUnlinkLimitedMultiDevicesUnlinkCta
+      return CoreL10n.deviceUnlinkLimitedMultiDevicesUnlinkCta
     }
   }
 

@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Premium {
-  public struct GetSubscriptionInfo: APIRequest {
+  public struct GetSubscriptionInfo: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/premium/GetSubscriptionInfo"
 
     public let api: UserDeviceAPIClient
@@ -26,20 +26,20 @@ extension UserDeviceAPIClient.Premium.GetSubscriptionInfo {
 }
 
 extension UserDeviceAPIClient.Premium.GetSubscriptionInfo {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case b2cSubscription = "b2cSubscription"
       case b2bSubscription = "b2bSubscription"
     }
 
-    public struct B2cSubscription: Codable, Equatable, Sendable {
+    public struct B2cSubscription: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case autoRenewInfo = "autoRenewInfo"
         case hasInvoices = "hasInvoices"
         case billingInformation = "billingInformation"
       }
 
-      public struct AutoRenewInfo: Codable, Equatable, Sendable {
+      public struct AutoRenewInfo: Codable, Hashable, Sendable {
         public enum CodingKeys: String, CodingKey {
           case theory = "theory"
           case reality = "reality"
@@ -47,7 +47,7 @@ extension UserDeviceAPIClient.Premium.GetSubscriptionInfo {
           case trigger = "trigger"
         }
 
-        public enum Periodicity: String, Sendable, Equatable, CaseIterable, Codable {
+        public enum Periodicity: String, Sendable, Hashable, Codable, CaseIterable {
           case yearly = "yearly"
           case monthly = "monthly"
           case other = "other"
@@ -59,7 +59,7 @@ extension UserDeviceAPIClient.Premium.GetSubscriptionInfo {
           }
         }
 
-        public enum Trigger: String, Sendable, Equatable, CaseIterable, Codable {
+        public enum Trigger: String, Sendable, Hashable, Codable, CaseIterable {
           case manual = "manual"
           case automatic = "automatic"
           case undecodable
@@ -114,7 +114,7 @@ extension UserDeviceAPIClient.Premium.GetSubscriptionInfo {
       }
     }
 
-    public struct B2bSubscription: Codable, Equatable, Sendable {
+    public struct B2bSubscription: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case hasInvoices = "hasInvoices"
         case billingInformation = "billingInformation"
@@ -122,13 +122,13 @@ extension UserDeviceAPIClient.Premium.GetSubscriptionInfo {
         case vatNumber = "vatNumber"
       }
 
-      public struct PlanDetails: Codable, Equatable, Sendable {
+      public struct PlanDetails: Codable, Hashable, Sendable {
         public enum CodingKeys: String, CodingKey {
           case duration = "duration"
           case type = "type"
         }
 
-        public enum Duration: String, Sendable, Equatable, CaseIterable, Codable {
+        public enum Duration: String, Sendable, Hashable, Codable, CaseIterable {
           case monthly = "monthly"
           case yearly = "yearly"
           case other = "other"
@@ -140,7 +140,7 @@ extension UserDeviceAPIClient.Premium.GetSubscriptionInfo {
           }
         }
 
-        public enum `Type`: String, Sendable, Equatable, CaseIterable, Codable {
+        public enum `Type`: String, Sendable, Hashable, Codable, CaseIterable {
           case stripe = "stripe"
           case freeTrial = "free_trial"
           case offer = "offer"

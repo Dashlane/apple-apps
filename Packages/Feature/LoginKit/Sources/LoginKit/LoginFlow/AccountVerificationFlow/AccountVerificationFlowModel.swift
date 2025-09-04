@@ -1,32 +1,40 @@
 import Combine
 import CoreNetworking
 import CoreSession
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import StateMachine
 import SwiftTreats
+import UserTrackingFoundation
 
 @MainActor
-public class AccountVerificationFlowModel: ObservableObject, LoginKitServicesInjecting {
+public class AccountVerificationFlowModel: StateMachineBasedObservableObject,
+  LoginKitServicesInjecting
+{
+
+  enum ViewState: Equatable {
+    case initializing
+    case emailToken
+    case totp(hasDUOPush: Bool)
+  }
 
   @Published
-  var verificationMethod: VerificationMethod
+  var viewState: ViewState = .initializing
 
   private let login: Login
   private let mode: Definition.Mode
-  private let accountVerificationService: AccountVerificationService
   private let tokenVerificationViewModelFactory: TokenVerificationViewModel.Factory
   private let debugTokenPublisher: AnyPublisher<String, Never>?
   private let totpVerificationViewModelFactory: TOTPVerificationViewModel.Factory
   private let completion: @MainActor (Result<(AuthTicket, Bool), Error>) -> Void
+  @Published public var stateMachine: AccountVerificationStateMachine
+  @Published public var isPerformingEvent: Bool = false
 
   public init(
     login: Login,
     mode: Definition.Mode,
-    verificationMethod: VerificationMethod,
-    appAPIClient: AppAPIClient,
-    deviceInfo: DeviceInfo,
+    stateMachine: AccountVerificationStateMachine,
     debugTokenPublisher: AnyPublisher<String, Never>? = nil,
     tokenVerificationViewModelFactory: TokenVerificationViewModel.Factory,
     totpVerificationViewModelFactory: TOTPVerificationViewModel.Factory,
@@ -34,44 +42,77 @@ public class AccountVerificationFlowModel: ObservableObject, LoginKitServicesInj
   ) {
     self.login = login
     self.mode = mode
-    self.verificationMethod = verificationMethod
     self.debugTokenPublisher = debugTokenPublisher
     self.totpVerificationViewModelFactory = totpVerificationViewModelFactory
     self.tokenVerificationViewModelFactory = tokenVerificationViewModelFactory
     self.completion = completion
-    self.accountVerificationService = AccountVerificationService(
-      login: login, appAPIClient: appAPIClient, deviceInfo: deviceInfo)
+    self.stateMachine = stateMachine
+    Task {
+      await self.perform(.start)
+    }
   }
 
+  public func update(
+    for event: AccountVerificationStateMachine.Event,
+    from oldState: AccountVerificationStateMachine.State,
+    to newState: AccountVerificationStateMachine.State
+  ) async {
+    switch newState {
+    case .initialize:
+      self.viewState = .initializing
+    case let .startVerification(method):
+      switch method {
+      case .emailToken:
+        self.viewState = .emailToken
+      case let .totp(pushType):
+        self.viewState = .totp(hasDUOPush: pushType != nil)
+      }
+    case let .accountVerified(authTicket, isBackupCode):
+      self.completion(.success((authTicket, isBackupCode)))
+    case let .verificationFailed(error):
+      self.completion(.failure(error.underlyingError))
+    }
+  }
+
+}
+
+extension AccountVerificationFlowModel {
   func makeTokenVerificationViewModel() -> TokenVerificationViewModel {
     tokenVerificationViewModelFactory.make(
-      tokenPublisher: debugTokenPublisher, accountVerificationService: accountVerificationService,
-      mode: mode
+      login: login, tokenPublisher: debugTokenPublisher,
+      stateMachine: stateMachine.makeTokenVerificationStateMachine(), mode: mode
     ) { [weak self] result in
       guard let self = self else {
         return
       }
-      switch result {
-      case let .success(authTicket):
-        self.completion(.success((authTicket, false)))
-      case let .failure(error):
-        self.completion(.failure(error))
+      Task {
+        switch result {
+        case let .success(authTicket):
+          await self.perform(.verificationDidSuccess(authTicket, isBackupCode: false))
+        case let .failure(error):
+          await self.perform(.errorOcurred(StateMachineError(underlyingError: error)))
+        }
       }
     }
   }
 
-  func makeTOTPVerificationViewModel() -> TOTPVerificationViewModel {
+  func makeTOTPVerificationViewModel(pushType: VerificationMethod.PushType?)
+    -> TOTPVerificationViewModel
+  {
     totpVerificationViewModelFactory.make(
-      accountVerificationService: accountVerificationService, pushType: verificationMethod.pushType
+      login: login, stateMachine: stateMachine.makeTOTPVerificationStateMachine(),
+      pushType: pushType
     ) { [weak self] result in
       guard let self = self else {
         return
       }
-      switch result {
-      case let .success((authTicket, isBackupCode)):
-        self.completion(.success((authTicket, isBackupCode)))
-      case let .failure(error):
-        self.completion(.failure(error))
+      Task {
+        switch result {
+        case let .success((authTicket, isBackupCode)):
+          await self.perform(.verificationDidSuccess(authTicket, isBackupCode: isBackupCode))
+        case let .failure(error):
+          await self.perform(.errorOcurred(StateMachineError(underlyingError: error)))
+        }
       }
     }
   }
@@ -80,12 +121,11 @@ public class AccountVerificationFlowModel: ObservableObject, LoginKitServicesInj
 extension AccountVerificationFlowModel {
   static func mock(verificationMethod: VerificationMethod) -> AccountVerificationFlowModel {
     AccountVerificationFlowModel(
-      login: "", mode: .masterPassword, verificationMethod: verificationMethod, appAPIClient: .fake,
-      deviceInfo: .mock,
-      tokenVerificationViewModelFactory: .init({ _, _, _, _ in
+      login: "", mode: .masterPassword, stateMachine: .mock,
+      tokenVerificationViewModelFactory: .init({ _, _, _, _, _ in
         TokenVerificationViewModel.mock
       }),
-      totpVerificationViewModelFactory: .init({ _, _, _ in
+      totpVerificationViewModelFactory: .init({ _, _, _, _ in
         TOTPVerificationViewModel.mock
       }), completion: { _ in })
   }

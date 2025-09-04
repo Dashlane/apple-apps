@@ -1,8 +1,8 @@
 import CorePersonalData
-import CoreUserTracking
 import CryptoKit
 import Foundation
 import SwiftTreats
+import UserTrackingFoundation
 
 extension VaultItem {
   public var userTrackingLogID: String {

@@ -2,10 +2,12 @@ import Combine
 import CoreCategorizer
 import CorePasswords
 import CorePersonalData
-import DashTypes
+import CoreTypes
 import DomainParser
 import Foundation
+import LogFoundation
 import SecurityDashboard
+import SwiftTreats
 import VaultKit
 
 class CredentialsProvider: SecurityDashboard.CredentialsProvider {
@@ -17,7 +19,10 @@ class CredentialsProvider: SecurityDashboard.CredentialsProvider {
   private let domainParser: DomainParserProtocol
   private let categorizer: Categorizer
   private var cancellable: AnyCancellable?
+
+  @Atomic
   private var passwordStrengthCache: [String: SecurityDashboard.PasswordStrength] = [:]
+  @Atomic
   private var domainIsSensitiveCache: [String: Bool] = [:]
 
   init(

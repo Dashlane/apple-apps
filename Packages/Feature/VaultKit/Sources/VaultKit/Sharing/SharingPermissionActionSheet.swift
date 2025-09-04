@@ -1,7 +1,7 @@
 import CoreFeature
 import CoreLocalization
 import CoreSharing
-import DashTypes
+import CoreTypes
 import DesignSystem
 import SwiftUI
 
@@ -57,7 +57,7 @@ public struct SharingPermissionActionSheet: View {
     ScrollView {
       VStack(spacing: 16) {
         HStack {
-          Text(L10n.Core.sharingPermissionsTitle)
+          Text(CoreL10n.sharingPermissionsTitle)
             .textStyle(.title.section.medium)
             .foregroundStyle(Color.ds.text.neutral.catchy)
             .frame(maxWidth: .infinity, alignment: .leading)
@@ -77,7 +77,7 @@ public struct SharingPermissionActionSheet: View {
           }
         }
 
-        Text(L10n.Core.sharingPermissionsSubtitle)
+        Text(CoreL10n.sharingPermissionsSubtitle)
           .textStyle(.body.reduced.regular)
           .foregroundStyle(Color.ds.text.neutral.quiet)
           .frame(maxWidth: .infinity, alignment: .leading)
@@ -91,6 +91,7 @@ public struct SharingPermissionActionSheet: View {
       .padding(16)
     }
     .background(Color.ds.container.agnostic.neutral.standard)
+    .presentationDetents([.medium])
   }
 
   private var selectedButton: SelectedButton {
@@ -129,18 +130,18 @@ public struct SharingPermissionActionSheet: View {
   func permissionButtonTitle(for permission: SharingPermission) -> String {
     switch permission {
     case .limited:
-      return L10n.Core.KWVaultItem.Collections.Sharing.Roles.Editor.title
+      return CoreL10n.KWVaultItem.Collections.Sharing.Roles.Editor.title
     case .admin:
-      return L10n.Core.KWVaultItem.Collections.Sharing.Roles.Manager.title
+      return CoreL10n.KWVaultItem.Collections.Sharing.Roles.Manager.title
     }
   }
 
   func permissionButtonSubtitle(for permission: SharingPermission) -> String {
     switch permission {
     case .limited:
-      return L10n.Core.sharingPermissionsEditorDescription
+      return CoreL10n.sharingPermissionsEditorDescription
     case .admin:
-      return L10n.Core.sharingPermissionsManagerDescription
+      return CoreL10n.sharingPermissionsManagerDescription
     }
   }
 
@@ -158,18 +159,18 @@ public struct SharingPermissionActionSheet: View {
   var revokeButtonTitle: String {
     switch status {
     case .pending:
-      return L10n.Core.kwRevokeInvite
+      return CoreL10n.kwRevokeInvite
     default:
-      return L10n.Core.kwRevoke
+      return CoreL10n.kwRevoke
     }
   }
 
   var revokeButtonSubtitle: String {
     switch status {
     case .pending:
-      return L10n.Core.sharingPermissionsRevokeInviteDescription
+      return CoreL10n.sharingPermissionsRevokeInviteDescription
     default:
-      return L10n.Core.sharingPermissionsRevokeDescription
+      return CoreL10n.sharingPermissionsRevokeDescription
     }
   }
 }
@@ -232,7 +233,7 @@ struct SharingPermissionActionView_Previews: PreviewProvider {
   static var previews: some View {
     Text("Sheet preview")
       .textStyle(.title.section.large)
-      .bottomSheet(isPresented: .constant(true)) {
+      .sheet(isPresented: .constant(true)) {
         SharingPermissionActionSheet(
           memberIdentifier: "",
           permission: .admin,

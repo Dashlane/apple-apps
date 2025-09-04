@@ -1,9 +1,9 @@
 import Combine
 import CorePersonalData
 import CoreSettings
-import CoreUserTracking
 import Foundation
-import VaultKit
+import IconLibrary
+import UserTrackingFoundation
 
 @MainActor
 public class LastpassImportFlowViewModel: ImportFlowViewModel, ImportKitServicesInjecting {

@@ -12,66 +12,89 @@ public protocol CredentialProviderContext {
   func completeRequest(
     withSelectedCredential credential: ASPasswordCredential, completionHandler: ((Bool) -> Void)?)
 
-  @available(iOS 17.0, macOS 14.0, *)
   func completeAssertionRequest(using credential: ASPasskeyAssertionCredential) async -> Bool
 
-  @available(iOS 17.0, macOS 14.0, *)
   func completeRegistrationRequest(using credential: ASPasskeyRegistrationCredential) async -> Bool
+
+  @available(iOS 18.0, macOS 15.0, *)
+  func completeOneTimeCodeRequest(using: ASOneTimeCodeCredential) async -> Bool
+
+  #if !targetEnvironment(macCatalyst) && !os(visionOS)
+    @available(iOS 18.0, *)
+    func completeRequest(withTextToInsert: String) async -> Bool
+  #endif
 }
 
+@available(iOS 18.0, *)
 extension CredentialProviderContext where Self == CredentialProviderContextMock {
   static func mock() -> Self {
     return CredentialProviderContextMock()
   }
 }
 
+@available(iOS 18.0, *)
 struct CredentialProviderContextMock: CredentialProviderContext {
-
-  let completeRequest: (ASPasswordCredential) -> Void
   let completeExtensionConfiguration: () -> Void
-  let cancelRequest: (Error) -> Void
+
+  let completePasswordRequest: (ASPasswordCredential) -> Void
+  let completeOTPRequest: (ASOneTimeCodeCredential) -> Void
+  let completeAnyTextRequest: (String) -> Void
+
   let completeAssertionRequest: () -> Void
   let completeRegistrationRequest: () -> Void
+  let cancelRequest: (Error) -> Void
 
   public init(
-    completeRequest: @escaping (ASPasswordCredential) -> Void = { _ in },
     completeExtensionConfiguration: @escaping () -> Void = {},
-    cancelRequest: @escaping (Error) -> Void = { _ in },
+    completePasswordRequest: @escaping (ASPasswordCredential) -> Void = { _ in },
+    completeOTPRequest: @escaping (ASOneTimeCodeCredential) -> Void = { _ in },
+    completeAnyTextRequest: @escaping (String) -> Void = { _ in },
     completeAssertionRequest: @escaping () -> Void = {},
-    completeRegistrationRequest: @escaping () -> Void = {}
+    completeRegistrationRequest: @escaping () -> Void = {},
+    cancelRequest: @escaping (Error) -> Void = { _ in }
   ) {
-    self.completeRequest = completeRequest
+    self.completePasswordRequest = completePasswordRequest
+    self.completeOTPRequest = completeOTPRequest
+    self.completeAnyTextRequest = completeAnyTextRequest
     self.completeExtensionConfiguration = completeExtensionConfiguration
     self.cancelRequest = cancelRequest
     self.completeAssertionRequest = completeAssertionRequest
     self.completeRegistrationRequest = completeRegistrationRequest
   }
 
-  func completeRequest(
-    withSelectedCredential credential: ASPasswordCredential, completionHandler: ((Bool) -> Void)?
-  ) {
-    completeRequest(credential)
-    completionHandler?(true)
-  }
-
   func completeExtensionConfigurationRequest() {
     completeExtensionConfiguration()
   }
 
-  func cancelRequest(withError error: Error) {
-    cancelRequest(error)
+  func completeRequest(
+    withSelectedCredential credential: ASPasswordCredential, completionHandler: ((Bool) -> Void)?
+  ) {
+    completePasswordRequest(credential)
+    completionHandler?(true)
   }
 
-  @available(iOS 17.0, macOS 14, *)
+  func completeOneTimeCodeRequest(using credential: ASOneTimeCodeCredential) async -> Bool {
+    completeOTPRequest(credential)
+    return true
+  }
+
   func completeAssertionRequest(using credential: ASPasskeyAssertionCredential) async -> Bool {
     completeAssertionRequest()
     return true
   }
 
-  @available(iOS 17.0, macOS 14, *)
   func completeRegistrationRequest(using credential: ASPasskeyRegistrationCredential) async -> Bool
   {
     completeRegistrationRequest()
     return true
+  }
+
+  func completeRequest(withTextToInsert text: String) async -> Bool {
+    completeAnyTextRequest(text)
+    return true
+  }
+
+  func cancelRequest(withError error: Error) {
+    cancelRequest(error)
   }
 }

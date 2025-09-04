@@ -1,11 +1,11 @@
 import CorePersonalData
 import CorePremium
-import CoreUserTracking
 import Foundation
 import ImportKit
+import UserTrackingFoundation
 
 extension SessionServicesContainer: ImportKitServicesContainer {
-  var reporter: CoreUserTracking.ActivityReporterProtocol {
+  var reporter: UserTrackingFoundation.ActivityReporterProtocol {
     sessionReporterService.activityReporter
   }
 

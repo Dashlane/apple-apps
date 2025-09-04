@@ -49,7 +49,7 @@ public struct ItemRowInfoView: View {
       PartlyModifiedText(text: item.localizedTitle, toBeModified: highlightedString) { text in
         text
           .bold()
-          .foregroundColor(.ds.text.neutral.catchy)
+          .foregroundStyle(Color.ds.text.neutral.catchy)
       }
       .fiberAccessibilityLabel(Text(item.localizedTitle))
     } else {
@@ -75,18 +75,18 @@ public struct ItemRowInfoView: View {
         toBeModified: highlightedString,
         truncateString: true,
         textModifier: {
-          $0.foregroundColor(.ds.text.neutral.quiet)
+          $0.foregroundStyle(Color.ds.text.neutral.quiet)
         },
         toBeModifiedModifier: { text in
           text
             .bold()
-            .foregroundColor(.ds.text.neutral.catchy)
+            .foregroundStyle(Color.ds.text.neutral.catchy)
         }
       )
     } else {
       Text(item.localizedSubtitle)
         .font(item.subtitleFont ?? .footnote)
-        .foregroundColor(.ds.text.neutral.quiet)
+        .foregroundStyle(Color.ds.text.neutral.quiet)
     }
   }
 

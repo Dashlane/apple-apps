@@ -1,7 +1,9 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 
+@Loggable
 public struct UserGroup: Codable, Equatable, Identifiable, SharingGroup, Sendable {
   public var info: UserGroupInfo
   public var users: [User<UserGroup>]

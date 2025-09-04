@@ -1,9 +1,11 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 
 public struct AccountTransferInfo: Hashable, Equatable, Sendable {
 
+  @Loggable
   enum Error: Swift.Error {
     case invalidData
   }

@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppAPIClient.Account {
-  public struct CreateUserWithSSO: APIRequest {
+  public struct CreateUserWithSSO: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/account/CreateUserWithSSO"
 
     public let api: AppAPIClient
@@ -34,7 +34,7 @@ extension AppAPIClient.Account {
 }
 
 extension AppAPIClient.Account.CreateUserWithSSO {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case login = "login"
       case contactEmail = "contactEmail"
@@ -55,14 +55,14 @@ extension AppAPIClient.Account.CreateUserWithSSO {
       case temporaryDevice = "temporaryDevice"
     }
 
-    public struct RemoteKeysElement: Codable, Equatable, Sendable {
+    public struct RemoteKeysElement: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case uuid = "uuid"
         case key = "key"
         case type = "type"
       }
 
-      public enum `Type`: String, Sendable, Equatable, CaseIterable, Codable {
+      public enum `Type`: String, Sendable, Hashable, Codable, CaseIterable {
         case sso = "sso"
         case undecodable
         public init(from decoder: Decoder) throws {
@@ -159,7 +159,7 @@ extension AppAPIClient.Account.CreateUserWithSSO {
 }
 
 extension AppAPIClient.Account.CreateUserWithSSO {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case origin = "origin"
       case accountReset = "accountReset"

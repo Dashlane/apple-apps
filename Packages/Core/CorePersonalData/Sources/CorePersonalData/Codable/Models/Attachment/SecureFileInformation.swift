@@ -1,6 +1,8 @@
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 
+@Loggable
 @PersonalData("SECUREFILEINFO")
 public struct SecureFileInformation {
   public var cryptoKey: String

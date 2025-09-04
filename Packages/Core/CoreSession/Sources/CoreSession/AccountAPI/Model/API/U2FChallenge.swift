@@ -1,6 +1,6 @@
 import Foundation
 
-public struct U2FChallenge: Codable, Equatable, Hashable {
+public struct U2FChallenge: Codable, Equatable, Hashable, Sendable {
 
   enum CodingKeys: String, CodingKey {
     case value = "challenge"

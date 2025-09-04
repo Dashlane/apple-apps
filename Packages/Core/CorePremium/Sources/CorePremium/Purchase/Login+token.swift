@@ -1,5 +1,5 @@
+import CoreTypes
 import CryptoKit
-import DashTypes
 import Foundation
 
 extension Login {

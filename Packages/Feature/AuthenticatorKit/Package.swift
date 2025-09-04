@@ -3,7 +3,7 @@ import PackageDescription
 let package = Package(
   name: "AuthenticatorKit",
   platforms: [
-    .iOS(.v16)
+    .iOS(.v17)
   ],
   products: [
     .library(
@@ -15,7 +15,9 @@ let package = Package(
     .package(path: "../../Core/CoreIPC"),
     .package(name: "CoreCategorizer", path: "../../Core/CoreCategorizer"),
     .package(path: "../../Foundation/TOTPGenerator"),
-    .package(path: "../../Foundation/DashTypes"),
+    .package(path: "../../Foundation/LogFoundation"),
+    .package(path: "../../Core/CoreTypes"),
+    .package(path: "../../Foundation/UserTrackingFoundation"),
     .package(path: "../../Core/CorePersonalData"),
     .package(path: "../../Core/CoreLocalization"),
     .package(path: "../../Core/CoreSync"),
@@ -27,7 +29,7 @@ let package = Package(
     .package(name: "CoreKeychain", path: "../../Core/CoreKeychain"),
     .package(name: "IconLibrary", path: "../../Core/IconLibrary"),
     .package(path: "../../Core/UIComponents"),
-    .package(url: "_", .branch("master")),
+    .package(url: "_", branch: "master"),
   ],
   targets: [
     .target(
@@ -36,7 +38,7 @@ let package = Package(
         .product(name: "SwiftTreats", package: "SwiftTreats"),
         .product(name: "CoreIPC", package: "CoreIPC"),
         .product(name: "TOTPGenerator", package: "TOTPGenerator"),
-        .product(name: "DashTypes", package: "DashTypes"),
+        .product(name: "CoreTypes", package: "CoreTypes"),
         .product(name: "CorePersonalData", package: "CorePersonalData"),
         .product(name: "CoreLocalization", package: "CoreLocalization"),
         .product(name: "CoreUserTracking", package: "CoreUserTracking"),
@@ -48,6 +50,8 @@ let package = Package(
         .product(name: "UIComponents", package: "UIComponents"),
         .product(name: "CoreSync", package: "CoreSync"),
         .product(name: "CoreNetworking", package: "CoreNetworking"),
+        .product(name: "UserTrackingFoundation", package: "UserTrackingFoundation"),
+        .product(name: "LogFoundation", package: "LogFoundation"),
       ],
       resources: [
         .process("Resources/")

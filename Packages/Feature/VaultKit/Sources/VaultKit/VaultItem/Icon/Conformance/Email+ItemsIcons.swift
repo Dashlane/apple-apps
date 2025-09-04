@@ -8,10 +8,6 @@ extension Email {
     .email
   }
 
-  public var listIcon: VaultItemIcon {
-    .email
-  }
-
   public static var addIcon: SwiftUI.Image {
     .ds.item.email.outlined
   }

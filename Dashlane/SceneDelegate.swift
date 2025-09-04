@@ -15,16 +15,18 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
     if let windowScene = scene as? UIWindowScene {
       windowScene.hideTitleFromTitleBarIfNeeded()
-      let crashReporterService = CrashReporterService(target: .app)
+      let crashReporter = SentryCrashReporter(target: .app)
       let window = UIWindow(windowScene: windowScene)
       self.window = window
-      let appCoordinator = AppCoordinator(
-        window: window,
-        crashReporterService: crashReporterService,
-        appLaunchTimeStamp: appLaunchTimeStamp)
-      coordinator = appCoordinator
-      appCoordinator.start()
-      self.handleExternalLaunches(for: scene, options: connectionOptions)
+      Task {
+        let appCoordinator = await AppCoordinator(
+          window: window,
+          crashReporter: crashReporter,
+          appLaunchTimeStamp: appLaunchTimeStamp)
+        coordinator = appCoordinator
+        appCoordinator.start()
+        self.handleExternalLaunches(for: scene, options: connectionOptions)
+      }
     } else {
       fatalError()
     }

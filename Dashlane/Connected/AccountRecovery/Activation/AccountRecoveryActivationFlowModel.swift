@@ -1,7 +1,7 @@
 import CoreSession
-import CoreUserTracking
 import Foundation
 import LoginKit
+import UserTrackingFoundation
 
 @MainActor
 class AccountRecoveryActivationFlowModel: ObservableObject, SessionServicesInjecting {

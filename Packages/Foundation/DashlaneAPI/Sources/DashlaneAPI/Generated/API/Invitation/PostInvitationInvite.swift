@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppAPIClient.Invitation {
-  public struct Invite: APIRequest {
+  public struct Invite: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/invitation/Invite"
 
     public let api: AppAPIClient
@@ -28,7 +28,7 @@ extension AppAPIClient.Invitation {
 }
 
 extension AppAPIClient.Invitation.Invite {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case userKey = "userKey"
       case identifiers = "identifiers"

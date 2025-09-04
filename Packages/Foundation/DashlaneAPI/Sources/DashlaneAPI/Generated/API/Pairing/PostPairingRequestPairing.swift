@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Pairing {
-  public struct RequestPairing: APIRequest {
+  public struct RequestPairing: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/pairing/RequestPairing"
 
     public let api: UserDeviceAPIClient
@@ -24,7 +24,7 @@ extension UserDeviceAPIClient.Pairing {
 }
 
 extension UserDeviceAPIClient.Pairing.RequestPairing {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case pairingId = "pairingId"
     }
@@ -43,7 +43,7 @@ extension UserDeviceAPIClient.Pairing.RequestPairing {
 }
 
 extension UserDeviceAPIClient.Pairing.RequestPairing {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case pairingId = "pairingId"
     }

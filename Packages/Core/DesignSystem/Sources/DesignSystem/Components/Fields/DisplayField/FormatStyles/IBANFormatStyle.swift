@@ -8,6 +8,10 @@ struct IBANFormatStyle: AccessibleObfuscatedFormatStyle {
     let chunks = chunks(for: value)
 
     if obfuscated {
+      guard chunks.count > 1 else {
+        return String(repeating: "•", count: value.count)
+      }
+
       let obfuscatedPart = chunks.dropLast()
         .map { String(repeating: "•", count: $0.count) }
         .joined(separator: " ")
@@ -27,7 +31,7 @@ struct IBANFormatStyle: AccessibleObfuscatedFormatStyle {
   func accessibilityText(for value: String) -> String {
     if obfuscated {
       let suffix = chunks(for: value).last ?? ""
-      return L10n.Core.accessibilityGenericNumberEndingWidth(value.count, suffix)
+      return CoreL10n.accessibilityGenericNumberEndingWidth(value.count, suffix)
     }
     return value
   }

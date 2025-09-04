@@ -1,4 +1,5 @@
 import CoreLocalization
+import DesignSystem
 import Foundation
 import SwiftUI
 import UIComponents
@@ -8,16 +9,20 @@ struct PurchaseEmptyView: View {
   let cancel: () -> Void
 
   var body: some View {
-    VStack(alignment: .leading, spacing: 20) {
-      Image(asset: Asset.errorState)
-        .foregroundColor(.ds.text.neutral.catchy)
+    VStack(alignment: .leading, spacing: 30) {
+      DS.ExpressiveIcon(.ds.feedback.fail.outlined)
+        .controlSize(.large)
+        .style(mood: .neutral, intensity: .quiet)
         .scaleEffect(1.4)
         .fiberAccessibilityHidden(true)
-      Text(L10n.Core.plansEmptystateTitle)
-        .font(DashlaneFont.custom(24, .bold).font)
-      Text(L10n.Core.plansEmptystateSubtitle)
-        .font(DashlaneFont.custom(16, .regular).font)
+      VStack(alignment: .leading, spacing: 10) {
+        Text(CoreL10n.plansEmptystateTitle)
+          .textStyle(.title.section.large)
+        Text(CoreL10n.plansEmptystateSubtitle)
+          .textStyle(.body.standard.regular)
+      }
     }
+    .multilineTextAlignment(.leading)
     .padding(.horizontal, 24)
     .frame(maxHeight: .infinity, alignment: .center)
     .toolbar {
@@ -28,7 +33,7 @@ struct PurchaseEmptyView: View {
   }
 
   private var leadingButton: some View {
-    NavigationBarButton(L10n.Core.cancel) {
+    Button(CoreL10n.cancel) {
       self.cancel()
     }
 

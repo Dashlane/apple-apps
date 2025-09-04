@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppAPIClient.Authentication {
-  public struct PerformTotpVerification: APIRequest {
+  public struct PerformTotpVerification: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/authentication/PerformTotpVerification"
 
     public let api: AppAPIClient
@@ -25,7 +25,7 @@ extension AppAPIClient.Authentication {
 }
 
 extension AppAPIClient.Authentication.PerformTotpVerification {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case login = "login"
       case otp = "otp"

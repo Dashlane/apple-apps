@@ -1,4 +1,4 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 import SwiftTreats
@@ -106,7 +106,6 @@ extension SharingClientAPIImpl {
     withId groupId: Identifier,
     @NilIfEmpty users: [UserUpdate]?,
     @NilIfEmpty userGroups: [UserGroupUpdate]?,
-    userAuditLogDetails: AuditLogDetails?,
     revision: SharingRevision
   ) async throws -> ParsedServerResponse {
     try await catchInvalid(forId: groupId) {
@@ -282,7 +281,6 @@ extension SharingClientAPIImpl {
     withId collectionId: Identifier,
     @NilIfEmpty userIds: [UserId]?,
     @NilIfEmpty userGroupIds: [Identifier]?,
-    userAuditLogDetails: AuditLogDetails?,
     revision: SharingRevision
   ) async throws -> ParsedServerResponse {
     try await catchInvalid(forId: collectionId) {

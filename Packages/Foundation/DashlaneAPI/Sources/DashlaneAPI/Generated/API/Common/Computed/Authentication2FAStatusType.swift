@@ -1,6 +1,6 @@
 import Foundation
 
-public enum Authentication2FAStatusType: String, Sendable, Equatable, CaseIterable, Codable {
+public enum Authentication2FAStatusType: String, Sendable, Hashable, Codable, CaseIterable {
   case emailToken = "email_token"
   case totpDeviceRegistration = "totp_device_registration"
   case totpLogin = "totp_login"

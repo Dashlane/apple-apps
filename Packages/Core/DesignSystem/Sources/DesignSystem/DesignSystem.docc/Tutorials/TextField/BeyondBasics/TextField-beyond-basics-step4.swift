@@ -35,10 +35,10 @@ struct MyView: View {
         "Website",
         text: $website
       )
-      .textColorHighlightingMode(.url)
+      .textFieldColorHighlightingMode(.url)
       .textInputDisableLabelPersistency()
     }
-    .fieldAppearance(.grouped)
+    .listStyle(.ds.insetGrouped)
     .style(isFirstNameInvalid ? .error : nil)
   }
 }

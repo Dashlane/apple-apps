@@ -1,6 +1,6 @@
 import Foundation
 
-public enum AuthenticationMigration: String, Sendable, Equatable, CaseIterable, Codable {
+public enum AuthenticationMigration: String, Sendable, Hashable, Codable, CaseIterable {
   case ssoMemberToAdmin = "sso_member_to_admin"
   case mpUserToSSOMember = "mp_user_to_sso_member"
   case ssoMemberToMpUser = "sso_member_to_mp_user"

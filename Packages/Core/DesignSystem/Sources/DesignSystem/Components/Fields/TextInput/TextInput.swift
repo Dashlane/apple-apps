@@ -5,9 +5,13 @@ struct TextInput<InputView: View, ActionsContent: View, FeedbackAccessory: View>
   public typealias Action = FieldAction
 
   @Environment(\.style) private var style
-  @Environment(\.fieldAppearance) private var appearance
-  @Environment(\.fieldLabelPersistencyDisabled) private var isLabelPersistencyDisabled
+  @Environment(\.container) private var container
+  @Environment(\.fieldLabelHiddenOnFocus) private var isLabelPersistencyDisabled
   @Environment(\.dynamicTypeSize) private var dynamicTypeSize
+  @Environment(\.fieldRequired) private var isRequired
+  @Environment(\.fieldEditionDisabled) private var editionDisabled
+
+  @FocusState var isFocused: Bool
 
   private let label: String
   private let placeholder: String?
@@ -16,8 +20,9 @@ struct TextInput<InputView: View, ActionsContent: View, FeedbackAccessory: View>
   private let actionsContent: ActionsContent
   private let feedbackAccessory: FeedbackAccessory
 
-  private var standaloneHorizontalPadding = 16.0
+  private var standaloneHorizontalPadding = 20.0
   private var groupedVerticalPadding = 8.0
+  @ScaledMetric private var contentHeight: CGFloat = 34
 
   init(
     _ label: String,
@@ -37,61 +42,51 @@ struct TextInput<InputView: View, ActionsContent: View, FeedbackAccessory: View>
 
   var body: some View {
     VStack(alignment: .leading, spacing: 0) {
-      TextInputContainer(
-        label,
-        placeholder: placeholder,
-        text: text,
-        inputView: {
-          inputView
-            .accessibilityElement(children: .contain)
-        },
-        actionsContent: { actionsContent }
-      )
+      DetailFieldContainer(label) {
+        inputView
+          .frame(maxWidth: .infinity, minHeight: contentHeight, alignment: .leading)
+          .contentShape(Rectangle())
+          .focused($isFocused)
+          .onTapGesture {
+            isFocused = true
+          }
+          .allowsHitTesting(!editionDisabled || isFocused)
+      } actions: {
+        actionsContent
+      }
+      .padding(effectiveInputAreaContainerPaddings)
+      .focused($isFocused)
+      .environment(\.displayLabelAsOverlay, !isFocused && text.isEmpty)
+      .environment(\.isFieldEditing, isFocused)
+      .background(TextInputBackground(isFocused: isFocused))
+
       TextInputFeedbackContainer {
         feedbackAccessory
-          .padding(.horizontal, effectiveHorizontalContentPadding)
+          .padding(.horizontal, effectiveInputAreaContainerPaddings.leading)
       }
     }
-    .listRowInsets(effectiveListRowInsets)
-    .tint(.tintColor(for: style.mood))
-    .transformEnvironment(\.style) { style in
-      style = Style(mood: style.mood, intensity: .quiet, priority: style.priority)
-    }
-    .transformEnvironment(\.dynamicTypeSize) { typeSize in
-      guard dynamicTypeSize > .accessibility2 else { return }
-      typeSize = .accessibility2
+    .listRowInsets(EdgeInsets.field(isLabelVisible: !isLabelPersistencyDisabled))
+  }
+
+  private var isGrouped: Bool {
+    if case .list(.insetGrouped) = container {
+      true
+    } else {
+      false
     }
   }
 
-  private var effectiveHorizontalContentPadding: Double {
-    guard case .standalone = appearance else { return 0 }
-    return standaloneHorizontalPadding
-  }
+  private var effectiveInputAreaContainerPaddings: EdgeInsets {
+    let leading: Double = isGrouped ? 0 : 16
 
-  private var effectiveListRowInsets: EdgeInsets? {
-    guard appearance == .grouped else { return nil }
+    let vertical: Double = isGrouped ? 0 : 4
 
     return EdgeInsets(
-      top: isLabelPersistencyDisabled ? 0 : groupedVerticalPadding,
-      leading: 20,
-      bottom: isLabelPersistencyDisabled ? 0 : groupedVerticalPadding,
-      trailing: 20
+      top: vertical,
+      leading: leading,
+      bottom: vertical,
+      trailing: 0
     )
-  }
-
-  private var hasActions: Bool {
-    ActionsContent.self != EmptyView.self
-  }
-}
-
-extension Color {
-
-  fileprivate static func tintColor(for mood: Mood) -> Color {
-    if mood == .danger {
-      return .ds.text.danger.standard
-    } else {
-      return .ds.text.brand.standard
-    }
   }
 }
 
@@ -99,11 +94,11 @@ extension Color {
   TextFieldPreview()
     .padding()
     .ignoresSafeArea([.keyboard], edges: .bottom)
-    .backgroundColorIgnoringSafeArea(.ds.background.alternate)
+    .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
 }
 
 #Preview("Grouped") {
   GroupedTextFieldPreview()
     .ignoresSafeArea([.keyboard], edges: .bottom)
-    .backgroundColorIgnoringSafeArea(.ds.background.alternate)
+    .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
 }

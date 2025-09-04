@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppAPIClient.Authentication {
-  public struct PerformDuoPushVerification: APIRequest {
+  public struct PerformDuoPushVerification: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/authentication/PerformDuoPushVerification"
 
     public let api: AppAPIClient

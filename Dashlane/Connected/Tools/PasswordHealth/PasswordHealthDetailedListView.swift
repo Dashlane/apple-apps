@@ -20,8 +20,8 @@ struct PasswordHealthDetailedListView: View {
   var body: some View {
     VStack(alignment: .leading) {
       Text(headline)
-        .font(DashlaneFont.custom(24, .medium).font)
-        .foregroundColor(.ds.text.neutral.catchy)
+        .textStyle(.title.section.medium)
+        .foregroundStyle(Color.ds.text.neutral.catchy)
         .multilineTextAlignment(.leading)
         .padding(.top, 16)
         .padding(.horizontal, 16)
@@ -33,7 +33,7 @@ struct PasswordHealthDetailedListView: View {
       }
     }
     .reportPageAppearance(viewModel.kind.pageEvent)
-    .backgroundColorIgnoringSafeArea(.ds.background.alternate)
+    .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
     .navigationTitle(navigationTitle)
     .navigationBarTitleDisplayMode(.inline)
   }

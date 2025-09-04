@@ -1,6 +1,7 @@
 import Combine
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 
 @propertyWrapper
 public struct FetchedPersonalData<T: PersonalDataCodable> {

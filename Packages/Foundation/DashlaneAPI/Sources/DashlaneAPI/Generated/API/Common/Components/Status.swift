@@ -1,6 +1,6 @@
 import Foundation
 
-public enum Status: String, Sendable, Equatable, CaseIterable, Codable {
+public enum Status: String, Sendable, Hashable, Codable, CaseIterable {
   case pending = "pending"
   case accepted = "accepted"
   case refused = "refused"

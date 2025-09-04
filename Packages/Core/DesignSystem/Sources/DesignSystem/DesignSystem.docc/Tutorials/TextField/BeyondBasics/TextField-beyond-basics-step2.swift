@@ -30,7 +30,7 @@ struct MyView: View {
         isFirstNameInvalid = true
       }
     }
-    .fieldAppearance(.grouped)
+    .listStyle(.ds.insetGrouped)
     .style(isFirstNameInvalid ? .error : nil)
   }
 }

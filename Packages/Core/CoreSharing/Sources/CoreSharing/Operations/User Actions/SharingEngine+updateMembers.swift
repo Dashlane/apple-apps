@@ -1,4 +1,4 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 
@@ -27,8 +27,7 @@ extension SharingEngine {
   public func revoke(
     in collection: CollectionInfo,
     users: [User<SharingCollection>]?,
-    userGroupMembers: [UserGroupMember<SharingCollection>]?,
-    userAuditLogDetails: AuditLogDetails?
+    userGroupMembers: [UserGroupMember<SharingCollection>]?
   ) async throws {
     try await execute { updateRequest in
       guard let collection = try operationDatabase.fetchCollection(withId: collection.id),
@@ -41,7 +40,6 @@ extension SharingEngine {
         withId: collection.id,
         userIds: users?.map(\.id),
         userGroupIds: userGroupMembers?.map(\.id),
-        userAuditLogDetails: userAuditLogDetails,
         revision: collection.info.revision
       )
     }
@@ -50,8 +48,7 @@ extension SharingEngine {
 
 extension SharingEngine {
   public func updatePermission(
-    _ permission: SharingPermission, of user: User<ItemGroup>, in group: ItemGroupInfo,
-    userAuditLogDetails: AuditLogDetails?
+    _ permission: SharingPermission, of user: User<ItemGroup>, in group: ItemGroupInfo
   ) async throws {
     try await execute { updateRequest in
       guard let group = try operationDatabase.fetchItemGroup(withId: group.id) else {
@@ -63,18 +60,18 @@ extension SharingEngine {
         groupKey: nil,
         permission: .init(permission),
         proposeSignature: nil)
+
       updateRequest += try await sharingClientAPI.updateOnItemGroup(
         withId: group.id,
         users: [update],
         userGroups: nil,
-        userAuditLogDetails: userAuditLogDetails,
         revision: group.info.revision)
     }
   }
 
   public func updatePermission(
     _ permission: SharingPermission, of userGroupMember: UserGroupMember<ItemGroup>,
-    in group: ItemGroupInfo, userAuditLogDetails: AuditLogDetails?
+    in group: ItemGroupInfo
   ) async throws {
     try await execute { updateRequest in
       guard let group = try operationDatabase.fetchItemGroup(withId: group.id) else {
@@ -83,11 +80,11 @@ extension SharingEngine {
 
       let update = UserGroupUpdate(
         groupId: userGroupMember.id.rawValue, permission: .init(permission))
+
       updateRequest += try await sharingClientAPI.updateOnItemGroup(
         withId: group.id,
         users: nil,
         userGroups: [update],
-        userAuditLogDetails: userAuditLogDetails,
         revision: group.info.revision)
     }
 

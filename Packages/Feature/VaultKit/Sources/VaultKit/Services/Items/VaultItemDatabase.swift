@@ -1,20 +1,22 @@
 import Combine
-import CoreActivityLogs
 import CoreFeature
 import CorePersonalData
 import CorePremium
-import CoreUserTracking
-import DashTypes
+import CoreTeamAuditLogs
+import CoreTypes
+import DashlaneAPI
 import Foundation
+import LogFoundation
+import UserTrackingFoundation
 
-public struct VaultItemDatabase: VaultKitServicesInjecting, VaultItemDatabaseProtocol {
-
+public struct VaultItemDatabase: VaultItemDatabaseProtocol {
   private let logger: Logger
   private let database: ApplicationDatabase
   private let sharingService: SharedVaultHandling
   private let userSpacesService: UserSpacesService
   private let featureService: FeatureServiceProtocol
-  private let activityLogsService: ActivityLogsServiceProtocol
+  private let teamAuditLogsService: TeamAuditLogsServiceProtocol
+  private let cloudPasskeyService: UserSecureNitroEncryptionAPIClient.Passkeys
 
   private let updateLastUseQueue = DispatchQueue(
     label: "updateLastLocalUseDateQueue", qos: .background)
@@ -25,14 +27,16 @@ public struct VaultItemDatabase: VaultKitServicesInjecting, VaultItemDatabasePro
     sharingService: SharedVaultHandling,
     featureService: FeatureServiceProtocol,
     userSpacesService: UserSpacesService,
-    activityLogsService: ActivityLogsServiceProtocol
+    teamAuditLogsService: TeamAuditLogsServiceProtocol,
+    cloudPasskeyService: UserSecureNitroEncryptionAPIClient.Passkeys
   ) {
     self.logger = logger
     self.database = database
     self.sharingService = sharingService
     self.featureService = featureService
     self.userSpacesService = userSpacesService
-    self.activityLogsService = activityLogsService
+    self.teamAuditLogsService = teamAuditLogsService
+    self.cloudPasskeyService = cloudPasskeyService
   }
 
   public func itemsPublisher<Output: VaultItem>(for output: Output.Type) -> AnyPublisher<
@@ -75,13 +79,13 @@ public struct VaultItemDatabase: VaultKitServicesInjecting, VaultItemDatabasePro
 
   @discardableResult
   public func save<Item: VaultItem>(_ item: Item) throws -> Item {
-    activityLogsService.logSave(item)
+    teamAuditLogsService.logSave(item)
     return try database.save(item)
   }
 
   @discardableResult
   public func save<Item: VaultItem>(_ items: [Item]) throws -> [Item] {
-    activityLogsService.logSave(items)
+    teamAuditLogsService.logSave(items)
     return try database.save(items)
   }
 
@@ -92,19 +96,23 @@ public struct VaultItemDatabase: VaultKitServicesInjecting, VaultItemDatabasePro
   }
 
   public func delete(_ vaultItem: VaultItem) async throws {
-    if vaultItem.isShared {
-      try await sharingService.refuseAndDelete(vaultItem)
-    } else {
-      try? database.delete(vaultItem)
-      let collections = (try? database.fetchAll(PrivateCollection.self)) ?? []
-      let updatedCollecitons = collections.filter(by: vaultItem).map { collection in
-        var collectionCopy = collection
-        collectionCopy.remove(vaultItem)
-        return collectionCopy
+    do {
+      if vaultItem.isShared {
+        try await sharingService.refuseAndDelete(vaultItem)
+      } else {
+        if case let VaultItemEnumeration.passkey(passkey) = vaultItem.enumerated {
+          try await cloudPasskeyService.deletePasskeyIfNeeded(passkey, logger: logger)
+        }
+
+        try database.delete(vaultItem)
+        try? database.removeFromCollectionsIfNeeded(vaultItem)
       }
-      _ = try? database.save(updatedCollecitons)
+
+      teamAuditLogsService.logDelete(vaultItem)
+    } catch {
+      logger.error("Can't delete vault item", error: error)
+      throw error
     }
-    activityLogsService.logDelete(vaultItem)
   }
 
   public func count<Item: PersonalDataCodable>(for type: Item.Type) throws -> Int {
@@ -154,5 +162,39 @@ extension UserSpacesService.SpacesConfiguration {
     var updatedItem = item
     updatedItem.spaceId = spaceId
     return updatedItem
+  }
+}
+
+extension ApplicationDatabase {
+  fileprivate func removeFromCollectionsIfNeeded(_ item: VaultItem) throws {
+    let collections = try fetchAll(PrivateCollection.self)
+    let updatedCollections = collections.filter(by: item).map { collection in
+      var collectionCopy = collection
+      collectionCopy.remove(item)
+      return collectionCopy
+    }
+
+    try save(updatedCollections)
+  }
+}
+
+extension UserSecureNitroEncryptionAPIClient.Passkeys {
+  private func deletePasskey(_ passkey: Passkey.CloudPasskey, logger: Logger) async throws {
+    do {
+      try await deletePasskey(passkeyId: passkey.passkeyId, encryptionKey: passkey.encryptionKey)
+    } catch let error as NitroEncryptionError where error.hasPasskeysCode(.passkeyNotFound) {
+    } catch let error as NitroEncryptionError {
+      logger.fatal("Can't delete cloud passkey \(passkey.passkeyId)", error: error)
+      throw error
+    }
+  }
+
+  fileprivate func deletePasskeyIfNeeded(_ passkey: Passkey, logger: Logger) async throws {
+    guard let mode = try? passkey.mode,
+      case let Passkey.Mode.cloud(cloudPasskey) = mode
+    else {
+      return
+    }
+    try await deletePasskey(cloudPasskey, logger: logger)
   }
 }

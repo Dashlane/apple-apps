@@ -33,6 +33,6 @@ public struct NotesDetailField: DetailField {
       text: $text
     )
     .focused($isEditing)
-    .editionDisabled(!detailMode.isEditing, appearance: .discrete)
+    .fieldEditionDisabled(!detailMode.isEditing, appearance: .discrete)
   }
 }

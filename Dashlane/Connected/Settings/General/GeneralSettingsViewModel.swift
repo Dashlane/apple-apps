@@ -3,14 +3,15 @@ import CorePersonalData
 import CorePremium
 import CoreSession
 import CoreSettings
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import DomainParser
 import Foundation
+import IconLibrary
 import ImportKit
 import SwiftUI
 import UniformTypeIdentifiers
+import UserTrackingFoundation
 import VaultKit
 
 @MainActor
@@ -47,7 +48,8 @@ final class GeneralSettingsViewModel: ObservableObject, SessionServicesInjecting
 
   private var subscriptions = Set<AnyCancellable>()
 
-  let secureArchiveSectionContentViewModelFactory: SecureArchiveSectionContentViewModel.Factory
+  let exportCSVSettingsSectionModelFactory: ExportCSVSettingsSectionModel.Factory
+  let secureArchiveSectionViewModelFactory: SecureArchiveSectionViewModel.Factory
   let duplicateItemsViewModelFactory: DuplicateItemsViewModel.Factory
 
   init(
@@ -56,7 +58,8 @@ final class GeneralSettingsViewModel: ObservableObject, SessionServicesInjecting
     iconService: IconServiceProtocol,
     activityReporter: ActivityReporterProtocol,
     userSettings: UserSettings,
-    secureArchiveSectionContentViewModelFactory: SecureArchiveSectionContentViewModel.Factory,
+    exportCSVSettingsSectionModelFactory: ExportCSVSettingsSectionModel.Factory,
+    secureArchiveSectionViewModelFactory: SecureArchiveSectionViewModel.Factory,
     dashImportFlowViewModelFactory: DashImportFlowViewModel.SecondFactory,
     duplicateItemsViewModelFactory: DuplicateItemsViewModel.Factory
   ) {
@@ -69,7 +72,8 @@ final class GeneralSettingsViewModel: ObservableObject, SessionServicesInjecting
     self.showImportPasswordView = false
     self.databaseDriver = databaseDriver
     self.activityReporter = activityReporter
-    self.secureArchiveSectionContentViewModelFactory = secureArchiveSectionContentViewModelFactory
+    self.exportCSVSettingsSectionModelFactory = exportCSVSettingsSectionModelFactory
+    self.secureArchiveSectionViewModelFactory = secureArchiveSectionViewModelFactory
     self.duplicateItemsViewModelFactory = duplicateItemsViewModelFactory
 
     let expirationDelay: TimeInterval? = userSettings[.clipboardExpirationDelay]
@@ -123,7 +127,8 @@ extension GeneralSettingsViewModel {
       iconService: IconServiceMock(),
       activityReporter: .mock,
       userSettings: UserSettings(internalStore: .mock()),
-      secureArchiveSectionContentViewModelFactory: .init({ .mock(status: status) }),
+      exportCSVSettingsSectionModelFactory: .init({ .mock(status: status) }),
+      secureArchiveSectionViewModelFactory: .init({ .mock(status: status) }),
       dashImportFlowViewModelFactory: .init({ _, _, _ in .mock() }),
       duplicateItemsViewModelFactory: .init({ .mock() }))
   }

@@ -1,11 +1,13 @@
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 
+@Loggable
 public struct ItemValidationError: Error {
   public let invalidProperty: AnyKeyPath
 }
 
-public protocol PersonalDataCodable: Codable {
+public protocol PersonalDataCodable: Codable, Loggable {
   static var contentType: PersonalDataContentType { get }
 
   static var xmlRuleExceptions: [String: XMLRuleException] { get }

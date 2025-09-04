@@ -45,7 +45,7 @@ private struct UserThumbnailContentView: View {
 #Preview("User") {
   HStack {
     Thumbnail.User.single(nil)
-      .controlSize(.mini)
+      .controlSize(.small)
     Thumbnail.User.single(nil)
       .controlSize(.regular)
     Thumbnail.User.single(nil)
@@ -56,7 +56,7 @@ private struct UserThumbnailContentView: View {
 #Preview("Group") {
   HStack {
     Thumbnail.User.group
-      .controlSize(.mini)
+      .controlSize(.small)
     Thumbnail.User.group
       .controlSize(.regular)
     Thumbnail.User.group

@@ -1,8 +1,8 @@
-import Combine
-import DashTypes
+@preconcurrency import Combine
+import CoreTypes
 import Foundation
 
-public struct KeyedSettings<Key: LocalSettingsKey> {
+public struct KeyedSettings<Key: LocalSettingsKey>: Sendable {
   public let internalStore: LocalSettingsStore
   public let settingsChangePublisher = PassthroughSubject<Key, Never>()
   public let prefix: String?

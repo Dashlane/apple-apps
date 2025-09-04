@@ -2,7 +2,7 @@ import Combine
 import CorePersonalData
 import CorePremium
 import CoreSharing
-import DashTypes
+import CoreTypes
 import Foundation
 import UIComponents
 
@@ -24,7 +24,7 @@ extension DetailViewModelProtocol {
   }
 
   public var canShowLock: Bool {
-    item is SecureItem && service.canLock
+    item is SecureItem
   }
 
   public var originalItem: Item {
@@ -123,6 +123,7 @@ extension DetailViewModelProtocol {
 
   public func sendUsageLog(fieldType: DetailFieldType) {
     service.sendViewUsageLog(for: fieldType)
+    service.sendRevealAuditLog(for: fieldType)
   }
 
   public func copy(_ value: String, fieldType: DetailFieldType) {

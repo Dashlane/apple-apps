@@ -1,6 +1,6 @@
 import Foundation
 
-public struct AuthenticationMethodsChallenges: Codable, Equatable, Sendable {
+public struct AuthenticationMethodsChallenges: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case challenge = "challenge"
     case version = "version"

@@ -1,6 +1,7 @@
+import CoreTypes
 import CryptoKit
-import DashTypes
 import Foundation
+import LogFoundation
 
 public struct SecureEnclaveKeys {
   let privateKey: SecKey
@@ -12,6 +13,7 @@ public enum SecureEnclaveKeysStatus {
   case available(SecureEnclaveKeys)
 }
 
+@Loggable
 enum SecureEnclaveError: Error {
   case keysFetchingError(status: OSStatus)
   case keysPrivateKeyCreationError

@@ -5,7 +5,7 @@ import CorePersonalData
 import CorePremium
 import CoreSession
 import CoreSettings
-import DashTypes
+import CoreTypes
 import Foundation
 import SwiftTreats
 import VaultKit
@@ -15,16 +15,13 @@ class OnboardingService {
   private let loadingContext: SessionLoadingContext
   private let syncedSettings: SyncedSettingsService
   private let abTestService: ABTestingServiceProtocol
-  private let guidedOnboardingSettingsProvider: GuidedOnboardingSettingsProvider
   private let lockService: LockServiceProtocol
   private let userSpacesService: UserSpacesService
   private let featureService: FeatureServiceProtocol
   private let accountType: AccountType
-  let autofillService: AutofillService
+  let autofillService: AutofillStateServiceProtocol
   let vaultItemsStore: VaultItemsStore
   let userSettings: UserSettings
-  let dwmOnboardingService: DWMOnboardingService
-  let dwmOnboardingSettings: DWMOnboardingSettings
   var cancellables = Set<AnyCancellable>()
 
   private var isBiometricAuthenticationActivated: Bool {
@@ -55,15 +52,6 @@ class OnboardingService {
   @Published
   var hasFinishedM2WAtLeastOnce: Bool = false
 
-  @Published
-  var hasSeenDWMExperience: Bool = false
-
-  @Published
-  var hasConfirmedEmailFromOnboardingChecklist: Bool = false
-
-  @Published
-  var dwmOnboardingProgress: DWMOnboardingProgress?
-
   var allDone: Bool {
     guard !actions.isEmpty else { return false }
     return !actions.contains { completionState(for: $0) == .todo }
@@ -77,24 +65,18 @@ class OnboardingService {
     accountType: AccountType,
     userSettings: UserSettings,
     vaultItemsStore: VaultItemsStore,
-    dwmOnboardingSettings: DWMOnboardingSettings,
-    dwmOnboardingService: DWMOnboardingService,
     syncedSettings: SyncedSettingsService,
     abTestService: ABTestingServiceProtocol,
     lockService: LockServiceProtocol,
     userSpacesService: UserSpacesService,
     featureService: FeatureServiceProtocol,
-    autofillService: AutofillService
+    autofillService: AutofillStateServiceProtocol
   ) {
     self.session = session
     self.loadingContext = loadingContext
     self.syncedSettings = syncedSettings
     self.userSettings = userSettings
-    self.dwmOnboardingSettings = dwmOnboardingSettings
-    self.dwmOnboardingService = dwmOnboardingService
     self.abTestService = abTestService
-    self.guidedOnboardingSettingsProvider = GuidedOnboardingSettingsProvider(
-      userSettings: userSettings)
     self.lockService = lockService
     self.userSpacesService = userSpacesService
     self.vaultItemsStore = vaultItemsStore
@@ -109,7 +91,7 @@ class OnboardingService {
 
   func setupChecklist() {
     var checklistActions: [OnboardingChecklistAction] = []
-    checklistActions.append(checklistFirstAction())
+    checklistActions.append(.addFirstPasswordsManually)
 
     checklistActions.append(.activateAutofill)
 
@@ -121,34 +103,6 @@ class OnboardingService {
     self.remainingActions = actions.filter { completionState(for: $0) == .todo }
   }
 
-  private func checklistFirstAction() -> OnboardingChecklistAction {
-    if hasConfirmedEmailFromOnboardingChecklist && dwmOnboardingProgress == .breachesNotFound {
-      return .seeScanResult
-    }
-
-    if dwmOnboardingService.canShowDWMOnboarding
-      && (dwmOnboardingProgress == .emailRegistrationRequestSent
-        || dwmOnboardingProgress == .emailConfirmed || dwmOnboardingProgress == .breachesFound)
-    {
-      return .fixBreachedAccounts
-    }
-
-    let settingsProvider = GuidedOnboardingSettingsProvider(userSettings: userSettings)
-
-    if let selectedAnswer = settingsProvider.storedAnswers[.howPasswordsHandled] {
-      switch selectedAnswer {
-      case .memorizePasswords, .somethingElse:
-        return .addFirstPasswordsManually
-      case .browser:
-        return .importFromBrowser
-      default:
-        assertionFailure("Unacceptable answer")
-      }
-    }
-
-    return .addFirstPasswordsManually
-  }
-
   var shouldShowOnboardingChecklist: Bool {
     let hasUserDismissedOnboardingChecklist =
       self.userSettings[.hasUserDismissedOnboardingChecklist] ?? false
@@ -156,12 +110,12 @@ class OnboardingService {
       self.userSettings[.hasUserUnlockedOnboardingChecklist] ?? false
 
     return !hasUserDismissedOnboardingChecklist && hasUserUnlockedOnboardingChecklist
-      && !Device.isMac
+      && !Device.is(.mac)
   }
 
   var shouldShowAutofillDemo: Bool {
     let hasUserSeenAutoFillDemo = self.userSettings[.hasSeenAutofillDemo] ?? false
-    return !hasUserSeenAutoFillDemo && isNewUser() && !Device.isMac
+    return !hasUserSeenAutoFillDemo && isNewUser() && !Device.is(.mac)
   }
 
   func hasSeenAutofillDemo(_ value: Bool = true) {
@@ -170,18 +124,6 @@ class OnboardingService {
 
   var hasCreatedAtLeastOneItem: Bool {
     self.userSettings[.hasCreatedAtLeastOneItem] ?? false
-  }
-
-  var shouldShowAccountCreationOnboarding: Bool {
-    guard shouldShowOnboardingChecklist else {
-      return false
-    }
-
-    guard case .accountCreation = loadingContext else {
-      return false
-    }
-
-    return hasSeenGuidedOnboarding == false && hasSkippedGuidedOnboarding == false
   }
 
   var shouldShowFastLocalSetupForFirstLogin: Bool {
@@ -225,15 +167,6 @@ class OnboardingService {
     return numberOfDaysSinceAccountCreation < 7
   }
 
-  private var hasSeenGuidedOnboarding: Bool {
-    let data: [GuidedOnboardingSettingsData]? = userSettings[.guidedOnboardingData]
-    return data != nil
-  }
-
-  private var hasSkippedGuidedOnboarding: Bool {
-    return userSettings[.hasSkippedGuidedOnboarding] ?? false
-  }
-
   private func unlockOnboardingIfRequired() {
     guard (userSettings[.hasUserUnlockedOnboardingChecklist] ?? false) == false else {
       return
@@ -249,18 +182,16 @@ extension OnboardingService {
   static var mock: OnboardingService {
     .init(
       session: .mock,
-      loadingContext: SessionLoadingContext.localLogin(),
+      loadingContext: SessionLoadingContext.localLogin(.regular(reportedLoginMode: .biometric)),
       accountType: .masterPassword,
       userSettings: UserSettings.mock,
       vaultItemsStore: MockVaultKitServicesContainer().vaultItemsStore,
-      dwmOnboardingSettings: DWMOnboardingSettings(internalStore: .mock()),
-      dwmOnboardingService: DWMOnboardingService.mock,
       syncedSettings: SyncedSettingsService.mock,
       abTestService: ABTestingServiceMock.mock,
       lockService: LockServiceMock(),
       userSpacesService: UserSpacesService.mock(),
       featureService: .mock(),
-      autofillService: .fakeService
+      autofillService: AutofillStateService.fakeService
     )
   }
 }

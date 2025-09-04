@@ -2,14 +2,14 @@ import Combine
 import CoreFeature
 import CorePersonalData
 import CorePremium
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import Foundation
 import NotificationKit
 import SwiftTreats
 import SwiftUI
 import UIDelight
 import UIKit
+import UserTrackingFoundation
 import VaultKit
 
 @MainActor
@@ -52,9 +52,6 @@ final class VaultFlowViewModel: ObservableObject, SessionServicesInjecting, Auto
   var steps: [Step] = []
 
   @Published
-  var navigationBarStyle: UIDelight.NavigationBarStyle = .default
-
-  @Published
   var showAddItemFlow: Bool = false
 
   @Published
@@ -71,16 +68,6 @@ final class VaultFlowViewModel: ObservableObject, SessionServicesInjecting, Auto
 
   @Published
   var vaultState: VaultState = .default
-
-  lazy var viewController: UIViewController = {
-    UIHostingController(
-      rootView: NavigationView {
-        VaultFlow(viewModel: self)
-      }
-      .navigationViewStyle(.stack)
-      .navigationBarHidden(true)
-    )
-  }()
 
   private(set) var mode: Mode!
 
@@ -227,7 +214,7 @@ extension VaultFlowViewModel {
   func handleAutofillDemoDummyFieldsAction(_ action: AutoFillDemoDummyFields.Completion) {
     switch action {
     case .back:
-      if Device.isIpadOrMac {
+      if Device.is(.pad, .mac, .vision) {
         autofillDemoDummyFieldsCredential = nil
       } else {
         steps.removeLast()

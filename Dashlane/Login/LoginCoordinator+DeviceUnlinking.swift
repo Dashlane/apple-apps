@@ -3,7 +3,7 @@ import CoreFeature
 import CoreNetworking
 import CorePremium
 import CoreSession
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 import LoginKit
@@ -61,6 +61,8 @@ class PurchasePlanFlowProvider: LoginKit.PurchasePlanFlowProvider {
       logger: appServices.rootLogger[.session],
       screenLocker: nil,
       activityReporter: appServices.activityReporter,
-      vaultStateService: nil)
+      vaultStateService: nil,
+      deeplinkingService: appServices.deepLinkingService,
+      premiumStatusProvider: statusProvider)
   }
 }

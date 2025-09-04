@@ -1,78 +1,69 @@
-import CryptoKit
-import DashTypes
 import DashlaneAPI
 import Foundation
-import SwiftCBOR
+import LogFoundation
+import Sodium
 
 public struct NitroSecureTunnelCreatorImpl: NitroSecureTunnelCreator {
+  let sodium = Sodium()
+  let keyPair: any KeyPairProtocol
+  let certificate: NitroSecureTunnelCertificate
 
-  let nitroClient: NitroSSOAPIClient
-
-  public init(nitroClient: NitroSSOAPIClient) {
-    self.nitroClient = nitroClient
+  public var publicKey: String {
+    let hexes = keyPair.publicKey.map { String(format: "%02X", $0) }
+    return hexes.joined(separator: "")
   }
 
-  public func createTunnel() async throws -> SecureTunnel {
-    let secureTunnelcrypto = try NitroSecureTunnelCrypto()
-    let coseSign1 = try await startHello(secureTunnelcrypto: secureTunnelcrypto)
-    let attestationDocument = try parseAttestationDocument(fromCoseSign1: coseSign1)
-    try attestationDocument.verifyCertificateChain(
-      withRootCertificate: ApplicationSecrets.NitroSSO.rootCertificate)
-    try verifySignature(of: coseSign1, withKeyFrom: attestationDocument)
-    try attestationDocument.verifyPCR([
-      3: ApplicationSecrets.NitroSSO.pcr3, 8: ApplicationSecrets.NitroSSO.pcr8,
-    ])
-    let secureTunnel = try secureTunnelcrypto.createSecureTunnel(with: attestationDocument.userData)
-    try await nitroClient.tunnel.terminateHello(clientHeader: secureTunnel.header)
-    return secureTunnel
+  public init() throws {
+    try self.init(certificate: .prod)
   }
 
-  private func startHello(secureTunnelcrypto: NitroSecureTunnelCrypto) async throws -> CBOR {
-    let response = try await nitroClient.tunnel.clientHello(
-      clientPublicKey: secureTunnelcrypto.publicKey)
-    guard let response = try CBORDecoder(input: response.attestation.hexaBytes).decodeItem(),
-      case let .tagged(CBOR.Tag(rawValue: 18), responseArray) = response
-    else {
-      throw NitroError.couldNotDecodeCBOR
+  public init(certificate: NitroSecureTunnelCertificate = .prod) throws {
+    guard let keyPair = sodium.keyExchange.keyPair() else {
+      throw NitroCryptoError.couldNotGenerateKeyPair
     }
-    return responseArray
+    self.keyPair = keyPair
+    self.certificate = certificate
   }
 
-  func parseAttestationDocument(fromCoseSign1 coseSign1: CBOR) throws -> AttestationDocument {
-    guard let payloadCbor = coseSign1[2],
-      case let CBOR.byteString(payload) = payloadCbor
-    else {
-      throw NitroError.couldNotDecodeCBOR
-    }
-    return try CodableCBORDecoder().decode(AttestationDocument.self, from: Data(payload))
-  }
-
-  func verifySignature(of coseSign1: CBOR, withKeyFrom attestationDocument: AttestationDocument)
-    throws
+  public func create(withRawAttestation attestation: String) throws -> any DashlaneAPI.SecureTunnel
   {
-    guard
-      let certificate = SecCertificateCreateWithData(
-        nil, attestationDocument.certificate as CFData),
-      let pubKey = SecCertificateCopyKey(certificate)
-    else {
-      throw NitroError.invalidCertificate
-    }
-    guard let publicKeyData = try? pubKey.data(), let signatureCbor = coseSign1[3],
-      case let CBOR.byteString(signature) = signatureCbor
-    else {
-      throw NitroError.couldNotDecodeCBOR
-    }
+    let attestationDocument = try AttestationDocument(rawAttestation: attestation)
+    try attestationDocument.verify(using: certificate)
 
-    let externalData = CBOR.byteString([])
-    let signedPayload: [UInt8] = CBOR.encode([
-      "Signature1", coseSign1[0]!, externalData, coseSign1[2]!,
-    ])
-
-    let publicKey = try P384.Signing.PublicKey(x963RepresentationData: publicKeyData)
-    let isValid = try publicKey.isValidSignature(Data(signature), forCOSEPayload: signedPayload)
-
-    guard isValid else {
-      throw NitroError.invalidSignature
-    }
+    return try create(with: attestationDocument.userData)
   }
+
+  func create(with userData: AttestationDocument.UserData) throws -> NitroSecureTunnel {
+    guard let publicKeyData = Data(base64Encoded: userData.publicKey),
+      let headerData = Data(base64Encoded: userData.header)
+    else {
+      throw NitroCryptoError.invalidUserData
+    }
+    let serverPub = KeyExchange.PublicKey(publicKeyData.bytes)
+    guard
+      let sessionKeys = sodium.keyExchange.sessionKeyPair(
+        publicKey: keyPair.publicKey, secretKey: keyPair.secretKey, otherPublicKey: serverPub,
+        side: .CLIENT)
+    else {
+      throw NitroCryptoError.couldNotGenerateSessionKeys
+    }
+    guard
+      let pushStream = sodium.secretStream.xchacha20poly1305.initPush(secretKey: sessionKeys.rx),
+      let pullstream = sodium.secretStream.xchacha20poly1305.initPull(
+        secretKey: sessionKeys.tx, header: SecretStream.XChaCha20Poly1305.Header(headerData.bytes))
+    else {
+      throw NitroCryptoError.couldNotCreateSecretStream
+    }
+    return NitroSecureTunnel(pushStream: pushStream, pullStream: pullstream)
+  }
+}
+
+@Loggable
+enum NitroCryptoError: Error {
+  case couldNotGenerateKeyPair
+  case couldNotGenerateSessionKeys
+  case couldNotCreateSecretStream
+  case couldNotEncrypt
+  case couldNotDecrypt
+  case invalidUserData
 }

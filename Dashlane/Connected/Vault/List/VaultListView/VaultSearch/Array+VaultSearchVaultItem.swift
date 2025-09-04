@@ -1,5 +1,5 @@
+import CorePersonalData
 import Foundation
-import VaultKit
 
 extension Array where Element == VaultItem {
   func suggestedItems() -> [VaultItem] {

@@ -1,5 +1,4 @@
 import CorePersonalData
-import VaultKit
 
 public protocol ImportServiceProtocol {
 

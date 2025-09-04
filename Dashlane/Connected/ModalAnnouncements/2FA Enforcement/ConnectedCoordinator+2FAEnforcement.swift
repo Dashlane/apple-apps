@@ -2,7 +2,7 @@ import Combine
 import CoreNetworking
 import CorePremium
 import CoreSession
-import DashTypes
+import CoreTypes
 import Foundation
 import SwiftUI
 

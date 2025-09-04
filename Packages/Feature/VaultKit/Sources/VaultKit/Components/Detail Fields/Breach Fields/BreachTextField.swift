@@ -32,7 +32,7 @@ public struct BreachTextField: DetailField {
     VStack(alignment: .leading, spacing: 2) {
       Text(title)
         .font(.footnote)
-        .foregroundColor(.ds.text.oddity.disabled)
+        .foregroundStyle(Color.ds.text.oddity.disabled)
 
       textField
         .contentShape(Rectangle())
@@ -56,12 +56,8 @@ public struct BreachTextField: DetailField {
   }
 }
 
-struct BreachTextField_Previews: PreviewProvider {
-  static var previews: some View {
-    MultiContextPreview {
-      VStack {
-        BreachTextField(title: "Title", text: .constant("test"))
-      }
-    }.previewLayout(.sizeThatFits)
+#Preview(traits: .sizeThatFitsLayout) {
+  VStack {
+    BreachTextField(title: "Title", text: .constant("test"))
   }
 }

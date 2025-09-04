@@ -10,16 +10,16 @@ struct SharingEditLabel: View {
     if isInProgress {
       ProgressView()
     } else {
-      if Device.isIpadOrMac {
+      if Device.is(.pad, .mac, .vision) {
         Text(L10n.Localizable.kwSharingItemEditAccess)
-          .foregroundColor(.ds.text.brand.standard)
+          .foregroundStyle(Color.ds.text.brand.standard)
       } else {
         Image.ds.action.more.outlined
           .resizable()
           .aspectRatio(contentMode: .fit)
           .accessibilityLabel(Text(L10n.Localizable.kwSharingItemEditAccess))
           .frame(width: 24, height: 40)
-          .foregroundColor(.ds.text.brand.quiet)
+          .foregroundStyle(Color.ds.text.brand.quiet)
       }
     }
   }

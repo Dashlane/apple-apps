@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Useractivity {
-  public struct Create: APIRequest {
+  public struct Create: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/useractivity/Create"
 
     public let api: UserDeviceAPIClient
@@ -28,7 +28,7 @@ extension UserDeviceAPIClient.Useractivity {
 }
 
 extension UserDeviceAPIClient.Useractivity.Create {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case relativeStart = "relativeStart"
       case relativeEnd = "relativeEnd"
@@ -36,7 +36,7 @@ extension UserDeviceAPIClient.Useractivity.Create {
       case teamActivity = "teamActivity"
     }
 
-    public struct TeamActivity: Codable, Equatable, Sendable {
+    public struct TeamActivity: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case teamId = "teamId"
         case activity = "activity"

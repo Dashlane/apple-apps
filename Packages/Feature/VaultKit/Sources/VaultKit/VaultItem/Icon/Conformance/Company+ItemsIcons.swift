@@ -8,10 +8,6 @@ extension Company {
     .company
   }
 
-  public var listIcon: VaultItemIcon {
-    .company
-  }
-
   public static var addIcon: SwiftUI.Image {
     .ds.item.company.outlined
   }

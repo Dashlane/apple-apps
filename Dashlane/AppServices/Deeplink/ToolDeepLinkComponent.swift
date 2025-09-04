@@ -21,11 +21,13 @@ enum ToolDeepLinkComponent {
   case otherTool(OtherToolDeepLinkComponent)
 
   init?(components: [String]) {
-    if components[0] == Self.identityDashboard.rawDeeplink || components[0] == "password-health" {
+    if components[0] == Self.identityDashboard.rawDeeplink {
       self = .identityDashboard
     } else if let otherToolDeeplinkComponent = OtherToolDeepLinkComponent(rawValue: components[0]) {
       self = .otherTool(otherToolDeeplinkComponent)
-    } else if components[0] == Self.darkWebMonitoring.rawDeeplink {
+    } else if components[0] == Self.darkWebMonitoring.rawDeeplink
+      || components[0] == "security-dashboard"
+    {
       self = .darkWebMonitoring
     } else if components[0] == Self.authenticator().rawDeeplink {
       self = .authenticator()
@@ -39,7 +41,7 @@ extension ToolDeepLinkComponent {
   var rawDeeplink: String {
     switch self {
     case .identityDashboard:
-      return "security-dashboard"
+      return "password-health"
     case let .otherTool(component):
       return component.rawDeeplink
     case .darkWebMonitoring:

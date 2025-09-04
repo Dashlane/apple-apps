@@ -3,11 +3,11 @@ import Combine
 import CoreFeature
 import CorePremium
 import CoreSettings
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import Foundation
 import LoginKit
 import NotificationKit
+import UserTrackingFoundation
 
 extension SessionServicesContainer: HomeAnnouncementsServicesContainer {
 
@@ -19,9 +19,9 @@ extension SessionServicesContainer: HomeAnnouncementsServicesContainer {
     premiumStatusServicesSuit.statusProvider
   }
 
-  var login: DashTypes.Login { session.login }
+  var login: CoreTypes.Login { session.login }
 
-  var announcementsActivityReporter: CoreUserTracking.ActivityReporterProtocol {
+  var announcementsActivityReporter: UserTrackingFoundation.ActivityReporterProtocol {
     return activityReporter
   }
 
@@ -42,7 +42,7 @@ extension SessionServicesContainer: HomeAnnouncementsServicesContainer {
 
   var notificationKitFeatureService: CoreFeature.FeatureServiceProtocol { featureService }
 
-  var notificationKitVaultStateService: CoreFeature.VaultStateServiceProtocol { vaultStateService }
+  var notificationKitVaultStateService: VaultStateServiceProtocol { vaultStateService }
 
   var notificationKitTeamSpaceService: CorePremium.UserSpacesService { userSpacesService }
 
@@ -51,7 +51,7 @@ extension SessionServicesContainer: HomeAnnouncementsServicesContainer {
   }
 }
 
-extension AutofillService: NotificationKit.NotificationKitAutofillServiceProtocol {
+extension AutofillStateService: NotificationKit.NotificationKitAutofillServiceProtocol {
   public var notificationKitActivationStatus: Published<AutofillActivationStatus>.Publisher {
     $activationStatus
   }

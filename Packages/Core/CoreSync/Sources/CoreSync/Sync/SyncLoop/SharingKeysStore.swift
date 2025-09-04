@@ -1,7 +1,8 @@
+import CoreTypes
 import CyrilKit
-import DashTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 
 public actor SharingKeysStore {
   let url: URL
@@ -65,7 +66,9 @@ public actor SharingKeysStore {
   }
 }
 
+@Loggable
 public enum SharingKeysError: Error {
+  @Loggable
   public enum ParseReason {
     case invalidBase64
     case invalidUTF8String

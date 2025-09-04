@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Sync {
-  public struct UploadDataForCryptoUpdate: APIRequest {
+  public struct UploadDataForCryptoUpdate: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/sync/UploadDataForCryptoUpdate"
 
     public let api: UserDeviceAPIClient
@@ -27,7 +27,7 @@ extension UserDeviceAPIClient.Sync {
 }
 
 extension UserDeviceAPIClient.Sync.UploadDataForCryptoUpdate {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case timestamp = "timestamp"
       case transactions = "transactions"

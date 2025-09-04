@@ -1,6 +1,6 @@
 import Foundation
 
-public struct ItemUpload: Codable, Equatable, Sendable {
+public struct ItemUpload: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case itemId = "itemId"
     case itemKey = "itemKey"
@@ -8,7 +8,7 @@ public struct ItemUpload: Codable, Equatable, Sendable {
     case itemType = "itemType"
   }
 
-  public enum ItemType: String, Sendable, Equatable, CaseIterable, Codable {
+  public enum ItemType: String, Sendable, Hashable, Codable, CaseIterable {
     case authentifiant = "AUTHENTIFIANT"
     case securenote = "SECURENOTE"
     case secret = "SECRET"

@@ -6,13 +6,30 @@ import UIKit
 
 extension AppCoordinator {
   func configureAppearance() {
+    window.tintColor = .ds.text.brand.standard
+
     UINavigationBar.appearance().tintColor = .ds.text.brand.standard
+    UINavigationBar.appearance().largeTitleTextAttributes = [
+      .foregroundColor: UIColor.ds.text.neutral.catchy
+    ]
+    UINavigationBar.appearance().titleTextAttributes = [
+      .foregroundColor: UIColor.ds.text.neutral.catchy
+    ]
 
     let tabBarAppearance = UITabBar.appearance()
     let scrollEdgeAppearance = UITabBarAppearance()
+
     scrollEdgeAppearance.configureWithDefaultBackground()
+    scrollEdgeAppearance.stackedLayoutAppearance.selected.iconColor = .ds.text.brand.quiet
+    scrollEdgeAppearance.stackedLayoutAppearance.selected.titleTextAttributes = [
+      .foregroundColor: UIColor.ds.text.brand.quiet
+    ]
+    scrollEdgeAppearance.stackedLayoutAppearance.normal.iconColor = .ds.text.neutral.quiet
+    scrollEdgeAppearance.stackedLayoutAppearance.normal.titleTextAttributes = [
+      .foregroundColor: UIColor.ds.text.neutral.quiet
+    ]
+
     tabBarAppearance.scrollEdgeAppearance = scrollEdgeAppearance
-    tabBarAppearance.tintColor = .ds.text.brand.quiet
 
     UIView.appearance(whenContainedInInstancesOf: [UIAlertController.self]).tintColor =
       UIColor.ds.text.brand.standard
@@ -24,18 +41,20 @@ extension AppCoordinator {
       .ds.container.expressive.brand.catchy.idle
     UIPageControl.appearance().pageIndicatorTintColor = .ds.container.expressive.brand.quiet.idle
 
+    let fontMetrics = UIFontMetrics(forTextStyle: .body)
+
     UISegmentedControl.appearance().selectedSegmentTintColor = UIColor(.ds.background.default)
     UISegmentedControl.appearance().setTitleTextAttributes(
       [
-        .font: FontScaling.scaledFont(
-          font: UIFont.systemFont(ofSize: UIFont.systemFontSize, weight: .semibold)),
+        .font: fontMetrics.scaledFont(
+          for: UIFont.systemFont(ofSize: UIFont.systemFontSize, weight: .semibold)),
         .foregroundColor: UIColor.ds.text.neutral.standard,
       ],
       for: .selected
     )
     UISegmentedControl.appearance().setTitleTextAttributes(
       [
-        .font: FontScaling.scaledFont(font: UIFont.systemFont(ofSize: UIFont.systemFontSize)),
+        .font: fontMetrics.scaledFont(for: UIFont.systemFont(ofSize: UIFont.systemFontSize)),
         .foregroundColor: UIColor.ds.text.neutral.catchy,
       ],
       for: .normal

@@ -1,10 +1,10 @@
 import Combine
 import CoreSession
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import Foundation
 import LoginKit
 import SwiftUI
+import UserTrackingFoundation
 
 extension AppCoordinator: SessionLifeCycleHandler {
   var sessionState: SessionState {
@@ -38,10 +38,16 @@ extension AppCoordinator: SessionLifeCycleHandler {
     logout(for: session, clearAutoLoginData: clearAutoLoginData)
   }
 
+  private func killCurrentSession(reason: SessionServicesUnloadReason) async {
+    appServices.crashReporter.resetScope()
+    await connectedCoordinator?.sessionServices.unload(reason: .userLogsOut)
+    sessionServicesSubscription?.cancel()
+    appServices.autofillExtensionCommunicationCenter.write(message: .didLogout)
+  }
+
   private func logout(for session: Session, clearAutoLoginData: Bool = true) {
     Task {
-      await connectedCoordinator?.sessionServices.unload(reason: .userLogsOut)
-      sessionServicesSubscription?.cancel()
+      await killCurrentSession(reason: .userLogsOut)
 
       if clearAutoLoginData {
         self.appServices.sessionCleaner.cleanAutoLoginData(for: session.login)
@@ -74,8 +80,7 @@ extension AppCoordinator: SessionLifeCycleHandler {
 
   private func logoutAndDeleteLocalData(for session: Session) {
     Task {
-      await connectedCoordinator?.sessionServices.unload(reason: .userLogsOut)
-      sessionServicesSubscription?.cancel()
+      await killCurrentSession(reason: .userLogsOut)
 
       connectedCoordinator?.dismiss {
         self.currentSubCoordinator = nil
@@ -89,8 +94,9 @@ extension AppCoordinator: SessionLifeCycleHandler {
   private func logoutAndStartNewSession(_ newSession: Session, reason: SessionServicesUnloadReason)
   {
     Task {
-      await connectedCoordinator?.sessionServices.unload(reason: reason)
-      sessionServicesSubscription?.cancel()
+      await killCurrentSession(reason: .userLogsOut)
+      let origin = SessionLoadingContext.LocalContextOrigin
+        .afterLogout(reason: reason)
 
       connectedCoordinator?.dismiss { [weak self] in
         guard let self = self else { return }
@@ -102,7 +108,8 @@ extension AppCoordinator: SessionLifeCycleHandler {
             from: newSession,
             appServices: self.appServices,
             logger: self.sessionLogger,
-            loadingContext: .localLogin(reason == .masterPasswordChangedForARK)
+            loadingContext: .localLogin(
+              origin, isRecoveryKeyUsed: reason == .masterPasswordChangedForARK)
           ) { [weak self] result in
             DispatchQueue.main.async {
               guard let self = self else { return }

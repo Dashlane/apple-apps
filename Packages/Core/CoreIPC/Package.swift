@@ -3,7 +3,7 @@ import PackageDescription
 let package = Package(
   name: "CoreIPC",
   platforms: [
-    .iOS(.v16)
+    .iOS(.v17)
   ],
   products: [
     .library(
@@ -11,19 +11,21 @@ let package = Package(
       targets: ["CoreIPC"])
   ],
   dependencies: [
-    .package(path: "../../Foundation/DashTypes")
+    .package(path: "../../Core/CoreTypes"),
+    .package(path: "../../Foundation/LogFoundation"),
   ],
   targets: [
     .target(
       name: "CoreIPC",
       dependencies: [
-        .product(name: "DashTypes", package: "DashTypes")
+        .product(name: "CoreTypes", package: "CoreTypes"),
+        .product(name: "LogFoundation", package: "LogFoundation"),
       ]),
     .testTarget(
       name: "CoreIPCTests",
       dependencies: [
         "CoreIPC",
-        .product(name: "DashTypes", package: "DashTypes"),
+        .product(name: "CoreTypes", package: "CoreTypes"),
       ]
     ),
     .testTarget(

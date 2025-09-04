@@ -4,6 +4,8 @@ import SwiftUI
 struct FieldActionsStack<Content: View>: View {
   @Environment(\.dynamicTypeSize.isAccessibilitySize) private var isAccessibilitySize
 
+  @ScaledMetric private var horizontalPadding = 4
+
   private let allowOverflowStacking: Bool
   private let content: Content
   private let maxItemsNumber: Int
@@ -21,9 +23,10 @@ struct FieldActionsStack<Content: View>: View {
   var body: some View {
     HStack(spacing: 0) {
       contentContainer
-        .buttonStyle(ActionButtonStyle())
-        .menuStyle(ActionMenuStyle())
+        .buttonStyle(.designSystem(.iconOnly))
+        .style(intensity: .supershy)
     }
+    .padding(.horizontal, horizontalPadding)
     .transition(.scale(scale: 0.5).combined(with: .opacity))
   }
 
@@ -36,51 +39,6 @@ struct FieldActionsStack<Content: View>: View {
     ) {
       content
     }
-  }
-}
-
-private struct ActionButtonStyle: ButtonStyle {
-  @ScaledMetric private var backgroundCornerRadius = 10
-  @ScaledMetric private var imageDimension = 20
-  @ScaledMetric private var minimumTapAreaDimension = 40
-
-  func makeBody(configuration: Configuration) -> some View {
-    configuration.label
-      .labelStyle(.iconOnly)
-      .frame(width: imageDimension, height: imageDimension)
-      .frame(minWidth: minimumTapAreaDimension, minHeight: minimumTapAreaDimension)
-      .background(
-        RoundedRectangle(cornerRadius: backgroundCornerRadius, style: .continuous)
-          ._foregroundStyle(.expressiveContainer)
-      )
-      .contentShape(Rectangle())
-      .foregroundStyle(.tint)
-      .highlighted(configuration.isPressed)
-      .transformEnvironment(\.style) { style in
-        style = Style(mood: style.mood, intensity: .supershy, priority: style.priority)
-      }
-  }
-}
-
-private struct ActionMenuStyle: MenuStyle {
-  @ScaledMetric private var backgroundCornerRadius = 10
-  @ScaledMetric private var imageDimension = 20
-  @ScaledMetric private var minimumTapAreaDimension = 40
-
-  func makeBody(configuration: Configuration) -> some View {
-    Menu(configuration)
-      .labelStyle(.iconOnly)
-      .frame(width: imageDimension, height: imageDimension)
-      .frame(minWidth: minimumTapAreaDimension, minHeight: minimumTapAreaDimension)
-      .background(
-        RoundedRectangle(cornerRadius: backgroundCornerRadius, style: .continuous)
-          ._foregroundStyle(.expressiveContainer)
-      )
-      .contentShape(Rectangle())
-      .foregroundStyle(.tint)
-      .transformEnvironment(\.style) { style in
-        style = Style(mood: style.mood, intensity: .supershy, priority: style.priority)
-      }
   }
 }
 
@@ -98,16 +56,16 @@ private struct FieldActionStackLayout: _VariadicView.MultiViewRoot {
     let shouldMakeMenu = allowOverflowStacking && (children.count > maxItemsNumber)
     let prefix = shouldMakeMenu ? maxItemsNumber - 1 : maxItemsNumber
 
-    ForEach(children.prefix(prefix).reversed()) { child in
+    ForEach(children.prefix(prefix)) { child in
       child
     }
 
     if shouldMakeMenu {
       FieldAction.Menu(
-        L10n.Core.moreActionAccessibilityLabel,
+        CoreL10n.moreActionAccessibilityLabel,
         image: .ds.action.more.outlined
       ) {
-        ForEach(children.suffix(from: maxItemsNumber - 1).reversed()) { child in
+        ForEach(children.suffix(from: maxItemsNumber - 1)) { child in
           child
         }
       }

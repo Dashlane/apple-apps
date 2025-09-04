@@ -2,10 +2,12 @@ import CoreFeature
 import CoreKeychain
 import CoreSession
 import CoreSettings
+import CoreTypes
 import CoreUserTracking
-import DashTypes
 import Foundation
+import LogFoundation
 import SwiftTreats
+import UserTrackingFoundation
 
 public class PreAccountCreationOnboardingViewModel {
   public enum NextStep {
@@ -67,7 +69,7 @@ public class PreAccountCreationOnboardingViewModel {
       logger.info("Local data has been removed from the device.")
     } catch let KeychainError.unhandledError(status: status) {
       logger.fatal(
-        "Local data couldn't be removed from the device because of issue in Keychain \(status.description)."
+        "Local data couldn't be removed from the device because of issue in Keychain \(status.description, privacy: .public)."
       )
       assertionFailure()
     } catch {

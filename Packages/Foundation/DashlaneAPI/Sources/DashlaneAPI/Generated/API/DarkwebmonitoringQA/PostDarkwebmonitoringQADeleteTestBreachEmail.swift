@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppAPIClient.DarkwebmonitoringQA {
-  public struct DeleteTestBreachEmail: APIRequest {
+  public struct DeleteTestBreachEmail: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/darkwebmonitoring-qa/DeleteTestBreachEmail"
 
     public let api: AppAPIClient
@@ -25,7 +25,7 @@ extension AppAPIClient.DarkwebmonitoringQA {
 }
 
 extension AppAPIClient.DarkwebmonitoringQA.DeleteTestBreachEmail {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case breachUuid = "breachUuid"
       case email = "email"

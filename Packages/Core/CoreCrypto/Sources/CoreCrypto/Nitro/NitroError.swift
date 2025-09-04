@@ -1,5 +1,7 @@
 import Foundation
+import LogFoundation
 
+@Loggable
 public enum NitroError: Error {
   case invalidSignature
   case pcrDidNotMatch

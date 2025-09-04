@@ -1,20 +1,21 @@
 import AuthenticatorKit
 import Combine
 import CoreFeature
+import CoreMainMenu
 import CoreNetworking
 import CorePersonalData
 import CoreSession
-import CoreUserTracking
-import DashTypes
+import CoreTypes
+import DashlaneAPI
 import DesignSystem
 import Logger
 import LoginKit
 import SwiftTreats
 import SwiftUI
 import TipKit
-import UIComponents
 import UIDelight
 import UIKit
+import UserTrackingFoundation
 
 @MainActor
 class AppCoordinator: Coordinator {
@@ -28,7 +29,7 @@ class AppCoordinator: Coordinator {
 
   private(set) var appServices: AppServicesContainer!
 
-  let crashReporterService: CrashReporterService
+  let crashReporter: CrashReporter
   let window: UIWindow
 
   @Published
@@ -45,11 +46,9 @@ class AppCoordinator: Coordinator {
   var sessionServicesSubscription: AnyCancellable?
   private var cancellables: Set<AnyCancellable> = []
   lazy var sessionLogger = self.appServices.rootLogger[.session]
-  lazy var navigator: DashlaneNavigationController = {
-    let navigator = DashlaneNavigationController()
+  lazy var navigator: UINavigationController = {
+    let navigator = MainMenuHandlerNavigationController()
     navigator.view.backgroundColor = UIColor(.ds.background.default)
-    navigator.setNavigationBarHidden(true, animated: false)
-    navigator.navigationBar.applyStyle(.hidden())
     navigator.turnOnToaster()
     return navigator
   }()
@@ -60,16 +59,16 @@ class AppCoordinator: Coordinator {
   @MainActor
   init(
     window: UIWindow,
-    crashReporterService: CrashReporterService,
+    crashReporter: CrashReporter,
     appLaunchTimeStamp: TimeInterval
-  ) {
+  ) async {
     self.window = window
-    self.crashReporterService = crashReporterService
+    self.crashReporter = crashReporter
 
     do {
-      self.appServices = try AppServicesContainer(
+      self.appServices = try await AppServicesContainer(
         sessionLifeCycleHandler: self,
-        crashReporter: crashReporterService,
+        crashReporter: crashReporter,
         appLaunchTimeStamp: appLaunchTimeStamp)
     } catch {
       fatalError("App Services failed: \(error)")
@@ -77,11 +76,13 @@ class AppCoordinator: Coordinator {
   }
 
   func start() {
+    window.rootViewController = navigator
+
     initialSetup()
     logAppLaunch()
 
-    window.rootViewController = navigator
     window.makeKeyAndVisible()
+
     if PreAccountCreationOnboardingViewModel.shouldDeleteLocalData {
       showOnboarding()
     } else {
@@ -98,6 +99,7 @@ class AppCoordinator: Coordinator {
     configureAbTesting()
     appServices.notificationService.registerForRemoteNotifications()
     checkVersionValidity()
+    AnyTransition.precompileUnlockTransition()
   }
 
   private func setupDeepLinking() {
@@ -110,30 +112,29 @@ class AppCoordinator: Coordinator {
   }
 
   private func setupTips() {
-    if #available(iOS 17, macOS 14, *) {
-      do {
-        Tips.showAllTipsForTesting()
+    do {
+      Tips.showAllTipsForTesting()
 
-        try Tips.configure([
-          .displayFrequency(.monthly),
-          .datastoreLocation(.applicationDefault),
-        ])
-      } catch {
-        sessionLogger.error("Tips configuration failed", error: error)
-      }
+      try Tips.configure([
+        .displayFrequency(.monthly),
+        .datastoreLocation(.applicationDefault),
+      ])
+    } catch {
+      sessionLogger.error("Tips configuration failed", error: error)
     }
   }
 
   func logAppLaunch() {
     if appServices.globalSettings.isFirstLaunch {
-      appServices.activityReporter.trackInstall()
+      appServices.userTrackingAppActivityReporter.trackInstall()
     }
   }
 
   func configureAdTracking() {
     AdTracking.start()
     if appServices.globalSettings.isFirstLaunch {
-      AdjustService.startTracking(installationID: appServices.activityReporter.installationId)
+      AdjustService.startTracking(
+        installationID: appServices.userTrackingAppActivityReporter.installationId)
     }
   }
 
@@ -153,7 +154,7 @@ class AppCoordinator: Coordinator {
         self.showOnboarding()
         return
       }
-      self.login(with: login)
+      self.login(with: .postLaunchLogin(login))
     } catch {
       sessionLogger.error("retrieve last login failed", error: error)
       self.showOnboarding()
@@ -173,9 +174,8 @@ class AppCoordinator: Coordinator {
       }
     }
 
-    navigator.viewControllers = [
-      UIHostingController(rootView: PreAccountCreationOnboardingView(model: onboardingViewModel))
-    ]
+    navigator.setRootNavigation(
+      PreAccountCreationOnboardingView(model: onboardingViewModel), animated: false)
     window.rootViewController = navigator
 
     showVersionValidityAlertIfNeeded()
@@ -201,9 +201,11 @@ class AppCoordinator: Coordinator {
   }
 
   @MainActor
-  func createAccount() {
-    let model = appServices.makeAccountCreationFlowViewModel {
-      [weak self] (result: AccountCreationFlowViewModel.CompletionResult) in
+  func createAccount(initialStep: AccountCreationFlowViewModel.Step = .email) {
+    let model = appServices.makeAccountCreationFlowViewModel(
+      initialStep: initialStep, stateMachine: appServices.accountCreationFlowStateMachine,
+      sessionServicesLoader: appServices.sessionServicesLoader
+    ) { [weak self] (result: AccountCreationFlowViewModel.CompletionResult) in
       guard let self = self else {
         return
       }
@@ -211,15 +213,6 @@ class AppCoordinator: Coordinator {
       case .finished(let sessionServices):
         AdTracking.registerAccountCreation()
         self.startConnectedCoordinator(using: sessionServices)
-
-      case .login(let login):
-        self.login(with: login)
-
-      case let .startSSO(email: email, info: info):
-        self.startSSOAccountCreation(
-          for: email,
-          initialStep: .authenticate(info.serviceProviderURL),
-          isNitroProvider: info.isNitroProvider)
       case .cancel:
         self.showOnboarding()
       }
@@ -227,17 +220,17 @@ class AppCoordinator: Coordinator {
     navigator.push(AccountCreationFlow(model: model))
   }
 
-  func login(with login: Login? = nil) {
+  func login(with request: LoginCoordinator.LoginRequest = .newLogin) {
     if window.rootViewController != navigator {
       window.rootViewController = navigator
     }
     let loginHandler = makeLoginHandler()
     currentSubCoordinator = LoginCoordinator(
+      request: request,
       loginHandler: loginHandler,
       appServices: appServices,
       sessionLogger: sessionLogger,
-      navigator: navigator,
-      login: login
+      navigator: navigator
     ) { [weak self] result in
       guard let self = self else {
         return
@@ -249,11 +242,7 @@ class AppCoordinator: Coordinator {
         case let .servicesLoaded(sessionServices):
           self.startConnectedCoordinator(using: sessionServices)
         case let .ssoAccountCreation(login, info):
-
-          self.startSSOAccountCreation(
-            for: DashTypes.Email(login.email),
-            initialStep: .authenticate(info.serviceProviderURL),
-            isNitroProvider: info.isNitroProvider)
+          self.createAccount(initialStep: .create(.sso(email: CoreTypes.Email(login.email), info)))
         }
       }
     }
@@ -264,45 +253,53 @@ class AppCoordinator: Coordinator {
     currentSubCoordinator = ConnectedCoordinator(
       sessionServices: sessionServices,
       window: window,
+      appRootNavigationViewController: navigator,
       logoutHandler: self,
       applicationMainMenuHandler: mainMenuHandler)
     currentSubCoordinator?.start()
   }
 
-  private func makeLoginHandler() -> LoginHandler {
-    return LoginHandler(
+  private func makeLoginHandler() -> LoginStateMachine {
+    return LoginStateMachine(
       sessionsContainer: appServices.sessionContainer,
       appApiClient: self.appServices.appAPIClient,
+      nitroAPIClient: appServices.nitroClient,
       deviceInfo: DeviceInfo.default,
       logger: sessionLogger,
       cryptoEngineProvider: appServices.sessionCryptoEngineProvider,
-      removeLocalDataHandler: appServices.sessionCleaner.removeLocalData)
+      keychainService: appServices.keychainService,
+      loginSettingsProvider: appServices,
+      sessionCleaner: appServices.sessionCleaner,
+      activityReporter: appServices.activityReporter,
+      remoteLogger: appServices.remoteLogger)
+  }
+}
+
+extension AppServicesContainer: LoginSettingsProvider {
+  func makeSettings(for login: CoreTypes.Login) throws -> LoginSettings {
+    try LoginSettingsImpl(
+      login: login, settingsManager: spiegelSettingsManager, keychainService: keychainService)
   }
 
-  func startSSOAccountCreation(
-    for email: DashTypes.Email,
-    initialStep: SSOAccountCreationCoordinator.Step,
-    isNitroProvider: Bool
-  ) {
+}
 
-    currentSubCoordinator = SSOAccountCreationCoordinator(
-      email: email,
-      appServices: appServices,
-      navigator: navigator,
-      logger: sessionLogger,
-      initialStep: initialStep,
-      isNitroProvider: isNitroProvider,
-      completion: { [weak self] result in
-        DispatchQueue.main.async {
-          switch result {
-          case .cancel:
-            self?.showOnboarding()
-          case let .accountCreated(sessionServices):
-            self?.startConnectedCoordinator(using: sessionServices)
-          }
-        }
+extension AppServicesContainer: AccountCreationSettingsProvider {
+  func initialSettings(
+    using cryptoConfig: CoreTypes.CryptoRawConfig, remoteCryptoEngine: any CoreTypes.CryptoEngine,
+    login: CoreTypes.Login
+  ) throws -> CoreSessionSettings {
+    let initialSettings = try Settings(cryptoConfig: cryptoConfig, email: login.email)
+      .makeTransactionContent()
+      .encrypt(using: remoteCryptoEngine)
+      .base64EncodedString()
+    return CoreSessionSettings(content: initialSettings, time: Int(Timestamp.now.rawValue))
+  }
+}
 
-      })
-    currentSubCoordinator?.start()
+extension AppServicesContainer: AccountCreationSharingKeysProvider {
+  func sharingKeys(using cryptoEngine: CoreTypes.CryptoEngine) throws
+    -> DashlaneAPI.AccountCreateUserSharingKeys
+  {
+    return try AccountCreateUserSharingKeys.makeAccountDefault(privateKeyCryptoEngine: cryptoEngine)
   }
 }

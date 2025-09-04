@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppAPIClient.Authentication {
-  public struct GetAuthenticationMethodsForDevice: APIRequest {
+  public struct GetAuthenticationMethodsForDevice: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/authentication/GetAuthenticationMethodsForDevice"
 
     public let api: AppAPIClient
@@ -24,7 +24,7 @@ extension AppAPIClient.Authentication {
 }
 
 extension AppAPIClient.Authentication.GetAuthenticationMethodsForDevice {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case login = "login"
       case methods = "methods"
@@ -47,7 +47,7 @@ extension AppAPIClient.Authentication.GetAuthenticationMethodsForDevice {
 }
 
 extension AppAPIClient.Authentication.GetAuthenticationMethodsForDevice {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case verifications = "verifications"
       case accountType = "accountType"

@@ -1,7 +1,7 @@
 import Combine
+import CoreMainMenu
 import Foundation
 import SwiftTreats
-import UIComponents
 import UIKit
 
 enum ApplicationDefaultShortcutCommand: String, ShortcutCommand {
@@ -13,7 +13,7 @@ class ApplicationMainMenuHandler: MainMenuHandler {
   private var cancellable: AnyCancellable?
 
   init() {
-    guard Device.isIpadOrMac else { return }
+    guard Device.is(.pad, .mac, .vision) else { return }
     load()
     UIMenuSystem.main.setNeedsRebuild()
     DispatchQueue.main.async {
@@ -71,7 +71,7 @@ extension UIKeyCommand {
     UIKeyCommand(
       title: L10n.Localizable.keyboardShortcutDashlaneHelp,
       image: nil,
-      action: #selector(DashlaneNavigationController.handleMenuBarShortcut(_:)),
+      action: #selector(MainMenuHandlerNavigationController.handleMenuBarShortcut(_:)),
       input: "?",
       modifierFlags: .command,
       propertyList: ApplicationDefaultShortcutCommand.help.propertyList)

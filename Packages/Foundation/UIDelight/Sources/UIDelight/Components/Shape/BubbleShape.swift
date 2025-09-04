@@ -1,10 +1,12 @@
 import SwiftUI
 
+@available(*, deprecated)
 public enum BubbleShapeDirection: Sendable {
   case right
   case down
 }
 
+@available(*, deprecated)
 public struct BubbleShape: Shape {
   static let arrowSize = CGFloat(10 * sqrt(2))
 
@@ -103,7 +105,7 @@ struct BubbleShape_Previews: PreviewProvider {
       BubbleShape(direction: .down)
       BubbleShape(direction: .right)
     }
-    .foregroundColor(.blue)
+    .foregroundStyle(.blue)
     .frame(width: 100, height: 29)
     .padding(.all, 40)
     .previewLayout(.sizeThatFits)

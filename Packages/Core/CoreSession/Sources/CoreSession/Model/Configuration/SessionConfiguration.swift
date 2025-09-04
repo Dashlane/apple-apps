@@ -1,4 +1,4 @@
-import DashTypes
+import CoreTypes
 import Foundation
 
 public struct SessionConfiguration: Equatable, Codable, Sendable {
@@ -74,7 +74,7 @@ public struct SessionSecureKeys: Codable, Equatable, Sendable {
 extension SessionConfiguration {
   public static func mock(accountType: AccountType) -> SessionConfiguration {
     .init(
-      login: Login("_"),
+      login: .mock,
       masterKey: .masterPassword("_", serverKey: nil),
       keys: SessionSecureKeys.mock,
       info: SessionInfo.mock(accountType: accountType))

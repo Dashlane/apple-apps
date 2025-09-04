@@ -1,6 +1,7 @@
 import Combine
 import CoreSession
-import DashTypes
+import CoreTypes
+import LogFoundation
 import LoginKit
 import SwiftTreats
 import SwiftUI
@@ -8,6 +9,7 @@ import SwiftUI
 @MainActor
 final class MasterPasswordResetActivationViewModel: ObservableObject, SessionServicesInjecting {
 
+  @Loggable
   enum Error: Swift.Error {
     case biometricActivation(Swift.Error)
     case resetContainerCreationFailure(Swift.Error)

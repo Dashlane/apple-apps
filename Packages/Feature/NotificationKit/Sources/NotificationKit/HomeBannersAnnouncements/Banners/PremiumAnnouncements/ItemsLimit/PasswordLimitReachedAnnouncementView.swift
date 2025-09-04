@@ -10,8 +10,8 @@ public struct PasswordLimitReachedAnnouncementView: View {
   }
 
   public var body: some View {
-    Infobox(L10n.Core.premiumPasswordLimitReachedTitle) {
-      Button(L10n.Core.premiumPasswordLimitReachedAction) {
+    Infobox(CoreL10n.premiumPasswordLimitReachedTitle) {
+      Button(CoreL10n.premiumPasswordLimitReachedAction) {
         action()
       }
     }

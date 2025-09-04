@@ -1,6 +1,7 @@
 import Combine
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 import SwiftTreats
 
 public class IPCMessageListener<Message: Decodable> {

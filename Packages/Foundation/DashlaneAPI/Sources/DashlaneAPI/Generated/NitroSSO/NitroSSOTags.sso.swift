@@ -2,7 +2,7 @@ import Foundation
 
 extension NitroSSOAPIClient {
 
-  public struct Tunnel {
+  public struct Tunnel: Sendable {
     let api: NitroSSOAPIClient
   }
   public var tunnel: Tunnel {
@@ -12,7 +12,7 @@ extension NitroSSOAPIClient {
 
 extension SecureNitroSSOAPIClient {
 
-  public struct Authentication {
+  public struct Authentication: Sendable {
     let api: SecureNitroSSOAPIClient
   }
   public var authentication: Authentication {

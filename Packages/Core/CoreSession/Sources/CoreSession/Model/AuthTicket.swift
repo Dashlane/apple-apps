@@ -1,6 +1,6 @@
 import Foundation
 
-public struct AuthTicket: Hashable, ExpressibleByStringLiteral {
+public struct AuthTicket: Hashable, ExpressibleByStringLiteral, Sendable {
 
   public let value: String
 

@@ -1,9 +1,10 @@
 import Combine
 import CoreSession
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 import SwiftTreats
+import UserTrackingFoundation
 
 struct SessionServicesLoader {
   let appServices: AppServicesContainer
@@ -13,6 +14,7 @@ struct SessionServicesLoader {
     -> SessionServicesContainer
   {
     do {
+      appServices.autofillExtensionCommunicationCenter.write(message: .didLogin(session.login))
       let sessionServices = try await SessionServicesContainer(
         appServices: appServices, session: session, loadingContext: context)
       try appServices.sessionContainer.saveCurrentLogin(session.login)

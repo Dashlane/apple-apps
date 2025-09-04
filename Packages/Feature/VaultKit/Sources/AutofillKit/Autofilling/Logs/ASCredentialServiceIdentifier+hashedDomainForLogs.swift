@@ -1,7 +1,7 @@
 import AuthenticationServices
-import CoreUserTracking
 import CryptoKit
 import Foundation
+import UserTrackingFoundation
 
 extension ASCredentialServiceIdentifier {
   func hashedDomainForLogs() -> Definition.Domain {

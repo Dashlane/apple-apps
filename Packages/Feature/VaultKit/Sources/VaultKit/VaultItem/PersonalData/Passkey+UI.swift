@@ -1,7 +1,7 @@
 import CoreLocalization
 import CorePersonalData
 import CorePremium
-import DashTypes
+import CoreTypes
 import Foundation
 import SwiftUI
 
@@ -20,7 +20,7 @@ extension Passkey: VaultItem {
   }
 
   public static var localizedName: String {
-    L10n.Core.Passkey.title
+    CoreL10n.Passkey.title
   }
 
   public static var addTitle: String {

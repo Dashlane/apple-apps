@@ -1,6 +1,7 @@
 import CorePersonalData
-import CoreUserTracking
+import DashlaneAPI
 import Foundation
+import UserTrackingFoundation
 
 extension VaultItemEnumeration {
 
@@ -35,7 +36,9 @@ extension VaultItemEnumeration {
     case .socialSecurityInformation:
       return .itemSocialSecurityStatementCreate
     case .secret:
-      return .itemSecureNoteCreate
+      return .itemSecretCreate
+    case .wifi:
+      return .itemWifiCreate
     case .drivingLicence:
       return .itemDriverLicenceCreate
     case .passkey:
@@ -79,7 +82,9 @@ extension VaultItemEnumeration {
     case .passkey:
       return .itemPasskeyDetails
     case .secret:
-      return .itemSecureNoteDetails
+      return .itemSecretDetails
+    case .wifi:
+      return .itemWifiDetails
 
     }
   }
@@ -143,5 +148,15 @@ extension DetailService {
         domain: credential.hashedDomainForLogs(),
         field: fieldType.definitionField,
         itemType: item.vaultItemType))
+  }
+}
+
+extension DetailService {
+  func sendRevealAuditLog(for fieldType: DetailFieldType) {
+    teamAuditLogsService.logReveal(item, field: fieldType.auditLogField)
+  }
+
+  func sendCopyAuditLog(for fieldType: DetailFieldType) {
+    teamAuditLogsService.logCopy(item, field: fieldType.auditLogField)
   }
 }

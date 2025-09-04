@@ -1,30 +1,32 @@
-import Adjust
 import AppTrackingTransparency
 import CoreFeature
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 import SwiftTreats
 
-class AppTrackingTransparencyService {
+#if canImport(Adjust)
+  import Adjust
+#endif
 
-  private let authenticatedABTestingService: AuthenticatedABTestingService
+struct AppTrackingTransparencyService {
   private let logger: Logger
 
-  init(authenticatedABTestingService: AuthenticatedABTestingService, logger: Logger) {
-    self.authenticatedABTestingService = authenticatedABTestingService
+  init(logger: Logger) {
     self.logger = logger
   }
 
-  func requestAuthorization() {
+  func requestAuthorization() async {
     #if DEBUG
       guard !ProcessInfo.isTesting else {
         return
       }
     #endif
 
-    ATTrackingManager.requestTrackingAuthorization { _ in
-      Adjust.requestTrackingAuthorization(completionHandler: nil)
-    }
+    let status = await ATTrackingManager.requestTrackingAuthorization()
+    logger.info("ATTrackingManager status: \(status)")
+    #if canImport(Adjust)
+      await Adjust.requestTrackingAuthorization()
+    #endif
   }
-
 }

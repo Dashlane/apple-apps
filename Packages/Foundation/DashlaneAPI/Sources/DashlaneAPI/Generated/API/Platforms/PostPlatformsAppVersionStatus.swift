@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppAPIClient.Platforms {
-  public struct AppVersionStatus: APIRequest {
+  public struct AppVersionStatus: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/platforms/AppVersionStatus"
 
     public let api: AppAPIClient
@@ -26,7 +26,7 @@ extension AppAPIClient.Platforms.AppVersionStatus {
 }
 
 extension AppAPIClient.Platforms.AppVersionStatus {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case status = "status"
       case daysBeforeExpiration = "daysBeforeExpiration"
@@ -34,7 +34,7 @@ extension AppAPIClient.Platforms.AppVersionStatus {
       case userSupportLink = "userSupportLink"
     }
 
-    public enum Status: String, Sendable, Equatable, CaseIterable, Codable {
+    public enum Status: String, Sendable, Hashable, Codable, CaseIterable {
       case validVersion = "valid_version"
       case updateRecommended = "update_recommended"
       case updateStronglyEncouraged = "update_strongly_encouraged"

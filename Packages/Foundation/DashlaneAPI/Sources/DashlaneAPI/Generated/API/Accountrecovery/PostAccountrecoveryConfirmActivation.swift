@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Accountrecovery {
-  public struct ConfirmActivation: APIRequest {
+  public struct ConfirmActivation: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/accountrecovery/ConfirmActivation"
 
     public let api: UserDeviceAPIClient
@@ -25,7 +25,7 @@ extension UserDeviceAPIClient.Accountrecovery {
 }
 
 extension UserDeviceAPIClient.Accountrecovery.ConfirmActivation {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case recoveryId = "recoveryId"
     }

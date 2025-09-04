@@ -1,6 +1,6 @@
 import Combine
 import CoreSession
-import DashTypes
+import CoreTypes
 import Foundation
 
 public enum ApplicationLocker {
@@ -20,12 +20,12 @@ extension ApplicationLocker {
 }
 
 extension ApplicationLocker {
-  var unlockedPublisher: any Publisher<Void, Never> {
+  var unlockedPublisher: AnyPublisher<Void, Never> {
     switch self {
     case let .screenLock(locker):
       return locker.$lock.filter { $0 == nil }.mapToVoid()
     case let .automaticLogout(activity):
-      return activity.unlockedSessionPublisher
+      return activity.unlockedSessionPublisher.eraseToAnyPublisher()
     }
   }
 

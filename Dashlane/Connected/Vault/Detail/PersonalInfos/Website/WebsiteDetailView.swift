@@ -16,13 +16,12 @@ struct WebsiteDetailView: View {
     DetailContainerView(service: model.service) {
       Section {
         if model.mode.isEditing {
-          TextDetailField(
-            title: CoreLocalization.L10n.Core.KWPersonalWebsiteIOS.name, text: $model.item.name
-          )
-          .textInputAutocapitalization(.words)
+          TextDetailField(title: CoreL10n.KWPersonalWebsiteIOS.name, text: $model.item.name)
+            .textInputAutocapitalization(.words)
+            .fieldRequired()
         }
         TextDetailField(
-          title: CoreLocalization.L10n.Core.KWPersonalWebsiteIOS.website,
+          title: CoreL10n.KWPersonalWebsiteIOS.website,
           text: $model.item.website
         )
         .openAction()

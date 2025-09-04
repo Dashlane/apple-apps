@@ -63,15 +63,22 @@ struct SecureLockNotification: DashlaneNotification {
     case .touchId:
       title = L10n.Localizable.announceBiometryTypeCta(Device.currentBiometryDisplayableName)
       description = L10n.Localizable.actionItemSecureLockDetailTouchid
-      icon = Image.ds.fingerprint.outlined
+      icon = Image(biometry: .touchId)
+
     case .faceId:
       title = L10n.Localizable.announceBiometryTypeCta(Device.currentBiometryDisplayableName)
       description = L10n.Localizable.actionItemSecureLockDetailFaceid
-      icon = Image.ds.faceId.outlined
-    default:
+      icon = Image(biometry: .faceId)
+
+    case .opticId:
+      title = L10n.Localizable.announceBiometryTypeCta(Device.currentBiometryDisplayableName)
+      description = L10n.Localizable.actionItemSecureLockDetailOpticid
+      icon = Image(biometry: .opticId)
+
+    case .none:
       title = L10n.Localizable.announcePinCta
       description = L10n.Localizable.actionItemSecureLockDetailPin
-      icon = Image(asset: FiberAsset.pinActionItemIcon)
+      icon = Image.ds.pinCode.outlined
     }
 
   }

@@ -3,9 +3,10 @@ import CoreNetworking
 import CorePersonalData
 import CoreSession
 import CoreSettings
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import VaultKit
 
 @MainActor
@@ -41,6 +42,7 @@ class DarkWebToolsFlowViewModel: ObservableObject, SessionServicesInjecting {
     case showCredential(Credential)
   }
 
+  @Loggable
   enum DWMCoordinatorError: Error {
     case paywall
   }
@@ -112,7 +114,6 @@ class DarkWebToolsFlowViewModel: ObservableObject, SessionServicesInjecting {
 
   func appeared() {
     darkWebMonitoringService.refresh()
-    userSettings[.hasSeenDWMExperience] = true
   }
 }
 
@@ -128,9 +129,7 @@ extension DarkWebToolsFlowViewModel {
   }
 
   func makeDataLeakMonitoringAddEmailViewModel() -> DataLeakMonitoringAddEmailViewModel {
-    return dataLeakMonitoringAddEmailViewModelFactory.make(
-      login: session.login,
-      dataLeakService: identityDashboardService.dataLeakMonitoringRegisterService)
+    return dataLeakMonitoringAddEmailViewModelFactory.make(login: session.login)
   }
 
   func showAddEmailFlow() {
@@ -138,8 +137,7 @@ extension DarkWebToolsFlowViewModel {
   }
 
   func delete(email: String) {
-    darkWebMonitoringService.identityDashboardService.dataLeakMonitoringRegisterService
-      .removeFromMonitoredEmails(email: email)
+    darkWebMonitoringService.removeFromMonitoredEmails(email: email)
   }
 
   func upgradeToPremium() {
@@ -180,13 +178,13 @@ extension DarkWebToolsFlowViewModel {
       darkWebMonitoringService: DarkWebMonitoringServiceMock(),
       deepLinkingService: DeepLinkingService.fakeService,
       darkWebMonitoringViewModelFactory: .init({ _ in .mock }),
-      dataLeakMonitoringAddEmailViewModelFactory: .init({ _, _ in .mock }),
+      dataLeakMonitoringAddEmailViewModelFactory: .init({ _ in .mock }),
       darkWebMonitoringDetailsViewModelFactory: .init({ _, _, _ in .fake() }),
       breachViewModelFactory: .init({ _ in .mock(for: .init()) }),
       userDeviceAPIClient: .mock({}),
       notificationService: .fakeService,
       identityDashboardService: IdentityDashboardService.mock,
-      logger: LoggerMock(),
+      logger: .mock,
       credentialDetailViewModelFactory: .init({ _, _, _, _, _, _ in
         MockVaultConnectedContainer().makeCredentialDetailViewModel(
           item: PersonalDataMock.Credentials.amazon, mode: .viewing)

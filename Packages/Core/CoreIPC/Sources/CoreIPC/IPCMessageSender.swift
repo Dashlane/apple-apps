@@ -1,5 +1,6 @@
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 
 public struct IPCMessageSender<Message: Encodable> {
   let coder: IPCMessageCoderProtocol
@@ -26,7 +27,7 @@ public struct IPCMessageSender<Message: Encodable> {
       case .success:
         logger.debug("Success write at \(destination)")
       case let .failure(error):
-        logger.error("Could not write at \(destination) - \(error.localizedDescription)")
+        logger.error("Could not write at \(destination) -", error: error)
       }
     }
   }

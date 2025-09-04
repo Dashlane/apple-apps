@@ -54,8 +54,9 @@ private struct ButtonsStackLayout: _VariadicView.MultiViewRoot {
 public struct Infobox<Buttons: View>: View {
   @Environment(\.controlSize) private var controlSize
   @Environment(\.horizontalSizeClass) private var horizontalSizeClass
+  @Environment(\.container) var container
 
-  @ScaledMetric private var containerCornerRadius = 4
+  @ScaledMetric var containerCornerRadius = 12
   @ScaledMetric private var contentScale = 100
 
   private let buttons: Buttons
@@ -96,10 +97,8 @@ public struct Infobox<Buttons: View>: View {
       }
     }
     .padding(containerPadding)
-    .background(
-      RoundedRectangle(cornerRadius: containerCornerRadius, style: .continuous)
-        ._foregroundStyle(.expressiveContainer)
-    )
+    .background(background)
+    .listRowInsets(rowInsets)
     .controlSize(effectiveControlSize)
     .transformEnvironment(\.style) { style in
       style = .init(mood: style.mood, intensity: .quiet, priority: .low)
@@ -121,7 +120,7 @@ public struct Infobox<Buttons: View>: View {
     .labelStyle(.titleAndIcon)
     .accessibilityElement(children: .combine)
     .accessibilityLabel(
-      Text("\(L10n.Core.accessibilityInfoSection): \(title), \(description ?? "")"))
+      Text("\(CoreL10n.accessibilityInfoSection): \(title), \(description ?? "")"))
 
     buttonSection
       .frame(alignment: .trailing)
@@ -131,7 +130,7 @@ public struct Infobox<Buttons: View>: View {
     Image.ds.feedback.info.outlined
       .renderingMode(.template)
       .resizable()
-      ._foregroundStyle(.text)
+      .foregroundStyle(.ds.text)
       .frame(width: iconSize.width, height: iconSize.height)
       .accessibilityHidden(true)
   }
@@ -140,7 +139,7 @@ public struct Infobox<Buttons: View>: View {
     Text(title)
       .textStyle(titleTextStyle)
       .fixedSize(horizontal: false, vertical: true)
-      ._foregroundStyle(.text)
+      .foregroundStyle(.ds.text)
   }
 
   @ViewBuilder
@@ -149,7 +148,7 @@ public struct Infobox<Buttons: View>: View {
       Text(description)
         .textStyle(.body.reduced.regular)
         .fixedSize(horizontal: false, vertical: true)
-        ._foregroundStyle(.text)
+        .foregroundStyle(.ds.text)
     }
   }
 
@@ -184,7 +183,7 @@ extension Infobox {
     switch effectiveControlSize {
     case .regular:
       return .title.block.small
-    @unknown default:
+    default:
       return .title.block.medium
     }
   }
@@ -206,7 +205,7 @@ extension Infobox {
     switch effectiveControlSize {
     case .large:
       size = CGSize(width: 20, height: 20)
-    @unknown default:
+    default:
       size = CGSize(width: 16, height: 16)
     }
 
@@ -224,49 +223,40 @@ extension Sequence {
   }
 }
 
-#Preview("Mood Variations") {
-  ScrollView {
-    VStack {
-      ForEach(Mood.allCases) { mood in
-        Infobox(
-          "Title",
-          description: "Description"
-        ) {
-          Button("Primary") {}
-          Button("Secondary") {}
-        }
-        .style(mood: mood)
-      }
-    }
-    .padding()
-  }
-}
-
-#Preview("SizeClass Variations") {
-  VStack {
-    Infobox("A precious bit of information")
-      .style(mood: .brand)
+#Preview("InfoBox Mood") {
+  ModifierPreview(modifier: .mood) {
     Infobox(
-      "A precious bit of information",
-      description: "More info about the impact and what to do about it."
-    )
-    .style(mood: .brand)
-    Infobox(
-      "A precious bit of information",
-      description: "More info about the impact and what to do about it."
-    )
-    .controlSize(.large)
-    .style(mood: .brand)
-    Infobox(
-      "A precious bit of information",
-      description: "More info about the impact and what to do about it."
+      "Title",
+      description: "Description"
     ) {
       Button("Primary") {}
       Button("Secondary") {}
     }
+  }
+}
+
+#Preview("InfoBox Size") {
+  ScrollView {
+    ModifierPreview(modifier: .controlSize([.regular, .large])) {
+      VStack {
+        Infobox("A precious bit of information")
+
+        Infobox(
+          "A precious bit of information",
+          description: "More info about the impact and what to do about it."
+        )
+
+        Infobox(
+          "A precious bit of information",
+          description: "More info about the impact and what to do about it."
+        ) {
+          Button("Primary") {}
+          Button("Secondary") {}
+        }
+      }
+    }
     .style(mood: .brand)
   }
-  .padding()
 }
 
 #Preview("Standard Configurations") {
@@ -282,10 +272,7 @@ extension Sequence {
         Button("Secondary") {}
       }
 
-      ForEach([ControlSize.regular, .large], id: \.self) { controlSize in
-        Infobox("Title", description: "Description")
-          .controlSize(controlSize)
-      }
+      Infobox("Title", description: "Description")
 
       Infobox("Title") {
         Button("Primary Button") {}

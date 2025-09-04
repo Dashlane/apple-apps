@@ -18,7 +18,7 @@ struct SettingsLockSectionContent: View {
           .tag(option)
       }
     }
-    .foregroundColor(.ds.text.neutral.standard)
+    .foregroundStyle(Color.ds.text.neutral.standard)
     .tint(.ds.text.neutral.quiet)
     .pickerStyle(.menu)
 
@@ -27,17 +27,13 @@ struct SettingsLockSectionContent: View {
         "",
         isPresented: $viewModel.showBusinessEnforcedAlert,
         actions: {
-          Button(CoreLocalization.L10n.Core.kwButtonOk) {
+          Button(CoreL10n.kwButtonOk) {
             withAnimation { viewModel.isLockOnExitEnabled = true }
           }
         }
       )
-      .onChange(of: viewModel.autoLockSelectedOption) { _ in
-        viewModel.updateAutoLockTimeout()
-      }
-      .onChange(of: viewModel.isLockOnExitEnabled) { _ in
-        viewModel.updateLockOnExitStatus()
-      }
+      .onChange(of: viewModel.autoLockSelectedOption) { viewModel.updateAutoLockTimeout() }
+      .onChange(of: viewModel.isLockOnExitEnabled) { viewModel.updateLockOnExitStatus() }
   }
 }
 

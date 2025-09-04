@@ -20,6 +20,7 @@ public struct PinCodeSelection: View {
     VStack(spacing: 20) {
       Text(model.current.prompt)
         .id(model.current.prompt)
+        .foregroundStyle(Color.ds.text.neutral.standard)
       PinCodeView(
         pinCode: $model.pincode, length: model.pinCodeLength, attempt: model.failedAttempts
       ) {
@@ -28,7 +29,9 @@ public struct PinCodeSelection: View {
       }
     }
     .animation(.default, value: model.current.prompt)
-    .backgroundColorIgnoringSafeArea(Color.ds.background.alternate)
+    .frame(maxWidth: .infinity, maxHeight: .infinity)
+    .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
+    .loginAppearance()
   }
 }
 
@@ -36,11 +39,11 @@ extension PinCodeSelectionViewModel.Step {
   var prompt: String {
     switch self {
     case .verify:
-      return L10n.Core.kwEnterYourPinCode
+      return CoreL10n.kwEnterYourPinCode
     case .select:
-      return L10n.Core.kwChoosePinCode
+      return CoreL10n.kwChoosePinCode
     case .confirm:
-      return L10n.Core.kwConfirmPinCode
+      return CoreL10n.kwConfirmPinCode
     }
   }
 }

@@ -13,7 +13,7 @@ public struct AutofillBanner: View {
 
   public var body: some View {
     HStack {
-      Image(asset: Asset.activateAutofillIcon)
+      Image.ds.feature.autofill.outlined
         .resizable()
         .frame(width: 20, height: 20)
       titleView
@@ -22,34 +22,29 @@ public struct AutofillBanner: View {
     .padding(.vertical, 10)
     .padding(.horizontal, 16)
     .frame(maxWidth: .infinity)
-    .foregroundColor(.ds.text.inverse.standard)
+    .foregroundStyle(Color.ds.text.inverse.standard)
     .background(.ds.container.expressive.brand.catchy.idle)
     .onTapGesture(perform: model.showAutofillDemo)
     .fiberAccessibilityElement(children: .ignore)
     .fiberAccessibilityAddTraits(.isButton)
-    .accessibilityIdentifier(L10n.Core.autofillBannerTitleNotActive)
-    .fiberAccessibilityLabel(Text(L10n.Core.credentialProviderOnboardingIntroTitle))
+    .accessibilityIdentifier(CoreL10n.autofillBannerTitleNotActive)
+    .fiberAccessibilityLabel(Text(CoreL10n.credentialProviderOnboardingIntroTitle))
   }
 
   @ViewBuilder
   var titleView: some View {
     HStack {
-      Text(L10n.Core.autofillBannerTitleNotActive)
+      Text(CoreL10n.autofillBannerTitleNotActive)
         .fixedSize(horizontal: false, vertical: true)
         .fiberAccessibilityRemoveTraits(.isStaticText)
       Spacer()
-      Text(L10n.Core.autofillBannerTitleCta)
+      Text(CoreL10n.autofillBannerTitleCta)
         .fixedSize()
         .fiberAccessibilityRemoveTraits(.isStaticText)
     }
   }
 }
 
-struct AutofillBanner_Previews: PreviewProvider {
-  static var previews: some View {
-    MultiContextPreview {
-      AutofillBanner(model: AutofillBannerViewModel.mock)
-        .previewLayout(.sizeThatFits)
-    }
-  }
+#Preview(traits: .sizeThatFitsLayout) {
+  AutofillBanner(model: AutofillBannerViewModel.mock)
 }

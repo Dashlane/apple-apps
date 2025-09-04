@@ -1,4 +1,5 @@
 import Combine
+import CoreSession
 import Foundation
 import LoginKit
 import SwiftTreats
@@ -9,12 +10,8 @@ class FastLocalSetupInAccountCreationViewModel: BiometrySettingsHandler, FastLoc
   let shouldShowMasterPasswordReset: Bool = true
 
   enum Completion {
-    case back(
-      isBiometricAuthenticationEnabled: Bool, isMasterPasswordResetEnabled: Bool,
-      isRememberMasterPasswordEnabled: Bool)
-    case next(
-      isBiometricAuthenticationEnabled: Bool, isMasterPasswordResetEnabled: Bool,
-      isRememberMasterPasswordEnabled: Bool)
+    case back(LocalConfiguration)
+    case next(LocalConfiguration)
   }
 
   private let completion: (Completion) -> Void
@@ -30,17 +27,19 @@ class FastLocalSetupInAccountCreationViewModel: BiometrySettingsHandler, FastLoc
   func next() {
     completion(
       .next(
-        isBiometricAuthenticationEnabled: isBiometricsOn,
-        isMasterPasswordResetEnabled: isMasterPasswordResetOn,
-        isRememberMasterPasswordEnabled: isRememberMasterPasswordOn))
+        LocalConfiguration(
+          isBiometricAuthenticationEnabled: isBiometricsOn,
+          isMasterPasswordResetEnabled: isMasterPasswordResetOn,
+          isRememberMasterPasswordEnabled: isRememberMasterPasswordOn)))
   }
 
   func back() {
     completion(
       .back(
-        isBiometricAuthenticationEnabled: isBiometricsOn,
-        isMasterPasswordResetEnabled: isMasterPasswordResetOn,
-        isRememberMasterPasswordEnabled: isRememberMasterPasswordOn))
+        LocalConfiguration(
+          isBiometricAuthenticationEnabled: isBiometricsOn,
+          isMasterPasswordResetEnabled: isMasterPasswordResetOn,
+          isRememberMasterPasswordEnabled: isRememberMasterPasswordOn)))
   }
 
   func markDisplay() {}

@@ -35,9 +35,9 @@ struct MyView: View {
         "Website",
         text: $website
       )
-      .textColorHighlightingMode(.url)
+      .textFieldColorHighlightingMode(.url)
     }
-    .fieldAppearance(.grouped)
+    .listStyle(.ds.insetGrouped)
     .style(isFirstNameInvalid ? .error : nil)
   }
 }

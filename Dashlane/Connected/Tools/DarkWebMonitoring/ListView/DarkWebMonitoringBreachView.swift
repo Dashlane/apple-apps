@@ -17,11 +17,9 @@ struct DarkWebMonitoringBreachView<Model: BreachViewModel>: View {
         info
       }
     }
-    .listRowInsets(EdgeInsets())
-    .padding(.leading, 16)
     .frame(maxWidth: .infinity, alignment: .leading)
-    .frame(height: 61)
     .background(Color.ds.container.agnostic.neutral.supershy)
+    .listRowInsets(.init(top: 8, leading: 16, bottom: 8, trailing: 16))
   }
 
   @ViewBuilder
@@ -30,20 +28,20 @@ struct DarkWebMonitoringBreachView<Model: BreachViewModel>: View {
       Group {
         if !model.hasBeenViewed {
           Circle()
-            .foregroundColor(.ds.text.danger.quiet)
-            .frame(width: 8, height: 9)
+            .foregroundStyle(Color.ds.text.danger.quiet)
+            .frame(width: 8, height: 8)
             .padding(4)
         }
         if model.url.displayDomain.isEmpty {
           Text(L10n.Localizable.darkWebMonitoringBreachViewDomainPlaceholder).fontWeight(
-            model.hasBeenViewed ? .regular : .bold)
+            model.hasBeenViewed ? .regular : .medium)
         } else {
           Text(model.url.displayDomain.capitalizingFirstLetter()).fontWeight(
-            model.hasBeenViewed ? .regular : .bold)
+            model.hasBeenViewed ? .regular : .medium)
         }
       }
-      .font(.body)
-      .foregroundColor(.ds.text.neutral.catchy)
+      .textStyle(.body.standard.regular)
+      .foregroundStyle(Color.ds.text.neutral.catchy)
       .lineLimit(1)
     }
   }
@@ -51,7 +49,8 @@ struct DarkWebMonitoringBreachView<Model: BreachViewModel>: View {
   @ViewBuilder
   private var info: some View {
     Text(model.displayDate)
-      .foregroundColor(.ds.text.danger.standard)
+      .foregroundStyle(Color.ds.text.danger.standard)
+      .textStyle(.body.reduced.regular)
   }
 }
 
@@ -107,7 +106,7 @@ struct DarkWebMonitoringBreachView_Previews: PreviewProvider {
         DarkWebMonitoringBreachView(model: breachAlertNonUniqueOne)
         DarkWebMonitoringBreachView(model: breachAlertNonUniqueTwo)
         DarkWebMonitoringBreachView(model: breachUnknownWebsite)
-      }
+      }.listStyle(.ds.insetGrouped)
     }
   }
 }

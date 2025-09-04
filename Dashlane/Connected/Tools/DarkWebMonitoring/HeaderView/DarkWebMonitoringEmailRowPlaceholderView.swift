@@ -7,18 +7,14 @@ struct DarkWebMonitoringEmailRowPlaceholderView: View {
   let example = "_"
 
   var body: some View {
-    HStack {
+    HStack(spacing: 12) {
       Thumbnail.User.single(nil)
-        .controlSize(.small)
       Text(example)
-        .font(.body)
-        .foregroundColor(.ds.text.neutral.quiet)
-        .padding(.leading, 16)
+        .textStyle(.body.standard.regular)
+        .foregroundStyle(Color.ds.text.neutral.quiet)
       Spacer()
     }
-    .padding(.horizontal, 16)
-    .background(Color.clear)
-    .frame(maxWidth: .infinity)
+    .frame(maxWidth: .infinity, alignment: .leading)
   }
 }
 

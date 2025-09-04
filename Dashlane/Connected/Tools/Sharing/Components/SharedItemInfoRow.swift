@@ -1,6 +1,6 @@
 import CorePersonalData
 import CoreSharing
-import DashTypes
+import CoreTypes
 import DesignSystem
 import Foundation
 import SwiftTreats
@@ -43,7 +43,7 @@ struct SharedItemInfoRow<Recipient: SharingGroupMember, Action: View>: View {
           Text(model.item.vaultItem.localizedTitle)
             .lineLimit(1)
             .font(.body)
-            .foregroundColor(.ds.text.neutral.catchy)
+            .foregroundStyle(Color.ds.text.neutral.catchy)
           if let space = model.userSpace {
             UserSpaceIcon(space: space, size: .small).equatable()
           }
@@ -52,10 +52,10 @@ struct SharedItemInfoRow<Recipient: SharingGroupMember, Action: View>: View {
         Text(model.item.vaultItem.localizedSubtitle)
           .lineLimit(1)
           .font(.caption)
-          .foregroundColor(.ds.text.neutral.quiet)
+          .foregroundStyle(Color.ds.text.neutral.quiet)
         Text(model.item.localizedStatus)
           .font(.caption)
-          .foregroundColor(.ds.text.neutral.quiet)
+          .foregroundStyle(Color.ds.text.neutral.quiet)
       }
     }
     .padding(.trailing, 16)
@@ -81,5 +81,5 @@ struct SharedItemInfoRow<Recipient: SharingGroupMember, Action: View>: View {
       }
     }
   }
-  .listAppearance(.insetGrouped)
+  .listStyle(.ds.insetGrouped)
 }

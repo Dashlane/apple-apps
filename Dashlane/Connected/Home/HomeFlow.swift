@@ -1,9 +1,9 @@
 import Combine
 import CoreLocalization
 import Foundation
-import MacrosKit
 import SwiftTreats
 import SwiftUI
+import UIDelight
 
 @ViewInit
 struct HomeFlow: View {
@@ -15,25 +15,16 @@ struct HomeFlow: View {
       .sheet(item: $viewModel.genericSheet) { sheet in
         sheet.view
       }
-      #if targetEnvironment(macCatalyst)
-        .sheet(item: $viewModel.genericFullCover) { cover in
-          NavigationView {
-            cover.view
-          }
+      .fullScreenCoverOrSheet(item: $viewModel.genericFullCover) { cover in
+        NavigationView {
+          cover.view
         }
-      #else
-        .fullScreenCover(item: $viewModel.genericFullCover) { cover in
-          NavigationView {
-            cover.view
-          }
-        }
-      #endif
+      }
       .onReceive(viewModel.deeplinkPublisher) { deeplink in
         switch deeplink {
         case let .importMethod(importDeeplink):
           self.viewModel.presentImport(for: importDeeplink)
         case let .vault(vaultDeeplink):
-          guard self.viewModel.canHandle(deepLink: vaultDeeplink) else { return }
           self.viewModel.handle(vaultDeeplink)
         case let .prefilledCredential(password):
           self.viewModel.createCredential(using: password)

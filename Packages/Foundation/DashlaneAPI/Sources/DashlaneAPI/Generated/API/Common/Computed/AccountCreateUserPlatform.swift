@@ -1,6 +1,6 @@
 import Foundation
 
-public enum AccountCreateUserPlatform: String, Sendable, Equatable, CaseIterable, Codable {
+public enum AccountCreateUserPlatform: String, Sendable, Hashable, Codable, CaseIterable {
   case serverCli = "server_cli"
   case serverMacosx = "server_macosx"
   case serverWin = "server_win"

@@ -6,24 +6,15 @@ struct SourceryPlugin: CommandPlugin {
 
   func performCommand(context: PluginContext, arguments: [String]) async throws {
     print("Package directory is \(context.package.directory)")
-    let resourceFile = "sourcery.yml"
-    let targets = context.package.targets.compactMap { $0 as? SourceModuleTarget }
-    for target in targets {
-      print("Target directory is \(target.directory)")
-      let yamlPath = target.directory
-        .appending(subpath: "Resources/")
-        .appending(resourceFile)
-      print("Looking for configuration at \(yamlPath.string)")
-      if FileManager.default.fileExists(atPath: yamlPath.string) {
-        print("Found configuration at \(yamlPath.string)")
-        let configuration = try SourceryCommandConfiguration(context: context, target: target)
-        try run(
-          tool: configuration.toolPath, arguments: ["--config", yamlPath.string, "--verbose"],
-          environment: configuration.environment)
-      } else {
-        print("Didn't find configuration file at \(yamlPath.string)")
+    let targets: [Target] = context.package.targets
+      .compactMap { $0 as? SourceModuleTarget }
+      .map {
+        Target(
+          name: $0.name,
+          basePath: $0.directory
+        )
       }
-    }
+    try Command.run(targets: targets, workDirectory: context.pluginWorkDirectory)
   }
 }
 
@@ -31,49 +22,70 @@ struct SourceryPlugin: CommandPlugin {
   import XcodeProjectPlugin
 
   extension SourceryPlugin: XcodeCommandPlugin {
+
     func performCommand(context: XcodePluginContext, arguments: [String]) throws {
       print("Launching SourceryPlugin on \(context.xcodeProject.directory)")
-      for target in context.xcodeProject.targets.filter({ Set(arguments).contains($0.displayName) })
-      {
-        guard let yaml = self.yamlPath(of: target, from: context.xcodeProject.directory) else {
-          print("Sourcery configuration was not found for \(target.displayName). Skipping")
-          continue
+      let targets: [Target] = context.xcodeProject.targets
+        .filter({ arguments.contains($0.displayName) })
+        .map {
+          Target(
+            name: $0.displayName,
+            basePath: context.xcodeProject.directory.appending(subpath: $0.displayName)
+          )
         }
-        print("Sourcery configuration found for \(target.displayName)")
-        let configuration = try SourceryCommandConfiguration(
-          yaml: yaml, context: context, target: target)
-        try run(
-          tool: configuration.toolPath,
-          arguments: ["--config", yaml.string, "--verbose", "--disableCache"],
-          environment: configuration.environment)
-      }
-    }
-
-    func yamlPath(of target: XcodeTarget, from base: PackagePlugin.Path) -> Path? {
-      for filename in ["sourcery.yml", ".sourcery.yml"] {
-        let yamlPath =
-          base
-          .appending(subpath: target.displayName)
-          .appending(filename)
-        if FileManager.default.fileExists(atPath: yamlPath.string) {
-          return yamlPath
-        }
-      }
-      return nil
+      try Command.run(targets: targets, workDirectory: context.pluginWorkDirectory)
     }
   }
 #endif
 
-protocol PluginWorkDirectoryProvider {
-  var pluginWorkDirectory: PackagePlugin.Path { get }
+struct Target {
+  let name: String
+  let basePath: Path
 }
 
-extension PluginContext: PluginWorkDirectoryProvider {}
-extension XcodePluginContext: PluginWorkDirectoryProvider {}
+enum Command {
+  static func run(targets: [Target], workDirectory: Path) throws {
+    for target in targets {
+      guard let yamlPath = self.yamlPath(at: target.basePath) else {
+        Diagnostics.remark("Sourcery configuration was not found for \(target.name). Skipping.")
+        continue
+      }
 
-extension XcodeTarget {
-  func targetPath(base: Path) -> Path {
-    return base.appending(subpath: displayName)
+      try runTool(
+        at: try sourceryPath(),
+        arguments: [
+          "--config",
+          yamlPath.string,
+          "--cacheBasePath",
+          workDirectory.string,
+          "--verbose",
+        ]
+      )
+    }
+  }
+
+  private static func yamlPath(at base: Path) -> Path? {
+    for filename in ["sourcery.yml", ".sourcery.yml"] {
+      let yamlPath =
+        base
+        .appending(filename)
+      if FileManager.default.fileExists(atPath: yamlPath.string) {
+        return yamlPath
+      }
+    }
+    return nil
+  }
+
+  private static func sourceryPath() throws -> Path {
+    let availablePaths = [
+      "/opt/homebrew/bin/sourcery",
+      "/usr/local/bin/sourcery",
+    ]
+    guard let path = availablePaths.first(where: { FileManager.default.fileExists(atPath: $0) })
+    else {
+      throw InstallError.missingSourcery
+    }
+    return Path(path)
   }
 }
 
@@ -90,74 +102,16 @@ enum InstallError: Error, CustomDebugStringConvertible {
 
 }
 
-private struct SourceryCommandConfiguration {
-  let toolPath: Path
-  let inputFilesPath: Path
-  let outputFilesPath: Path
-  let cachePath: Path
-  let configPath: Path
-  let environment: [String: String]
-
-  static var toolPath: String? {
-    let availablePaths = [
-      "/opt/homebrew/bin/sourcery",
-      "/usr/local/bin/sourcery",
-    ]
-    guard let path = availablePaths.first(where: { FileManager.default.fileExists(atPath: $0) })
-    else {
-      return nil
-    }
-    return path
-  }
-
-  init(context: PluginContext, target: Target) throws {
-    guard let path = Self.toolPath else {
-      throw InstallError.missingSourcery
-    }
-    let resourcesFolder = target.directory.appending("Resources")
-    let configFile = resourcesFolder.appending("sourcery.yml")
-    self.toolPath = Path(path)
-    self.inputFilesPath = target.directory
-    self.configPath = configFile
-    self.outputFilesPath = target.directory.appending("Generated")
-    self.cachePath = context.pluginWorkDirectory.appending("Cache")
-    self.environment = [
-      "INPUT_DIR": inputFilesPath.string,
-      "OUTPUT_DIR": outputFilesPath.string,
-      "CACHE_DIR": cachePath.string,
-    ]
-  }
-
-  init(yaml: Path, context: XcodePluginContext, target: XcodeTarget) throws {
-    guard let path = Self.toolPath else {
-      throw InstallError.missingSourcery
-    }
-    self.toolPath = Path(path)
-    let targetPath = target.targetPath(base: context.xcodeProject.directory)
-    self.inputFilesPath = targetPath
-    self.configPath = yaml
-    self.outputFilesPath = targetPath.appending("Generated")
-    self.cachePath = context.pluginWorkDirectory.appending("Cache")
-    self.environment = [
-      "INPUT_DIR": inputFilesPath.string,
-      "OUTPUT_DIR": outputFilesPath.string,
-      "CACHE_DIR": cachePath.string,
-    ]
-  }
-}
-
-func run(tool: Path, arguments: [String], environment: [String: String]) throws {
+func runTool(at tool: Path, arguments: [String]) throws {
   let task = Process()
   task.executableURL = URL(fileURLWithPath: tool.string)
   task.arguments = arguments
-  task.environment = environment
 
   print(
     """
     Executing task:
     - \(tool.string)
     - \(arguments)
-    - \(environment)
     """)
 
   try task.run()

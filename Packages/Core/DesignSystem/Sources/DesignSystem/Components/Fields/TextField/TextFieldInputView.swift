@@ -1,13 +1,15 @@
+import CoreLocalization
 import Foundation
 import SwiftUI
 
 struct TextFieldInputView: View {
-  @Environment(\.fieldLabelPersistencyDisabled) private var isLabelPersistencyDisabled
+  @Environment(\.fieldLabelHiddenOnFocus) private var isLabelPersistencyDisabled
   @Environment(\.isEnabled) private var isEnabled
-  @Environment(\.textColorHighlightingMode) private var colorHighlightingMode
+  @Environment(\.textFieldColorHighlightingMode) private var colorHighlightingMode
   @Environment(\.dynamicTypeSize) private var dynamicTypeSize
-  @Environment(\.editionDisabled) private var editionDisabled
+  @Environment(\.fieldEditionDisabled) private var editionDisabled
   @Environment(\.style.mood) private var mood
+  @Environment(\.fieldRequired) private var isRequired
 
   @ScaledMetric private var placeholderTransitionVerticalOffset = 14
   @ScaledMetric(relativeTo: .body) private var minimumHeight = 22
@@ -32,7 +34,7 @@ struct TextFieldInputView: View {
       .focused($isFocused)
       .background(placeholderView, alignment: .leadingFirstTextBaseline)
       .frame(minHeight: minimumHeight)
-      .onChange(of: shouldDisplayPlaceholder) { newValue in
+      .onChange(of: shouldDisplayPlaceholder) { _, newValue in
         let stringValue = value.wrappedValue
         let disableAnimation = !newValue && !stringValue.isEmpty
         withAnimation(disableAnimation ? nil : placeholderAnimation) {
@@ -68,7 +70,7 @@ struct TextFieldInputView: View {
 
   private var plainField: some View {
     TextField("", text: value)
-      ._foregroundStyle(.textInputValue)
+      .foregroundStyle(.textInputValue)
       .textStyle(.body.standard.regular)
       .opacity(isFocused || colorHighlightingMode == nil ? 1 : 0.001)
       .overlay(attributedTextView, alignment: .leadingFirstTextBaseline)
@@ -84,7 +86,7 @@ struct TextFieldInputView: View {
     if let placeholder, !placeholder.isEmpty {
       return Text(placeholder)
     }
-    return Text(label)
+    return Text("")
   }
 
   @ViewBuilder
@@ -139,10 +141,10 @@ private struct PreviewContent: View {
         placeholder: nil,
         value: .constant("_")
       )
-      .textColorHighlightingMode(.url)
+      .textFieldColorHighlightingMode(.url)
       .background(.ds.container.expressive.neutral.quiet.idle)
 
-      Button(action: { isFocused.toggle() }, title: "Toggle focus")
+      Button("Toggle focus") { isFocused.toggle() }
       Text(verbatim: "isFocused: \(isFocused)")
     }
   }

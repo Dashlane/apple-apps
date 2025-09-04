@@ -45,7 +45,7 @@ struct NotificationsListView: View {
         .navigationBarTitleDisplayMode(.inline)
       }
     }
-    .accentColor(.ds.text.neutral.standard)
+    .tint(.ds.text.neutral.standard)
     .onReceive(model.deepLinkPublisher, perform: handle)
   }
 
@@ -66,7 +66,7 @@ struct NotificationsListView: View {
         list
       }
     }
-    .navigationBarTitleDisplayMode(Device.isIpadOrMac ? .inline : .large)
+    .navigationBarTitleDisplayMode(Device.is(.pad, .mac, .vision) ? .inline : .large)
     .navigationTitle(L10n.Localizable.actionItemsCenterTitle)
     .reportPageAppearance(.notificationHome)
   }
@@ -79,20 +79,27 @@ struct NotificationsListView: View {
         }
       }
     }
-    .listAppearance(.insetGrouped)
+    .listStyle(.ds.insetGrouped)
   }
 
   var placeholder: some View {
-    VStack(spacing: 35) {
-      Image(asset: FiberAsset.iconNotificationLarge)
-        .foregroundColor(.ds.text.neutral.quiet)
-      Text(L10n.Localizable.actionItemCenterEmptyMessage)
-        .foregroundColor(.ds.text.neutral.standard)
+    VStack {
+      Spacer()
+
+      VStack(spacing: 24) {
+        DS.ExpressiveIcon(.ds.notification.outlined)
+          .style(mood: .neutral)
+          .controlSize(.large)
+
+        Text(L10n.Localizable.actionItemCenterEmptyMessage)
+          .foregroundStyle(Color.ds.text.neutral.quiet)
+          .multilineTextAlignment(.center)
+      }
+      .frame(maxWidth: .infinity, maxHeight: .infinity)
+      .padding(.horizontal, 40)
+
       Spacer()
     }
-    .padding(.top, 100)
-    .padding(.horizontal, 16)
-    .backgroundColorIgnoringSafeArea(.ds.background.alternate)
   }
 }
 

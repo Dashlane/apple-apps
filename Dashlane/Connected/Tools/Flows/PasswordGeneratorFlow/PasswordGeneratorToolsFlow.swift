@@ -1,6 +1,5 @@
 import CoreLocalization
 import DesignSystem
-import MacrosKit
 import SwiftUI
 import UIDelight
 import VaultKit

@@ -3,12 +3,12 @@ import CoreFeature
 import CoreLocalization
 import CorePremium
 import CoreSettings
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 import SwiftTreats
 import UIKit
+import UserTrackingFoundation
 
 public enum PremiumAnnouncement: Hashable, Comparable {
   case passwordLimitReached
@@ -80,9 +80,9 @@ public class PremiumAnnouncementsViewModel: ObservableObject, HomeAnnouncementsS
     }
 
     if days == 1 {
-      return L10n.Core.announcePremiumExpiring1DayBody
+      return CoreL10n.announcePremiumExpiring1DayBody
     } else {
-      return L10n.Core.announcePremiumExpiringNDaysBody(days)
+      return CoreL10n.announcePremiumExpiringNDaysBody(days)
     }
   }
 
@@ -255,7 +255,7 @@ public class PremiumAnnouncementsViewModel: ObservableObject, HomeAnnouncementsS
 
   func showSystemSettings() {
     let url: URL
-    if Device.isMac {
+    if Device.is(.mac) {
       url = URL(fileURLWithPath: "/System/Library/PreferencePanes/SoftwareUpdate.prefPane")
     } else {
       url = URL(string: "App-prefs:root=General")!

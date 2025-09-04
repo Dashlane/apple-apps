@@ -1,6 +1,6 @@
 import Foundation
 
-public struct SyncUploadDataRemoteKeys: Codable, Equatable, Sendable {
+public struct SyncUploadDataRemoteKeys: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case uuid = "uuid"
     case key = "key"

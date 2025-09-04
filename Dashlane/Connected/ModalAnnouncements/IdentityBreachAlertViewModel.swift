@@ -1,5 +1,5 @@
 import CoreFeature
-import DashTypes
+import CoreTypes
 import Foundation
 import SecurityDashboard
 

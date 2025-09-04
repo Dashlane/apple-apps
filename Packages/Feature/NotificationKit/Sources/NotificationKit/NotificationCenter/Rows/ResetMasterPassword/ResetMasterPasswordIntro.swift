@@ -21,10 +21,10 @@ public struct ResetMasterPasswordIntro: View {
       VStack(alignment: .leading) {
         Spacer()
         VStack(alignment: .leading, spacing: 16) {
-          Text(L10n.Core.resetMasterPasswordInterstitialTitle)
-            .font(DashlaneFont.custom(fontSize, .medium).font)
-          Text(L10n.Core.resetMasterPasswordInterstitialDescription)
-            .font(.body)
+          Text(CoreL10n.resetMasterPasswordInterstitialTitle)
+            .textStyle(.title.section.large)
+          Text(CoreL10n.resetMasterPasswordInterstitialDescription)
+            .textStyle(.body.standard.regular)
         }
         Spacer()
         buttons
@@ -33,10 +33,10 @@ public struct ResetMasterPasswordIntro: View {
       .padding()
       .toolbar {
         ToolbarItem(placement: .navigationBarLeading) {
-          Button(L10n.Core.cancel) {
+          Button(CoreL10n.cancel) {
             dismiss()
           }
-          .foregroundColor(.ds.text.brand.standard)
+          .foregroundStyle(Color.ds.text.brand.standard)
         }
       }
     }
@@ -44,11 +44,11 @@ public struct ResetMasterPasswordIntro: View {
 
   @ViewBuilder
   var buttons: some View {
-    Button(L10n.Core.resetMasterPasswordInterstitialCTA) {
+    Button(CoreL10n.resetMasterPasswordInterstitialCTA) {
       viewModel.enable()
       dismiss()
     }
-    Button(L10n.Core.resetMasterPasswordInterstitialSkip) {
+    Button(CoreL10n.resetMasterPasswordInterstitialSkip) {
       dismiss()
     }
     .style(intensity: .supershy)

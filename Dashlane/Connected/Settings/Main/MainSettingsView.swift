@@ -1,6 +1,6 @@
 import CoreLocalization
 import CoreSession
-import DashTypes
+import CoreTypes
 import DesignSystem
 import NotificationKit
 import SwiftTreats
@@ -28,6 +28,9 @@ struct MainSettingsView: View {
   @State
   private var presentedItem: Bool = false
 
+  @Environment(\.accessControl)
+  var accessControl
+
   init(viewModel: @escaping @autoclosure () -> MainSettingsViewModel) {
     self._viewModel = .init(wrappedValue: viewModel())
   }
@@ -46,42 +49,50 @@ struct MainSettingsView: View {
 
         NavigationLink(value: SettingsSubSection.general) {
           Text(L10n.Localizable.kwGeneral)
-            .foregroundColor(.ds.text.neutral.standard)
+            .foregroundStyle(Color.ds.text.neutral.standard)
             .textStyle(.body.standard.regular)
         }
 
         NavigationLink(value: SettingsSubSection.security) {
           Text(L10n.Localizable.kwSecurity)
-            .foregroundColor(.ds.text.neutral.standard)
+            .foregroundStyle(Color.ds.text.neutral.standard)
             .textStyle(.body.standard.regular)
         }
 
         NavigationLink(value: SettingsSubSection.helpCenter) {
           Text(L10n.Localizable.helpCenterTitle)
-            .foregroundColor(.ds.text.neutral.standard)
+            .foregroundStyle(Color.ds.text.neutral.standard)
             .textStyle(.body.standard.regular)
         }
       }
       .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
 
-      Section {
-        Button(
-          action: { presentedItem = true },
-          label: {
-            Text(L10n.Localizable.Mpless.D2d.trustedNavigationTitle)
-              .foregroundColor(.ds.text.neutral.standard)
-              .textStyle(.body.standard.regular)
-          }
-        )
+      if viewModel.canShowNewDevice {
+        Section {
+          Button(
+            action: {
+              accessControl.requestAccess(for: .addNewDevice) { success in
+                if success {
+                  presentedItem = true
+                }
+              }
+            },
+            label: {
+              Text(L10n.Localizable.Mpless.D2d.trustedNavigationTitle)
+                .foregroundStyle(Color.ds.text.neutral.standard)
+                .textStyle(.body.standard.regular)
+            }
+          )
+        }
+        .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
       }
-      .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
 
       Section {
         Button(
           action: { viewModel.inviteFriends() },
           label: {
             Text(L10n.Localizable.kwInviteFriends)
-              .foregroundColor(.ds.text.neutral.standard)
+              .foregroundStyle(Color.ds.text.neutral.standard)
               .textStyle(.body.standard.regular)
           }
         )
@@ -93,41 +104,33 @@ struct MainSettingsView: View {
           },
           label: {
             Text(L10n.Localizable.kwRateDashlane)
-              .foregroundColor(.ds.text.neutral.standard)
+              .foregroundStyle(Color.ds.text.neutral.standard)
               .textStyle(.body.standard.regular)
           })
-
-        if viewModel.shouldDisplayLabs {
-          NavigationLink(value: SettingsSubSection.labs) {
-            Text(L10n.Localizable.internalDashlaneLabsSettingsButton)
-              .foregroundColor(.ds.text.neutral.standard)
-              .textStyle(.body.standard.regular)
-          }
-        }
       } footer: {
-        informationFooter(display: Device.isMac)
+        informationFooter(display: Device.is(.mac))
       }
       .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
 
-      if !Device.isMac {
+      if !Device.is(.mac) {
         Section {
           Button(
             action: { viewModel.lock() },
             label: {
               Text(L10n.Localizable.kwLockNow)
-                .foregroundColor(.ds.text.neutral.standard)
+                .foregroundStyle(Color.ds.text.neutral.standard)
                 .textStyle(.body.standard.regular)
             }
           )
         } footer: {
-          informationFooter(display: !Device.isMac)
+          informationFooter(display: !Device.is(.mac))
         }
         .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
       }
     }
-    .listAppearance(.insetGrouped)
-    .navigationBarTitleDisplayMode(Device.isIpadOrMac ? .inline : .large)
-    .navigationTitle(CoreLocalization.L10n.Core.kwSettings)
+    .listStyle(.ds.insetGrouped)
+    .navigationBarTitleDisplayMode(Device.is(.pad, .mac, .vision) ? .inline : .large)
+    .navigationTitle(CoreL10n.kwSettings)
     .toolbar {
       ToolbarItem(placement: .navigationBarTrailing) {
         toolbarItemContent
@@ -145,7 +148,7 @@ struct MainSettingsView: View {
       AddNewDeviceView(model: viewModel.makeAddNewDeviceViewModel())
     }
     .reportPageAppearance(.settings)
-    .foregroundColor(.ds.text.neutral.quiet)
+    .foregroundStyle(Color.ds.text.neutral.quiet)
   }
 
   @ViewBuilder
@@ -158,8 +161,8 @@ struct MainSettingsView: View {
 
   @ViewBuilder
   private var toolbarItemContent: some View {
-    if Device.isIpadOrMac {
-      Button(CoreLocalization.L10n.Core.kwDoneButton, action: dismiss.callAsFunction)
+    if Device.is(.pad, .mac, .vision) {
+      Button(CoreL10n.kwDoneButton, action: dismiss.callAsFunction)
     }
   }
 

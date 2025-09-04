@@ -1,18 +1,19 @@
 import AutofillKit
 import Combine
-import CoreActivityLogs
 import CoreFeature
 import CorePasswords
 import CorePersonalData
 import CorePremium
 import CoreSession
 import CoreSettings
-import CoreUserTracking
-import DashTypes
+import CoreTeamAuditLogs
+import CoreTypes
 import DocumentServices
 import IconLibrary
+import LogFoundation
 import SwiftUI
 import UIComponents
+import UserTrackingFoundation
 import VaultKit
 
 @MainActor
@@ -86,7 +87,7 @@ class CredentialDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
   private let passwordEvaluator: PasswordEvaluatorProtocol
   private var subscriptions = Set<AnyCancellable>()
   private let onboardingService: OnboardingService
-  private let autofillService: AutofillService
+  private let autofillService: AutofillStateServiceProtocol
   private let domainIconLibrary: DomainIconLibraryProtocol
   private let didSaveCallback: (() -> Void)?
   private var iconTask: Task<Void, Error>?
@@ -125,14 +126,14 @@ class CredentialDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
     iconViewModelProvider: @escaping (VaultItem) -> VaultItemIconViewModel,
     deepLinkService: VaultKit.DeepLinkingServiceProtocol,
     activityReporter: ActivityReporterProtocol,
-    activityLogsService: ActivityLogsServiceProtocol,
+    teamAuditLogsService: TeamAuditLogsServiceProtocol,
     featureService: FeatureServiceProtocol,
     iconService: IconServiceProtocol,
     logger: Logger,
     userSettings: UserSettings,
     passwordEvaluator: PasswordEvaluatorProtocol,
     onboardingService: OnboardingService,
-    autofillService: AutofillService,
+    autofillService: AutofillStateServiceProtocol,
     documentStorageService: DocumentStorageService,
     pasteboardService: PasteboardServiceProtocol,
     didSave: (() -> Void)? = nil,
@@ -166,7 +167,6 @@ class CredentialDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
       passwordGeneratorViewModelFactory: passwordGeneratorViewModelFactory,
       service: .init(
         item: item,
-        canLock: session.authenticationMethod.supportsLock,
         mode: mode,
         vaultItemDatabase: vaultItemDatabase,
         vaultItemsStore: vaultItemsStore,
@@ -178,7 +178,7 @@ class CredentialDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
         documentStorageService: documentStorageService,
         deepLinkService: deepLinkService,
         activityReporter: activityReporter,
-        activityLogsService: activityLogsService,
+        teamAuditLogsService: teamAuditLogsService,
         iconViewModelProvider: iconViewModelProvider,
         attachmentSectionFactory: attachmentSectionFactory,
         logger: logger,
@@ -196,7 +196,7 @@ class CredentialDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
     iconService: IconServiceProtocol,
     passwordEvaluator: PasswordEvaluatorProtocol,
     onboardingService: OnboardingService,
-    autofillService: AutofillService,
+    autofillService: AutofillStateServiceProtocol,
     didSave: (() -> Void)? = nil,
     credentialMainSectionModelFactory: CredentialMainSectionModel.Factory,
     passwordHealthSectionModelFactory: PasswordHealthSectionModel.Factory,
@@ -226,7 +226,6 @@ class CredentialDetailViewModel: DetailViewModelProtocol, SessionServicesInjecti
     self.didSaveCallback = didSave
     self.origin = origin
     self.service = service
-
     registerServiceChanges()
     registerPublishers()
   }

@@ -57,13 +57,13 @@ struct SSOEnableBiometricsOrPinView: View {
       Image.ds.lock.outlined
         .resizable()
         .frame(width: imageSize, height: imageSize)
-        .foregroundColor(.ds.text.brand.standard)
+        .foregroundStyle(Color.ds.text.brand.standard)
       Text(titleText)
-        .font(DashlaneFont.custom(fontSize, .medium).font)
-        .foregroundColor(.ds.text.neutral.standard)
+        .textStyle(.specialty.spotlight.small)
+        .foregroundStyle(Color.ds.text.neutral.standard)
       Text(contentText)
-        .font(.body)
-        .foregroundColor(.ds.text.neutral.quiet)
+        .textStyle(.body.standard.regular)
+        .foregroundStyle(Color.ds.text.neutral.quiet)
     }
   }
 

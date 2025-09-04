@@ -36,7 +36,6 @@ class PasswordHealthSectionModel: DetailViewModelProtocol, SessionServicesInject
 
     updatePasswordHealth()
     identityDashboardService
-      .notificationManager
       .publisher(for: .securityDashboardDidRefresh)
       .receive(on: DispatchQueue.main)
       .sink { [weak self] _ in

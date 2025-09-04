@@ -46,14 +46,14 @@ public final class FileProtectionUtility: NSObject {
     NotificationCenter.default.addObserver(
       forName: UIApplication.protectedDataDidBecomeAvailableNotification, object: nil,
       queue: OperationQueue.main,
-      using: { (notification) in
+      using: { (_) in
         print("data did become available")
         self.lockState.transition(toState: .unlockNotification)
       })
     NotificationCenter.default.addObserver(
       forName: UIApplication.protectedDataWillBecomeUnavailableNotification, object: nil,
       queue: OperationQueue.main,
-      using: { (notification) in
+      using: { (_) in
         print("data will become unavailable")
         self.lockState.transition(toState: .lockNotification)
       })
@@ -72,7 +72,7 @@ public final class FileProtectionUtility: NSObject {
   }
 
   public static func checkIfProtectedDataIsAvailable(at url: URL) throws -> Bool {
-    let testData = "test".data(using: .utf8)!
+    let testData = Data("test".utf8)
     if !FileManager.default.fileExists(atPath: url.absoluteString) {
       try testData.write(to: url, options: [.completeFileProtection])
     }

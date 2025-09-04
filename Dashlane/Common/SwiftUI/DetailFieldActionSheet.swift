@@ -1,4 +1,5 @@
 import CoreLocalization
+import DesignSystemExtra
 import SwiftUI
 import UIComponents
 import VaultKit
@@ -33,7 +34,7 @@ public struct DetailFieldActionSheet: ViewModifier {
 
   @ViewBuilder
   public func body(content: Content) -> some View {
-    HStack(spacing: 4) {
+    Group {
       if detailMode.isEditing {
         content
       } else {
@@ -42,7 +43,7 @@ public struct DetailFieldActionSheet: ViewModifier {
           content
             .contextMenu {
               if self.actions.copyAction != nil {
-                Button(CoreLocalization.L10n.Core.kwCopy, action: copy)
+                Button(CoreL10n.kwCopy, action: copy)
               }
               if self.actions.hasLargeDisplay {
                 Button(
@@ -71,7 +72,7 @@ public struct DetailFieldActionSheet: ViewModifier {
       }
     }
     .overFullScreen(isPresented: $showLargeDisplay) {
-      LargeDisplayView(text: self.$text)
+      NativeLargeDisplayAlert(text)
         .onTapGesture {
           self.showLargeDisplay = false
         }
@@ -111,7 +112,7 @@ extension DetailFieldActionSheet {
   private func copyButton(action: @escaping (String, DetailFieldType) -> Void) -> ActionSheet.Button
   {
     .default(
-      Text(CoreLocalization.L10n.Core.kwCopy),
+      Text(CoreL10n.kwCopy),
       action: {
         action(self.text, self.fieldType)
       })

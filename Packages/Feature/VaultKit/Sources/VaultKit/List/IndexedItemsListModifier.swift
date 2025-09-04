@@ -7,18 +7,35 @@ import Foundation
 import SwiftTreats
 import SwiftUI
 
-struct IndexedItemsListModifier {
+extension ItemsList {
   @ViewBuilder
-  func body<RowView: View, Header: View, Footer: View>(
-    content: ItemsList<RowView, Header, Footer>,
-    shouldHideIndexes: Bool,
-    _ accessibilityPriority: Double
-  ) -> some View {
+  public func indexed(shouldHideIndexes: Bool = false, accessibilityPriority: Double = 0)
+    -> some View
+  {
+    if Device.is(.mac) {
+      self
+    } else {
+      self.modifier(
+        IndexedItemsListModifier(
+          sections: sections,
+          shouldHideIndexes: shouldHideIndexes,
+          accessibilityPriority: accessibilityPriority))
+    }
+  }
+}
+
+private struct IndexedItemsListModifier: ViewModifier {
+  let sections: [DataSection]
+  let shouldHideIndexes: Bool
+  let accessibilityPriority: Double
+
+  func body(content: Content) -> some View {
+    let shouldDisplayIndexes = sections.count > 1 && !shouldHideIndexes
     ScrollViewReader { reader in
       content
         .overlay(alignment: .trailing) {
-          if content.sections.count > 1 && !shouldHideIndexes {
-            SectionIndexes(sectionIndexes: content.sections.sortedListIndexes()) { sectionIndex in
+          if shouldDisplayIndexes {
+            SectionIndexes(sectionIndexes: sections.listIndexes) { sectionIndex in
               DispatchQueue.main.async {
                 reader.scrollTo(sectionIndex, anchor: .top)
               }
@@ -28,37 +45,25 @@ struct IndexedItemsListModifier {
           }
         }
         .accessibilityElement(children: .contain)
-    }
-  }
-}
-
-extension ItemsList {
-  @ViewBuilder
-  public func indexed(shouldHideIndexes: Bool = false, accessibilityPriority: Double = 0)
-    -> some View
-  {
-    if Device.isMac {
-      self
-    } else {
-      IndexedItemsListModifier()
-        .body(content: self, shouldHideIndexes: shouldHideIndexes, accessibilityPriority)
+        .contentMargins(.trailing, shouldDisplayIndexes ? 16 : nil)
     }
   }
 }
 
 extension Array where Element == DataSection {
-  fileprivate func sortedListIndexes() -> [Character] {
-    return Set(self.map { $0.listIndex })
-      .sorted { $0 < $1 }
+  fileprivate var listIndexes: some RandomAccessCollection<Character> {
+    return lazy.filter {
+      !$0.isSuggestedItems
+    }.map(\.listIndex)
   }
 }
 
-private struct SectionIndexes: View {
-  let sectionIndexes: [Character]
+private struct SectionIndexes<C: RandomAccessCollection<Character>>: View {
+  let sectionIndexes: C
   let select: (Character) -> Void
 
-  private let didSelect = PassthroughSubject<Character, Never>()
-  private let hapticGenerator = HapticGenerator()
+  @State private var didSelect = PassthroughSubject<Character, Never>()
+  @State private var hapticGenerator = HapticGenerator()
   private let desiredIndexSize: CGFloat = 16
   private let width: CGFloat = 16
 
@@ -69,9 +74,9 @@ private struct SectionIndexes: View {
           .font(.system(size: 11, weight: .bold, design: .monospaced))
           .minimumScaleFactor(0.7)
           .frame(height: self.desiredIndexSize, alignment: .center)
-          .foregroundColor(.ds.text.brand.quiet)
+          .foregroundStyle(Color.ds.text.brand.quiet)
           .accessibilityAddTraits(.isButton)
-          .accessibilityLabel(L10n.Core.vaultItemListSectionIndex(String(index).lowercased()))
+          .accessibilityLabel(CoreL10n.vaultItemListSectionIndex(String(index).lowercased()))
       }
     }
     .frame(width: width)
@@ -85,9 +90,9 @@ private struct SectionIndexes: View {
 
   private func updateSelection(forEvent event: DragGesture.Value) {
     let rawIndex = Int(event.location.y / self.desiredIndexSize)
-    let index = min(max(0, rawIndex), sectionIndexes.endIndex - 1)
+    let index = min(max(0, rawIndex), sectionIndexes.count - 1)
 
-    didSelect.send(sectionIndexes[index])
+    didSelect.send(sectionIndexes[sectionIndexes.index(sectionIndexes.startIndex, offsetBy: index)])
   }
 
   private func performSelect(_ selection: Character) {

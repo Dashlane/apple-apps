@@ -1,5 +1,7 @@
 import Foundation
+import LogFoundation
 
+@Loggable
 public enum DeviceTransferError: Error {
   case couldNotGenerateKeyPair
 

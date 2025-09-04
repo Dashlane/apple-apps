@@ -4,7 +4,7 @@ import CorePersonalData
 import CorePremium
 import CoreSession
 import CoreSharing
-import DashTypes
+import CoreTypes
 import DesignSystem
 import Foundation
 import VaultKit
@@ -98,7 +98,7 @@ class SharingPendingEntitiesSectionViewModel: ObservableObject, SessionServicesI
 
   func accept(_ collection: PendingCollection, toast: ToastAction) async throws {
     try await sharingService.accept(collection.collectionInfo)
-    toast(CoreLocalization.L10n.Core.sharingAcceptedMessage(collection.collectionInfo.name))
+    toast(CoreL10n.sharingAcceptedMessage(collection.collectionInfo.name))
   }
 
   func refuse(_ collection: PendingCollection) async throws {

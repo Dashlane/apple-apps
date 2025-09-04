@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppAPIClient.Features {
-  public struct ListAvailableFeatureFlips: APIRequest {
+  public struct ListAvailableFeatureFlips: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/features/ListAvailableFeatureFlips"
 
     public let api: AppAPIClient
@@ -26,12 +26,12 @@ extension AppAPIClient.Features.ListAvailableFeatureFlips {
 }
 
 extension AppAPIClient.Features.ListAvailableFeatureFlips {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case features = "features"
     }
 
-    public struct FeaturesElement: Codable, Equatable, Sendable {
+    public struct FeaturesElement: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case name = "name"
         case archived = "archived"

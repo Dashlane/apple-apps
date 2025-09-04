@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Accountrecovery {
-  public struct Deactivate: APIRequest {
+  public struct Deactivate: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/accountrecovery/Deactivate"
 
     public let api: UserDeviceAPIClient
@@ -25,12 +25,12 @@ extension UserDeviceAPIClient.Accountrecovery {
 }
 
 extension UserDeviceAPIClient.Accountrecovery.Deactivate {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case reason = "reason"
     }
 
-    public enum Reason: String, Sendable, Equatable, CaseIterable, Codable {
+    public enum Reason: String, Sendable, Hashable, Codable, CaseIterable {
       case settings = "SETTINGS"
       case keyUsed = "KEY_USED"
       case vaultKeyChange = "VAULT_KEY_CHANGE"

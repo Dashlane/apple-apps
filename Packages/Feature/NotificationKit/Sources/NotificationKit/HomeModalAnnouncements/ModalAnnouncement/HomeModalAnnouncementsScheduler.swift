@@ -1,6 +1,6 @@
 import CorePremium
 import CoreSettings
-import DashTypes
+import CoreTypes
 import Foundation
 
 public struct HomeModalAnnouncementsScheduler: HomeAnnouncementsServicesInjecting {

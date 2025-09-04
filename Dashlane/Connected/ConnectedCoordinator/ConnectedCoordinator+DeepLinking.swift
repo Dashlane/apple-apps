@@ -51,9 +51,6 @@ extension ConnectedCoordinator {
       default: break
       }
 
-    case let .token(token):
-      modalCoordinator.showSecurityTokenAlert(withToken: token)
-
     case let .mplessLogin(qrcode):
       showMpLess(withQRCode: qrcode)
 
@@ -68,7 +65,7 @@ extension ConnectedCoordinator {
     }
 
     let model = M2WFlowViewModel(initialStep: .init(origin: .init(string: origin)))
-    let navigator = DashlaneNavigationController()
+    let navigator = UINavigationController()
 
     let view = M2WFlowView(viewModel: model) { action in
       switch action {
@@ -80,7 +77,7 @@ extension ConnectedCoordinator {
       navigator.dismiss(animated: true)
     }
 
-    navigator.push(view, barStyle: .hidden(), animated: false)
+    navigator.push(view, animated: false)
     parentViewController.present(navigator, animated: true)
   }
 
@@ -88,15 +85,14 @@ extension ConnectedCoordinator {
     guard let parentViewController = window.rootViewController?.topVisibleViewController else {
       fatalError("Can't find parentViewController")
     }
-    let navigator = DashlaneNavigationController()
+    let navigator = UINavigationController()
     let planPurchaseFlowView = PurchaseFlowView(
       model: .init(
         initialView: initialView, planPurchaseServices: sessionServices.makePlanPurchaseServices())
     ) { _ in
       navigator.dismiss(animated: true)
     }
-    navigator.push(
-      planPurchaseFlowView, barStyle: .default(largeTitleMode: .never), animated: false)
+    navigator.push(planPurchaseFlowView, animated: false)
     parentViewController.present(navigator, animated: true)
   }
 
@@ -104,11 +100,10 @@ extension ConnectedCoordinator {
     guard let parentViewController = window.rootViewController?.topVisibleViewController else {
       fatalError("Can't find parentViewController")
     }
-    let navigator = DashlaneNavigationController()
-    let addNewDeviceView = AddNewDeviceView(
-      model: self.sessionServices.viewModelFactory.makeAddNewDeviceViewModel(
-        qrCodeViaSystemCamera: qrcode))
-    navigator.push(addNewDeviceView, barStyle: .transparent(), animated: false)
+    let navigator = UINavigationController()
+    let addNewDeviceView = AddNewDeviceAlertView(
+      model: self.sessionServices.viewModelFactory.makeAddNewDeviceAlertViewModel(qrCode: qrcode))
+    navigator.push(addNewDeviceView, animated: false)
     parentViewController.present(UIHostingController(rootView: addNewDeviceView), animated: true)
   }
 }

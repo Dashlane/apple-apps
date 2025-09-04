@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Devices {
-  public struct ListDevices: APIRequest {
+  public struct ListDevices: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/devices/ListDevices"
 
     public let api: UserDeviceAPIClient
@@ -26,13 +26,13 @@ extension UserDeviceAPIClient.Devices.ListDevices {
 }
 
 extension UserDeviceAPIClient.Devices.ListDevices {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case pairingGroups = "pairingGroups"
       case devices = "devices"
     }
 
-    public struct PairingGroupsElement: Codable, Equatable, Sendable {
+    public struct PairingGroupsElement: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case pairingGroupUUID = "pairingGroupUUID"
         case name = "name"
@@ -68,7 +68,7 @@ extension UserDeviceAPIClient.Devices.ListDevices {
       }
     }
 
-    public struct DevicesElement: Codable, Equatable, Sendable {
+    public struct DevicesElement: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case deviceId = "deviceId"
         case deviceName = "deviceName"

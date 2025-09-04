@@ -1,11 +1,11 @@
 import Combine
 import CoreLocalization
-import CoreUserTracking
 import DesignSystem
 import NotificationKit
 import SwiftTreats
 import SwiftUI
 import UIKit
+import UserTrackingFoundation
 import VaultKit
 
 struct VaultListView: View {
@@ -28,19 +28,9 @@ struct VaultListView: View {
         VaultItemsList(model: model.itemsListViewModel)
       }
     )
-    .navigationTitle(
-      title ?? model.activeFilter?.title ?? CoreLocalization.L10n.Core.mainMenuHomePage
-    )
+    .navigationTitle(title ?? model.activeFilter?.title ?? CoreL10n.mainMenuHomePage)
     .reportPageAppearance(model.activeFilter.page)
     .navigationBarTitleDisplayMode(.inline)
-  }
-}
-
-struct VaultListView_Previews: PreviewProvider {
-  static var previews: some View {
-    Group {
-      VaultListView(model: .mock)
-    }
   }
 }
 
@@ -61,6 +51,12 @@ extension ItemCategory? {
       return .homeIds
     case .secrets:
       return .homeSecureNotes
+    case .wifi:
+      return .homeSecureNotes
     }
   }
+}
+
+#Preview {
+  VaultListView(model: .mock)
 }

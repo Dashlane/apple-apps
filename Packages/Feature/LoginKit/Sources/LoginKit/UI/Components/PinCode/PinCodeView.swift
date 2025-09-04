@@ -41,22 +41,19 @@ public struct PinCodeView: View {
       VStack(spacing: 16) {
         HStack(spacing: 29) {
           ForEach(1...length, id: \.self) { value in
+            let strokeColor: Color =
+              pinCode.count >= value ? .ds.text.neutral.standard : .ds.border.neutral.standard.idle
+            let fillColor: Color = pinCode.count >= value ? .ds.text.neutral.standard : .clear
+
             Circle()
-              .stroke(Color.ds.border.neutral.standard.idle, lineWidth: 1)
+              .stroke(strokeColor, lineWidth: 1)
+              .fill(fillColor)
               .frame(width: 12, height: 12)
-              .background(
-                ZStack {
-                  if self.pinCode.count >= value {
-                    Circle()
-                      .fill(Color.ds.text.neutral.standard)
-                  }
-                }
-              )
           }
         }
         .shakeAnimation(forNumberOfAttempts: attempt)
         Text(errorMessage)
-          .foregroundColor(.ds.text.danger.quiet)
+          .foregroundStyle(Color.ds.text.danger.quiet)
           .font(.body)
           .multilineTextAlignment(.center)
       }
@@ -107,13 +104,13 @@ public struct PinCodeView: View {
   var cancelButton: some View {
     PinButton(
       action: cancelAction,
-      title: L10n.Core.cancel,
+      title: CoreL10n.cancel,
       fillColor: .clear,
       highlightColor: .clear
     )
     .keyboardShortcut(KeyEquivalent.escape, modifiers: [])
     .font(.caption)
-    .foregroundColor(.ds.text.neutral.standard)
+    .foregroundStyle(Color.ds.text.neutral.standard)
   }
 
   var deleteButton: some View {
@@ -122,9 +119,9 @@ public struct PinCodeView: View {
         if !self.pinCode.isEmpty {
           _ = self.pinCode.removeLast()
         }
-      }, title: L10n.Core.kwDelete, fillColor: .clear, highlightColor: .clear
+      }, title: CoreL10n.kwDelete, fillColor: .clear, highlightColor: .clear
     ).font(.caption)
-      .foregroundColor(.ds.text.neutral.standard)
+      .foregroundStyle(Color.ds.text.neutral.standard)
       .keyboardShortcut(KeyEquivalent.return, modifiers: [])
   }
 

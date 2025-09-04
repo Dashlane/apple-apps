@@ -14,8 +14,8 @@ public struct HashedAuthenticationCodeProducer: AuthenticationCodeProducer {
     let hashBytes = UnsafeMutablePointer<UInt8>.allocate(capacity: variant.digestLength)
     defer { hashBytes.deallocate() }
 
-    data.withUnsafeBytes { dataBytes -> Void in
-      key.withUnsafeBytes { keyBytes -> Void in
+    data.withUnsafeBytes { dataBytes in
+      key.withUnsafeBytes { keyBytes in
         CCHmac(
           variant.hmacAlgorithm, keyBytes.baseAddress, key.count, dataBytes.baseAddress, data.count,
           hashBytes)

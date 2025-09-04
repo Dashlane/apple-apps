@@ -1,6 +1,6 @@
 import CorePersonalData
-import CoreUserTracking
 import Foundation
+import UserTrackingFoundation
 
 extension VaultItem {
   public var vaultItemType: Definition.ItemType {
@@ -16,7 +16,7 @@ extension VaultItem {
     case .creditCard:
       return .creditCard
     case .drivingLicence:
-      return .driverLicence
+      return .driverLicense
     case .email:
       return .email
     case .fiscalInformation:
@@ -38,7 +38,9 @@ extension VaultItem {
     case .passkey:
       return .passkey
     case .secret:
-      return .secureNote
+      return .secret
+    case .wifi:
+      return .wifi
     }
   }
 }

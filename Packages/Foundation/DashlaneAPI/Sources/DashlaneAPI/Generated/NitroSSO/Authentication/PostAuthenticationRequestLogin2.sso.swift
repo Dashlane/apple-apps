@@ -1,7 +1,7 @@
 import Foundation
 
 extension SecureNitroSSOAPIClient.Authentication {
-  public struct RequestLogin2: APIRequest {
+  public struct RequestLogin2: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/authentication/RequestLogin2"
 
     public let api: SecureNitroSSOAPIClient
@@ -23,7 +23,7 @@ extension SecureNitroSSOAPIClient.Authentication {
 }
 
 extension SecureNitroSSOAPIClient.Authentication.RequestLogin2 {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case login = "login"
     }
@@ -42,7 +42,7 @@ extension SecureNitroSSOAPIClient.Authentication.RequestLogin2 {
 }
 
 extension SecureNitroSSOAPIClient.Authentication.RequestLogin2 {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case domainName = "domainName"
       case idpAuthorizeUrl = "idpAuthorizeUrl"

@@ -1,5 +1,6 @@
-import CoreUserTracking
+import CorePersonalData
 import Foundation
+import UserTrackingFoundation
 import VaultKit
 
 enum VaultListCompletion {

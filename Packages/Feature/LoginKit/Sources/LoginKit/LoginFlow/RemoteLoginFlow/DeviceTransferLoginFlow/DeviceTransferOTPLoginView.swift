@@ -1,147 +1,139 @@
-#if canImport(UIKit)
-  import Foundation
-  import SwiftUI
-  import UIComponents
-  import CoreLocalization
-  import CoreSession
-  import CoreNetworking
-  import DashTypes
-  import CoreUserTracking
+import CoreLocalization
+import CoreNetworking
+import CoreSession
+import CoreTypes
+import DesignSystemExtra
+import Foundation
+import SwiftUI
+import UserTrackingFoundation
 
-  struct DeviceTransferOTPLoginView: View {
+struct DeviceTransferOTPLoginView: View {
 
-    @Environment(\.dismiss)
-    var dismiss
+  @Environment(\.dismiss)
+  var dismiss
 
-    @StateObject
-    var viewModel: DeviceTransferOTPLoginViewModel
+  @StateObject
+  var viewModel: DeviceTransferOTPLoginViewModel
 
-    @FocusState
-    var isTextFieldFocused: Bool
+  @FocusState
+  var isTextFieldFocused: Bool
 
-    @State
-    var isLostOTPSheetDisplayed = false
+  @State
+  var isLostOTPSheetDisplayed = false
 
-    @Binding
-    var progressState: ProgressionState
+  @Binding
+  var progressState: ProgressionState
 
-    public init(
-      viewModel: @autoclosure @escaping () -> DeviceTransferOTPLoginViewModel,
-      progressState: Binding<ProgressionState>
-    ) {
-      self._viewModel = .init(wrappedValue: viewModel())
-      _progressState = progressState
-    }
+  public init(
+    viewModel: @autoclosure @escaping () -> DeviceTransferOTPLoginViewModel,
+    progressState: Binding<ProgressionState>
+  ) {
+    self._viewModel = .init(wrappedValue: viewModel())
+    _progressState = progressState
+  }
 
-    var body: some View {
-      ZStack {
-        if viewModel.inProgress {
-          ProgressionView(state: $progressState)
-        } else {
-          twoFAView
-        }
-      }.animation(.default, value: viewModel.showPushView)
-        .padding(24)
-        .navigationBarStyle(.transparent)
-        .navigationBarBackButtonHidden()
-        .loginAppearance()
+  var body: some View {
+    ZStack {
+      if viewModel.inProgress {
+        LottieProgressionFeedbacksView(state: progressState)
+      } else {
+        twoFAView
+      }
+    }.animation(.default, value: viewModel.showPushView)
+      .padding(24)
+      .navigationBarBackButtonHidden()
+      .loginAppearance()
 
-    }
+  }
 
-    var twoFAView: some View {
-      ZStack {
-        totpView
-        if viewModel.showPushView {
-          pushView
-            .onAppear {
-              Task {
-                try await viewModel.sendPush()
-              }
+  var twoFAView: some View {
+    ZStack {
+      totpView
+      if viewModel.showPushView {
+        pushView
+          .onAppear {
+            Task {
+              await viewModel.sendPush()
             }
-        }
-      }
-      .toolbar {
-        ToolbarItem(placement: .navigationBarLeading) {
-          NavigationBarButton(L10n.Core.cancel) {
-            viewModel.completion(.cancel)
           }
-        }
-        ToolbarItem(placement: .navigationBarTrailing) {
-          NavigationBarButton(L10n.Core.next) {
-            viewModel.validate()
-          }.disabled(!viewModel.canValidate)
-        }
       }
     }
-    var pushView: some View {
-      ZStack {
-        ProgressionView(state: $viewModel.state)
-        twoFAButton
+    .toolbar {
+      ToolbarItem(placement: .navigationBarLeading) {
+        Button(CoreL10n.cancel) {
+          viewModel.completion(.cancel)
+        }
+      }
+      ToolbarItem(placement: .navigationBarTrailing) {
+        Button(CoreL10n.next) {
+          viewModel.validate()
+        }.disabled(!viewModel.canValidate)
       }
     }
+  }
+  var pushView: some View {
+    ZStack {
+      LottieProgressionFeedbacksView(state: viewModel.state)
+      twoFAButton
+    }
+  }
 
-    var twoFAButton: some View {
-      VStack {
-        Spacer()
+  var twoFAButton: some View {
+    VStack {
+      Spacer()
+      Button(
+        CoreL10n.deviceToDevicePushFallbackCta,
+        action: {
+          viewModel.showPushView = false
+        })
+    }
+  }
+  @ViewBuilder
+  private var totpView: some View {
+    VStack(alignment: .leading, spacing: 24) {
+      Text(CoreL10n.kwOtpMessage)
+        .foregroundStyle(Color.ds.text.neutral.catchy)
+        .textStyle(.title.section.medium)
+        .multilineTextAlignment(.leading)
+      OTPInputField(otp: $viewModel.otpValue)
+        .fixedSize(horizontal: false, vertical: true)
+      HStack {
         Button(
-          L10n.Core.deviceToDevicePushFallbackCta,
           action: {
-            viewModel.showPushView = false
+            isLostOTPSheetDisplayed = true
+          },
+          label: {
+            Text(CoreL10n.otpRecoveryCannotAccessCodes)
+              .font(.subheadline.weight(.medium))
+              .foregroundStyle(Color.ds.text.neutral.standard)
+              .underline()
           })
-      }
-    }
-    @ViewBuilder
-    private var totpView: some View {
-      VStack(alignment: .leading, spacing: 24) {
-        Text(L10n.Core.kwOtpMessage)
-          .foregroundColor(.ds.text.neutral.catchy)
-          .font(.custom(GTWalsheimPro.bold.name, size: 26, relativeTo: .title))
-          .multilineTextAlignment(.leading)
-        OTPField(otp: $viewModel.otpValue)
-          .otpFieldStyle(backgroundColor: .ds.container.agnostic.neutral.standard)
-          .fixedSize(horizontal: false, vertical: true)
-        HStack {
-          Button(
-            action: {
-              isLostOTPSheetDisplayed = true
-            },
-            label: {
-              Text(L10n.Core.otpRecoveryCannotAccessCodes)
-                .font(.subheadline.weight(.medium))
-                .foregroundColor(.ds.text.neutral.standard)
-                .underline()
-            })
-          Spacer()
-        }
         Spacer()
-      }.background(.ds.background.alternate)
-        .navigationBarStyle(.transparent)
-        .modifier(
-          LostOTPSheetModifier(
-            isLostOTPSheetDisplayed: $isLostOTPSheetDisplayed,
-            useBackupCode: { viewModel.useBackupCode($0) },
-            lostOTPSheetViewModel: viewModel.lostOTPSheetViewModel))
+      }
+      Spacer()
     }
-
+    .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
+    .modifier(
+      LostOTPSheetModifier(
+        isLostOTPSheetDisplayed: $isLostOTPSheetDisplayed,
+        useBackupCode: { viewModel.useBackupCode($0) },
+        lostOTPSheetViewModel: viewModel.lostOTPSheetViewModel))
   }
 
-  struct DeviceToDeviceOTPLoginView_Previews: PreviewProvider {
-    static var previews: some View {
-      DeviceTransferOTPLoginView(
-        viewModel: DeviceTransferOTPLoginViewModel(
-          initialState: .initialize(nil),
-          login: Login("_"),
-          option: .totp,
-          activityReporter: .mock,
-          appAPIClient: .fake,
-          thirdPartyOTPLoginStateMachineFactory: .init({ _, _, _ in
-            .mock(option: .totp)
-          }),
-          completion: { _ in }
-        ),
-        progressState: .constant(.inProgress(""))
-      )
-    }
-  }
+}
 
-#endif
+struct DeviceToDeviceOTPLoginView_Previews: PreviewProvider {
+  static var previews: some View {
+    DeviceTransferOTPLoginView(
+      viewModel: DeviceTransferOTPLoginViewModel(
+        stateMachine: .mock(option: .totp),
+        login: Login("_"),
+        option: .totp,
+        activityReporter: .mock,
+        appAPIClient: .fake,
+        completion: { _ in }
+      ),
+      progressState: .constant(.inProgress(""))
+    )
+  }
+}

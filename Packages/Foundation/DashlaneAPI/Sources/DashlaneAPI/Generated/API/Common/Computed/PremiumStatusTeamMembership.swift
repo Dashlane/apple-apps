@@ -1,6 +1,6 @@
 import Foundation
 
-public struct PremiumStatusTeamMembership: Codable, Equatable, Sendable {
+public struct PremiumStatusTeamMembership: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case teamAdmins = "teamAdmins"
     case billingAdmins = "billingAdmins"

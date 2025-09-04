@@ -1,5 +1,5 @@
 import CorePersonalData
-import DashTypes
+import CoreTypes
 import Foundation
 
 public enum VaultDeeplink {
@@ -35,6 +35,7 @@ public enum VaultDeepLinkComponent: String {
   case items
   case wallet
   case passkey
+  case wifi
 
   public var type: VaultItem.Type {
     switch self {
@@ -54,6 +55,7 @@ public enum VaultDeepLinkComponent: String {
     case .socialSecurityNumber: return SocialSecurityInformation.self
     case .fiscal: return FiscalInformation.self
     case .secret: return Secret.self
+    case .wifi: return WiFi.self
     default: return Credential.self
     }
   }
@@ -176,6 +178,8 @@ extension VaultItem {
       return .init(identifier: item.id, component: .driverLicense)
     case let .passkey(item):
       return .init(identifier: item.id, component: .passkey)
+    case let .wifi(item):
+      return .init(identifier: item.id, component: .wifi)
     }
   }
 }
@@ -189,6 +193,7 @@ extension ItemCategory {
     case .secureNotes: return .secureNote
     case .personalInfo: return .personalInfo
     case .secrets: return .secret
+    case .wifi: return .wifi
     }
   }
 }
@@ -208,5 +213,34 @@ extension VaultDeeplink {
       let edit = useEditMode ? "/edit" : ""
       return "\(item)\(item.id.bracketLessIdentifier.rawValue)\(edit)"
     }
+  }
+}
+
+extension VaultDeeplink {
+  public static func createURL(for itemType: VaultItem.Type) -> URL? {
+    let component: VaultDeepLinkComponent = {
+      switch itemType {
+      case is Address.Type: return .address
+      case is BankAccount.Type: return .bankAccount
+      case is Company.Type: return .company
+      case is Credential.Type: return .credential
+      case is CreditCard.Type: return .creditCard
+      case is DrivingLicence.Type: return .driverLicense
+      case is CorePersonalData.Email.Type: return .email
+      case is FiscalInformation.Type: return .fiscal
+      case is IDCard.Type: return .identityCards
+      case is Identity.Type: return .identity
+      case is Passport.Type: return .passports
+      case is Phone.Type: return .phone
+      case is Secret.Type: return .secret
+      case is SecureNote.Type: return .secureNote
+      case is PersonalWebsite.Type: return .personalWebsite
+      default: return .credential
+      }
+    }()
+
+    let deeplink = VaultDeeplink.create(component)
+    let urlString = "dashlane:///" + deeplink.rawDeeplink
+    return URL(string: urlString)
   }
 }

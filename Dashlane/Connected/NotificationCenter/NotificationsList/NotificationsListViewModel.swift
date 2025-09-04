@@ -5,10 +5,10 @@ import CorePremium
 import CoreSession
 import CoreSettings
 import CoreSync
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import Foundation
 import LoginKit
+import UserTrackingFoundation
 
 class NotificationsListViewModel: ObservableObject, SessionServicesInjecting {
   @Published
@@ -136,7 +136,7 @@ extension NotificationsListViewModel {
       lockService: LockServiceMock(),
       userSpacesService: MockServicesContainer().userSpacesService,
       abtestService: ABTestingServiceMock.mock,
-      keychainService: .fake,
+      keychainService: .mock,
       featureService: .mock(),
       notificationCenterService: NotificationCenterService.mock,
       identityDashboardService: IdentityDashboardService.mock,

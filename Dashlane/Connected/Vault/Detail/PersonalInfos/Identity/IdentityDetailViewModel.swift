@@ -1,15 +1,16 @@
 import Combine
-import CoreActivityLogs
 import CoreFeature
 import CorePersonalData
 import CorePremium
 import CoreSession
 import CoreSettings
-import CoreUserTracking
-import DashTypes
+import CoreTeamAuditLogs
+import CoreTypes
 import DocumentServices
 import Foundation
+import LogFoundation
 import UIComponents
+import UserTrackingFoundation
 import VaultKit
 
 class IdentityDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting,
@@ -34,7 +35,7 @@ class IdentityDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting
     documentStorageService: DocumentStorageService,
     deepLinkService: VaultKit.DeepLinkingServiceProtocol,
     activityReporter: ActivityReporterProtocol,
-    activityLogsService: ActivityLogsServiceProtocol,
+    teamAuditLogsService: TeamAuditLogsServiceProtocol,
     iconViewModelProvider: @escaping (VaultItem) -> VaultItemIconViewModel,
     logger: Logger,
     userSettings: UserSettings,
@@ -44,7 +45,6 @@ class IdentityDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting
     self.init(
       service: .init(
         item: item,
-        canLock: session.authenticationMethod.supportsLock,
         mode: mode,
         vaultItemDatabase: vaultItemDatabase,
         vaultItemsStore: vaultItemsStore,
@@ -56,7 +56,7 @@ class IdentityDetailViewModel: DetailViewModelProtocol, SessionServicesInjecting
         documentStorageService: documentStorageService,
         deepLinkService: deepLinkService,
         activityReporter: activityReporter,
-        activityLogsService: activityLogsService,
+        teamAuditLogsService: teamAuditLogsService,
         iconViewModelProvider: iconViewModelProvider,
         attachmentSectionFactory: attachmentSectionFactory,
         logger: logger,

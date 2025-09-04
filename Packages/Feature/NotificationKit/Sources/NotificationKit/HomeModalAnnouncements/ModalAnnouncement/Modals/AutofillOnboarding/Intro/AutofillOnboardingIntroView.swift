@@ -1,9 +1,11 @@
 import CoreLocalization
-import CoreUserTracking
 import DesignSystem
+import Lottie
 import SwiftUI
+import SwiftUILottie
 import UIComponents
 import UIDelight
+import UserTrackingFoundation
 
 struct AutofillOnboardingIntroView: View {
   let model: AutofillOnboardingIntroViewModel
@@ -21,21 +23,21 @@ struct AutofillOnboardingIntroView: View {
       TabView(selection: $selection) {
         pageView(
           for: .lottie(.autofillBannerTutorial),
-          title: L10n.Core.autofillDemoFieldsLoginTitle,
-          message: L10n.Core.autofillDemoFieldsLoginText
+          title: CoreL10n.autofillDemoFieldsLoginTitle,
+          message: CoreL10n.autofillDemoFieldsLoginText
         )
         .tag(AutofillTutorialPage.login)
         pageView(
-          for: .image(Asset.autofillTutorialGenerate),
-          title: L10n.Core.autofillDemoFieldsGenerateTitle,
-          message: L10n.Core.autofillDemoFieldsGenerateText
+          for: .image(Image(.autofillTutorialGenerate)),
+          title: CoreL10n.autofillDemoFieldsGenerateTitle,
+          message: CoreL10n.autofillDemoFieldsGenerateText
         )
         .tag(AutofillTutorialPage.generatePasswords)
         if model.shouldShowSync {
           pageView(
-            for: .image(Asset.autofillTutorialSync),
-            title: L10n.Core.autofillDemoFieldsSyncTitle,
-            message: L10n.Core.autofillDemoFieldsSyncText
+            for: .image(Image(.autofillTutorialSync)),
+            title: CoreL10n.autofillDemoFieldsSyncTitle,
+            message: CoreL10n.autofillDemoFieldsSyncText
           )
           .tag(AutofillTutorialPage.sync)
 
@@ -43,7 +45,7 @@ struct AutofillOnboardingIntroView: View {
       }
       .tabViewStyle(PageTabViewStyle(indexDisplayMode: .always))
 
-      Button(L10n.Core.autofillDemoFieldsAction) {
+      Button(CoreL10n.autofillDemoFieldsAction) {
         model.action()
       }
       .buttonStyle(.designSystem(.titleOnly))
@@ -58,21 +60,21 @@ struct AutofillOnboardingIntroView: View {
     }
     .toolbar {
       ToolbarItem(placement: .navigationBarLeading) {
-        NavigationBarButton(L10n.Core.kwButtonClose) {
+        Button(CoreL10n.kwButtonClose) {
           model.dismiss()
         }
-        .foregroundColor(.ds.text.neutral.catchy)
+        .foregroundStyle(Color.ds.text.neutral.catchy)
       }
     }
-    .onChange(of: selection) { selectedPageIndex in
+    .onChange(of: selection) { _, selectedPageIndex in
       model.report(page: selectedPageIndex)
     }
     .navigationBarBackButtonHidden(true)
-    .backgroundColorIgnoringSafeArea(.ds.background.alternate)
+    .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
   }
 
   enum ItemAsset {
-    case image(ImageAsset)
+    case image(Image)
     case lottie(LottieAsset)
   }
 
@@ -80,7 +82,7 @@ struct AutofillOnboardingIntroView: View {
   func view(for asset: ItemAsset) -> some View {
     switch asset {
     case .image(let image):
-      Image(asset: image)
+      image
     case .lottie(let lottie):
       LottieView(lottie)
         .frame(width: 375, height: 229)
@@ -95,15 +97,15 @@ struct AutofillOnboardingIntroView: View {
         view(for: asset)
           .padding(.bottom, 20)
         Text(title)
-          .font(DashlaneFont.custom(26, .bold).font)
+          .textStyle(.specialty.spotlight.medium)
           .multilineTextAlignment(.center)
-          .foregroundColor(.ds.text.neutral.catchy)
+          .foregroundStyle(Color.ds.text.neutral.catchy)
           .fixedSize(horizontal: false, vertical: true)
           .padding(.horizontal, 24)
         Text(message)
           .multilineTextAlignment(.center)
-          .font(.body)
-          .foregroundColor(.ds.text.neutral.standard)
+          .textStyle(.specialty.spotlight.small)
+          .foregroundStyle(Color.ds.text.neutral.standard)
           .fixedSize(horizontal: false, vertical: true)
           .padding(.horizontal, 24)
         Spacer()
@@ -112,11 +114,7 @@ struct AutofillOnboardingIntroView: View {
   }
 }
 
-struct AutofillOnboardingIntroView_Previews: PreviewProvider {
-  static var previews: some View {
-    MultiContextPreview {
-      AutofillOnboardingIntroView(
-        model: .init(shouldShowSync: true, activityReporter: .mock, action: {}, dismiss: {}))
-    }
-  }
+#Preview {
+  AutofillOnboardingIntroView(
+    model: .init(shouldShowSync: true, activityReporter: .mock, action: {}, dismiss: {}))
 }

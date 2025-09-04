@@ -1,13 +1,13 @@
 import Foundation
 
-public struct PaymentsAccessibleStoreOffersInfo2: Codable, Equatable, Sendable {
+public struct PaymentsAccessibleStoreOffersInfo2: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case reason = "reason"
   }
 
-  public let reason: PaymentsAccessibleStoreOffersReason2?
+  public let reason: PaymentsAccessibleStoreOffersReason?
 
-  public init(reason: PaymentsAccessibleStoreOffersReason2? = nil) {
+  public init(reason: PaymentsAccessibleStoreOffersReason? = nil) {
     self.reason = reason
   }
 

@@ -1,6 +1,11 @@
 import Foundation
 import SwiftUI
 
+@available(
+  *, deprecated,
+  message:
+    "Use View.alert(_:isPresented:presenting:actions:) instead. Alert content should be created by view layer."
+)
 public struct AlertContent: Identifiable {
   public enum ButtonsConfiguration {
     public struct Button {
@@ -35,6 +40,7 @@ public struct AlertContent: Identifiable {
 }
 
 extension View {
+  @available(*, deprecated, message: "Use View.alert(_:isPresented:presenting:actions:) instead.")
   @ViewBuilder
   public func alert(presenting alertContent: Binding<AlertContent?>) -> some View {
     self.alert(

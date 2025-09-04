@@ -3,7 +3,7 @@ import CorePersonalData
 import CorePremium
 import CoreSession
 import CoreSharing
-import DashTypes
+import CoreTypes
 import Foundation
 import VaultKit
 

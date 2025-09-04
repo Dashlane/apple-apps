@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppAPIClient.SecretTransfer {
-  public struct RequestTransfer: APIRequest {
+  public struct RequestTransfer: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/secretTransfer/RequestTransfer"
 
     public let api: AppAPIClient
@@ -24,27 +24,16 @@ extension AppAPIClient.SecretTransfer {
 }
 
 extension AppAPIClient.SecretTransfer.RequestTransfer {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case transfer = "transfer"
     }
 
-    public struct Transfer: Codable, Equatable, Sendable {
+    public struct Transfer: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case transferType = "transferType"
         case receiverDeviceName = "receiverDeviceName"
         case login = "login"
-      }
-
-      public enum TransferType: String, Sendable, Equatable, CaseIterable, Codable {
-        case proximity = "proximity"
-        case universal = "universal"
-        case undecodable
-        public init(from decoder: Decoder) throws {
-          let container = try decoder.singleValueContainer()
-          let rawValue = try container.decode(String.self)
-          self = Self(rawValue: rawValue) ?? .undecodable
-        }
       }
 
       public let transferType: SecretTransfertransfertype
@@ -81,7 +70,7 @@ extension AppAPIClient.SecretTransfer.RequestTransfer {
 }
 
 extension AppAPIClient.SecretTransfer.RequestTransfer {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case transferId = "transferId"
       case expireDateUnix = "expireDateUnix"

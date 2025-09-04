@@ -1,4 +1,4 @@
-import DashTypes
+import CoreTypes
 import Foundation
 import SecurityDashboard
 
@@ -14,7 +14,7 @@ class DataLeakMonitoringAddEmailViewModel: ObservableObject, SessionServicesInje
   @Published
   var isRegisteringEmail = false
 
-  let dataLeakService: DataLeakMonitoringRegisterServiceProtocol
+  let dataLeakService: IdentityDashboardServiceProtocol
 
   enum Step {
     case enterEmail
@@ -26,7 +26,7 @@ class DataLeakMonitoringAddEmailViewModel: ObservableObject, SessionServicesInje
 
   init(
     login: Login,
-    dataLeakService: DataLeakMonitoringRegisterServiceProtocol
+    dataLeakService: IdentityDashboardServiceProtocol
   ) {
     self.dataLeakService = dataLeakService
     let monitoredEmails = dataLeakService.monitoredEmails.map({ $0.email })
@@ -68,6 +68,6 @@ extension DataLeakMonitoringAddEmailViewModel {
   static var mock: DataLeakMonitoringAddEmailViewModel {
     return .init(
       login: Login("_"),
-      dataLeakService: DataLeakMonitoringRegisterService.mock)
+      dataLeakService: IdentityDashboardService.mock)
   }
 }

@@ -19,7 +19,7 @@ struct DetailDebugInfoSection: View {
       Button {
         isDebugInfoShown = true
       } label: {
-        Text(L10n.Core.debugInfoTitle)
+        Text(CoreL10n.debugInfoTitle)
       }
       .buttonStyle(DetailRowButtonStyle())
     }

@@ -1,6 +1,6 @@
 import Foundation
 
-public struct ItemGroupDownload: Codable, Equatable, Sendable {
+public struct ItemGroupDownload: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case groupId = "groupId"
     case revision = "revision"
@@ -12,7 +12,7 @@ public struct ItemGroupDownload: Codable, Equatable, Sendable {
     case users = "users"
   }
 
-  public enum `Type`: String, Sendable, Equatable, CaseIterable, Codable {
+  public enum `Type`: String, Sendable, Hashable, Codable, CaseIterable {
     case items = "items"
     case userGroupKeys = "userGroupKeys"
     case undecodable
@@ -23,7 +23,7 @@ public struct ItemGroupDownload: Codable, Equatable, Sendable {
     }
   }
 
-  public struct CollectionsElement: Codable, Equatable, Sendable {
+  public struct CollectionsElement: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case uuid = "uuid"
       case name = "name"
@@ -72,7 +72,7 @@ public struct ItemGroupDownload: Codable, Equatable, Sendable {
     }
   }
 
-  public struct GroupsElement: Codable, Equatable, Sendable {
+  public struct GroupsElement: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case groupId = "groupId"
       case name = "name"
@@ -121,7 +121,7 @@ public struct ItemGroupDownload: Codable, Equatable, Sendable {
     }
   }
 
-  public struct ItemsElement: Codable, Equatable, Sendable {
+  public struct ItemsElement: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case itemId = "itemId"
       case itemKey = "itemKey"

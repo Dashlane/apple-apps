@@ -1,6 +1,8 @@
 import Foundation
+import LogFoundation
 
 struct FlexibleMarkerEncoder {
+  @Loggable
   enum EncodeError: Swift.Error {
     case encodeUTF8StringFail
   }

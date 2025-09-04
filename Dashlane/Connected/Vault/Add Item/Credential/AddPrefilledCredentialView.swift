@@ -1,6 +1,7 @@
 import CoreLocalization
 import CorePersonalData
 import DesignSystem
+import DesignSystemExtra
 import IconLibrary
 import SwiftUI
 import UIComponents
@@ -31,14 +32,11 @@ struct AddPrefilledCredentialView: View {
   @ViewBuilder
   var backButton: some View {
     if let dismissView {
-      NavigationBarButton(
-        specificBackButton == .back
-          ? CoreLocalization.L10n.Core.kwBack : CoreLocalization.L10n.Core.cancel
-      ) {
+      Button(specificBackButton == .back ? CoreL10n.kwBack : CoreL10n.cancel) {
         dismissView()
       }
     } else {
-      BackButton {
+      NativeNavigationBarBackButton {
         dismiss()
       }
     }
@@ -58,14 +56,14 @@ struct AddPrefilledCredentialView: View {
     .edgesIgnoringSafeArea(.bottom)
     .frame(maxWidth: .infinity)
     .navigationBarBackButtonHidden(true)
-    .navigationTitle(CoreLocalization.L10n.Core.kwadddatakwAuthentifiantIOS)
+    .navigationTitle(CoreL10n.kwadddatakwAuthentifiantIOS)
     .navigationBarTitleDisplayMode(.inline)
     .toolbar {
       ToolbarItem(placement: .navigationBarLeading) {
         backButton
       }
       ToolbarItem(placement: .navigationBarTrailing) {
-        NavigationBarButton(CoreLocalization.L10n.Core.kwNext, action: model.validate)
+        Button(CoreL10n.kwNext, action: model.validate)
       }
     }
     .reportPageAppearance(.itemCredentialCreateSelectWebsite)
@@ -94,8 +92,8 @@ struct AddPrefilledCredentialView: View {
     ScrollView {
       VStack(spacing: 40) {
         Text(L10n.Localizable.kwPadOrSelectAServiceOnboarding)
-          .font(DashlaneFont.custom(20, .regular).font)
-          .foregroundColor(.ds.text.neutral.catchy)
+          .textStyle(.title.block.medium)
+          .foregroundStyle(Color.ds.text.neutral.catchy)
           .fixedSize(horizontal: false, vertical: true)
           .fiberAccessibilityHint(
             Text(L10n.Localizable.accessibilityNewCredentialListCount(model.onboardingItems.count)))
@@ -104,7 +102,9 @@ struct AddPrefilledCredentialView: View {
       }
       .padding(.top, 20)
     }
-    .scrollDismissesKeyboard(.immediately)
+    #if !os(visionOS)
+      .scrollDismissesKeyboard(.immediately)
+    #endif
     .padding(.horizontal, 20)
   }
 
@@ -130,7 +130,7 @@ struct AddPrefilledCredentialView: View {
             L10n.Localizable.kwPadOrSelectAServiceOnboardingElementAccessibility(
               credential.title, index + 1, model.onboardingItems.count))
         )
-        .foregroundColor(.ds.text.neutral.standard)
+        .foregroundStyle(Color.ds.text.neutral.standard)
       }
     }
   }

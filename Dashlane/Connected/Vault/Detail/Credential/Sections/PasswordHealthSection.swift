@@ -19,23 +19,23 @@ struct PasswordHealthSection: View {
         PartlyModifiedText(
           text: L10n.Localizable.authentifiantDetailSafetyPasswordReused(reusedCount),
           toBeModified: String(reusedCount),
-          toBeModifiedModifier: { $0.foregroundColor(.red) })
+          toBeModifiedModifier: { $0.foregroundStyle(.red) })
       }
 
       if model.isCompromised {
         Text(L10n.Localizable.authentifiantDetailSafetyPasswordBreached)
-          .foregroundColor(.red)
+          .foregroundStyle(.red)
       }
     }
   }
 
   private var complexityRow: some View {
-    let complexityText = CoreLocalization.L10n.Core.passwordDetailText(for: model.passwordStrength)
+    let complexityText = CoreL10n.passwordDetailText(for: model.passwordStrength)
     return PartlyModifiedText(
       text: L10n.Localizable.authentifiantDetailSafetyPasswordComplexity(complexityText),
       toBeModified: complexityText,
       toBeModifiedModifier: {
-        $0.foregroundColor(Color(passwordStrength: model.passwordStrength))
+        $0.foregroundStyle(Color(passwordStrength: model.passwordStrength))
       })
   }
 }

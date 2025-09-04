@@ -1,11 +1,10 @@
 import Combine
 import CorePersonalData
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 import IconLibrary
 import SecurityDashboard
-import VaultKit
 
 class DarkWebMonitoringEmailRowViewModel: ObservableObject, SessionServicesInjecting {
   @Published

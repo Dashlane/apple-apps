@@ -1,14 +1,15 @@
 import CoreLocalization
 import CoreSession
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import DesignSystem
 import Foundation
 import LoginKit
+import SwiftTreats
 import SwiftUI
 import UIComponents
 import UIDelight
+import UserTrackingFoundation
 
 struct AddNewDeviceView: View {
 
@@ -26,7 +27,7 @@ struct AddNewDeviceView: View {
     ZStack {
       switch model.state {
       case .loading:
-        ProgressionView(state: $model.progressState)
+        LottieProgressionFeedbacksView(state: model.progressState)
       case let .pendingTransfer(transfer):
         SecurityChallengeFlow(model: model.makeSecurityChallengeFlowModel(for: transfer))
       case .intro:
@@ -48,14 +49,16 @@ struct AddNewDeviceView: View {
         mainView
         overlayView
       }
+      .frame(maxWidth: .infinity, maxHeight: .infinity)
+      .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
       .navigationTitle(L10n.Localizable.Mpless.D2d.trustedNavigationTitle)
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .navigationBarLeading) {
-          Button(CoreLocalization.L10n.Core.cancel) {
+          Button(CoreL10n.cancel) {
             dismiss()
           }
-          .foregroundColor(.ds.text.brand.standard)
+          .foregroundStyle(Color.ds.text.brand.standard)
         }
       }
       .animation(.default, value: model.showScanner)
@@ -69,8 +72,9 @@ struct AddNewDeviceView: View {
     ScrollView {
       VStack(alignment: .leading) {
         Text(model.title)
-          .foregroundColor(.ds.text.neutral.catchy)
-          .font(.custom(GTWalsheimPro.bold.name, size: 26, relativeTo: .title).weight(.medium))
+          .foregroundStyle(Color.ds.text.neutral.catchy)
+          .textStyle(.title.section.large)
+
         InstructionsCardView(cardContent: [
           model.message1,
           model.message2,
@@ -80,22 +84,23 @@ struct AddNewDeviceView: View {
       }
       .padding(24)
     }
-    .backgroundColorIgnoringSafeArea(.ds.background.alternate)
   }
 
   var overlayView: some View {
     VStack(spacing: 8) {
       Spacer()
-      Button(L10n.Localizable.addNewDeviceScanCta) {
-        model.showScanner = true
+      if !Device.is(.mac) {
+        Button(L10n.Localizable.addNewDeviceScanCta) {
+          model.showScanner = true
+        }
+        .style(mood: .brand, intensity: .catchy)
       }
-      .style(mood: .brand, intensity: .catchy)
 
       if model.isPasswordlessAccount {
         Button(L10n.Localizable.Mpless.D2d.Universal.refreshCta) {
           model.checkPendingRequest()
         }
-        .style(mood: .brand, intensity: .quiet)
+        .style(mood: .brand, intensity: !Device.is(.mac) ? .quiet : .catchy)
       }
     }
     .buttonStyle(.designSystem(.titleOnly))
@@ -103,10 +108,14 @@ struct AddNewDeviceView: View {
   }
 
   var scanView: some View {
-    ScanQrCodeView { qrcode in
-      model.didScanQRCode(qrcode)
-    }
-    .reportPageAppearance(.settingsAddNewDeviceScanQrCode)
+    #if os(visionOS)
+      Text("Not Supported on VisionOS")
+    #else
+      ScanQrCodeView { qrcode in
+        model.didScanQRCode(qrcode)
+      }
+      .reportPageAppearance(.settingsAddNewDeviceScanQrCode)
+    #endif
   }
 
   @ViewBuilder
@@ -114,13 +123,11 @@ struct AddNewDeviceView: View {
     switch error {
     case .generic:
       FeedbackView(
-        title: CoreLocalization.L10n.Core.deviceToDeviceLoginErrorTitle,
-        message: CoreLocalization.L10n.Core.deviceToDeviceLoginErrorMessage,
-        primaryButton: (
-          CoreLocalization.L10n.Core.deviceToDeviceLoginErrorRetry, { model.state = .intro }
-        ),
+        title: CoreL10n.deviceToDeviceLoginErrorTitle,
+        message: CoreL10n.deviceToDeviceLoginErrorMessage,
+        primaryButton: (CoreL10n.deviceToDeviceLoginErrorRetry, { model.state = .intro }),
         secondaryButton: (
-          CoreLocalization.L10n.Core.cancel,
+          CoreL10n.cancel,
           {
             dismiss()
           }

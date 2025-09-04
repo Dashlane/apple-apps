@@ -31,11 +31,17 @@ struct DataLeakMonitoringAddEmailView: View {
             bottom: validationButton,
             alignment: .leading, spacing: 20
           )
+          .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
           .toolbar {
             ToolbarItem(placement: .navigationBarLeading) {
-              Button(CoreLocalization.L10n.Core.cancel) {
-                dismiss()
-              }
+              Button(
+                action: {
+                  dismiss()
+                },
+                label: {
+                  Text(CoreL10n.cancel)
+                    .foregroundStyle(Color.ds.text.brand.standard)
+                })
             }
           }
           .onAppear {
@@ -50,6 +56,7 @@ struct DataLeakMonitoringAddEmailView: View {
   var title: some View {
     Text(L10n.Localizable.dataleakmonitoringEnterEmailTitle)
       .font(.title2)
+      .foregroundStyle(Color.ds.text.neutral.standard)
       .bold()
       .padding()
   }
@@ -57,8 +64,14 @@ struct DataLeakMonitoringAddEmailView: View {
   var emailField: some View {
     LoginFieldBox {
       DS.TextField(
-        CoreLocalization.L10n.Core.kwEmailTitle,
-        text: $viewModel.emailToMonitor
+        CoreL10n.kwEmailTitle,
+        text: $viewModel.emailToMonitor,
+        feedback: {
+          if let errorMessage = viewModel.errorMessage {
+            FieldTextualFeedback(errorMessage)
+              .style(.error)
+          }
+        }
       )
       .focused($isTextFieldFocused)
       .onSubmit {
@@ -72,7 +85,6 @@ struct DataLeakMonitoringAddEmailView: View {
       .padding(.horizontal)
       .autocorrectionDisabled()
     }
-    .bubbleErrorMessage(text: $viewModel.errorMessage)
   }
 
   var validationButton: some View {

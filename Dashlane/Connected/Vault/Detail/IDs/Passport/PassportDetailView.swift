@@ -1,5 +1,6 @@
 import CoreLocalization
 import CorePersonalData
+import DesignSystem
 import SwiftUI
 import UIDelight
 import VaultKit
@@ -16,20 +17,21 @@ struct PassportDetailView: View {
       Section {
         if model.mode.isEditing {
           PickerDetailField(
-            title: CoreLocalization.L10n.Core.KWPassportIOS.localeFormat,
+            title: CoreL10n.KWPassportIOS.localeFormat,
             selection: $model.item.country,
             elements: CountryCodeNamePair.countries,
             content: { country in
               Text(country?.name ?? "")
             })
         } else {
-          Text(model.item.country?.name ?? CountryCodeNamePair.defaultCountry.name)
-            .labeled(CoreLocalization.L10n.Core.KWPassportIOS.localeFormat)
+          DisplayField(
+            CoreL10n.KWPassportIOS.localeFormat,
+            text: model.item.country?.name ?? CountryCodeNamePair.defaultCountry.name)
         }
 
         if model.mode.isEditing {
           PickerDetailField(
-            title: CoreLocalization.L10n.Core.KWPassportIOS.linkedIdentity,
+            title: CoreL10n.KWPassportIOS.linkedIdentity,
             selection: $model.item.linkedIdentity,
             elements: model.identities,
             allowEmptySelection: true,
@@ -39,35 +41,37 @@ struct PassportDetailView: View {
         }
 
         if !model.mode.isEditing {
-          Text(model.displayFullName).labeled(CoreLocalization.L10n.Core.KWPassportIOS.fullname)
+          DisplayField(CoreL10n.KWPassportIOS.fullname, text: model.displayFullName)
         }
 
         if model.item.linkedIdentity == nil {
           if model.mode.isEditing {
             TextDetailField(
-              title: CoreLocalization.L10n.Core.KWPassportIOS.fullname,
-              text: $model.item.fullname)
+              title: CoreL10n.KWPassportIOS.fullname,
+              text: $model.item.fullname
+            )
+            .foregroundStyle(Color.ds.text.neutral.catchy)
 
             PickerDetailField(
-              title: CoreLocalization.L10n.Core.KWPassportIOS.sex,
+              title: CoreL10n.KWPassportIOS.sex,
               selection: $model.item.sex,
               elements: Gender.allCases,
               content: { gender in
                 Text(gender?.localized ?? "")
               })
           } else if model.item.sex != nil {
-            Text(model.item.genderString).labeled(CoreLocalization.L10n.Core.KWPassportIOS.sex)
+            DisplayField(CoreL10n.KWPassportIOS.sex, text: model.item.genderString)
           }
 
           DateDetailField(
-            title: CoreLocalization.L10n.Core.KWPassportIOS.dateOfBirth,
+            title: CoreL10n.KWPassportIOS.dateOfBirth,
             date: $model.item.dateOfBirth,
             range: .past)
         }
 
         if model.mode.isEditing || !model.item.number.isEmpty {
           TextDetailField(
-            title: CoreLocalization.L10n.Core.KWPassportIOS.number,
+            title: CoreL10n.KWPassportIOS.number,
             text: $model.item.number,
             actions: [.copy(model.copy)]
           )
@@ -77,17 +81,17 @@ struct PassportDetailView: View {
 
         if model.mode.isEditing || !model.item.deliveryPlace.isEmpty {
           TextDetailField(
-            title: CoreLocalization.L10n.Core.KWPassportIOS.deliveryPlace,
+            title: CoreL10n.KWPassportIOS.deliveryPlace,
             text: $model.item.deliveryPlace)
         }
 
         DateDetailField(
-          title: CoreLocalization.L10n.Core.KWPassportIOS.deliveryDate,
+          title: CoreL10n.KWPassportIOS.deliveryDate,
           date: $model.item.deliveryDate,
           range: .past)
 
         DateDetailField(
-          title: CoreLocalization.L10n.Core.KWPassportIOS.expireDate,
+          title: CoreL10n.KWPassportIOS.expireDate,
           date: $model.item.expireDate,
           range: .future)
       }

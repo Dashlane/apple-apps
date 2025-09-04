@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.SharingUserdevice {
-  public struct GetUsersPublicKey: APIRequest {
+  public struct GetUsersPublicKey: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/sharing-userdevice/GetUsersPublicKey"
 
     public let api: UserDeviceAPIClient
@@ -24,7 +24,7 @@ extension UserDeviceAPIClient.SharingUserdevice {
 }
 
 extension UserDeviceAPIClient.SharingUserdevice.GetUsersPublicKey {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case logins = "logins"
     }
@@ -43,12 +43,12 @@ extension UserDeviceAPIClient.SharingUserdevice.GetUsersPublicKey {
 }
 
 extension UserDeviceAPIClient.SharingUserdevice.GetUsersPublicKey {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case data = "data"
     }
 
-    public struct DataValueElement: Codable, Equatable, Sendable {
+    public struct DataValueElement: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case email = "email"
         case login = "login"

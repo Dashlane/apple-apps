@@ -1,6 +1,5 @@
 import AuthenticatorKit
 import CorePersonalData
-import CoreUserTracking
 import DesignSystem
 import Foundation
 import IconLibrary
@@ -8,6 +7,7 @@ import SwiftTreats
 import SwiftUI
 import UIComponents
 import UIDelight
+import UserTrackingFoundation
 
 struct AuthenticatorToolFlowView: View {
 
@@ -34,7 +34,7 @@ struct AuthenticatorToolFlowView: View {
         .reportPageAppearance(.toolsAuthenticatorLogins)
       }
     }
-    .accentColor(.ds.text.brand.standard)
+    .tint(.ds.text.brand.standard)
     .fullScreenCover(isPresented: $viewModel.presentAdd2FAFlow) {
       AddOTPFlowView(viewModel: viewModel.makeAddOTPFlowViewModel())
     }

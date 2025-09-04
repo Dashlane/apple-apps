@@ -5,7 +5,7 @@ import CorePremium
 import CoreSession
 import CoreSettings
 import CoreSharing
-import DashTypes
+import CoreTypes
 import DesignSystem
 import Foundation
 import SwiftTreats

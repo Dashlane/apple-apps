@@ -2,7 +2,7 @@ import Combine
 import CoreSession
 import Foundation
 import LoginKit
-import UIComponents
+import UIKit
 
 extension ModalCoordinator {
   func configureDeviceLimitRequest() {
@@ -44,8 +44,7 @@ extension ModalCoordinator {
   func startDeviceUnlink(for deviceUnlinker: DeviceUnlinker) {
     subcoordinator?.dismiss()
 
-    let navigator = DashlaneNavigationController()
-    navigator.navigationBar.applyStyle(.transparent())
+    let navigator = UINavigationController()
     navigator.modalPresentationStyle = .fullScreen
     navigator.isModalInPresentation = true
     present(navigator)
@@ -69,8 +68,7 @@ extension ModalCoordinator {
       }
     }
 
-    navigator.setRootNavigation(
-      DeviceUnlinkingFlow(viewModel: viewModel), barStyle: .transparent(), animated: true)
+    navigator.setRootNavigation(DeviceUnlinkingFlow(viewModel: viewModel), animated: true)
   }
 }
 

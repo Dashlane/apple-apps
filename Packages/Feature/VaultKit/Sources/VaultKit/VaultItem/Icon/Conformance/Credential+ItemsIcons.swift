@@ -4,7 +4,6 @@ import Foundation
 import SwiftUI
 
 extension Credential {
-
   public var icon: VaultItemIcon {
     .credential(self)
   }

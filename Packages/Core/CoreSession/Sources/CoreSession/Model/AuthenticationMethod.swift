@@ -31,4 +31,11 @@ extension AuthenticationMethod {
     }
     return false
   }
+
+  public var isInvisibleMasterPassword: Bool {
+    guard case .invisibleMasterPassword = self else {
+      return false
+    }
+    return true
+  }
 }

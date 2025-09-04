@@ -1,9 +1,9 @@
 import Combine
 import CorePersonalData
-import CoreUserTracking
 import Foundation
 import SecurityDashboard
 import UIKit
+import UserTrackingFoundation
 import VaultKit
 
 enum PasswordHealthKind {
@@ -28,7 +28,7 @@ enum PasswordHealthKind {
     }
   }
 
-  var pageEvent: CoreUserTracking.Page {
+  var pageEvent: UserTrackingFoundation.Page {
     switch self {
     case .weak:
       return .toolsPasswordHealthListWeak

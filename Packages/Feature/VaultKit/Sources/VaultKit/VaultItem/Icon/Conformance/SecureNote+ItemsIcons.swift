@@ -4,7 +4,6 @@ import Foundation
 import SwiftUI
 
 extension SecureNote {
-
   public var icon: VaultItemIcon {
     .secureNote(color.color)
   }

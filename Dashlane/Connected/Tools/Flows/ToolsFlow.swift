@@ -1,5 +1,4 @@
 import DesignSystem
-import MacrosKit
 import SwiftTreats
 import SwiftUI
 import UIDelight
@@ -9,6 +8,9 @@ import VaultKit
 struct ToolsFlow: View {
   @StateObject
   var viewModel: ToolsFlowViewModel
+
+  @Environment(\.accessControl)
+  var accessControl
 
   var body: some View {
     StepBasedContentNavigationView(steps: $viewModel.steps) { step in
@@ -24,7 +26,7 @@ struct ToolsFlow: View {
       case .placeholder(let item):
         SplitViewPlaceholderView()
           .onAppear {
-            if Device.isIpadOrMac {
+            if Device.is(.pad, .mac, .vision) {
               viewModel.didSelect(item: item)
             }
           }
@@ -38,7 +40,7 @@ struct ToolsFlow: View {
       case let .other(otherToolDeeplink, _):
         switch otherToolDeeplink {
         case .contacts, .sharing:
-          guard !Device.isIpadOrMac else { return }
+          guard !Device.is(.pad, .mac, .vision) else { return }
           self.handle(toolDeeplink: .otherTool(.contacts), origin: nil)
         default: break
         }
@@ -52,6 +54,7 @@ struct ToolsFlow: View {
           viewModel: viewModel.makeM2WViewModel(origin: origin), completion: viewModel.dismissM2W)
       case .vpnB2BDisabled:
         VPNTeamFeatureDisabledView()
+          .presentationDetents([.medium])
       case .showAddNewDevice:
         AddNewDeviceView(model: viewModel.makeAddNewDeviceViewModel())
       }
@@ -78,9 +81,14 @@ struct ToolsFlow: View {
     case .multiDevices:
       SplitViewPlaceholderView()
         .onAppear {
-          assert(Device.isIpadOrMac)
-          self.viewModel.presentedSheet =
-            (viewModel.isPasswordlessAccount || Device.isMac) ? .showAddNewDevice : .showM2W(nil)
+          assert(Device.is(.pad, .mac, .vision))
+          accessControl.requestAccess(for: .addNewDevice) { success in
+            if success {
+              self.viewModel.presentedSheet =
+                (viewModel.isPasswordlessAccount || !Device.is(.mac))
+                ? .showAddNewDevice : .showM2W(nil)
+            }
+          }
         }
     case .collections:
       CollectionsFlow(viewModel: viewModel.collectionsFlowViewModelFactory.make())

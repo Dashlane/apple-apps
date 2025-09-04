@@ -1,6 +1,6 @@
 import Foundation
 
-public struct PaymentsAccessibleStoreOffersInfo: Codable, Equatable, Sendable {
+public struct PaymentsAccessibleStoreOffersInfo: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case excludedPolicies = "excludedPolicies"
     case reason = "reason"

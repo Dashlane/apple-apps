@@ -1,7 +1,7 @@
 import BrazeKit
 import CoreFeature
 import CoreSettings
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 

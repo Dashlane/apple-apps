@@ -18,7 +18,6 @@ struct NitroSSOError: Error, Codable, Equatable, Sendable {
 
 extension NitroSSOError {
   public typealias Code = String
-
   public struct Error: Swift.Error, Codable, Equatable, Sendable {
     public let code: Code
     public let status: String

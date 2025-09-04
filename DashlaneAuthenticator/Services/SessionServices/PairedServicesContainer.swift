@@ -9,8 +9,8 @@ import CoreSession
 import CoreSettings
 import CoreSharing
 import CoreSync
+import CoreTypes
 import CoreUserTracking
-import DashTypes
 import DashlaneAPI
 import Foundation
 import IconLibrary

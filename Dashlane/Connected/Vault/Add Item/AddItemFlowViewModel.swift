@@ -2,10 +2,10 @@ import Combine
 import CoreFeature
 import CorePersonalData
 import CorePremium
-import CoreUserTracking
 import Foundation
 import NotificationKit
 import SwiftTreats
+import UserTrackingFoundation
 import VaultKit
 
 @MainActor
@@ -112,7 +112,7 @@ extension AddItemFlowViewModel {
   func handleAutofillDemoDummyFieldsAction(_ action: AutoFillDemoDummyFields.Completion) {
     switch action {
     case .back:
-      if Device.isIpadOrMac {
+      if Device.is(.pad, .mac, .vision) {
         autofillDemoDummyFieldsCredential = nil
       } else {
         steps.removeLast()

@@ -1,7 +1,7 @@
 import CorePersonalData
-import CoreUserTracking
 import SwiftUI
 import UIDelight
+import UserTrackingFoundation
 import VaultKit
 
 struct VaultItemMenuContent: View {
@@ -44,6 +44,8 @@ struct VaultItemMenuContent: View {
       PasskeyMenu(passkey: passkey, copyAction: copy)
     case let .secret(secret):
       SecretMenu(secret: secret, copyAction: copy)
+    case let .wifi(wifi):
+      WiFiMenu(wifi: wifi, copyAction: copy)
     }
   }
 }

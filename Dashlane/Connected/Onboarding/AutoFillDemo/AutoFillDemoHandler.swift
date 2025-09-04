@@ -27,7 +27,7 @@ extension AutoFillDemoHandler {
   func showAutofillDemo(
     for credential: Credential, modal: @escaping () -> Void, push: @escaping () -> Void
   ) {
-    if Device.isIpadOrMac {
+    if Device.is(.pad, .mac, .vision) {
       modal()
     } else {
       push()

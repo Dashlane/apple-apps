@@ -27,26 +27,29 @@ struct VaultActiveSearchView: View {
   private var searchingView: some View {
     if !model.searchResult.hasResult() {
       if let category = model.activeFilter {
-        ListPlaceholder(
-          category: category,
-          accessory: placeholderAddButton
-        )
+        ListPlaceholder(category: category) {
+          placeholderAddButton
+        }
         .fiberAccessibilityAnnouncement(for: model.$searchResult) { _ in
           L10n.Localizable.accessibilityVaultSearchViewNoResult
         }
       } else {
         ListPlaceholder(
-          icon: Image(asset: FiberAsset.emptySearch),
-          text: CoreLocalization.L10n.Core.emptySearchResultsText,
-          accessory: placeholderAddButton
-        )
+          icon: .ds.action.search.outlined,
+          title: CoreL10n.emptySearchResultsTitle,
+          description: CoreL10n.emptySearchResultsDescription
+        ) {
+          placeholderAddButton
+        }
         .fiberAccessibilityAnnouncement(for: model.$searchResult) { _ in
           L10n.Localizable.accessibilityVaultSearchViewNoResult
         }
       }
     } else {
       searchResults
-        .dismissKeyboardOnDrag()
+        #if !os(visionOS)
+          .scrollDismissesKeyboard(.immediately)
+        #endif
         .id(model.searchResult.searchCriteria)
         .accessibility(label: Text(L10n.Localizable.itemsTabSearchPlaceholder))
         .fiberAccessibilityAnnouncement(for: model.$searchResult) {
@@ -122,18 +125,24 @@ struct VaultActiveSearchView: View {
         }
       )
     }
-    .dismissKeyboardOnDrag()
+    #if !os(visionOS)
+      .scrollDismissesKeyboard(.immediately)
+    #endif
     .id(model.searchResult.searchCriteria)
     .accessibility(label: Text(L10n.Localizable.recentSearchTitle))
   }
 
-  private var placeholderAddButton: AnyView {
+  private var placeholderAddButton: some View {
     AddVaultButton(
-      text: Text(L10n.Localizable.announceWelcomeM2DNoItemCta),
+      text: Text(CoreL10n.emptySearchResultsCTA),
+      isImportEnabled: true,
       category: model.activeFilter,
-      onTap: model.onAddItemDropdown
-    ) { model.add(type: $0) }
-    .eraseToAnyView()
+      onAction: { action in
+        if case let .add(type) = action {
+          model.add(type: type)
+        }
+      }
+    )
   }
 }
 

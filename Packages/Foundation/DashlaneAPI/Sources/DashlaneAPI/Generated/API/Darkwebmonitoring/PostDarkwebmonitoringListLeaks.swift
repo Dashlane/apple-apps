@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Darkwebmonitoring {
-  public struct ListLeaks: APIRequest {
+  public struct ListLeaks: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/darkwebmonitoring/ListLeaks"
 
     public let api: UserDeviceAPIClient
@@ -24,7 +24,7 @@ extension UserDeviceAPIClient.Darkwebmonitoring {
 }
 
 extension UserDeviceAPIClient.Darkwebmonitoring.ListLeaks {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case includeDisabled = "includeDisabled"
       case lastUpdateDate = "lastUpdateDate"
@@ -48,7 +48,7 @@ extension UserDeviceAPIClient.Darkwebmonitoring.ListLeaks {
 }
 
 extension UserDeviceAPIClient.Darkwebmonitoring.ListLeaks {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case lastUpdateDate = "lastUpdateDate"
       case details = "details"
@@ -56,7 +56,7 @@ extension UserDeviceAPIClient.Darkwebmonitoring.ListLeaks {
       case leaks = "leaks"
     }
 
-    public struct Details: Codable, Equatable, Sendable {
+    public struct Details: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case cipheredKey = "cipheredKey"
         case cipheredInfo = "cipheredInfo"
@@ -77,7 +77,7 @@ extension UserDeviceAPIClient.Darkwebmonitoring.ListLeaks {
       }
     }
 
-    public struct LeaksElement: Codable, Equatable, Sendable {
+    public struct LeaksElement: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case breachCreationDate = "breachCreationDate"
         case breachModelVersion = "breachModelVersion"

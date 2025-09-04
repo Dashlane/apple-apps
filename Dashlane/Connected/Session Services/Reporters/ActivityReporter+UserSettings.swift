@@ -1,15 +1,15 @@
 import AutofillKit
 import Combine
 import CoreSettings
-import CoreUserTracking
 import Foundation
 import LoginKit
+import UserTrackingFoundation
 
 struct ReportUserSettingsService {
   let userSettings: UserSettings
   let resetMPService: ResetMasterPasswordService
   let lock: LockService
-  let autofillService: AutofillService
+  let autofillService: AutofillStateService
   let activityReporter: ActivityReporterProtocol
 
   func report() {

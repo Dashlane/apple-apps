@@ -2,12 +2,13 @@ import Combine
 import CoreLocalization
 import CorePersonalData
 import CoreSettings
-import CoreUserTracking
-import DashTypes
+import CoreTypes
+import DesignSystem
 import IconLibrary
 import SwiftUI
 import UIComponents
 import UIDelight
+import UserTrackingFoundation
 import VaultKit
 
 struct PasswordGeneratorHistoryView: View {
@@ -21,8 +22,7 @@ struct PasswordGeneratorHistoryView: View {
     Group {
       switch model.state {
       case .loading:
-        ProgressView()
-          .progressViewStyle(CircularProgressViewStyle())
+        EmptyView()
 
       case let .loaded(passwords):
         list(for: passwords)
@@ -31,20 +31,22 @@ struct PasswordGeneratorHistoryView: View {
         emptyView
       }
     }
-    .navigationTitle(CoreLocalization.L10n.Core.generatedPasswordListTitle)
+    .navigationTitle(CoreL10n.generatedPasswordListTitle)
     .animation(.easeOut, value: model.state)
     .reportPageAppearance(.toolsPasswordGeneratorHistory)
   }
 
   private var emptyView: some View {
     VStack(spacing: 12) {
-      Image.ds.historyBackup.outlined
-        .foregroundColor(.ds.text.brand.quiet)
+      DS.ExpressiveIcon(.ds.historyBackup.outlined)
+        .controlSize(.large)
         .accessibilityHidden(true)
+        .style(mood: .brand, intensity: .quiet)
 
       Text(L10n.Localizable.generatedPasswordListEmptyTitle)
-        .font(DashlaneFont.custom(26, .bold).font)
-    }
+        .textStyle(.specialty.spotlight.small)
+        .foregroundStyle(Color.ds.text.neutral.standard)
+    }.multilineTextAlignment(.center)
   }
 
   private func list(for passwords: [DateGroup: [GeneratedPassword]]) -> some View {
@@ -54,24 +56,27 @@ struct PasswordGeneratorHistoryView: View {
           .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
       }
     }
-    .listAppearance(.insetGrouped)
+    .listStyle(.ds.insetGrouped)
   }
 
   @ViewBuilder
   func section(for group: DateGroup, in passwords: [DateGroup: [GeneratedPassword]]) -> some View {
     if let passwords = passwords[group], !passwords.isEmpty {
-      Section(header: Text(group.localizedGeneratedPasswordTitle)) {
-
+      Section {
         ForEach(passwords, id: \.id) { password in
           let iconViewModel = model.makeDomainIconViewModel(url: password.domain)
           PasswordGeneratedRow(generatedPassword: password, iconViewModel: iconViewModel) {
 
             toast(L10n.Localizable.passwordCopiedToClipboard, image: .ds.action.copy.outlined)
-            UINotificationFeedbackGenerator().notificationOccurred(.success)
+            #if !os(visionOS)
+              UINotificationFeedbackGenerator().notificationOccurred(.success)
+            #endif
             model.copy(password)
           }
         }
-
+      } header: {
+        Text(group.localizedGeneratedPasswordTitle)
+          .foregroundStyle(Color.ds.text.neutral.quiet)
       }
     }
   }
@@ -101,7 +106,7 @@ private struct PasswordGeneratedRow: View {
           Text(generatedPassword.displayedDate)
         }
         .font(.footnote)
-        .foregroundColor(.ds.text.neutral.quiet)
+        .foregroundStyle(Color.ds.text.neutral.quiet)
       }
       .padding(.bottom, 5)
       .fiberAccessibilityElement(children: .ignore)
@@ -109,7 +114,7 @@ private struct PasswordGeneratedRow: View {
       .fiberAccessibilityLabel(Text(accessibilityRowLabel))
 
       Image.ds.action.copy.outlined
-        .foregroundColor(.ds.text.brand.quiet)
+        .foregroundStyle(Color.ds.text.brand.quiet)
         .tapWithFeedbackForMobile(action)
         .fiberAccessibilityLabel(Text(L10n.Localizable.copyPassword))
     }
@@ -144,7 +149,7 @@ private struct PasswordGeneratedRow: View {
     if let domain = generatedPassword.domain?.displayDomain {
       PartlyModifiedText(text: subtitle, toBeModified: domain) { text in
         text
-          .foregroundColor(.ds.text.brand.standard)
+          .foregroundStyle(Color.ds.text.brand.standard)
       }
     } else {
       Text(subtitle)
@@ -183,6 +188,7 @@ private struct PasswordGeneratedRow: View {
       } else {
         Text(password, formatter: ObfuscatedCodeFormatter(max: 17))
           .font(Font.system(.body, design: .monospaced))
+          .foregroundStyle(Color.ds.text.neutral.standard)
       }
     }
     .frame(maxWidth: .infinity, alignment: .leading)

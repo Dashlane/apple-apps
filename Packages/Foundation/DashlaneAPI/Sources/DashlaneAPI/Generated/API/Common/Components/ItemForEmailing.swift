@@ -1,12 +1,12 @@
 import Foundation
 
-public struct ItemForEmailing: Codable, Equatable, Sendable {
+public struct ItemForEmailing: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case name = "name"
     case type = "type"
   }
 
-  public enum `Type`: String, Sendable, Equatable, CaseIterable, Codable {
+  public enum `Type`: String, Sendable, Hashable, Codable, CaseIterable {
     case password = "password"
     case note = "note"
     case secret = "secret"

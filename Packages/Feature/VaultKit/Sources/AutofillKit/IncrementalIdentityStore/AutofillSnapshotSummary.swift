@@ -1,7 +1,10 @@
 import AuthenticationServices
+import CoreLocalization
 import CorePersonalData
-import DashTypes
+import CoreTypes
 import Foundation
+import SwiftTreats
+import TOTPGenerator
 import VaultKit
 
 public typealias Rank = Int
@@ -18,9 +21,15 @@ public struct SnapshotSummary: Codable, Equatable {
   }
 
   public struct CredentialIdentity: Codable, Hashable {
+    public struct OTP: Codable, Hashable {
+      public let algorithm: HashAlgorithm
+      public let digits: Int
+    }
+
     let vaultId: Identifier
     let serviceIdentifier: String
     let user: String
+    var otp: OTP?
   }
 
   var credentials: SnapshotDictionary<CredentialIdentity>
@@ -34,17 +43,21 @@ public struct SnapshotSummary: Codable, Equatable {
     credentials: SnapshotDictionary<SnapshotSummary.CredentialIdentity> = [:],
     passkeys: SnapshotDictionary<SnapshotSummary.PasskeyIdentity> = [:]
   ) {
-    if #available(iOS 17, *) {
-      self.passkeys = passkeys
-    } else {
-      self.passkeys = [:]
-    }
+    self.passkeys = passkeys
     self.credentials = credentials
   }
 }
 
 extension SnapshotDictionary<SnapshotSummary.CredentialIdentity> {
-  func makeIdentities() -> [ASPasswordCredentialIdentity] {
+  func makeIdentities() -> [ASCredentialIdentity] {
+    if #available(iOS 18.0, visionOS 2.0, *) {
+      makePasswordIdentities() + makeOTPIdentities()
+    } else {
+      makePasswordIdentities()
+    }
+  }
+
+  func makePasswordIdentities() -> [ASPasswordCredentialIdentity] {
     self.map { (identity, rank) in
       let identity = ASPasswordCredentialIdentity(
         serviceIdentifier: ASCredentialServiceIdentifier(
@@ -55,10 +68,33 @@ extension SnapshotDictionary<SnapshotSummary.CredentialIdentity> {
       return identity
     }
   }
+
+  @available(iOS 18.0, visionOS 2.0, *)
+  func makeOTPIdentities() -> [ASOneTimeCodeCredentialIdentity] {
+    self.compactMap { (identity, rank) in
+      guard let otp = identity.otp else {
+        return nil
+      }
+
+      let label = [
+        CoreL10n.CredentialProvider.otpDescription(otp.digits),
+        identity.user,
+      ].joined(separator: " • ")
+
+      let identifier = ASCredentialServiceIdentifier(
+        identifier: identity.serviceIdentifier, type: .domain)
+      let identity = ASOneTimeCodeCredentialIdentity(
+        serviceIdentifier: identifier,
+        label: label,
+        recordIdentifier: identity.vaultId.rawValue)
+
+      identity.rank = rank
+      return identity
+    }
+  }
 }
 
 extension SnapshotDictionary<SnapshotSummary.PasskeyIdentity> {
-  @available(iOS 17.0, macOS 14.0, *)
   func makeIdentities() -> [ASPasskeyCredentialIdentity] {
     self.map { (identity, rank) in
       let identity = ASPasskeyCredentialIdentity(

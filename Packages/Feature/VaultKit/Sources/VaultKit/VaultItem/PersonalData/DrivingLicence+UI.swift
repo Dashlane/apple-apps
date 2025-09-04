@@ -1,6 +1,6 @@
 import CoreLocalization
 import CorePersonalData
-import DashTypes
+import CoreTypes
 import Foundation
 import SwiftUI
 
@@ -10,7 +10,7 @@ extension DrivingLicence: VaultItem {
   }
 
   public var localizedTitle: String {
-    L10n.Core.kwDriverLicenceIOS
+    CoreL10n.kwDriverLicenceIOS
   }
 
   public var localizedSubtitle: String {
@@ -18,15 +18,15 @@ extension DrivingLicence: VaultItem {
   }
 
   public static var localizedName: String {
-    L10n.Core.kwDriverLicenceIOS
+    CoreL10n.kwDriverLicenceIOS
   }
 
   public static var addTitle: String {
-    L10n.Core.kwadddatakwDriverLicenceIOS
+    CoreL10n.kwadddatakwDriverLicenceIOS
   }
 
   public static var nativeMenuAddTitle: String {
-    L10n.Core.addDriverLicense
+    CoreL10n.addDriverLicense
   }
 }
 

@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppAPIClient.Account {
-  public struct CreateUser: APIRequest {
+  public struct CreateUser: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/account/CreateUser"
 
     public let api: AppAPIClient
@@ -19,7 +19,8 @@ extension AppAPIClient.Account {
       accountType: AccountType? = nil, askM2dToken: Bool? = nil, contactEmail: String? = nil,
       contactPhone: String? = nil, origin: String? = nil,
       remoteKeys: [Body.RemoteKeysElement]? = nil, sdkVersion: String? = nil,
-      temporaryDevice: Bool? = nil, timeout: TimeInterval? = nil
+      securityKey: Body.SecurityKey? = nil, temporaryDevice: Bool? = nil,
+      timeout: TimeInterval? = nil
     ) async throws -> Response {
       let body = Body(
         login: login, appVersion: appVersion, platform: platform, settings: settings,
@@ -27,7 +28,8 @@ extension AppAPIClient.Account {
         language: language, osLanguage: osLanguage, sharingKeys: sharingKeys,
         abTestingVersion: abTestingVersion, accountType: accountType, askM2dToken: askM2dToken,
         contactEmail: contactEmail, contactPhone: contactPhone, origin: origin,
-        remoteKeys: remoteKeys, sdkVersion: sdkVersion, temporaryDevice: temporaryDevice)
+        remoteKeys: remoteKeys, sdkVersion: sdkVersion, securityKey: securityKey,
+        temporaryDevice: temporaryDevice)
       return try await api.post(Self.endpoint, body: body, timeout: timeout)
     }
   }
@@ -37,7 +39,7 @@ extension AppAPIClient.Account {
 }
 
 extension AppAPIClient.Account.CreateUser {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case login = "login"
       case appVersion = "appVersion"
@@ -58,17 +60,18 @@ extension AppAPIClient.Account.CreateUser {
       case origin = "origin"
       case remoteKeys = "remoteKeys"
       case sdkVersion = "sdkVersion"
+      case securityKey = "securityKey"
       case temporaryDevice = "temporaryDevice"
     }
 
-    public struct RemoteKeysElement: Codable, Equatable, Sendable {
+    public struct RemoteKeysElement: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case uuid = "uuid"
         case key = "key"
         case type = "type"
       }
 
-      public enum `Type`: String, Sendable, Equatable, CaseIterable, Codable {
+      public enum `Type`: String, Sendable, Hashable, Codable, CaseIterable {
         case masterPassword = "master_password"
         case undecodable
         public init(from decoder: Decoder) throws {
@@ -96,6 +99,200 @@ extension AppAPIClient.Account.CreateUser {
       }
     }
 
+    public struct SecurityKey: Codable, Hashable, Sendable {
+      public enum CodingKeys: String, CodingKey {
+        case credential = "credential"
+        case encryptedVaultKey = "encryptedVaultKey"
+      }
+
+      public struct Credential: Codable, Hashable, Sendable {
+        public enum CodingKeys: String, CodingKey {
+          case id = "id"
+          case rawId = "rawId"
+          case response = "response"
+          case authenticatorAttachment = "authenticatorAttachment"
+          case type = "type"
+          case clientExtensionResults = "clientExtensionResults"
+        }
+
+        public struct Response: Codable, Hashable, Sendable {
+          public enum CodingKeys: String, CodingKey {
+            case clientDataJSON = "clientDataJSON"
+            case attestationObject = "attestationObject"
+            case transports = "transports"
+            case authenticatorData = "authenticatorData"
+            case publicKey = "publicKey"
+            case publicKeyAlgorithm = "publicKeyAlgorithm"
+          }
+
+          public enum TransportsElement: String, Sendable, Hashable, Codable, CaseIterable {
+            case ble = "ble"
+            case cable = "cable"
+            case hybrid = "hybrid"
+            case `internal` = "internal"
+            case nfc = "nfc"
+            case smartCard = "smart-card"
+            case usb = "usb"
+            case undecodable
+            public init(from decoder: Decoder) throws {
+              let container = try decoder.singleValueContainer()
+              let rawValue = try container.decode(String.self)
+              self = Self(rawValue: rawValue) ?? .undecodable
+            }
+          }
+
+          public let clientDataJSON: String
+          public let attestationObject: String
+          public let transports: [TransportsElement]
+          public let authenticatorData: String?
+          public let publicKey: String?
+          public let publicKeyAlgorithm: Int?
+
+          public init(
+            clientDataJSON: String, attestationObject: String, transports: [TransportsElement],
+            authenticatorData: String? = nil, publicKey: String? = nil,
+            publicKeyAlgorithm: Int? = nil
+          ) {
+            self.clientDataJSON = clientDataJSON
+            self.attestationObject = attestationObject
+            self.transports = transports
+            self.authenticatorData = authenticatorData
+            self.publicKey = publicKey
+            self.publicKeyAlgorithm = publicKeyAlgorithm
+          }
+
+          public func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(clientDataJSON, forKey: .clientDataJSON)
+            try container.encode(attestationObject, forKey: .attestationObject)
+            try container.encode(transports, forKey: .transports)
+            try container.encodeIfPresent(authenticatorData, forKey: .authenticatorData)
+            try container.encodeIfPresent(publicKey, forKey: .publicKey)
+            try container.encodeIfPresent(publicKeyAlgorithm, forKey: .publicKeyAlgorithm)
+          }
+        }
+
+        public enum AuthenticatorAttachment: String, Sendable, Hashable, Codable, CaseIterable {
+          case crossPlatform = "cross-platform"
+          case undecodable
+          public init(from decoder: Decoder) throws {
+            let container = try decoder.singleValueContainer()
+            let rawValue = try container.decode(String.self)
+            self = Self(rawValue: rawValue) ?? .undecodable
+          }
+        }
+
+        public enum `Type`: String, Sendable, Hashable, Codable, CaseIterable {
+          case publicKey = "public-key"
+          case undecodable
+          public init(from decoder: Decoder) throws {
+            let container = try decoder.singleValueContainer()
+            let rawValue = try container.decode(String.self)
+            self = Self(rawValue: rawValue) ?? .undecodable
+          }
+        }
+
+        public struct ClientExtensionResults: Codable, Hashable, Sendable {
+          public enum CodingKeys: String, CodingKey {
+            case credProps = "credProps"
+            case prf = "prf"
+          }
+
+          public struct CredProps: Codable, Hashable, Sendable {
+            public enum CodingKeys: String, CodingKey {
+              case rk = "rk"
+            }
+
+            public let rk: Bool
+
+            public init(rk: Bool) {
+              self.rk = rk
+            }
+
+            public func encode(to encoder: Encoder) throws {
+              var container = encoder.container(keyedBy: CodingKeys.self)
+              try container.encode(rk, forKey: .rk)
+            }
+          }
+
+          public struct Prf: Codable, Hashable, Sendable {
+            public enum CodingKeys: String, CodingKey {
+              case enabled = "enabled"
+            }
+
+            public let enabled: Bool
+
+            public init(enabled: Bool) {
+              self.enabled = enabled
+            }
+
+            public func encode(to encoder: Encoder) throws {
+              var container = encoder.container(keyedBy: CodingKeys.self)
+              try container.encode(enabled, forKey: .enabled)
+            }
+          }
+
+          public let credProps: CredProps
+          public let prf: Prf
+
+          public init(credProps: CredProps, prf: Prf) {
+            self.credProps = credProps
+            self.prf = prf
+          }
+
+          public func encode(to encoder: Encoder) throws {
+            var container = encoder.container(keyedBy: CodingKeys.self)
+            try container.encode(credProps, forKey: .credProps)
+            try container.encode(prf, forKey: .prf)
+          }
+        }
+
+        public let id: String
+        public let rawId: String
+        public let response: Response
+        public let authenticatorAttachment: AuthenticatorAttachment
+        public let type: `Type`
+        public let clientExtensionResults: ClientExtensionResults
+
+        public init(
+          id: String, rawId: String, response: Response,
+          authenticatorAttachment: AuthenticatorAttachment, type: `Type`,
+          clientExtensionResults: ClientExtensionResults
+        ) {
+          self.id = id
+          self.rawId = rawId
+          self.response = response
+          self.authenticatorAttachment = authenticatorAttachment
+          self.type = type
+          self.clientExtensionResults = clientExtensionResults
+        }
+
+        public func encode(to encoder: Encoder) throws {
+          var container = encoder.container(keyedBy: CodingKeys.self)
+          try container.encode(id, forKey: .id)
+          try container.encode(rawId, forKey: .rawId)
+          try container.encode(response, forKey: .response)
+          try container.encode(authenticatorAttachment, forKey: .authenticatorAttachment)
+          try container.encode(type, forKey: .type)
+          try container.encode(clientExtensionResults, forKey: .clientExtensionResults)
+        }
+      }
+
+      public let credential: Credential
+      public let encryptedVaultKey: String
+
+      public init(credential: Credential, encryptedVaultKey: String) {
+        self.credential = credential
+        self.encryptedVaultKey = encryptedVaultKey
+      }
+
+      public func encode(to encoder: Encoder) throws {
+        var container = encoder.container(keyedBy: CodingKeys.self)
+        try container.encode(credential, forKey: .credential)
+        try container.encode(encryptedVaultKey, forKey: .encryptedVaultKey)
+      }
+    }
+
     public let login: String
     public let appVersion: String
     public let platform: AccountCreateUserPlatform
@@ -116,6 +313,7 @@ extension AppAPIClient.Account.CreateUser {
     public let origin: String?
     public let remoteKeys: [RemoteKeysElement]?
     public let sdkVersion: String?
+    public let securityKey: SecurityKey?
     public let temporaryDevice: Bool?
 
     public init(
@@ -125,7 +323,7 @@ extension AppAPIClient.Account.CreateUser {
       sharingKeys: AccountCreateUserSharingKeys, abTestingVersion: String? = nil,
       accountType: AccountType? = nil, askM2dToken: Bool? = nil, contactEmail: String? = nil,
       contactPhone: String? = nil, origin: String? = nil, remoteKeys: [RemoteKeysElement]? = nil,
-      sdkVersion: String? = nil, temporaryDevice: Bool? = nil
+      sdkVersion: String? = nil, securityKey: SecurityKey? = nil, temporaryDevice: Bool? = nil
     ) {
       self.login = login
       self.appVersion = appVersion
@@ -146,6 +344,7 @@ extension AppAPIClient.Account.CreateUser {
       self.origin = origin
       self.remoteKeys = remoteKeys
       self.sdkVersion = sdkVersion
+      self.securityKey = securityKey
       self.temporaryDevice = temporaryDevice
     }
 
@@ -170,13 +369,14 @@ extension AppAPIClient.Account.CreateUser {
       try container.encodeIfPresent(origin, forKey: .origin)
       try container.encodeIfPresent(remoteKeys, forKey: .remoteKeys)
       try container.encodeIfPresent(sdkVersion, forKey: .sdkVersion)
+      try container.encodeIfPresent(securityKey, forKey: .securityKey)
       try container.encodeIfPresent(temporaryDevice, forKey: .temporaryDevice)
     }
   }
 }
 
 extension AppAPIClient.Account.CreateUser {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case origin = "origin"
       case accountReset = "accountReset"

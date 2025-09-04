@@ -25,11 +25,11 @@ struct ProgressBarView: View {
   var body: some View {
     ProgressBarLayout(progress: progress / total) {
       Capsule()
-        .foregroundColor(fillColor)
+        .foregroundStyle(fillColor)
     }
     .background(
       Capsule()
-        .foregroundColor(backgroundColor)
+        .foregroundStyle(backgroundColor)
     )
     .frame(height: 4)
   }

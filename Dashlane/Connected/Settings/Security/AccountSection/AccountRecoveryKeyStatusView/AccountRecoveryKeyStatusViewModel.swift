@@ -34,14 +34,14 @@ public class AccountRecoveryKeyStatusViewModel: ObservableObject, SessionService
   private let userAPIClient: UserDeviceAPIClient
   private let recoveryKeyStatusDetailViewModelFactory:
     AccountRecoveryKeyStatusDetailViewModel.Factory
-  private let reachability: NetworkReachability
+  private let reachability: NetworkReachabilityProtocol
   private var subcription: AnyCancellable?
 
   init(
     session: Session,
     appAPIClient: AppAPIClient,
     userAPIClient: UserDeviceAPIClient,
-    reachability: NetworkReachability,
+    reachability: NetworkReachabilityProtocol,
     recoveryKeyStatusDetailViewModelFactory: AccountRecoveryKeyStatusDetailViewModel.Factory
   ) {
     self.login = session.login.email
@@ -74,7 +74,7 @@ public class AccountRecoveryKeyStatusViewModel: ObservableObject, SessionService
       return
     }
 
-    subcription = reachability.$isConnected
+    subcription = reachability.isConnectedPublisher
       .receive(on: DispatchQueue.main)
       .filter { $0 }.sink { [weak self] _ in
         Task {
@@ -93,8 +93,7 @@ public class AccountRecoveryKeyStatusViewModel: ObservableObject, SessionService
 extension AccountRecoveryKeyStatusViewModel {
   static var mock: AccountRecoveryKeyStatusViewModel {
     AccountRecoveryKeyStatusViewModel(
-      session: .mock, appAPIClient: .fake, userAPIClient: .fake,
-      reachability: NetworkReachability(isConnected: true),
+      session: .mock, appAPIClient: .fake, userAPIClient: .fake, reachability: .mock(),
       recoveryKeyStatusDetailViewModelFactory: AccountRecoveryKeyStatusDetailViewModel.Factory({
         _ in
         AccountRecoveryKeyStatusDetailViewModel.mock

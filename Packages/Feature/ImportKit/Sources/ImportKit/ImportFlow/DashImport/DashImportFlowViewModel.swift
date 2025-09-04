@@ -1,10 +1,10 @@
 import Combine
-import CoreActivityLogs
 import CorePersonalData
 import CorePremium
-import CoreUserTracking
+import CoreTeamAuditLogs
 import Foundation
-import VaultKit
+import IconLibrary
+import UserTrackingFoundation
 
 @MainActor
 public class DashImportFlowViewModel: ImportFlowViewModel, ImportKitServicesInjecting {
@@ -30,7 +30,7 @@ public class DashImportFlowViewModel: ImportFlowViewModel, ImportKitServicesInje
   private let databaseDriver: DatabaseDriver
   private let iconService: IconServiceProtocol
   private let activityReporter: ActivityReporterProtocol
-  private let activityLogsService: ActivityLogsServiceProtocol
+  private let teamAuditLogsService: TeamAuditLogsServiceProtocol
   private let dashImportViewModelFactory: DashImportViewModel.Factory
 
   private let dismissSubject = PassthroughSubject<ImportDismissAction, Never>()
@@ -41,7 +41,7 @@ public class DashImportFlowViewModel: ImportFlowViewModel, ImportKitServicesInje
     databaseDriver: DatabaseDriver,
     iconService: IconServiceProtocol,
     activityReporter: ActivityReporterProtocol,
-    activityLogsService: ActivityLogsServiceProtocol,
+    teamAuditLogsService: TeamAuditLogsServiceProtocol,
     dashImportViewModelFactory: DashImportViewModel.Factory,
     importInformationViewModelFactory: ImportInformationViewModel.Factory
   ) {
@@ -54,7 +54,7 @@ public class DashImportFlowViewModel: ImportFlowViewModel, ImportKitServicesInje
     self.databaseDriver = databaseDriver
     self.iconService = iconService
     self.activityReporter = activityReporter
-    self.activityLogsService = activityLogsService
+    self.teamAuditLogsService = teamAuditLogsService
     self.dashImportViewModelFactory = dashImportViewModelFactory
   }
 
@@ -64,7 +64,7 @@ public class DashImportFlowViewModel: ImportFlowViewModel, ImportKitServicesInje
     databaseDriver: DatabaseDriver,
     iconService: IconServiceProtocol,
     activityReporter: ActivityReporterProtocol,
-    activityLogsService: ActivityLogsServiceProtocol,
+    teamAuditLogsService: TeamAuditLogsServiceProtocol,
     dashImportViewModelFactory: DashImportViewModel.Factory,
     importInformationViewModelFactory: ImportInformationViewModel.Factory
   ) {
@@ -76,7 +76,7 @@ public class DashImportFlowViewModel: ImportFlowViewModel, ImportKitServicesInje
       databaseDriver: databaseDriver,
       iconService: iconService,
       activityReporter: activityReporter,
-      activityLogsService: activityLogsService,
+      teamAuditLogsService: teamAuditLogsService,
       dashImportViewModelFactory: dashImportViewModelFactory,
       importInformationViewModelFactory: importInformationViewModelFactory)
   }
@@ -86,7 +86,7 @@ public class DashImportFlowViewModel: ImportFlowViewModel, ImportKitServicesInje
       secureArchiveData: withSecureArchiveData,
       applicationDatabase: applicationDatabase,
       databaseDriver: databaseDriver,
-      activityLogsService: activityLogsService)
+      teamAuditLogsService: teamAuditLogsService)
     let viewModel = dashImportViewModelFactory.make(importService: importService)
     self.importViewModel = viewModel
   }
@@ -153,7 +153,7 @@ extension DashImportFlowViewModel {
       databaseDriver: InMemoryDatabaseDriver(),
       iconService: .mock(),
       activityReporter: .mock,
-      activityLogsService: .mock(),
+      teamAuditLogsService: .mock(),
       dashImportViewModelFactory: .init({ _ in .mock }),
       importInformationViewModelFactory: .init({ _, _ in importInformation }))
   }

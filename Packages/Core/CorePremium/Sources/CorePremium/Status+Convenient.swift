@@ -37,6 +37,10 @@ extension CurrentTeam {
   public var isRichIconsDisabled: Bool {
     return teamInfo.richIconsEnabled == false
   }
+
+  public var isUVVSReportEnabled: Bool {
+    return teamInfo.uvvsReportEnabled == true
+  }
 }
 
 extension Status {
@@ -65,5 +69,9 @@ extension Status {
     }
 
     return limit <= alreadySharedCollectionsCount
+  }
+
+  public var wasOnTrial: Bool {
+    return b2cStatus.previousPlan?.planName == "free_trial_30d"
   }
 }

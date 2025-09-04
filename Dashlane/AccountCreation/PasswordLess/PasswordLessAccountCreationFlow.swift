@@ -15,42 +15,33 @@ struct PasswordLessAccountCreationFlow: View {
   }
 
   var body: some View {
-    StepBasedContentNavigationView(steps: $model.steps) { step in
+    StepBasedContentNavigationView(steps: model.steps) { step in
       switch step {
       case .intro:
         PasswordLessAccountCreationIntroView {
           model.startCreation()
         }
-        .navigationBarHidden(false)
+        .navigationBarVisible()
+        .navigationBarBackButton {
+          model.cancel()
+        }
 
       case .pinCode:
-        PinCodeSelection(
-          model: .init(completion: { pin in
-            if let pin = pin {
-              model.setupPin(pin)
-            } else {
-
-            }
-          })
-        )
-        .navigationBarHidden(true)
+        PinCodeSelection(model: model.makePinViewModel())
+          .navigationBarHidden(true)
 
       case let .biometry(biometry):
-        BiometricQuickSetupView(biometry: biometry) { result in
-          switch result {
-          case .useBiometry:
-            model.enableBiometry()
-          case .skip:
-            model.skipBiometry()
-          }
-        }
-        .navigationBarHidden(false)
+        BiometricQuickSetupView(
+          biometry: biometry,
+          completion: model.completeBiometrySetup
+        )
+        .navigationBarVisible()
       case .userConsent:
         UserConsentView(model: model.makeUserContentViewModel()) {
           PasswordLessCreationRecapSection()
         }
         .navigationTitle(L10n.Localizable.kwTitle)
-        .navigationBarHidden(false)
+        .navigationBarVisible()
 
       case let .complete(sessionServices):
         PasswordLessCompletionView(
@@ -58,15 +49,15 @@ struct PasswordLessAccountCreationFlow: View {
             model.finish(with: sessionServices)
           })
       }
-    }.alert(using: $model.error) { (error: Error) in
-      let title = CoreLocalization.L10n.errorMessage(for: error)
+    }
+    .alert(using: $model.error) { error in
+      let title = CoreL10n.errorMessage(for: error)
       return Alert(
         title: Text(title),
         dismissButton: .cancel(
-          Text(CoreLocalization.L10n.Core.kwButtonOk),
-          action: {
-            model.cancel()
-          }))
+          Text(CoreL10n.kwButtonOk),
+          action: model.cancel)
+      )
     }
   }
 }

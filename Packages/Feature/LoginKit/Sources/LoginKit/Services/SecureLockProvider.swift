@@ -1,7 +1,7 @@
 import CoreKeychain
 import CoreSession
 import CoreSettings
-import DashTypes
+import CoreTypes
 import Foundation
 import LocalAuthentication
 import SwiftTreats
@@ -50,7 +50,6 @@ public struct SecureLockProvider: SecureLockProviderProtocol {
       let biometryActivated = settings[.biometric] == true
       let pinActivated = settings[.pinCode] == true
       let rememberMasterPasswordActivated = settings[.rememberMasterPassword] == true
-      let pinCodeAttempts = PinCodeAttempts(internalStore: settings.internalStore)
 
       if rememberMasterPasswordActivated {
         assert(biometryActivated == false && pinActivated == false)
@@ -66,8 +65,9 @@ public struct SecureLockProvider: SecureLockProviderProtocol {
           return .masterKey
         }
 
+        let serverKey = keychainService.serverKey(for: login)
         let lock = SecureLockMode.PinCodeLock(
-          code: pin, attempts: pinCodeAttempts, masterKey: masterKey)
+          code: pin, masterKey: masterKey.coreSessionMasterKey(withServerKey: serverKey))
 
         guard let biometry = Device.biometryType else {
           return .pincode(lock)
@@ -86,11 +86,18 @@ public struct SecureLockProvider: SecureLockProviderProtocol {
           return .masterKey
         }
 
+        let serverKey = keychainService.serverKey(for: login)
         let lock = SecureLockMode.PinCodeLock(
-          code: pin, attempts: pinCodeAttempts, masterKey: masterKey)
+          code: pin, masterKey: masterKey.coreSessionMasterKey(withServerKey: serverKey))
 
         return .pincode(lock)
       case (true, false):
+        #if targetEnvironment(simulator)
+          guard let biometry = Device.biometryType else {
+            return .masterKey
+          }
+          return .biometry(biometry)
+        #endif
         assertionFailure(
           "For biometry only, accessMode is expected to be afterBiometricAuthentication")
         return .masterKey
@@ -143,8 +150,19 @@ extension UserLockSettings {
   }
 }
 
+extension CoreTypes.MasterKey {
+  func coreSessionMasterKey(withServerKey serverKey: String? = nil) -> CoreSession.MasterKey {
+    switch self {
+    case .masterPassword(let password):
+      return .masterPassword(password, serverKey: serverKey)
+    case .key(let data):
+      return .ssoKey(data)
+    }
+  }
+}
+
 extension SecureLockProvider {
-  public var mock: SecureLockProvider {
-    SecureLockProvider(login: Login("_"), settings: .mock(), keychainService: .fake)
+  public static var mock: SecureLockProviderProtocol {
+    SecureLockProvider(login: Login("_"), settings: .mock(), keychainService: .mock)
   }
 }

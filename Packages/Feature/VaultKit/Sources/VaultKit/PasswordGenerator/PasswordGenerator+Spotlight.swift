@@ -7,18 +7,18 @@ import SwiftUI
 
 extension PasswordGeneratorView {
   static func update(_ activity: NSUserActivity) {
-    activity.title = L10n.Core.kwCorespotlightTitlePasswordgenerator
+    activity.title = CoreL10n.kwCorespotlightTitlePasswordgenerator
 
     let set = CSSearchableItemAttributeSet(contentType: UTType.item)
-    set.title = L10n.Core.kwCorespotlightTitlePasswordgenerator
-    set.contentDescription = L10n.Core.kwCorespotlightDescPasswordgenerator
+    set.title = CoreL10n.kwCorespotlightTitlePasswordgenerator
+    set.contentDescription = CoreL10n.kwCorespotlightDescPasswordgenerator
     set.keywords = [
-      L10n.Core.kwCorespotlightKwdPasswordGenerator,
-      L10n.Core.kwCorespotlightKwdRandomPassword,
-      L10n.Core.kwCorespotlightKwdGenerateStrongPassword,
-      L10n.Core.kwCorespotlightKwdStrongPasswords,
-      L10n.Core.kwCorespotlightKwdNewPassword,
-      L10n.Core.kwCorespotlightKwdPasswordSecurity,
+      CoreL10n.kwCorespotlightKwdPasswordGenerator,
+      CoreL10n.kwCorespotlightKwdRandomPassword,
+      CoreL10n.kwCorespotlightKwdGenerateStrongPassword,
+      CoreL10n.kwCorespotlightKwdStrongPasswords,
+      CoreL10n.kwCorespotlightKwdNewPassword,
+      CoreL10n.kwCorespotlightKwdPasswordSecurity,
     ]
     set.url = URL(string: "_")
     activity.contentAttributeSet = set

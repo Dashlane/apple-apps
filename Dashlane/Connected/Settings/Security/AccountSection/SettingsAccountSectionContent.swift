@@ -39,7 +39,7 @@ struct SettingsAccountSectionContent: View {
         },
         label: {
           Text(L10n.Localizable.settingsMasterPassword)
-            .foregroundColor(.ds.text.neutral.standard)
+            .foregroundStyle(Color.ds.text.neutral.standard)
             .textStyle(.body.standard.regular)
         })
     }
@@ -48,7 +48,7 @@ struct SettingsAccountSectionContent: View {
       action: { viewModel.goToPrivacySettings() },
       label: {
         Text(L10n.Localizable.settingsDataPrivacy)
-          .foregroundColor(.ds.text.neutral.standard)
+          .foregroundStyle(Color.ds.text.neutral.standard)
           .textStyle(.body.standard.regular)
       }
     )
@@ -59,14 +59,14 @@ struct SettingsAccountSectionContent: View {
       label: {
         Text(L10n.Localizable.kwDeviceListTitle)
           .textStyle(.body.standard.regular)
-          .foregroundColor(.ds.text.neutral.standard)
+          .foregroundStyle(Color.ds.text.neutral.standard)
       })
 
     Button(
       action: { viewModel.activeAlert = .logOut },
       label: {
         Text(L10n.Localizable.kwSignOutFromDevice)
-          .foregroundColor(.ds.text.danger.standard)
+          .foregroundStyle(Color.ds.text.danger.standard)
           .textStyle(.body.standard.regular)
       }
     )
@@ -74,21 +74,26 @@ struct SettingsAccountSectionContent: View {
       switch alert {
       case .privacyError:
         return Alert(
-          title: Text(CoreLocalization.L10n.Core.kwNoInternet),
+          title: Text(CoreL10n.kwNoInternet),
           message: nil,
-          dismissButton: .default(Text(CoreLocalization.L10n.Core.kwButtonOk)))
+          dismissButton: .default(Text(CoreL10n.kwButtonOk)))
       case .wrongMasterPassword:
         return Alert(
           title: Text(L10n.Localizable.kwWrongMasterPasswordMessage),
           message: nil,
-          dismissButton: .default(Text(CoreLocalization.L10n.Core.kwButtonOk)))
+          dismissButton: .default(Text(CoreL10n.kwButtonOk)))
       case .logOut:
         return logoutAlert
       }
     }
     .fullScreenCover(isPresented: $displayMasterPasswordChanger) {
-      ChangeMasterPasswordFlowView(
-        viewModel: viewModel.changeMasterPasswordFlowViewModelFactory.make())
+      MP2MPAccountMigrationFlowView(
+        viewModel: viewModel.makeChangeMasterPasswordViewModel {
+          displayMasterPasswordChanger = false
+        }
+      )
+      .reportPageAppearance(.settingsSecurityChangeMasterPassword)
+      .containerContext(nil)
     }
     .onReceive(viewModel.deepLinkPublisher) { link in
       guard case let .security(request) = link else { return }
@@ -122,31 +127,30 @@ struct SettingsAccountSectionContent: View {
     switch viewModel.session.authenticationMethod {
     case .masterPassword:
       return Alert(
-        title: Text(CoreLocalization.L10n.Core.askLogout),
-        message: Text(CoreLocalization.L10n.Core.signoutAskMasterPassword),
-        primaryButton: .destructive(
-          Text(CoreLocalization.L10n.Core.kwSignOut), action: viewModel.logOut),
+        title: Text(CoreL10n.askLogout),
+        message: Text(CoreL10n.signoutAskMasterPassword),
+        primaryButton: .destructive(Text(CoreL10n.kwSignOut), action: viewModel.logOut),
         secondaryButton: .cancel())
     case .sso:
       return Alert(
-        title: Text(CoreLocalization.L10n.Core.askLogout),
-        message: Text(CoreLocalization.L10n.Core.signoutAskMasterPassword),
-        primaryButton: .destructive(
-          Text(CoreLocalization.L10n.Core.kwSignOut), action: viewModel.logOut),
+        title: Text(CoreL10n.askLogout),
+        message: Text(CoreL10n.signoutAskMasterPassword),
+        primaryButton: .destructive(Text(CoreL10n.kwSignOut), action: viewModel.logOut),
         secondaryButton: .cancel())
     case .invisibleMasterPassword:
       return Alert(
         title: Text(L10n.Localizable.mplessLogoutAlertTitle),
         message: Text(L10n.Localizable.mplessLogoutAlertMessage),
-        primaryButton: .destructive(
-          Text(CoreLocalization.L10n.Core.kwSignOut), action: viewModel.logOut),
+        primaryButton: .destructive(Text(CoreL10n.kwSignOut), action: viewModel.logOut),
         secondaryButton: .cancel())
     }
   }
 }
 
-struct SettingsAccountSectionContent_Previews: PreviewProvider {
-  static var previews: some View {
-    SettingsAccountSectionContent(viewModel: .mock, masterPasswordChallengeItem: .constant(nil))
+#Preview {
+  List {
+    Section {
+      SettingsAccountSectionContent(viewModel: .mock, masterPasswordChallengeItem: .constant(nil))
+    }
   }
 }

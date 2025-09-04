@@ -2,47 +2,37 @@ import Combine
 import CoreKeychain
 import CoreSession
 import CoreSettings
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
+import StateMachine
 import SwiftTreats
 import SwiftUI
+import UserTrackingFoundation
 
 @MainActor
-public class LocalLoginUnlockViewModel: ObservableObject, LoginKitServicesInjecting {
+public class LocalLoginUnlockViewModel: StateMachineBasedObservableObject, LoginKitServicesInjecting
+{
   public enum Completion {
-    public enum AuthenticationMode {
-      case masterPassword
-
-      case resetMasterPassword
-
-      case biometry
-
-      case pincode
-
-      case rememberMasterPassword
-
-      case accountRecovered(_ newMasterPassword: String)
-
-      case sso
-    }
-
-    case authenticated(AuthenticationMode, LocalLoginConfiguration?)
+    case authenticated(LocalLoginConfiguration)
 
     case logout
+
+    case cancel
   }
 
   enum UnlockMode: Equatable {
-    case masterPassword
-    case pincode(pinCodeLock: SecureLockMode.PinCodeLock, biometry: Biometry?)
-    case biometry(Biometry)
+    case masterPassword(Biometry?, MPUserAccountUnlockMode)
+    case pincode(
+      pinCodeLock: SecureLockMode.PinCodeLock, biometry: Biometry?, CoreSession.AccountType)
+    case biometry(Biometry, CoreSession.AccountType)
     case passwordLessRecovery(afterFailure: Bool)
-    case sso
+    case sso(_ deviceAccessKey: String)
 
     var biometryType: Biometry? {
       switch self {
-      case .biometry(let biometryType):
+      case .biometry(let biometryType, _):
         return biometryType
       default: return nil
       }
@@ -55,281 +45,163 @@ public class LocalLoginUnlockViewModel: ObservableObject, LoginKitServicesInject
   }
 
   @Published
-  var unlockMode: UnlockMode
+  var unlockMode: UnlockMode?
 
   @Published
   var showRememberPassword: Bool = false
 
+  @Published public var isPerformingEvent: Bool = false
+  @Published public var isLoadingAccount: Bool = false
+
   let login: Login
-  let loginMetricsReporter: LoginMetricsReporterProtocol
-  let activityReporter: ActivityReporterProtocol
-  let unlocker: UnlockSessionHandler
+  let context: LoginUnlockContext
   let userSettings: UserSettings
   let resetMasterPasswordService: ResetMasterPasswordServiceProtocol
-  let accountType: CoreSession.AccountType
-  let unlockType: UnlockType
   let completion: (Completion) -> Void
-  let keychainService: AuthenticationKeychainServiceProtocol
-  let context: LoginUnlockContext
-  let appAPIClient: AppAPIClient
-  let nitroClient: NitroSSOAPIClient
   let masterPasswordLocalViewModelFactory: MasterPasswordLocalViewModel.Factory
   let biometryViewModelFactory: BiometryViewModel.Factory
-  let lockPinCodeAndBiometryViewModelFactory: LockPinCodeAndBiometryViewModel.Factory
+  let pinCodeAndBiometryViewModelFactory: PinCodeAndBiometryViewModel.Factory
   let passwordLessRecoveryViewModelFactory: PasswordLessRecoveryViewModel.Factory
   let ssoUnlockViewModelFactory: SSOUnlockViewModel.Factory
-  let expectedSecureLockMode: SecureLockMode
-  let sessionCleaner: SessionCleaner
-  let localLoginHandler: LocalLoginHandler
+
+  @Published public var stateMachine: LocalLoginUnlockStateMachine
 
   public init(
     login: Login,
-    accountType: CoreSession.AccountType,
-    unlockType: UnlockType,
-    secureLockMode: SecureLockMode,
-    sessionsContainer: SessionsContainerProtocol,
-    logger: Logger,
-    unlocker: UnlockSessionHandler,
     context: LoginUnlockContext,
     userSettings: UserSettings,
-    loginMetricsReporter: LoginMetricsReporterProtocol,
-    activityReporter: ActivityReporterProtocol,
     resetMasterPasswordService: ResetMasterPasswordServiceProtocol,
-    appAPIClient: AppAPIClient,
-    localLoginHandler: LocalLoginHandler,
-    nitroClient: NitroSSOAPIClient,
-    sessionCleaner: SessionCleaner,
-    keychainService: AuthenticationKeychainServiceProtocol,
+    logger: Logger,
     masterPasswordLocalViewModelFactory: MasterPasswordLocalViewModel.Factory,
     biometryViewModelFactory: BiometryViewModel.Factory,
-    lockPinCodeAndBiometryViewModelFactory: LockPinCodeAndBiometryViewModel.Factory,
+    pinCodeAndBiometryViewModelFactory: PinCodeAndBiometryViewModel.Factory,
     passwordLessRecoveryViewModelFactory: PasswordLessRecoveryViewModel.Factory,
+    localLoginUnlockStateMachine: LocalLoginUnlockStateMachine,
     ssoUnlockViewModelFactory: SSOUnlockViewModel.Factory,
     completion: @escaping (LocalLoginUnlockViewModel.Completion) -> Void
   ) {
     self.login = login
     self.context = context
-    self.unlockType = unlockType
-    self.keychainService = keychainService
-    self.loginMetricsReporter = loginMetricsReporter
-    self.activityReporter = activityReporter
-    self.unlocker = unlocker
     self.userSettings = userSettings
     self.resetMasterPasswordService = resetMasterPasswordService
-    self.accountType = accountType
     self.completion = completion
-    self.appAPIClient = appAPIClient
-    self.localLoginHandler = localLoginHandler
-    self.nitroClient = nitroClient
     self.masterPasswordLocalViewModelFactory = masterPasswordLocalViewModelFactory
-    self.lockPinCodeAndBiometryViewModelFactory = lockPinCodeAndBiometryViewModelFactory
+    self.pinCodeAndBiometryViewModelFactory = pinCodeAndBiometryViewModelFactory
     self.passwordLessRecoveryViewModelFactory = passwordLessRecoveryViewModelFactory
     self.biometryViewModelFactory = biometryViewModelFactory
-    self.unlockMode = accountType.fallbackUnlockMode(afterFailure: false)
-    expectedSecureLockMode = secureLockMode
-    self.sessionCleaner = sessionCleaner
     self.ssoUnlockViewModelFactory = ssoUnlockViewModelFactory
-    selectConvenientUnlockModeMethodIfPossible(for: secureLockMode)
-  }
-
-  private func selectConvenientUnlockModeMethodIfPossible(for secureLockMode: SecureLockMode) {
-    switch secureLockMode {
-    case let .biometry(biometry):
-      unlockMode = .biometry(biometry)
-
-    case let .pincode(pinCodeLock):
-      if pinCodeLock.attempts.tooManyAttempts {
-        unlockMode = accountType.fallbackUnlockMode(afterFailure: true)
-      } else {
-        unlockMode = .pincode(pinCodeLock: pinCodeLock, biometry: nil)
-      }
-
-    case let .biometryAndPincode(biometry, pinCodeLock):
-      if pinCodeLock.attempts.tooManyAttempts {
-        unlockMode = accountType.fallbackUnlockMode(afterFailure: true)
-      } else {
-        unlockMode = .pincode(pinCodeLock: pinCodeLock, biometry: biometry)
-      }
-
-    case .rememberMasterPassword:
-      self.showRememberPassword = true
-      fallthrough
-
-    case .masterKey:
-      unlockMode = accountType.fallbackUnlockMode(afterFailure: false)
+    self.stateMachine = localLoginUnlockStateMachine
+    Task {
+      await self.perform(.start)
     }
   }
 
-  func logOnAppear() {
-    if let performanceLogInfo = loginMetricsReporter.getPerformanceLogInfo(.appLaunch) {
-      activityReporter.report(performanceLogInfo.performanceUserEvent(for: .timeToAppReady))
-      loginMetricsReporter.resetTimer(.appLaunch)
-    }
-  }
-
-  func makeSSOUnlockViewModel() -> SSOUnlockViewModel {
-    guard case let UnlockType.ssoValidation(ssoAuthenticationInfo, _, _) = unlockType else {
-      fatalError()
-    }
-
-    return ssoUnlockViewModelFactory.make(
-      login: login, deviceAccessKey: localLoginHandler.deviceAccessKey
-    ) { result in
-      Task {
-        await self.handleSSOResult(result, ssoAuthenticationInfo: ssoAuthenticationInfo)
-      }
-    }
-  }
-
-  @MainActor
-  private func handleSSOResult(
-    _ result: Result<SSOUnlockViewModel.CompletionType, Error>,
-    ssoAuthenticationInfo: SSOAuthenticationInfo
+  public func update(
+    for event: CoreSession.LocalLoginUnlockStateMachine.Event,
+    from oldState: CoreSession.LocalLoginUnlockStateMachine.State,
+    to newState: CoreSession.LocalLoginUnlockStateMachine.State
   ) async {
-    do {
-      let result = try result.get()
-      switch result {
-      case let .completed(ssoKeys):
-        try await self.localLoginHandler.validateSSOKey(
-          ssoKeys, ssoAuthenticationInfo: ssoAuthenticationInfo)
-        self.completion(.authenticated(.sso, nil))
-      case .cancel, .logout:
-        self.completion(.logout)
-      }
-    } catch {
-      self.unlockMode = self.accountType.fallbackUnlockMode(afterFailure: true)
-      self.activityReporter.logFailure(for: self.unlockType)
+    switch (newState, event) {
+    case (.initialize, _):
+      break
+    case (let .masterPassword(_, biometry, userAccount), _):
+      unlockMode = .masterPassword(biometry, userAccount)
+    case (let .pincode(_, pinCodeLock, biometry, accountType), _):
+      unlockMode = .pincode(pinCodeLock: pinCodeLock, biometry: biometry, accountType)
+    case (let .biometry(_, biometry, accountType), _):
+      unlockMode = .biometry(biometry, accountType)
+    case (.passwordLessRecovery(afterFailure: let afterFailure), _):
+      unlockMode = .passwordLessRecovery(afterFailure: afterFailure)
+    case (let .sso(deviceAccessKey), _):
+      unlockMode = .sso(deviceAccessKey)
+    case (.logout, _):
+      self.completion(.logout)
+    case (let .completed(config), _):
+      isLoadingAccount = true
+      self.completion(.authenticated(config))
     }
   }
 }
 
 extension LocalLoginUnlockViewModel {
-  func authenticateUsingRememberPassword() async {
-    if let masterKey = try? await keychainService.masterKey(for: self.login) {
-      await self.validateLocalMasterKeyForRememberPassword(masterKey, unlocker: unlocker)
-    } else {
-      self.showRememberPassword = false
-    }
-  }
-
-  private func validateLocalMasterKeyForRememberPassword(
-    _ masterKey: DashTypes.MasterKey, unlocker: UnlockSessionHandler
-  ) async {
-    switch masterKey {
-    case .masterPassword(let masterPassword):
-      do {
-        try await unlocker.validateMasterKey(
-          .masterPassword(masterPassword, serverKey: nil), isRecoveryLogin: false)
-        self.completion(.authenticated(.rememberMasterPassword, nil))
-      } catch {
-        try? self.keychainService.removeMasterKey(for: self.login)
-        self.showRememberPassword = false
-      }
-    case .key(let key):
-      do {
-        try await unlocker.validateMasterKey(.ssoKey(key), isRecoveryLogin: false)
-        self.completion(.authenticated(.rememberMasterPassword, nil))
-      } catch {
-        self.showRememberPassword = false
-      }
-    }
-  }
-}
-
-extension LocalLoginUnlockViewModel {
-  func makeMasterPasswordLocalViewModel() -> MasterPasswordLocalViewModel {
-    let user: AccountRecoveryKeyLoginFlowStateMachine.User =
-      if let authTicket = unlockType.authTicket {
-        .otp2User(authTicket)
-      } else {
-        .normalUser
-      }
+  func makeMasterPasswordLocalViewModel(biometry: Biometry?, unlockMode: MPUserAccountUnlockMode)
+    -> MasterPasswordLocalViewModel
+  {
+    let stateMachine = stateMachine.makeMasterPasswordLocalLoginStateMachine(
+      unlockMode: unlockMode,
+      resetMasterPasswordService: resetMasterPasswordService,
+      pinCodeattempts: PinCodeAttempts(internalStore: userSettings.internalStore), context: context)
     return masterPasswordLocalViewModelFactory.make(
       login: login,
-      biometry: unlockMode.biometryType,
-      user: user,
-      unlocker: unlocker,
+      biometry: biometry,
       context: context,
-      resetMasterPasswordService: resetMasterPasswordService,
-      userSettings: userSettings
+      masterPasswordLocalStateMachine: stateMachine
     ) { [weak self] result in
       guard let self = self else { return }
-      switch result {
-      case let .authenticated(config):
-        if config.shouldResetMP {
-          self.completion(.authenticated(.resetMasterPassword, config))
-        } else if let newMasterPassword = config.newMasterPassword {
-          self.completion(.authenticated(.accountRecovered(newMasterPassword), config))
-        } else {
-          self.completion(.authenticated(.masterPassword, config))
+      Task {
+        switch result {
+        case let .authenticated(config):
+          await self.perform(.authenticated(config))
+        case .biometry(let biometry):
+          await self.perform(.askBiometryForMasterPassword(biometry))
+        case .cancel:
+          await self.perform(.logout)
         }
-
-      case .biometry(let biometry):
-        self.activityReporter.logAskOtherAuthentication(for: .masterPassword, nextMode: .biometric)
-        self.unlockMode = .biometry(biometry)
-      case .cancel:
-        self.completion(.logout)
       }
     }
   }
 
-  func makeBiometryViewModel(biometryType: Biometry) -> BiometryViewModel {
+  func makeBiometryViewModel(biometryType: Biometry, accountType: CoreSession.AccountType)
+    -> BiometryViewModel
+  {
     biometryViewModelFactory.make(
       login: login,
       biometryType: biometryType,
-      unlocker: unlocker,
       context: context,
-      userSettings: userSettings
-    ) { [weak self] isSuccess in
+      biometryUnlockStateMachine: stateMachine.makeBiometryUnlockStateMachine(context: context)
+    ) { [weak self] session in
       guard let self = self else {
         return
       }
-
-      if !isSuccess {
-        self.unlockMode = self.accountType.fallbackUnlockMode(afterFailure: true)
-        self.activityReporter.logFailure(for: self.unlockType)
-      } else {
-        self.completion(.authenticated(.biometry, nil))
+      Task {
+        guard let session else {
+          await self.perform(.unlockFailed(.biometric))
+          return
+        }
+        await self.perform(
+          .authenticated(LocalLoginConfiguration(session: session, authenticationMode: .biometry)))
       }
     }
   }
 
-  func makePinCodeViewModel(
+  func makePinCodeAndBiometryViewModel(
     lock: SecureLockMode.PinCodeLock,
+    accountType: CoreSession.AccountType,
     biometryType: Biometry? = nil
-  ) -> LockPinCodeAndBiometryViewModel {
-    lockPinCodeAndBiometryViewModelFactory.make(
+  ) -> PinCodeAndBiometryViewModel {
+    let stateMachine = stateMachine.makeLockPinCodeAndBiometryStateMachine(
+      pinCodeLock: lock,
+      pinCodeAttempts: PinCodeAttempts(internalStore: userSettings.internalStore),
+      context: context,
+      biometry: biometryType)
+    return pinCodeAndBiometryViewModelFactory.make(
       login: login,
       accountType: accountType,
-      pinCodeLock: lock,
-      biometryType: biometryType,
-      context: context,
-      unlocker: unlocker
+      pincode: lock.code,
+      lockPinCodeAndBiometryStateMachine: stateMachine
     ) { [weak self] result in
       guard let self = self else {
         return
       }
 
-      switch result {
-      case .biometricAuthenticationSuccess:
-        self.completion(.authenticated(.biometry, nil))
-
-      case .pinAuthenticationSuccess:
-        self.completion(.authenticated(.pincode, nil))
-
-      case .failure:
-        self.unlockMode = self.accountType.fallbackUnlockMode(afterFailure: true)
-
-      case .recover:
-        self.unlockMode = self.accountType.fallbackUnlockMode(afterFailure: false)
-
-      case .cancel:
-        let unlockMethod = self.accountType.fallbackUnlockMode(afterFailure: false)
-        switch unlockMethod {
-        case .passwordLessRecovery:
-          self.completion(.logout)
-        default:
-          self.unlockMode = unlockMethod
+      Task {
+        switch result {
+        case let .authenticated(config):
+          await self.perform(.authenticated(config))
+        case .failure:
+          await self.perform(.unlockFailed(.pin, biometryType))
+        case .recover, .cancel:
+          await self.perform(.cancel)
         }
       }
     }
@@ -343,40 +215,32 @@ extension LocalLoginUnlockViewModel {
         return
       }
 
-      switch completion {
-      case .logout:
-        sessionCleaner.removeLocalData(for: login)
-        self.completion(.logout)
-      case .cancel:
-        self.selectConvenientUnlockModeMethodIfPossible(for: self.expectedSecureLockMode)
+      Task {
+        switch completion {
+        case .logout:
+          await self.perform(.logout)
+        case .cancel:
+          await self.perform(.start)
+        }
       }
-    }
-  }
-}
 
-extension ActivityReporterProtocol {
-  fileprivate func logFailure(for unlockType: UnlockType) {
-    if case UnlockType.ssoValidation = unlockType {
-      self.logAskOtherAuthentication(for: .pin, nextMode: .sso)
-    } else {
-      self.logAskOtherAuthentication(for: .pin, nextMode: .masterPassword)
     }
   }
 
-  fileprivate func logAskOtherAuthentication(for mode: Definition.Mode, nextMode: Definition.Mode) {
-    report(UserEvent.AskUseOtherAuthentication(next: nextMode, previous: mode))
-  }
-}
-
-extension CoreSession.AccountType {
-  func fallbackUnlockMode(afterFailure: Bool) -> LocalLoginUnlockViewModel.UnlockMode {
-    switch self {
-    case .masterPassword:
-      return .masterPassword
-    case .invisibleMasterPassword:
-      return .passwordLessRecovery(afterFailure: afterFailure)
-    case .sso:
-      return .sso
+  func makeSSOUnlockViewModel(deviceAccessKey: String) -> SSOUnlockViewModel {
+    ssoUnlockViewModelFactory.make(
+      login: login, deviceAccessKey: deviceAccessKey,
+      stateMachine: stateMachine.makeSSOUnlockStateMachine(state: .locked)
+    ) { result in
+      Task {
+        let result = try result.get()
+        switch result {
+        case let .completed(ssoKeys):
+          await self.perform(.handleSSOresult(ssoKeys))
+        case .cancel, .logout:
+          self.completion(.logout)
+        }
+      }
     }
   }
 }

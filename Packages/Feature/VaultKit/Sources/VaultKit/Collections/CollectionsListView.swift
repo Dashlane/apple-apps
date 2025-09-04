@@ -1,11 +1,7 @@
-import CoreFeature
 import CoreLocalization
-import CorePersonalData
 import CorePremium
-import CoreUserTracking
 import DesignSystem
 import SwiftUI
-import UIComponents
 
 public struct CollectionsListView: View {
 
@@ -17,9 +13,6 @@ public struct CollectionsListView: View {
 
   @StateObject
   private var viewModel: CollectionsListViewModel
-
-  @Environment(\.toast)
-  var toast
 
   private let action: (Action) -> Void
 
@@ -41,6 +34,12 @@ public struct CollectionsListView: View {
   @State
   private var showStarterLimitationAlert: Bool = false
 
+  @Environment(\.toast)
+  var toast
+
+  @CapabilityState(.collectionSharing)
+  var collectionSharingCapabilityState
+
   public init(
     viewModel: @autoclosure @escaping () -> CollectionsListViewModel,
     action: @escaping (Action) -> Void = { _ in }
@@ -51,25 +50,28 @@ public struct CollectionsListView: View {
 
   public var body: some View {
     content
-      .backgroundColorIgnoringSafeArea(.ds.background.alternate)
-      .navigationBarTitle(L10n.Core.KWVaultItem.Collections.toolsTitle)
+      .frame(maxHeight: .infinity, alignment: .top)
+      .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
+      .navigationBarTitle(CoreL10n.KWVaultItem.Collections.toolsTitle)
       .navigationBarTitleDisplayMode(.inline)
       .toasterOn()
       .toolbar {
-        ToolbarItem(placement: .navigationBarTrailing) {
-          Button(
-            action: {
-              if viewModel.isAdditionRestrictedByFrozenAccount {
-                viewModel.redirectToFrozenPaywall()
-              } else {
-                showAddition = true
+        if shouldShowAddToolbarButton {
+          ToolbarItem(placement: .navigationBarTrailing) {
+            Button(
+              action: {
+                if viewModel.isAdditionRestrictedByFrozenAccount {
+                  viewModel.redirectToFrozenPaywall()
+                } else {
+                  showAddition = true
+                }
+              },
+              label: {
+                Image.ds.action.add.outlined
+                  .foregroundStyle(Color.ds.text.brand.standard)
               }
-            },
-            label: {
-              Image.ds.action.add.outlined
-                .foregroundColor(.ds.text.brand.standard)
-            }
-          )
+            )
+          }
         }
       }
       .sheet(isPresented: $showAddition) {
@@ -88,14 +90,84 @@ public struct CollectionsListView: View {
 
   @ViewBuilder
   private var content: some View {
-    if viewModel.collections.isEmpty {
-      emptyState
-    } else {
-      list
+    switch viewModel.viewState {
+    case .loading:
+      EmptyView()
+    case .emptyCredentialsList:
+      emptyCredentialsListIntroView
+    case .emptyCollectionsList:
+      emptyCollectionsListIntroView
+    case .loaded:
+      collectionsList
     }
   }
 
-  private var list: some View {
+  private var emptyCredentialsListIntroView: some View {
+    ToolIntroView(
+      icon: ExpressiveIcon(.ds.collection.outlined),
+      title: CoreL10n.CollectionsIntro.title
+    ) {
+      FeatureCard {
+        FeatureRow(
+          asset: ExpressiveIcon(.ds.folder.outlined),
+          title: CoreL10n.CollectionsIntro.Subtitle1.v1,
+          description: CoreL10n.CollectionsIntro.Description1.v1
+        )
+
+        if collectionSharingCapabilityState == .available() {
+          FeatureRow(
+            asset: ExpressiveIcon(.ds.action.share.outlined),
+            title: CoreL10n.CollectionsIntro.subtitle2,
+            description: CoreL10n.CollectionsIntro.description2
+          )
+        }
+      }
+
+      Button {
+        viewModel.addPassword()
+      } label: {
+        Label(
+          CoreL10n.CollectionsIntro.Cta.v1,
+          icon: .ds.arrowRight.outlined
+        )
+      }
+      .buttonStyle(.designSystem(.iconTrailing(.sizeToFit)))
+    }
+  }
+
+  private var emptyCollectionsListIntroView: some View {
+    ToolIntroView(
+      icon: ExpressiveIcon(.ds.collection.outlined),
+      title: CoreL10n.CollectionsIntro.title
+    ) {
+      FeatureCard {
+        FeatureRow(
+          asset: ExpressiveIcon(.ds.folder.outlined),
+          title: CoreL10n.CollectionsIntro.Subtitle1.v2,
+          description: CoreL10n.CollectionsIntro.Description1.v2
+        )
+
+        if collectionSharingCapabilityState == .available() {
+          FeatureRow(
+            asset: ExpressiveIcon(.ds.action.share.outlined),
+            title: CoreL10n.CollectionsIntro.subtitle2,
+            description: CoreL10n.CollectionsIntro.description2
+          )
+        }
+      }
+
+      Button(CoreL10n.CollectionsIntro.Cta.v2) {
+        if viewModel.vaultState == .frozen {
+          viewModel.redirectToFrozenPaywall()
+        } else {
+          showAddition = true
+        }
+      }
+      .buttonStyle(.designSystem(.titleOnly(.sizeToFit)))
+    }
+  }
+
+  private var collectionsList: some View {
     List(viewModel.collections) { collection in
       CollectionRow(viewModel: viewModel.collectionRowViewModelFactory.make(collection: collection))
         .onTapWithFeedback {
@@ -111,43 +183,41 @@ public struct CollectionsListView: View {
         .listRowBackground(Color.ds.container.agnostic.neutral.supershy)
     }
     .confirmationDialog(
-      L10n.Core.KWVaultItem.Collections.DeleteAlert.title,
+      CoreL10n.KWVaultItem.Collections.DeleteAlert.title,
       isPresented: $showDelete,
       presenting: collectionToDelete,
       actions: { collectionToDelete in
-        Button(L10n.Core.kwDelete, role: .destructive) {
+        Button(CoreL10n.kwDelete, role: .destructive) {
           viewModel.delete(collectionToDelete, with: toast)
         }
-        Button(L10n.Core.cancel, role: .cancel) {}
+        Button(CoreL10n.cancel, role: .cancel) {}
       },
       message: { _ in
-        Text(L10n.Core.KWVaultItem.Collections.DeleteAlert.message)
+        Text(CoreL10n.KWVaultItem.Collections.DeleteAlert.message)
       }
     )
     .alert(isPresented: $viewModel.showSharedCollectionErrorMessage) {
       Alert(
-        title: Text(L10n.Core.KWVaultItem.Collections.DeleteAlert.Error.Shared.title),
-        message: Text(L10n.Core.KWVaultItem.Collections.DeleteAlert.Error.Shared.message),
-        dismissButton: .default(Text(L10n.Core.kwButtonOk))
+        title: Text(CoreL10n.KWVaultItem.Collections.DeleteAlert.Error.Shared.title),
+        message: Text(CoreL10n.KWVaultItem.Collections.DeleteAlert.Error.Shared.message),
+        dismissButton: .default(Text(CoreL10n.kwButtonOk))
       )
     }
     .alert(isPresented: $showStarterLimitationAlert) {
       Alert(
-        title: Text(CoreLocalization.L10n.Core.starterLimitationUserSharingUnavailableTitle),
-        message: Text(
-          CoreLocalization.L10n.Core.starterLimitationUserSharingUnavailableDescription),
-        dismissButton: .default(
-          Text(CoreLocalization.L10n.Core.starterLimitationUserSharingUnavailableButton))
+        title: Text(CoreL10n.starterLimitationUserSharingUnavailableTitle),
+        message: Text(CoreL10n.starterLimitationUserSharingUnavailableDescription),
+        dismissButton: .default(Text(CoreL10n.starterLimitationUserSharingUnavailableButton))
       )
     }
     .alert(
-      L10n.Core.teamSpacesSharingCollectionsDisabledMessageTitle,
+      CoreL10n.teamSpacesSharingCollectionsDisabledMessageTitle,
       isPresented: $showSharingDisabledAlert,
       actions: {
-        Button(L10n.Core.kwButtonOk) {}
+        Button(CoreL10n.kwButtonOk) {}
       },
       message: {
-        Text(L10n.Core.teamSpacesSharingCollectionsDisabledMessageBody)
+        Text(CoreL10n.teamSpacesSharingCollectionsDisabledMessageBody)
       }
     )
     .scrollContentBackground(.hidden)
@@ -160,7 +230,7 @@ public struct CollectionsListView: View {
         collectionToDelete = collection
         showDelete = true
       } label: {
-        Label(L10n.Core.kwDelete, systemImage: "trash.fill")
+        Label(CoreL10n.kwDelete, systemImage: "trash.fill")
           .labelStyle(.titleAndIcon)
       }
       .tint(.ds.container.expressive.danger.catchy.idle)
@@ -173,7 +243,7 @@ public struct CollectionsListView: View {
       Button {
         collectionToEdit = collection
       } label: {
-        Label(L10n.Core.kwEdit, systemImage: "square.and.pencil")
+        Label(CoreL10n.kwEdit, systemImage: "square.and.pencil")
       }
       .tint(.ds.container.expressive.neutral.catchy.idle)
     }
@@ -188,7 +258,7 @@ public struct CollectionsListView: View {
         },
         label: {
           Label {
-            Text(L10n.Core.kwSharedAccess)
+            Text(CoreL10n.kwSharedAccess)
           } icon: {
             Image.ds.shared.filled
           }
@@ -211,45 +281,20 @@ public struct CollectionsListView: View {
         action(.share(collection))
       }
     } label: {
-      Label(L10n.Core.kwShare, systemImage: "arrowshape.turn.up.forward.fill")
+      Label(CoreL10n.kwShare, systemImage: "arrowshape.turn.up.forward.fill")
         .labelStyle(.titleAndIcon)
     }
     .tint(.ds.container.expressive.neutral.catchy.active)
     .disabled(!viewModel.shouldDisplayShareOption(for: collection))
   }
 
-  private var emptyState: some View {
-    VStack {
-      Image.ds.folder.outlined
-        .resizable()
-        .frame(width: 96, height: 96)
-        .foregroundColor(.ds.text.neutral.quiet)
-
-      Text(L10n.Core.KWVaultItem.Collections.List.EmptyState.message)
-        .font(.body)
-        .foregroundColor(.ds.text.neutral.quiet)
-        .multilineTextAlignment(.center)
-
-      Button(
-        action: {
-          if viewModel.vaultState == .frozen {
-            viewModel.redirectToFrozenPaywall()
-          } else {
-            showAddition = true
-          }
-        },
-        label: {
-          Label(
-            L10n.Core.KWVaultItem.Collections.List.EmptyState.button,
-            icon: .ds.action.add.outlined
-          )
-        }
-      )
-      .buttonStyle(.designSystem(.iconLeading))
-      .style(mood: .brand, intensity: .catchy)
-      .padding(.vertical, 16)
+  private var shouldShowAddToolbarButton: Bool {
+    switch viewModel.viewState {
+    case .emptyCollectionsList, .loaded:
+      return true
+    case .loading, .emptyCredentialsList:
+      return false
     }
-    .padding(.horizontal, 24)
   }
 }
 

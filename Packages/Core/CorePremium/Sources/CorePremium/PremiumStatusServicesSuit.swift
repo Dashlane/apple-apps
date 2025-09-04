@@ -1,14 +1,15 @@
 import Combine
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 
 public struct PremiumStatusServicesSuit: DependenciesContainer {
   public let statusProvider: PremiumStatusProvider
   public let userSpacesService: UserSpacesService
   public let capabilityService: CapabilityService
 
-  init(statusProvider: PremiumStatusProvider) async {
+  init(statusProvider: PremiumStatusProvider) {
     self.statusProvider = statusProvider
     userSpacesService = UserSpacesService(provider: statusProvider)
     capabilityService = CapabilityService(provider: statusProvider)
@@ -20,10 +21,12 @@ extension PremiumStatusServicesSuit {
     client: UserDeviceAPIClient,
     cache: PremiumStatusCache,
     refreshTrigger: any Publisher<Void, Never>,
+    onStatusChange: @escaping (Status) -> Void,
     logger: Logger
   ) async throws {
     statusProvider = try await PremiumStatusAPIProvider(
-      client: client, cache: cache, refreshTrigger: refreshTrigger, logger: logger)
+      client: client, cache: cache, refreshTrigger: refreshTrigger, onStatusChange: onStatusChange,
+      logger: logger)
     userSpacesService = UserSpacesService(provider: statusProvider)
     capabilityService = CapabilityService(provider: statusProvider)
   }
@@ -34,5 +37,11 @@ extension PremiumStatusServicesSuit {
     statusProvider = try PremiumStatusFromCacheProvider(cache: cache)
     userSpacesService = UserSpacesService(provider: statusProvider)
     capabilityService = CapabilityService(provider: statusProvider)
+  }
+}
+
+extension PremiumStatusServicesSuit {
+  public static var mock: PremiumStatusServicesSuit {
+    PremiumStatusServicesSuit(statusProvider: .mock())
   }
 }

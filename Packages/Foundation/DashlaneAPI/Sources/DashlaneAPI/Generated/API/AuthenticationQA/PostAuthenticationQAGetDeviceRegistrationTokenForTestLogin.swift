@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppAPIClient.AuthenticationQA {
-  public struct GetDeviceRegistrationTokenForTestLogin: APIRequest {
+  public struct GetDeviceRegistrationTokenForTestLogin: APIRequest, Sendable {
     public static let endpoint: Endpoint =
       "/authentication-qa/GetDeviceRegistrationTokenForTestLogin"
 
@@ -24,7 +24,7 @@ extension AppAPIClient.AuthenticationQA {
 }
 
 extension AppAPIClient.AuthenticationQA.GetDeviceRegistrationTokenForTestLogin {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case login = "login"
     }
@@ -43,7 +43,7 @@ extension AppAPIClient.AuthenticationQA.GetDeviceRegistrationTokenForTestLogin {
 }
 
 extension AppAPIClient.AuthenticationQA.GetDeviceRegistrationTokenForTestLogin {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case token = "token"
     }

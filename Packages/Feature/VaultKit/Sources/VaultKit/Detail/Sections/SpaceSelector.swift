@@ -35,9 +35,7 @@ struct SpaceSelectorRow: View {
   }
 
   private func showSpaceSelectorListView() {
-    #if canImport(UIKit)
-      UIApplication.shared.endEditing()
-    #endif
+    UIApplication.shared.endEditing()
     showSpaceSelector = true
   }
 }
@@ -72,15 +70,15 @@ struct SpaceSelectorSection: View {
 
   private var sectionHeader: some View {
     HStack {
-      Text(L10n.Core.KWAuthentifiantIOS.spaceId.uppercased())
+      Text(CoreL10n.KWAuthentifiantIOS.spaceId.uppercased())
         .font(.footnote)
-        .foregroundColor(.ds.text.neutral.quiet)
+        .foregroundStyle(Color.ds.text.neutral.quiet)
 
       if isUserSpaceForced {
         Image.ds.lock.filled
           .resizable()
           .frame(width: 10, height: 10)
-          .foregroundColor(.ds.text.neutral.standard)
+          .foregroundStyle(Color.ds.text.neutral.standard)
       }
     }
   }
@@ -90,7 +88,7 @@ struct SpaceSelectorSection: View {
     if isUserSpaceForced, let feedbackMessage {
       Text(feedbackMessage)
         .font(.footnote)
-        .foregroundColor(.ds.text.neutral.quiet)
+        .foregroundStyle(Color.ds.text.neutral.quiet)
     }
   }
 }
@@ -99,12 +97,12 @@ struct SpaceSelectorSection_Previews: PreviewProvider {
 
   static var previews: some View {
     SpaceSelectorSection(
-      selectedUserSpace: .team(.mock),
+      selectedUserSpace: .team(.mock()),
       isUserSpaceForced: false,
       showSpaceSelector: .constant(false)
     )
     SpaceSelectorSection(
-      selectedUserSpace: .team(.mock),
+      selectedUserSpace: .team(.mock()),
       isUserSpaceForced: true,
       showSpaceSelector: .constant(false)
     )

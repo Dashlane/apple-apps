@@ -1,7 +1,7 @@
 import CoreSession
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import Foundation
+import UserTrackingFoundation
 
 public protocol SessionActivityReporterProvider {
   func makeSessionActivityReporter(for login: Login, analyticsId: AnalyticsIdentifiers)

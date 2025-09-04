@@ -1,6 +1,6 @@
 import AuthenticationServices
 import Combine
-import DashTypes
+import CoreTypes
 import Foundation
 
 public class AutofillBannerViewModel: ObservableObject {
@@ -16,11 +16,7 @@ public class AutofillBannerViewModel: ObservableObject {
   }
 
   func showAutofillDemo() {
-    if #available(iOS 17, *) {
-      ASSettingsHelper.openCredentialProviderAppSettings()
-    } else {
-      action(.showAutofillDemo)
-    }
+    ASSettingsHelper.openCredentialProviderAppSettings()
   }
 
 }

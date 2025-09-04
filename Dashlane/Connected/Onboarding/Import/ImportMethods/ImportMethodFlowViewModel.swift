@@ -58,7 +58,7 @@ final class ImportMethodFlowViewModel: ObservableObject, SessionServicesInjectin
     ]
   }
 
-  private func methodSelected(_ method: ImportMethod) {
+  private func methodSelected(_ method: LegacyImportMethod) {
     switch method {
     case .manual:
       showAddPassword()
@@ -138,11 +138,6 @@ extension ImportMethodFlowViewModel {
       completion(.dismiss)
     case .methodSelected(let importMethod):
       methodSelected(importMethod)
-    case .dwmScanPromptDismissed:
-      sessionServices.dwmOnboardingSettings[.hasDismissedLastChanceScanPrompt] = true
-    case .dwmScanRequested:
-      sessionServices.appServices.deepLinkingService.handleLink(
-        .tool(.darkWebMonitoring, origin: "onboarding_vault"))
     }
   }
 

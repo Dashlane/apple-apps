@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.SharingUserdevice {
-  public struct GetTeamLogins: APIRequest {
+  public struct GetTeamLogins: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/sharing-userdevice/GetTeamLogins"
 
     public let api: UserDeviceAPIClient
@@ -26,13 +26,13 @@ extension UserDeviceAPIClient.SharingUserdevice.GetTeamLogins {
 }
 
 extension UserDeviceAPIClient.SharingUserdevice.GetTeamLogins {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case teamLogins = "teamLogins"
       case usersMetadata = "usersMetadata"
     }
 
-    public struct UsersMetadataElement: Codable, Equatable, Sendable {
+    public struct UsersMetadataElement: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case login = "login"
         case familyName = "familyName"

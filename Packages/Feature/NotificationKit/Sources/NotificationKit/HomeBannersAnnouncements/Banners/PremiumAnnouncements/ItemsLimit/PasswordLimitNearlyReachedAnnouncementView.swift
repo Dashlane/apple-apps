@@ -16,7 +16,7 @@ public struct PasswordLimitNearlyReachedAnnouncementView: View {
 
   public var body: some View {
     Infobox(title) {
-      Button(L10n.Core.premiumPasswordLimitNearlyReachedAction) {
+      Button(CoreL10n.premiumPasswordLimitNearlyReachedAction) {
         action()
       }
     }
@@ -25,9 +25,9 @@ public struct PasswordLimitNearlyReachedAnnouncementView: View {
 
   var title: String {
     if remainingItems > 1 {
-      L10n.Core.premiumPasswordLimitNearlyReachedTitle(remainingItems)
+      CoreL10n.premiumPasswordLimitNearlyReachedTitle(remainingItems)
     } else {
-      L10n.Core.premiumPasswordLimitNearlyReachedTitleSingular
+      CoreL10n.premiumPasswordLimitNearlyReachedTitleSingular
     }
   }
 }

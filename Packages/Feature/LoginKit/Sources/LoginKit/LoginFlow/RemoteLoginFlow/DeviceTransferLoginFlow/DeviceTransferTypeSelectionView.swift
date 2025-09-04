@@ -1,6 +1,6 @@
 import CoreLocalization
 import CoreSession
-import DashTypes
+import CoreTypes
 import DesignSystem
 import Foundation
 import SwiftUI
@@ -12,26 +12,26 @@ struct DeviceTransferTypeSelectionView: View {
 
   var body: some View {
     VStack(alignment: .leading, spacing: 32) {
-      Text(L10n.Core.Mpless.D2d.Untrusted.chooseTypeTitle)
+      Text(CoreL10n.Mpless.D2d.Untrusted.chooseTypeTitle)
         .font(.title)
-        .foregroundColor(.ds.text.neutral.catchy)
+        .foregroundStyle(Color.ds.text.neutral.catchy)
 
       VStack(spacing: 12) {
         button(
-          title: L10n.Core.Mpless.D2d.Untrusted.chooseTypeComputerCta,
+          title: CoreL10n.Mpless.D2d.Untrusted.chooseTypeComputerCta,
           image: Image.ds.laptop.outlined
         ) {
           completion(.startSecurityChallengeFlow(login))
         }
         button(
-          title: L10n.Core.Mpless.D2d.Untrusted.chooseTypeMobileCta,
+          title: CoreL10n.Mpless.D2d.Untrusted.chooseTypeMobileCta,
           image: Image.ds.item.phoneMobile.outlined
         ) {
           completion(.startQRCodeFlow)
         }
       }
       Spacer()
-      Button(L10n.Core.Mpless.D2d.Untrusted.chooseTypeNoDeviceCta) {
+      Button(CoreL10n.Mpless.D2d.Untrusted.chooseTypeNoDeviceCta) {
         completion(.startRecovery(login))
       }
       .style(mood: .brand, intensity: .quiet)
@@ -39,7 +39,7 @@ struct DeviceTransferTypeSelectionView: View {
     }
     .padding(24)
     .background(Color.ds.background.alternate)
-    .navigationTitle(L10n.Core.deviceToDeviceNavigationTitle)
+    .navigationTitle(CoreL10n.deviceToDeviceNavigationTitle)
     .loginAppearance()
     .reportPageAppearance(.loginDeviceTransfer)
   }
@@ -58,7 +58,7 @@ struct DeviceTransferTypeSelectionView: View {
           .fill(Color.ds.container.agnostic.neutral.supershy)
       )
     }
-    .foregroundColor(.ds.text.neutral.catchy)
+    .foregroundStyle(Color.ds.text.neutral.catchy)
     .navigationBarTitleDisplayMode(.inline)
   }
 }

@@ -1,6 +1,6 @@
 import Foundation
 
-public struct AuthenticationMethodsLoginProfiles: Codable, Equatable, Sendable {
+public struct AuthenticationMethodsLoginProfiles: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case login = "login"
     case deviceAccessKey = "deviceAccessKey"

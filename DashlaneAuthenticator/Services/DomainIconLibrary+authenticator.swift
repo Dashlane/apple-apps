@@ -1,7 +1,7 @@
 import Combine
 import CoreSession
 import CoreSync
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 import IconLibrary

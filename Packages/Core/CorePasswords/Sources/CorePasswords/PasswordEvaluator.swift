@@ -96,7 +96,7 @@ public struct PasswordEvaluatorMock: PasswordEvaluatorProtocol {
 }
 
 extension PasswordEvaluatorProtocol where Self == PasswordEvaluatorMock {
-  public static func mock(_ strength: PasswordStrength? = nil) -> PasswordEvaluatorMock {
+  public static func mock(_ strength: PasswordStrength? = nil) -> PasswordEvaluatorProtocol {
     return PasswordEvaluatorMock(strength: strength)
   }
 }

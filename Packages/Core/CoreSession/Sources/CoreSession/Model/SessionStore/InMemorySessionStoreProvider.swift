@@ -1,5 +1,6 @@
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 
 public class InMemorySessionStoreProvider: SessionStoreProviderProtocol {
   public class LoginStore: SourceSessionStoreItem {
@@ -35,6 +36,7 @@ public class InMemorySessionStoreProvider: SessionStoreProviderProtocol {
   }
 
   public struct InMemorySessionStore<T>: SourceSessionStoreItem {
+    @Loggable
     enum Error: Swift.Error {
       case emptyStorage
     }

@@ -18,8 +18,8 @@ private struct ActionableFieldModifier: ViewModifier {
       content
       if detailMode == .viewing && !isHidden {
         Spacer()
-        Button(action: action, title: title)
-          .accentColor(.ds.text.brand.standard)
+        Button(title, action: action)
+          .tint(.ds.text.brand.standard)
       }
     }
   }
@@ -29,7 +29,7 @@ extension TextDetailField {
   public func openAction(didOpen: (() -> Void)? = nil) -> some View {
     self.modifier(
       ActionableFieldModifier(
-        title: L10n.Core.kwOpen,
+        title: CoreL10n.kwOpen,
         isHidden: text.isEmpty,
         action: {
           if let url = PersonalDataURL(rawValue: self.text).openableURL {
@@ -63,7 +63,7 @@ extension SecureDetailField {
     } else {
       self.modifier(
         ActionableFieldModifier(
-          title: L10n.Core.kwCopyButton,
+          title: CoreL10n.kwCopyButton,
           isHidden: copiableValue.wrappedValue.isEmpty,
           action: {
             copyAction(self.copiableValue.wrappedValue)

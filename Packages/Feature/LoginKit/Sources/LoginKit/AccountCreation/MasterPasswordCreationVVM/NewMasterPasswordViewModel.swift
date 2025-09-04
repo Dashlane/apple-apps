@@ -3,10 +3,10 @@ import CoreKeychain
 import CoreLocalization
 import CorePasswords
 import CoreSession
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import Foundation
 import SwiftTreats
+import UserTrackingFoundation
 
 public final class NewMasterPasswordViewModel: ObservableObject, LoginKitServicesInjecting {
   public enum Mode {
@@ -138,7 +138,7 @@ public final class NewMasterPasswordViewModel: ObservableObject, LoginKitService
       isEqualToCurrentMP == true
     {
       invalidPasswordAttempts += 1
-      errorLabel = L10n.Core.changeMasterPasswordMustBeDifferentError
+      errorLabel = CoreL10n.changeMasterPasswordMustBeDifferentError
       return
     }
 
@@ -161,14 +161,13 @@ public final class NewMasterPasswordViewModel: ObservableObject, LoginKitService
       let isEqualToCurrentMP = try? keychainService?.masterPasswordEquals(password, for: login),
       isEqualToCurrentMP == true
     {
-      errorLabel = L10n.Core.changeMasterPasswordMustBeDifferentError
+      errorLabel = CoreL10n.changeMasterPasswordMustBeDifferentError
       return
     }
 
     guard password == confirmationPassword else {
       errorLabel =
-        L10n.Core.minimalisticOnboardingMasterPasswordSecondConfirmationPasswordsNotMatching
-      logError()
+        CoreL10n.minimalisticOnboardingMasterPasswordSecondConfirmationPasswordsNotMatching
       return
     }
 
@@ -179,32 +178,25 @@ public final class NewMasterPasswordViewModel: ObservableObject, LoginKitService
       return
     }
   }
-
-  func logError() {
-    if mode == .masterPasswordChange {
-      activityReporter.report(UserEvent.ChangeMasterPassword(flowStep: .error))
-    }
-  }
-
 }
 
 extension PasswordStrength {
   var description: String {
     switch self {
     case .tooGuessable:
-      return L10n.Core.accountCreationPasswordStrengthVeryLow
+      return CoreL10n.accountCreationPasswordStrengthVeryLow
 
     case .veryGuessable:
-      return L10n.Core.accountCreationPasswordStrengthLow
+      return CoreL10n.accountCreationPasswordStrengthLow
 
     case .somewhatGuessable:
-      return L10n.Core.accountCreationPasswordStrengthMedium
+      return CoreL10n.accountCreationPasswordStrengthMedium
 
     case .safelyUnguessable:
-      return L10n.Core.accountCreationPasswordStrengthSafe
+      return CoreL10n.accountCreationPasswordStrengthSafe
 
     case .veryUnguessable:
-      return L10n.Core.accountCreationPasswordStrengthHigh
+      return CoreL10n.accountCreationPasswordStrengthHigh
 
     }
   }

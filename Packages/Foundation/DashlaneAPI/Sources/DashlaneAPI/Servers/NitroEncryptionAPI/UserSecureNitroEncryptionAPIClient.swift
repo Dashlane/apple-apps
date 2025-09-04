@@ -5,11 +5,13 @@ public struct UserSecureNitroEncryptionAPIClient: APIClient {
   let signer: RequestSigner?
 
   public init(
-    engine: APIClientEngine,
+    appClient: AppNitroEncryptionAPIClient,
     signer: RequestSigner,
-    secureTunnel: SecureTunnel
+    secureTunnelCreatorType: any NitroSecureTunnelCreator.Type
   ) {
-    self.engine = engine.secured(with: secureTunnel)
+    self.engine = NitroEncryptionSecuredAPIClientEngine(
+      secureTunnelCreatorType: secureTunnelCreatorType,
+      appClient: appClient)
     self.signer = signer
   }
 
@@ -20,15 +22,33 @@ public struct UserSecureNitroEncryptionAPIClient: APIClient {
 }
 
 extension AppNitroEncryptionAPIClient {
-  func makeSecureNitroEncryptionAPIClient(
-    secureTunnel: SecureTunnel,
+  public func makeSecureNitroEncryptionAPIClient(
+    secureTunnelCreatorType: any NitroSecureTunnelCreator.Type,
     userCredentials: UserCredentials
-  ) throws -> UserSecureNitroEncryptionAPIClient {
+  ) -> UserSecureNitroEncryptionAPIClient {
     let signer = RequestSigner(
       appCredentials: appCredentials,
       userCredentials: userCredentials,
       timeshiftProvider: timeshiftProvider)
     return UserSecureNitroEncryptionAPIClient(
-      engine: engine, signer: signer, secureTunnel: secureTunnel)
+      appClient: self,
+      signer: signer,
+      secureTunnelCreatorType: secureTunnelCreatorType)
+  }
+}
+
+extension UserSecureNitroEncryptionAPIClient {
+  public static var fake: UserSecureNitroEncryptionAPIClient {
+    return .mock(using: .init())
+  }
+
+  public static func mock(using mockEngine: APIMockerEngine) -> UserSecureNitroEncryptionAPIClient {
+    return UserSecureNitroEncryptionAPIClient(engine: mockEngine)
+  }
+
+  public static func mock(@APIMockBuilder _ requests: () -> [any MockedRequest])
+    -> UserSecureNitroEncryptionAPIClient
+  {
+    return .mock(using: APIMockerEngine(requests: requests))
   }
 }

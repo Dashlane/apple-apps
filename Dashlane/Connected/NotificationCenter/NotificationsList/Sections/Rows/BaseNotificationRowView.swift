@@ -4,51 +4,56 @@ import UIDelight
 
 struct BaseNotificationRowView: View {
   let icon: Image
-  let iconBackgroundColor: Color
   let title: String
   let description: String
   let accessibilityDescription: String?
+  let notificationState: NotificationCenterService.Notification.State
   let onTap: () -> Void
 
   init(
     icon: Image,
-    iconBackgroundColor: Color = .ds.text.brand.quiet,
     title: String,
     description: String,
     accessibilityDescription: String? = nil,
+    notificationState: NotificationCenterService.Notification.State,
     onTap: @escaping () -> Void
   ) {
     self.icon = icon
-    self.iconBackgroundColor = iconBackgroundColor
     self.title = title
     self.description = description
     self.accessibilityDescription = accessibilityDescription
+    self.notificationState = notificationState
     self.onTap = onTap
   }
 
   var body: some View {
-    HStack(alignment: .top, spacing: 16) {
-      icon
-        .frame(width: 24, height: 24)
-        .foregroundColor(Color.white)
-        .padding(10)
-        .background(iconBackgroundColor)
-        .cornerRadius(22)
+    HStack(alignment: .center, spacing: 12) {
+      HStack(alignment: .top, spacing: 12) {
+        DS.ExpressiveIcon(icon)
+          .style(mood: .brand, intensity: .quiet)
+          .controlSize(.regular)
 
-      VStack(alignment: .leading, spacing: 8) {
-        Text(title)
-          .foregroundColor(.ds.text.neutral.standard)
-          .textStyle(.title.block.medium)
-          .fixedSize(horizontal: false, vertical: true)
-        Text(description)
-          .textStyle(.body.reduced.regular)
-          .foregroundColor(.ds.text.neutral.standard)
-          .fixedSize(horizontal: false, vertical: true)
-          .accessibilityLabel(accessibilityDescriptionLabel)
+        VStack(alignment: .leading, spacing: 4) {
+          Text(title)
+            .foregroundStyle(Color.ds.text.neutral.catchy)
+            .textStyle(.title.block.medium)
+          Text(description)
+            .foregroundStyle(Color.ds.text.neutral.standard)
+            .textStyle(.body.reduced.regular)
+            .accessibilityLabel(accessibilityDescriptionLabel)
+        }
+
+        Spacer()
+      }
+
+      if notificationState == .unseen {
+        Circle()
+          .fill(Color.red)
+          .frame(width: 8)
       }
     }
+    .listRowInsets(.init(top: 8, leading: 16, bottom: 8, trailing: 16))
     .multilineTextAlignment(.leading)
-    .padding(.vertical, 15)
     .onTapWithFeedback {
       onTap()
     }
@@ -63,11 +68,12 @@ struct BaseNotificationRowView_Previews: PreviewProvider {
   static var previews: some View {
     List {
       BaseNotificationRowView(
-        icon: Image(asset: FiberAsset.resetMasterPasswordActionItemIcon),
+        icon: Image.ds.feature.autofill.outlined,
         title: "My notification",
         description: "This is a dummy notification. You will never forget it",
-        onTap: {}
+        notificationState: .unseen, onTap: {}
       )
     }
+    .listStyle(.ds.insetGrouped)
   }
 }

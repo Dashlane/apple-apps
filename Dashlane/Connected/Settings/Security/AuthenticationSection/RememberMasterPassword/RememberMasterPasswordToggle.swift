@@ -17,7 +17,9 @@ struct RememberMasterPasswordToggle: View {
           return makeKeychainStoredMasterPasswordAlert(completion: completion)
         }
       }
-      .onChange(of: viewModel.isToggleOn, perform: viewModel.useRememberMasterPassword)
+      .onChange(of: viewModel.isToggleOn) { _, newValue in
+        viewModel.useRememberMasterPassword(newValue)
+      }
   }
 
   private func makeKeychainStoredMasterPasswordAlert(completion: @escaping (Confirmed) -> Void)
@@ -31,7 +33,7 @@ struct RememberMasterPasswordToggle: View {
       title: Text(title),
       message: nil,
       primaryButton: .cancel({ completion(false) }),
-      secondaryButton: .default(Text(CoreLocalization.L10n.Core.kwButtonOk)) { completion(true) })
+      secondaryButton: .default(Text(CoreL10n.kwButtonOk)) { completion(true) })
   }
 }
 

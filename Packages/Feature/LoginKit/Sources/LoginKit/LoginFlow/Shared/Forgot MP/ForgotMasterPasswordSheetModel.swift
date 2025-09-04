@@ -1,8 +1,8 @@
-import CoreUserTracking
 import DashlaneAPI
 import Foundation
+import UserTrackingFoundation
 
-class ForgotMasterPasswordSheetModel {
+public class ForgotMasterPasswordSheetModel: LoginKitServicesInjecting {
 
   let hasMasterPasswordReset: Bool
   let didTapResetMP: (() -> Void)?
@@ -11,7 +11,7 @@ class ForgotMasterPasswordSheetModel {
   private let login: String
   private let activityReporter: ActivityReporterProtocol
 
-  init(
+  public init(
     login: String,
     activityReporter: ActivityReporterProtocol,
     hasMasterPasswordReset: Bool,

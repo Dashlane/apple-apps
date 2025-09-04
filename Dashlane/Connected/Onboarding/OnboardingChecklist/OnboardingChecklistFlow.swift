@@ -15,7 +15,12 @@ struct OnboardingChecklistFlow: View {
     StepBasedNavigationView(steps: $viewModel.steps) { step in
       switch step {
       case .onboardingChecklist:
-        onboardingChecklistView(model: viewModel.makeOnboardingChecklistViewModel())
+        OnboardingChecklistView(
+          model: viewModel.makeOnboardingChecklistViewModel(),
+          displayMode: viewModel.displayMode
+        ) {
+          viewModel.dismiss()
+        }
       }
     }
     .fullScreenCover(item: $viewModel.genericFullCover) { fullCover in
@@ -24,11 +29,5 @@ struct OnboardingChecklistFlow: View {
     .sheet(item: $viewModel.genericSheet) { sheet in
       sheet.view
     }
-  }
-
-  @ViewBuilder
-  private func onboardingChecklistView(model: OnboardingChecklistViewModel) -> some View {
-    OnboardingChecklistView(
-      model: model, displayMode: viewModel.displayMode, dismiss: { viewModel.dismiss() })
   }
 }

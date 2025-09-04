@@ -1,4 +1,4 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 
@@ -31,7 +31,7 @@ extension SharingEngine {
     }
   }
 
-  public func refuse(_ itemGroupInfo: ItemGroupInfo, userAuditLogDetails: AuditLogDetails? = nil)
+  public func refuse(_ itemGroupInfo: ItemGroupInfo, userAuditLogDetails: AuditLogDetails?)
     async throws
   {
     guard let group = try operationDatabase.fetchItemGroup(withId: itemGroupInfo.id) else {

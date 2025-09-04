@@ -1,11 +1,11 @@
 import Combine
-import CoreActivityLogs
 import CorePersonalData
-import CoreUserTracking
-import DashTypes
+import CoreTeamAuditLogs
+import CoreTypes
 import Foundation
 import SwiftUI
 import UIComponents
+import UserTrackingFoundation
 
 public final class VaultCollectionAndItemEditionService: ObservableObject {
 
@@ -26,7 +26,7 @@ public final class VaultCollectionAndItemEditionService: ObservableObject {
   private let vaultCollectionDatabase: VaultCollectionDatabaseProtocol
   private let vaultCollectionsStore: VaultCollectionsStore
   private let activityReporter: ActivityReporterProtocol
-  private let activityLogsService: ActivityLogsServiceProtocol
+  private let teamAuditLogsService: TeamAuditLogsServiceProtocol
 
   private var cancellables: Set<AnyCancellable> = []
 
@@ -36,14 +36,14 @@ public final class VaultCollectionAndItemEditionService: ObservableObject {
     vaultCollectionDatabase: VaultCollectionDatabaseProtocol,
     vaultCollectionsStore: VaultCollectionsStore,
     activityReporter: ActivityReporterProtocol,
-    activityLogsService: ActivityLogsServiceProtocol
+    teamAuditLogsService: TeamAuditLogsServiceProtocol
   ) {
     self.item = item
     self._mode = mode
     self.vaultCollectionDatabase = vaultCollectionDatabase
     self.vaultCollectionsStore = vaultCollectionsStore
     self.activityReporter = activityReporter
-    self.activityLogsService = activityLogsService
+    self.teamAuditLogsService = teamAuditLogsService
 
     setup()
   }
@@ -217,7 +217,7 @@ public final class VaultCollectionAndItemEditionService: ObservableObject {
       collections: itemCollections,
       for: item
     )
-    activityLogsService.logUpdate(
+    teamAuditLogsService.logUpdate(
       originalCollections: originalItemCollections,
       collections: itemCollections,
       for: item

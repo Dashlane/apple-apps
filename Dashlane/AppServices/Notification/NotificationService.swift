@@ -1,6 +1,7 @@
 import Combine
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 import SwiftTreats
 import UIKit
 import UserNotifications
@@ -63,15 +64,18 @@ class NotificationService: NSObject {
     return publisher.receive(on: DispatchQueue.main).eraseToAnyPublisher()
   }
 
-  func requestUserAuthorization() {
-    notificationCenter.requestAuthorization(options: [.alert, .sound]) {
-      [weak self] granted, error in
-
-      if let error = error {
-        self?.logger.error("Notification auth request error", error: error)
-      } else {
-        self?.logger.info("Notification auth request result: \(granted)")
+  func requestUserAuthorization() async {
+    do {
+      let status = await notificationCenter.notificationSettings().authorizationStatus
+      guard status == .notDetermined else {
+        logger.info("Notification auth status: \(status)")
+        return
       }
+
+      let granted = try await notificationCenter.requestAuthorization(options: [.alert, .sound])
+      logger.info("Notification auth request result: \(granted)")
+    } catch {
+      logger.error("Notification auth request error", error: error)
     }
   }
 

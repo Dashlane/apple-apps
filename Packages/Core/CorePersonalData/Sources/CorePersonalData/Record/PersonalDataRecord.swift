@@ -1,6 +1,7 @@
-import DashTypes
+import CoreTypes
 import Foundation
 import GRDB
+import LogFoundation
 
 public struct PersonalDataRecord: Identifiable, Hashable {
   public var id: Identifier {
@@ -16,6 +17,7 @@ public struct PersonalDataRecord: Identifiable, Hashable {
   }
 }
 
+@Loggable
 public struct RecordMetadata: Identifiable, Codable, Hashable {
   public enum CodingKeys: String, CodingKey, CaseIterable {
     case id
@@ -39,7 +41,7 @@ public struct RecordMetadata: Identifiable, Codable, Hashable {
   public var id: Identifier
   public let contentType: PersonalDataContentType
 
-  public var lastSyncTimestamp: DashTypes.Timestamp?
+  public var lastSyncTimestamp: CoreTypes.Timestamp?
   public internal(set) var syncStatus: SyncStatus? {
     didSet {
       if oldValue != syncStatus, syncStatus != nil {
@@ -51,15 +53,18 @@ public struct RecordMetadata: Identifiable, Codable, Hashable {
 
   public var isShared: Bool
   public var sharingPermission: SharingPermission?
+  @LogPublicPrivacy
   public var pendingSharingUploadId: String?
   public var parentId: Identifier?
+  @LogPublicPrivacy
   public var lastLocalUseDate: Date?
+  @LogPublicPrivacy
   public var lastLocalSearchDate: Date?
 
   public init(
     id: Identifier = .temporary,
     contentType: PersonalDataContentType,
-    lastSyncTimestamp: DashTypes.Timestamp? = nil,
+    lastSyncTimestamp: CoreTypes.Timestamp? = nil,
     syncStatus: SyncStatus? = nil,
     syncRequestId: String? = nil,
     isShared: Bool = false,

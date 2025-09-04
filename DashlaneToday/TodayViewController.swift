@@ -126,10 +126,6 @@ open class TodayViewController: UITableViewController, NCWidgetProviding {
     startTimer()
   }
 
-  open override func viewDidAppear(_ animated: Bool) {
-    super.viewDidAppear(animated)
-  }
-
   open override func viewWillDisappear(_ animated: Bool) {
     super.viewWillDisappear(animated)
     stopTimer()
@@ -175,8 +171,8 @@ open class TodayViewController: UITableViewController, NCWidgetProviding {
   private func copyToClipboard(txt: String) {
     var options: [UIPasteboard.OptionsKey: Any] = [:]
     if context.isClipboardExpirationSet {
-      let DashlanePasteboardExpirationTimeInterval: TimeInterval = 300
-      let expirationDate = Date().addingTimeInterval(DashlanePasteboardExpirationTimeInterval)
+      let dashlanePasteboardExpirationTimeInterval: TimeInterval = 300
+      let expirationDate = Date().addingTimeInterval(dashlanePasteboardExpirationTimeInterval)
       options[.expirationDate] = expirationDate
     }
     options[.localOnly] = !context.isUniversalClipboardEnabled
@@ -214,7 +210,6 @@ open class TodayViewController: UITableViewController, NCWidgetProviding {
   }
 
   public func widgetPerformUpdate(completionHandler: (@escaping (NCUpdateResult) -> Void)) {
-
     updateContext()
     completionHandler(.newData)
   }

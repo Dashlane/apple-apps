@@ -1,7 +1,7 @@
 import Combine
 import CorePersonalData
 import CoreSharing
-import DashTypes
+import CoreTypes
 import Foundation
 
 public protocol SharingServiceProtocol {
@@ -22,8 +22,6 @@ public protocol SharingServiceProtocol {
   func isReadyPublisher() -> AnyPublisher<Bool, Never>
 
   func getTeamLogins() async throws -> [String]
-
-  func acceptItemGroups(withIds ids: [Identifier]) async throws
 
   func accept(_ itemGroupInfo: ItemGroupInfo, loggedItem: VaultItem) async throws
   func refuse(_ itemGroupInfo: ItemGroupInfo, loggedItem: VaultItem) async throws
@@ -79,9 +77,6 @@ public protocol SharingServiceProtocol {
     userGroupIds: [Identifier],
     permission: SharingPermission,
     limitPerUser: Int?) async throws
-
-  func shareAllTeamItemsIfAdmin(to destinationUserId: UserId, sharedInSpaceIds: [Identifier])
-    async throws -> [ItemGroup]
 
   func share(
     _ collections: [VaultCollection],

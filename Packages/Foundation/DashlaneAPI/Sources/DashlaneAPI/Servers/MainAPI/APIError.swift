@@ -36,7 +36,7 @@ extension APIError {
     APIError(
       requestId: "id",
       errors: [
-        APIError.Error(code: code.rawValue, message: "moked message for \(code)", type: "mock")
+        APIError.Error(code: code.rawValue, message: "mocked message for \(code)", type: "mock")
       ])
   }
 }

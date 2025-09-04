@@ -1,6 +1,6 @@
 import Foundation
 
-public enum PremiumStatusTwoFAEnforced: String, Sendable, Equatable, CaseIterable, Codable {
+public enum PremiumStatusTwoFAEnforced: String, Sendable, Hashable, Codable, CaseIterable {
   case disabled = "disabled"
   case newDevice = "newDevice"
   case login = "login"

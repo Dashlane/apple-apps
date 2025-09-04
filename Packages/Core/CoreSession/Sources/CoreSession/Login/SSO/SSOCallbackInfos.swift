@@ -1,6 +1,6 @@
 import Foundation
 
-public struct SSOCallbackInfos: Hashable {
+public struct SSOCallbackInfos: Hashable, Sendable {
   public let ssoToken: String
   public let serviceProviderKey: String
   public let exists: Bool

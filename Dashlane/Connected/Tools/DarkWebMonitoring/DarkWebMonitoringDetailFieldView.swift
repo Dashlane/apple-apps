@@ -17,18 +17,15 @@ struct DarkWebMonitoringDetailFieldView: View {
   var body: some View {
     VStack(alignment: .leading, spacing: 2) {
       Text(title)
-        .font(.footnote)
-        .foregroundColor(.ds.text.neutral.quiet)
+        .textStyle(.body.reduced.regular)
+        .foregroundStyle(Color.ds.text.neutral.quiet)
 
       Text(text)
-        .font(.body)
-        .foregroundColor(.ds.text.neutral.catchy)
+        .textStyle(.body.standard.regular)
+        .foregroundStyle(Color.ds.text.neutral.catchy)
 
     }
-    .padding(.horizontal, 16)
-    .padding(.vertical, 12)
     .frame(maxWidth: .infinity, alignment: .leading)
-    .background(Color.ds.container.agnostic.neutral.supershy)
   }
 }
 
@@ -40,7 +37,7 @@ struct DarkWebMonitoringDetailFieldView_Previews: PreviewProvider {
         DarkWebMonitoringDetailFieldView(
           title: "Breach data", text: "long content that could take up the whole screen ?")
         DarkWebMonitoringDetailFieldView(
-          title: "Breach data", text: DateFormatter.mediumDateFormatter.string(from: Date()))
+          title: "Breach data", text: DateFormatter.birthDateFormatter.string(from: Date()))
       }
 
     }

@@ -1,7 +1,9 @@
 import Foundation
+import LogFoundation
 import zlib
 
 struct ZlibCompressor {
+  @Loggable
   public enum Error: Swift.Error {
     case zlibError(code: Int, step: Step)
     case cannotCompressData

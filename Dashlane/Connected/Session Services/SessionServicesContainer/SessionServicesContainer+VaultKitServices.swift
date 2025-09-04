@@ -1,7 +1,7 @@
 import CoreFeature
 import CorePremium
 import CoreSettings
-import DashTypes
+import CoreTypes
 import Foundation
 import VaultKit
 

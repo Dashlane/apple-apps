@@ -1,31 +1,57 @@
 import CoreLocalization
+import CorePersonalData
+import DesignSystem
 import SwiftUI
 import VaultKit
 
-extension ListPlaceholder {
+extension ListPlaceholder where Accessory == ListPlaceHolderVaultAccessory {
   init(
-    vaultListFilter: ItemCategory?, canEditSecureNotes: Bool,
+    vaultListFilter: ItemCategory?, canAddSecureNotes: Bool,
     action: @escaping (VaultItem.Type) -> Void
   ) {
-    let buttonText =
-      vaultListFilter?.placeholderCtaTitle ?? L10n.Localizable.announceWelcomeM2DNoItemCta
-    let addButton = AddVaultButton(
-      text: Text(buttonText),
-      category: vaultListFilter,
-      selectAction: action
-    )
-    .eraseToAnyView()
-    let hideAddButton = vaultListFilter == .secureNotes && !canEditSecureNotes
+    let hideAddButton = vaultListFilter == .secureNotes && !canAddSecureNotes
+
+    let accessory = ListPlaceHolderVaultAccessory(
+      vaultListFilter: vaultListFilter,
+      hideAddButton: hideAddButton,
+      action: action)
 
     if let category = vaultListFilter {
-      self.init(
-        category: category,
-        accessory: hideAddButton ? nil : addButton)
+      self.init(category: category) {
+        accessory
+      }
     } else {
       self.init(
-        icon: Image(asset: FiberAsset.emptyRecent),
-        text: CoreLocalization.L10n.Core.emptyRecentActivityText,
-        accessory: addButton)
+        icon: .ds.item.login.outlined,
+        title: CoreL10n.emptyItemsListTitle,
+        description: CoreL10n.emptyItemsListDescription
+      ) {
+        accessory
+      }
+    }
+  }
+}
+
+struct ListPlaceHolderVaultAccessory: View {
+  let vaultListFilter: ItemCategory?
+  let hideAddButton: Bool
+  let action: (VaultItem.Type) -> Void
+
+  var body: some View {
+    if !hideAddButton {
+      AddVaultButton(
+        text: Text(vaultListFilter?.placeholderCTATitle ?? CoreL10n.emptyItemsListCTA),
+        isImportEnabled: true,
+        category: vaultListFilter,
+        onAction: { actionCase in
+          switch actionCase {
+          case .add(let type):
+            action(type)
+          case .import:
+            break
+          }
+        }
+      )
     }
   }
 }

@@ -2,7 +2,7 @@ import CoreLocalization
 import CorePersonalData
 import CorePremium
 import CoreSharing
-import DashTypes
+import CoreTypes
 import Foundation
 import SwiftUI
 import VaultKit
@@ -90,7 +90,7 @@ class CollectionShareFlowViewModel: ObservableObject, SessionServicesInjecting,
       } catch SharingUpdaterError.sharingLimitReached {
         update(newErrorMessage: L10n.Localizable.kwSharingPremiumLimit)
       } catch let urlError as URLError where urlError.code == .notConnectedToInternet {
-        update(newErrorMessage: CoreLocalization.L10n.Core.kwNoInternet)
+        update(newErrorMessage: CoreL10n.kwNoInternet)
       } catch {
         update(newErrorMessage: L10n.Localizable.lockAlreadyAcquired)
       }

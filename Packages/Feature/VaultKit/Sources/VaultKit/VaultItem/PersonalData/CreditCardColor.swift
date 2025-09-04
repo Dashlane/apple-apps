@@ -9,21 +9,21 @@ extension CreditCardColor {
     case .black:
       return .ds.container.agnostic.inverse.standard
     case .silver, .white:
-      return Color(asset: Asset.creditCardSilver)
+      return Color(.creditCardSilver)
     case .red:
-      return Color(asset: Asset.creditCardRed)
+      return Color(.creditCardRed)
     case .orange:
-      return Color(asset: Asset.creditCardOrange)
+      return Color(.creditCardOrange)
     case .gold:
-      return Color(asset: Asset.creditCardGold)
+      return Color(.creditCardGold)
     case .green:
-      return Color(asset: Asset.creditCardGreen)
+      return Color(.creditCardGreen)
     case .darkGreen:
-      return Color(asset: Asset.creditCardDarkGreen)
+      return Color(.creditCardDarkGreen)
     case .blue:
-      return Color(asset: Asset.creditCardBlue)
+      return Color(.creditCardBlue)
     case .darkBlue:
-      return Color(asset: Asset.creditCardDarkBlue)
+      return Color(.creditCardDarkBlue)
     }
   }
 
@@ -35,6 +35,4 @@ extension CreditCardColor {
       return false
     }
   }
-
-  public static let coloredLogoColors = allCases.filter { $0.isLight }.map { $0.color }
 }

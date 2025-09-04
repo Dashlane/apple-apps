@@ -75,6 +75,9 @@ extension Image {
     public enum activityLog {
       public static let outlined = Image("activity-log/outlined")
     }
+    public enum api {
+      public static let outlined = Image("api/outlined")
+    }
     public enum arrowDown {
       public static let outlined = Image("arrow-down/outlined")
     }
@@ -136,11 +139,21 @@ extension Image {
     public enum download {
       public static let outlined = Image("download/outlined")
     }
-    public enum downloadCloud {
-      public static let outlined = Image("download-cloud/outlined")
+    public enum `extension` {
+      public static let filled = Image("extension/filled")
+      public static let outlined = Image("extension/outlined")
+    }
+    public enum faceDisappointed {
+      public static let outlined = Image("face-disappointed/outlined")
     }
     public enum faceId {
       public static let outlined = Image("face-id/outlined")
+    }
+    public enum faceNeutral {
+      public static let outlined = Image("face-neutral/outlined")
+    }
+    public enum faceSatisfied {
+      public static let outlined = Image("face-satisfied/outlined")
     }
     public enum feature {
       public enum authenticator {
@@ -246,6 +259,12 @@ extension Image {
       public static let filled = Image("home/filled")
       public static let outlined = Image("home/outlined")
     }
+    public enum `import` {
+      public static let outlined = Image("import/outlined")
+    }
+    public enum indentation {
+      public static let outlined = Image("indentation/outlined")
+    }
     public enum item {
       public enum bankAccount {
         public static let filled = Image("item/bank-account/filled")
@@ -308,6 +327,9 @@ extension Image {
         public static let filled = Image("item/tax-number/filled")
         public static let outlined = Image("item/tax-number/outlined")
       }
+      public enum wifi {
+        public static let outlined = Image("item/wifi/outlined")
+      }
     }
     public enum itemColor {
       public static let filled = Image("item-color/filled")
@@ -344,6 +366,20 @@ extension Image {
       public static let filled = Image("notification/filled")
       public static let outlined = Image("notification/outlined")
     }
+    public enum os {
+      public enum android {
+        public static let filled = Image("os/android/filled")
+      }
+      public enum apple {
+        public static let filled = Image("os/apple/filled")
+      }
+      public enum linux {
+        public static let filled = Image("os/linux/filled")
+      }
+      public enum windows {
+        public static let filled = Image("os/windows/filled")
+      }
+    }
     public enum passkey {
       public static let filled = Image("passkey/filled")
       public static let outlined = Image("passkey/outlined")
@@ -360,6 +396,9 @@ extension Image {
     public enum protection {
       public static let filled = Image("protection/filled")
       public static let outlined = Image("protection/outlined")
+    }
+    public enum qrCode {
+      public static let outlined = Image("qr-code/outlined")
     }
     public enum recoveryKey {
       public static let outlined = Image("recovery-key/outlined")
@@ -387,6 +426,9 @@ extension Image {
       }
     }
     public enum social {
+      public enum bluesky {
+        public static let filled = Image("social/bluesky/filled")
+      }
       public enum facebook {
         public static let filled = Image("social/facebook/filled")
       }
@@ -434,9 +476,6 @@ extension Image {
     }
     public enum upload {
       public static let outlined = Image("upload/outlined")
-    }
-    public enum uploadCloud {
-      public static let outlined = Image("upload-cloud/outlined")
     }
     public enum users {
       public static let outlined = Image("users/outlined")

@@ -8,8 +8,9 @@ struct BICFormatStyle: AccessibleObfuscatedFormatStyle {
     let chunks = chunks(for: value)
 
     if obfuscated {
-      guard chunks.count > 1
-      else { return String(repeating: "•", count: value.count) }
+      guard chunks.count > 1 else {
+        return String(repeating: "•", count: value.count)
+      }
 
       let obfuscatedParts =
         chunks
@@ -45,7 +46,7 @@ struct BICFormatStyle: AccessibleObfuscatedFormatStyle {
   func accessibilityText(for value: String) -> String {
     if obfuscated {
       let suffix = chunks(for: value).last ?? ""
-      return L10n.Core.accessibilityGenericNumberEndingWidth(value.count, suffix)
+      return CoreL10n.accessibilityGenericNumberEndingWidth(value.count, suffix)
     }
     return format(value)
   }

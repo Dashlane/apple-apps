@@ -1,16 +1,17 @@
 import Combine
-import CoreActivityLogs
 import CoreCrypto
 import CorePersonalData
 import CoreSession
 import CoreSharing
 import CoreSync
-import CoreUserTracking
+import CoreTeamAuditLogs
+import CoreTypes
 import CyrilKit
-import DashTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import SwiftTreats
+import UserTrackingFoundation
 
 public class SharingService: SharingServiceProtocol {
   @Published
@@ -23,7 +24,7 @@ public class SharingService: SharingServiceProtocol {
   public let engine: SharingEngine<SQLiteDatabase>
   let activityReporter: SharingActivityReporter
   let keysStore: SharingKeysStore
-  let activityLogsService: ActivityLogsServiceProtocol
+  let teamAuditLogsService: TeamAuditLogsServiceProtocol
   let applicationDatabase: ApplicationDatabase
 
   public init(
@@ -33,10 +34,9 @@ public class SharingService: SharingServiceProtocol {
     personalDataURLDecoder: PersonalDataURLDecoderProtocol,
     databaseDriver: DatabaseDriver,
     sharingKeysStore: SharingKeysStore,
-    activityLogsService: ActivityLogsServiceProtocol,
+    teamAuditLogsService: TeamAuditLogsServiceProtocol,
     logger: Logger,
     activityReporter: ActivityReporterProtocol,
-    autoRevokeUsersWithInvalidProposeSignature: Bool,
     applicationDatabase: ApplicationDatabase,
     buildTarget: BuildTarget
   ) async throws {
@@ -62,7 +62,7 @@ public class SharingService: SharingServiceProtocol {
       maximumLockDuration: 10)
     let key = await sharingKeysStore.keyPair()
     let url = folder.appendingPathComponent("sharing2.db")
-    self.activityLogsService = activityLogsService
+    self.teamAuditLogsService = teamAuditLogsService
     self.applicationDatabase = applicationDatabase
 
     engine = try await SharingEngine(
@@ -73,7 +73,6 @@ public class SharingService: SharingServiceProtocol {
       apiClient: apiClient,
       personalDataDB: personalDataDB,
       cryptoProvider: cryptoProvider,
-      autoRevokeUsersWithInvalidProposeSignature: autoRevokeUsersWithInvalidProposeSignature,
       logger: logger)
   }
 
@@ -142,27 +141,23 @@ extension SharingService {
     return try await engine.getTeamLogins()
   }
 
-  public func acceptItemGroups(withIds ids: [Identifier]) async throws {
-    try await engine.acceptItemGroups(withIds: ids)
-  }
-
   public func accept(_ itemGroupInfo: ItemGroupInfo, loggedItem: VaultItem) async throws {
     do {
-      let auditLogDetails = try? activityLogsService.makeActivityLog(dataType: loggedItem)
+      let auditLogDetails = try await teamAuditLogsService.auditLogDetails(for: loggedItem)
       try await engine.accept(itemGroupInfo, userAuditLogDetails: auditLogDetails)
 
       activityReporter.reportPendingItemGroupResponse(
         for: loggedItem, accepted: true, success: true)
     } catch {
       activityReporter.reportPendingItemGroupResponse(
-        for: loggedItem, accepted: true, success: false)
+        for: loggedItem, accepted: false, success: false)
       throw error
     }
   }
 
   public func refuse(_ itemGroupInfo: ItemGroupInfo, loggedItem: VaultItem) async throws {
     do {
-      let auditLogDetails = try? activityLogsService.makeActivityLog(dataType: loggedItem)
+      let auditLogDetails = try await teamAuditLogsService.auditLogDetails(for: loggedItem)
       try await engine.refuse(itemGroupInfo, userAuditLogDetails: auditLogDetails)
       activityReporter.reportPendingItemGroupResponse(
         for: loggedItem, accepted: false, success: true)
@@ -198,7 +193,7 @@ extension SharingService {
     loggedItem: VaultItem
   ) async throws {
     do {
-      let auditLogDetails = try? activityLogsService.makeActivityLog(dataType: loggedItem)
+      let auditLogDetails = try await teamAuditLogsService.auditLogDetails(for: loggedItem)
       try await engine.revoke(
         in: group,
         users: users,
@@ -220,8 +215,7 @@ extension SharingService {
     try await engine.revoke(
       in: collection,
       users: users,
-      userGroupMembers: userGroupMembers,
-      userAuditLogDetails: nil
+      userGroupMembers: userGroupMembers
     )
   }
 
@@ -236,12 +230,10 @@ extension SharingService {
     loggedItem: VaultItem
   ) async throws {
     do {
-      let auditLogDetails = try? activityLogsService.makeActivityLog(dataType: loggedItem)
       try await engine.updatePermission(
         permission,
         of: user,
-        in: group,
-        userAuditLogDetails: auditLogDetails)
+        in: group)
 
       activityReporter.reportPermissionUpdate(of: loggedItem, to: permission, success: true)
     } catch {
@@ -257,12 +249,10 @@ extension SharingService {
     loggedItem: VaultItem
   ) async throws {
     do {
-      let auditLogDetails = try? activityLogsService.makeActivityLog(dataType: loggedItem)
       try await engine.updatePermission(
         permission,
         of: userGroupMember,
-        in: group,
-        userAuditLogDetails: auditLogDetails)
+        in: group)
 
       activityReporter.reportPermissionUpdate(of: loggedItem, to: permission, success: true)
 
@@ -300,20 +290,14 @@ extension SharingService {
     limitPerUser: Int?
   ) async throws {
     do {
+      let auditLogDetails = try await teamAuditLogsService.auditLogDetails(for: items)
       try await engine.shareItems(
         withIds: items.map(\.id),
         recipients: recipients,
         userGroupIds: userGroupIds,
         permission: permission,
         limitPerUser: limitPerUser,
-        makeActivityLogDetails: { [weak self] identifiers in
-          guard let self else { return nil }
-          guard let matchingItem = items.first(where: { identifiers.contains($0.id) }) else {
-            assertionFailure("No ids are matching, this should not happen.")
-            return nil
-          }
-          return try? self.activityLogsService.makeActivityLog(dataType: matchingItem)
-        })
+        userAuditLogDetails: auditLogDetails)
 
       activityReporter.reportCreate(
         with: items, userRecipients: recipients, userGroupIds: userGroupIds, permission: permission,
@@ -324,13 +308,6 @@ extension SharingService {
         success: false)
       throw error
     }
-  }
-
-  public func shareAllTeamItemsIfAdmin(to destinationUserId: UserId, sharedInSpaceIds: [Identifier])
-    async throws -> [ItemGroup]
-  {
-    return try await engine.shareAllTeamItemsIfAdmin(
-      to: destinationUserId, sharedInSpaceIds: sharedInSpaceIds)
   }
 
   public func share(
@@ -346,7 +323,8 @@ extension SharingService {
         teamId: teamId,
         recipients: recipients,
         userGroupIds: userGroupIds,
-        permission: permission
+        permission: permission,
+        userAuditLogDetails: [:]
       )
     } catch {
       throw CollectionsSharingError.collectionError(error)
@@ -354,12 +332,11 @@ extension SharingService {
 
     do {
       for collection in collections {
+        let itemIds = Array(collection.itemIds)
         try await engine.addItemsToCollection(
           withId: collection.id,
-          itemIds: Array(collection.itemIds),
-          makeActivityLogDetails: { [weak self] itemIds in
-            self?.makeActivityLogDetails(itemIds: itemIds) ?? [:]
-          })
+          itemIds: itemIds,
+          userAuditLogDetails: try await auditLogDetails(for: itemIds))
       }
     } catch {
       throw CollectionsSharingError.addItemsError(
@@ -382,9 +359,7 @@ extension SharingService {
     try await engine.addItemsToCollection(
       withId: collectionId,
       itemIds: itemIds,
-      makeActivityLogDetails: { [weak self] itemIds in
-        self?.makeActivityLogDetails(itemIds: itemIds) ?? [:]
-      })
+      userAuditLogDetails: try await auditLogDetails(for: itemIds))
     manualSyncHandler()
   }
 
@@ -394,49 +369,21 @@ extension SharingService {
     try await engine.removeItemsFromCollection(
       withId: collectionId,
       itemIds: itemIds,
-      makeActivityLogDetails: { [weak self] itemIds in
-        self?.makeActivityLogDetails(itemIds: itemIds) ?? [:]
-      })
+      auditLogDetails: try await self.auditLogDetails(for: itemIds))
     manualSyncHandler()
   }
 
-  private func makeActivityLogDetails(itemIds: [Identifier]) -> [Identifier: AuditLogDetails] {
+  private func auditLogDetails(for itemIds: [Identifier]) async throws -> [Identifier:
+    AuditLogDetails]
+  {
     let credentials =
       (try? applicationDatabase.fetchAll(with: itemIds, type: Credential.self)) ?? []
-    var activityLogs: [Identifier: AuditLogDetails] = [:]
-    for credential in credentials {
-      activityLogs[credential.id] = try? self.activityLogsService.makeActivityLog(
-        dataType: credential)
-    }
-    return activityLogs
+    return try await teamAuditLogsService.auditLogDetails(for: credentials)
   }
 }
 
+@Loggable
 enum CollectionsSharingError: Error {
   case collectionError(Error)
   case addItemsError(Error)
-}
-
-extension ActivityLogsServiceProtocol {
-  func makeActivityLog(dataType: VaultItem) throws -> AuditLogDetails {
-    switch dataType.enumerated {
-    case let .credential(credential):
-      return try self.makeActivityLog(
-        dataType: .credential(domain: credential.url?.domain?.name), spaceId: credential.spaceId)
-    case let .secret(secret):
-      return try self.makeActivityLog(dataType: .secret, spaceId: secret.spaceId)
-    default:
-      throw ActivityLogError.unsupportedDataType
-    }
-  }
-
-  func makeActivityLog(codable: PersonalDataCodable) throws -> AuditLogDetails {
-    switch codable {
-    case let credential as Credential:
-      return try self.makeActivityLog(
-        dataType: .credential(domain: credential.url?.domain?.name), spaceId: credential.spaceId)
-    default:
-      throw ActivityLogError.unsupportedDataType
-    }
-  }
 }

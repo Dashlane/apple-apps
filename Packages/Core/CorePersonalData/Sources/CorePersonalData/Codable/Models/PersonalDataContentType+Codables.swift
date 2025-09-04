@@ -1,4 +1,4 @@
-import DashTypes
+import CoreTypes
 import Foundation
 
 extension PersonalDataContentType {
@@ -54,6 +54,8 @@ extension PersonalDataContentType {
       return Passkey.self
     case .secret:
       return Secret.self
+    case .wifi:
+      return WiFi.self
     }
   }
 }

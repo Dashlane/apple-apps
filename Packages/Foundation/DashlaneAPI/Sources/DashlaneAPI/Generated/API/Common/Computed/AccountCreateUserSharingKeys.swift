@@ -1,6 +1,6 @@
 import Foundation
 
-public struct AccountCreateUserSharingKeys: Codable, Equatable, Sendable {
+public struct AccountCreateUserSharingKeys: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case privateKey = "privateKey"
     case publicKey = "publicKey"

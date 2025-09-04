@@ -20,7 +20,7 @@ struct ToolsView: View {
 
   var body: some View {
     list
-      .backgroundColorIgnoringSafeArea(.ds.background.alternate)
+      .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
       .navigationTitle(L10n.Localizable.toolsTitle)
       .reportPageAppearance(.tools)
   }

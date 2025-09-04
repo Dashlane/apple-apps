@@ -1,9 +1,11 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 
 public final class SenderQRCodeService {
 
+  @Loggable
   enum Error: Swift.Error {
     case invalidFormat
   }
@@ -72,7 +74,6 @@ extension UserDeviceAPIClient.Authentication {
 extension SenderQRCodeService {
   static var mock: SenderQRCodeService {
     SenderQRCodeService(
-      session: .mock, apiClient: .fake, sessionCryptoEngineProvider: FakeCryptoEngineProvider(),
-      ecdh: ECDHMock.mock())
+      session: .mock, apiClient: .fake, sessionCryptoEngineProvider: .mock(), ecdh: ECDHMock.mock())
   }
 }

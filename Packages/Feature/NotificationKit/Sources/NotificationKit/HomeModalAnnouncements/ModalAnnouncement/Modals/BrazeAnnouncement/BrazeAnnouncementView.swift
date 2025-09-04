@@ -22,13 +22,13 @@ struct BrazeAnnouncementContainerView: View {
 
   @ViewBuilder
   var content: some View {
-    if !Device.isIpadOrMac {
+    if !Device.is(.pad, .mac, .vision) {
       if dynamicTypeSize <= .xxLarge {
         BrazeAnnouncementScrolledView(announcement: announcement, dismiss: dismiss)
-          .bottomSheet([.medium])
+          .presentationDetents([.medium])
       } else {
         BrazeAnnouncementScrolledView(announcement: announcement, dismiss: dismiss)
-          .bottomSheet([.large])
+          .presentationDetents([.large])
       }
     } else {
       BrazeAnnouncementiPadView(announcement: announcement, dismiss: dismiss)
@@ -49,7 +49,7 @@ private struct BrazeAnnouncementScrolledView: View {
           .padding(.horizontal, 8)
       }
       BrazeAnnouncementViewActions(announcement: announcement, dismiss: dismiss)
-        .padding(.horizontal, 8)
+        .padding(.horizontal, 16)
     }
 
   }
@@ -59,7 +59,7 @@ private struct BrazeAnnouncementScrolledView: View {
     ZStack(alignment: Alignment(horizontal: .center, vertical: .top)) {
       announcementImage
       AnnouncementCloseButton(dismiss: dismiss)
-        .frame(maxWidth: .infinity, alignment: Device.isMac ? .leading : .trailing)
+        .frame(maxWidth: .infinity, alignment: Device.is(.mac) ? .leading : .trailing)
     }
 
   }
@@ -100,7 +100,7 @@ private struct BrazeAnnouncementiPadView: View {
         .padding(.horizontal, 16)
     }
     .padding(.bottom, 24)
-    .overlay(alignment: Device.isMac ? .topLeading : .topTrailing) {
+    .overlay(alignment: Device.is(.mac) ? .topLeading : .topTrailing) {
       AnnouncementCloseButton(dismiss: dismiss)
     }
   }
@@ -132,17 +132,14 @@ private struct BrazeAnnouncementViewContent: View {
 
   let announcement: BrazeAnnouncement
 
-  @ScaledMetric
-  private var fontSize: CGFloat = 24
-
   var body: some View {
     VStack(spacing: 8) {
       Text(announcement.title)
-        .font(DashlaneFont.custom(fontSize, .medium).font)
-        .foregroundColor(.ds.text.neutral.catchy)
+        .textStyle(.title.section.medium)
+        .foregroundStyle(Color.ds.text.neutral.catchy)
       Text(announcement.message)
-        .foregroundColor(.ds.text.neutral.standard)
-        .font(.body)
+        .foregroundStyle(Color.ds.text.neutral.standard)
+        .textStyle(.body.standard.regular)
     }
     .fixedSize(horizontal: false, vertical: true)
     .minimumScaleFactor(0.01)
@@ -188,20 +185,7 @@ struct BrazeModalView_Previews: PreviewProvider {
     var body: some View {
       Color.red.sheet(isPresented: .constant(true)) {
         content()
-          .bottomSheet([.medium])
       }
-    }
-  }
-
-  struct LegacyContainer<Content: View>: View {
-
-    let content: () -> Content
-
-    var body: some View {
-      Color.red
-        .bottomSheet(isPresented: .constant(true)) {
-          content()
-        }
     }
   }
 
@@ -220,10 +204,5 @@ struct BrazeModalView_Previews: PreviewProvider {
       BrazeAnnouncementContainerView(
         announcement: BrazeAnnouncement.multipleActionsMock, dismiss: {})
     }.previewDisplayName("[Sheet] Multiple actions")
-
-    LegacyContainer {
-      BrazeAnnouncementContainerView(
-        announcement: BrazeAnnouncement.multipleActionsMock, dismiss: {})
-    }.previewDisplayName("[Legacy] Multiple actions")
   }
 }

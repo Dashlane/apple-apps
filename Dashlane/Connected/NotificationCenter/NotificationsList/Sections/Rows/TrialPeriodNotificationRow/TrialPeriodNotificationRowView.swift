@@ -11,7 +11,8 @@ struct TrialPeriodNotificationRowView: View {
     BaseNotificationRowView(
       icon: model.notification.icon,
       title: model.notification.title,
-      description: model.notification.description
+      description: model.notification.description,
+      notificationState: model.notification.state
     ) {
       self.model.showTrialFeatureView = true
     }

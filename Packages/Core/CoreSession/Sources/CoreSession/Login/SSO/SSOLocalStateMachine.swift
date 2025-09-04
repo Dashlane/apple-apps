@@ -1,25 +1,27 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import StateMachine
 import SwiftTreats
 
-@MainActor
 public struct SSOLocalStateMachine: StateMachine {
 
-  public enum State: Hashable {
+  @Loggable
+  public enum State: Hashable, Sendable {
     case waitingForUserInput
     case receivedSSOKeys(SSOKeys)
     case cancelled
     case failed
   }
 
-  public enum Event {
+  @Loggable
+  public enum Event: Sendable {
     case receivedSSOCallback(Result<SSOCompletion, Error>)
     case cancel
   }
 
-  public var state: State = .waitingForUserInput
+  public var state: State
 
   public let cryptoEngineProvider: CryptoEngineProvider
   public let apiClient: AppAPIClient
@@ -28,12 +30,14 @@ public struct SSOLocalStateMachine: StateMachine {
   private let deviceAccessKey: String
 
   public init(
+    initialState: SSOLocalStateMachine.State,
     ssoAuthenticationInfo: SSOAuthenticationInfo,
     deviceAccessKey: String,
     apiClient: AppAPIClient,
     cryptoEngineProvider: CryptoEngineProvider,
     logger: Logger
   ) {
+    self.state = initialState
     self.apiClient = apiClient
     self.cryptoEngineProvider = cryptoEngineProvider
     self.ssoAuthenticationInfo = ssoAuthenticationInfo
@@ -41,17 +45,20 @@ public struct SSOLocalStateMachine: StateMachine {
     self.logger = logger
   }
 
-  public mutating func transition(with event: Event) async {
-    logger.logInfo("Received event \(event)")
+  public mutating func transition(with event: Event) async throws {
+    logger.info("Received event \(event)")
     switch (state, event) {
     case (.waitingForUserInput, let .receivedSSOCallback(result)):
       await handleSSOCallbackResult(result)
     case (_, .cancel):
       state = .cancelled
     default:
-      let errorMessage = "Unexpected \(event) event for the state \(state)"
-      logger.error(errorMessage)
+      let errorMessage: LogMessage = "Unexpected \(event) event for the state \(state)"
+      logger.fatal(errorMessage)
+      throw InvalidTransitionError<Self>(event: event, state: state)
     }
+    let state = state
+    logger.info("Transition to state \(state)")
   }
 
   private mutating func handleSSOCallbackResult(_ result: Result<SSOCompletion, Error>) async {
@@ -111,5 +118,14 @@ extension AppAPIClient.Authentication.CompleteLoginWithAuthTicket.Response {
     }
     let ssoKey = serverKeyData ^ serviceProviderKeyData
     return (remoteKeyData, ssoKey)
+  }
+}
+
+extension SSOLocalStateMachine {
+  public static var mock: SSOLocalStateMachine {
+    SSOLocalStateMachine(
+      initialState: .waitingForUserInput, ssoAuthenticationInfo: .mock(),
+      deviceAccessKey: "deviceAccessKey", apiClient: .mock({}), cryptoEngineProvider: .mock(),
+      logger: .mock)
   }
 }

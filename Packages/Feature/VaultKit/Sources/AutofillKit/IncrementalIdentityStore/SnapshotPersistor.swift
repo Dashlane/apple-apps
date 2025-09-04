@@ -1,6 +1,7 @@
 import CorePersonalData
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 import Logger
 
 public protocol SnapshotPersistor {
@@ -10,9 +11,15 @@ public protocol SnapshotPersistor {
 }
 
 public struct FileSnapshotPersistor: SnapshotPersistor {
+  static let latestSnapshotUserDefaultsKey = "latestSnapshotFileURL"
   let snapshotFileURL: URL
   let cryptoEngine: CryptoEngine
   let logger: Logger
+  let userDefaults: UserDefaults
+
+  private var snapshotValidityKey: String {
+    snapshotFileURL.absoluteString
+  }
 
   init(
     folderURL: URL, fileName: String = "snapshot.store", cryptoEngine: CryptoEngine, logger: Logger
@@ -20,16 +27,22 @@ public struct FileSnapshotPersistor: SnapshotPersistor {
     self.init(url: folderURL.appending(path: fileName), cryptoEngine: cryptoEngine, logger: logger)
   }
 
-  init(url: URL, cryptoEngine: CryptoEngine, logger: Logger) {
+  init(
+    url: URL, cryptoEngine: CryptoEngine, logger: Logger,
+    userDefaults: UserDefaults = ApplicationGroup.dashlaneUserDefaults
+  ) {
     self.cryptoEngine = cryptoEngine
     self.logger = logger
     self.snapshotFileURL = url
+    self.userDefaults = userDefaults
   }
 
   public func save(_ itemsSnapshot: SnapshotSummary) {
     do {
       let jsonData = try JSONEncoder().encode(itemsSnapshot).encrypt(using: cryptoEngine)
       try jsonData.write(to: snapshotFileURL)
+
+      userDefaults.set(snapshotValidityKey, forKey: Self.latestSnapshotUserDefaultsKey)
     } catch {
       logger.error("Failed to save snapshot, error: \(error.localizedDescription)")
     }
@@ -41,12 +54,16 @@ public struct FileSnapshotPersistor: SnapshotPersistor {
         return SnapshotSummary()
       }
 
+      guard userDefaults.string(forKey: Self.latestSnapshotUserDefaultsKey) == snapshotValidityKey
+      else {
+        return SnapshotSummary()
+      }
+
       let data = try Data(contentsOf: snapshotFileURL).decrypt(using: cryptoEngine)
       let dict = try JSONDecoder().decode(SnapshotSummary.self, from: data)
       return dict
     } catch {
-      logger.error(
-        "Failed to read snapshot or it doesn't exist, error: \(error.localizedDescription)")
+      logger.error("Failed to read snapshot or it doesn't exist, error: ", error: error)
       return SnapshotSummary()
     }
   }

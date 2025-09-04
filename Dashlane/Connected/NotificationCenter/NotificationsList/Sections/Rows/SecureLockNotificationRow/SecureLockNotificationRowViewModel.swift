@@ -1,4 +1,4 @@
-import DashTypes
+import CoreTypes
 import Foundation
 import LoginKit
 import SwiftTreats
@@ -6,8 +6,7 @@ import SwiftTreats
 class SecureLockNotificationRowViewModel: ObservableObject, SessionServicesInjecting {
   enum SecureLockType {
     case pin(String?)
-    case touchId
-    case faceId
+    case biometry(Biometry)
   }
 
   @Published
@@ -26,20 +25,18 @@ class SecureLockNotificationRowViewModel: ObservableObject, SessionServicesInjec
   ) {
     self.notification = notification
     self.lockService = lockService
-    switch Device.biometryType {
-    case .touchId:
-      secureLockType = .touchId
-    case .faceId:
-      secureLockType = .faceId
-    default:
-      secureLockType = .pin(nil)
-    }
+    secureLockType =
+      if let biometry = Device.biometryType {
+        .biometry(biometry)
+      } else {
+        .pin(nil)
+      }
 
   }
 
   func didTapOnEnableSecureLock() {
     switch secureLockType {
-    case .touchId, .faceId:
+    case .biometry:
       self.presentMPStoredInKeychainAlert = true
     default:
       self.choosePinCode = true
@@ -62,7 +59,7 @@ class SecureLockNotificationRowViewModel: ObservableObject, SessionServicesInjec
     case .pin(let code):
       guard let code = code else { return }
       try? lockService.secureLockConfigurator.enablePinCode(code)
-    case .touchId, .faceId:
+    case .biometry:
       try? lockService.secureLockConfigurator.enableBiometry()
     }
   }

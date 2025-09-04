@@ -1,6 +1,7 @@
-import CoreUserTracking
-import DashTypes
+import CorePersonalData
+import CoreTypes
 import Foundation
+import UserTrackingFoundation
 
 extension ActivityReporterProtocol {
   var sharing: SharingActivityReporter {

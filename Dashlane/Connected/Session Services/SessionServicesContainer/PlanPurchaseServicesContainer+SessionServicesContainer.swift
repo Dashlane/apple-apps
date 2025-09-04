@@ -9,6 +9,8 @@ extension SessionServicesContainer {
       logger: appServices.rootLogger[.inAppPurchase],
       screenLocker: lockService.locker.screenLocker,
       activityReporter: activityReporter,
-      vaultStateService: vaultStateService)
+      vaultStateService: vaultStateService,
+      deeplinkingService: appServices.deepLinkingService,
+      premiumStatusProvider: premiumStatusProvider)
   }
 }

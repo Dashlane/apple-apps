@@ -1,5 +1,5 @@
+import CoreTypes
 import CyrilKit
-import DashTypes
 import Foundation
 
 extension SharingUpdater {
@@ -56,7 +56,8 @@ extension SharingUpdater {
           groupKey: groupKey)
       }
     } catch {
-      logger.fatal("Fail to create item updates for group with id \(group.id)", error: error)
+      logger.fatal(
+        "Fail to create item updates for group with id \(group.id, privacy: .public)", error: error)
       return []
     }
   }

@@ -2,9 +2,9 @@ import CoreFeature
 import CorePersonalData
 import CorePremium
 import CoreSharing
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import Foundation
+import UserTrackingFoundation
 import VaultKit
 
 class ActionableVaultItemRowViewModel: ObservableObject, SessionServicesInjecting {
@@ -183,7 +183,7 @@ extension ActionableVaultItemRowViewModel {
       accessControl: .mock(),
       pasteboardService: .mock(),
       vaultItemDatabase: MockVaultKitServicesContainer().vaultItemDatabase,
-      vaultStateService: .mock,
+      vaultStateService: .mock(),
       sharingPermissionProvider: SharedVaultHandlerMock(),
       activityReporter: .mock,
       userSpacesService: .mock()

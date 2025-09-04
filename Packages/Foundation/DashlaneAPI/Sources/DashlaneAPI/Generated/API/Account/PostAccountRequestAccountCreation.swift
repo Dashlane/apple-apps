@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppAPIClient.Account {
-  public struct RequestAccountCreation: APIRequest {
+  public struct RequestAccountCreation: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/account/RequestAccountCreation"
 
     public let api: AppAPIClient
@@ -23,7 +23,7 @@ extension AppAPIClient.Account {
 }
 
 extension AppAPIClient.Account.RequestAccountCreation {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case login = "login"
     }
@@ -42,7 +42,7 @@ extension AppAPIClient.Account.RequestAccountCreation {
 }
 
 extension AppAPIClient.Account.RequestAccountCreation {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case exists = "exists"
       case accountExists = "accountExists"
@@ -58,7 +58,7 @@ extension AppAPIClient.Account.RequestAccountCreation {
       case ssoServiceProviderUrl = "ssoServiceProviderUrl"
     }
 
-    public enum Exists: String, Sendable, Equatable, CaseIterable, Codable {
+    public enum Exists: String, Sendable, Hashable, Codable, CaseIterable {
       case yes = "yes"
       case no = "no"
       case noInvalid = "no_invalid"
@@ -71,21 +71,10 @@ extension AppAPIClient.Account.RequestAccountCreation {
       }
     }
 
-    public enum EmailValidity: String, Sendable, Equatable, CaseIterable, Codable {
+    public enum EmailValidity: String, Sendable, Hashable, Codable, CaseIterable {
       case valid = "valid"
       case unlikely = "unlikely"
       case invalid = "invalid"
-      case undecodable
-      public init(from decoder: Decoder) throws {
-        let container = try decoder.singleValueContainer()
-        let rawValue = try container.decode(String.self)
-        self = Self(rawValue: rawValue) ?? .undecodable
-      }
-    }
-
-    public enum AccountType: String, Sendable, Equatable, CaseIterable, Codable {
-      case masterPassword = "masterPassword"
-      case invisibleMasterPassword = "invisibleMasterPassword"
       case undecodable
       public init(from decoder: Decoder) throws {
         let container = try decoder.singleValueContainer()

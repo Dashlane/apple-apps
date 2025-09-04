@@ -1,8 +1,9 @@
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 @preconcurrency import os
 
-public typealias Logger = DashTypes.Logger
+public typealias Logger = LogFoundation.Logger
 typealias OSLogger = os.Logger
 
 public struct LocalLogger: Logger {
@@ -14,35 +15,35 @@ public struct LocalLogger: Logger {
       backend = OSLogger(
         subsystem: ["com.dashlane", category].joined(separator: "."), category: category)
     } else {
-      backend = OSLogger()
+      backend = OSLogger(subsystem: "com.dashlane", category: "root")
     }
     self.category = category
   }
 
-  public func fatal(_ message: @escaping () -> String, location: Logger.Location) {
-    backend.critical("‼️ \(location)\n\t\(message())")
+  public func fatal(_ message: @escaping () -> LogMessage, location: Logger.Location) {
+    backend.critical("‼️ \(location, privacy: .public)\n\t\(message(), privacy: .private)")
   }
 
-  public func error(_ message: @escaping () -> String, location: Logger.Location) {
-    backend.error("❗️\(location)\n\t\(message())")
+  public func error(_ message: @escaping () -> LogMessage, location: Logger.Location) {
+    backend.error("❗️\(location, privacy: .public)\n\t\(message(), privacy: .private)")
   }
 
-  public func warning(_ message: @escaping () -> String, location: Logger.Location) {
-    backend.warning("⚠️ \(location)\n\t\(message())")
+  public func warning(_ message: @escaping () -> LogMessage, location: Logger.Location) {
+    backend.warning("⚠️ \(location, privacy: .public)\n\t\(message(), privacy: .private)")
   }
 
-  public func info(_ message: @escaping () -> String, location: Logger.Location) {
+  public func info(_ message: @escaping () -> LogMessage, location: Logger.Location) {
     #if DEBUG
-      backend.info("ℹ️ \(location)\n\t\(message())")
+      backend.info("ℹ️ \(location, privacy: .public)\n\t\(message(), privacy: .public)")
     #endif
   }
 
-  public func debug(_ message: @escaping () -> String, location: Logger.Location) {
+  public func debug(_ message: @escaping () -> LogMessage, location: Logger.Location) {
     #if DEBUG
       guard !ProcessInfo.isTesting else {
         return
       }
-      backend.debug("🔍 \(location)\n\t\(message())")
+      backend.debug("🔍 \(location, privacy: .public)\n\t\(message(), privacy: .public)")
     #endif
   }
 

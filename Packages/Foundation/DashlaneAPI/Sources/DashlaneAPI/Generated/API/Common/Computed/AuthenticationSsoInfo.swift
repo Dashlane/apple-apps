@@ -1,6 +1,6 @@
 import Foundation
 
-public struct AuthenticationSsoInfo: Codable, Equatable, Sendable {
+public struct AuthenticationSsoInfo: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case serviceProviderUrl = "serviceProviderUrl"
     case isNitroProvider = "isNitroProvider"

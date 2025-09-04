@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppAPIClient.Breaches {
-  public struct ListBreaches: APIRequest {
+  public struct ListBreaches: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/breaches/ListBreaches"
 
     public let api: AppAPIClient
@@ -24,7 +24,7 @@ extension AppAPIClient.Breaches {
 }
 
 extension AppAPIClient.Breaches.ListBreaches {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case livemode = "livemode"
       case pageCount = "pageCount"
@@ -51,12 +51,12 @@ extension AppAPIClient.Breaches.ListBreaches {
 }
 
 extension AppAPIClient.Breaches.ListBreaches {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case breaches = "breaches"
     }
 
-    public struct BreachesElement: Codable, Equatable, Sendable {
+    public struct BreachesElement: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case creationDateUnix = "creationDateUnix"
         case definition = "definition"
@@ -68,7 +68,7 @@ extension AppAPIClient.Breaches.ListBreaches {
         case uri = "uri"
       }
 
-      public struct Definition: Codable, Equatable, Sendable {
+      public struct Definition: Codable, Hashable, Sendable {
         public enum CodingKeys: String, CodingKey {
           case announcedDate = "announcedDate"
           case breachModelVersion = "breachModelVersion"
@@ -84,19 +84,6 @@ extension AppAPIClient.Breaches.ListBreaches {
           case breachCreationDate = "breachCreationDate"
           case lastModificationRevision = "lastModificationRevision"
           case relatedLinks = "relatedLinks"
-        }
-
-        public enum Status: String, Sendable, Equatable, CaseIterable, Codable {
-          case legacy = "legacy"
-          case live = "live"
-          case staging = "staging"
-          case deleted = "deleted"
-          case undecodable
-          public init(from decoder: Decoder) throws {
-            let container = try decoder.singleValueContainer()
-            let rawValue = try container.decode(String.self)
-            self = Self(rawValue: rawValue) ?? .undecodable
-          }
         }
 
         public let announcedDate: DateDay

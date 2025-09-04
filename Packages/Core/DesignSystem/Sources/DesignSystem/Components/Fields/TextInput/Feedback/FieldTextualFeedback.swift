@@ -9,10 +9,13 @@ public struct FieldTextualFeedback: View {
 
   public var body: some View {
     Text(verbatim: text)
-      ._foregroundStyle(
-        .text { environment, color in
-          guard environment.style.mood == .brand else { return color }
-          return .ds.text.neutral.quiet
+      .foregroundStyle(
+        .ds.text.overriding { @Sendable environment, color in
+          if environment.style.mood == .brand {
+            .ds.text.neutral.quiet
+          } else {
+            color
+          }
         }
       )
       .textStyle(.body.helper.regular)

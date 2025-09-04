@@ -1,7 +1,8 @@
+import CoreTypes
 import CryptoKit
-import DashTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import StoreKit
 
 public protocol ReceiptVerificationServiceProtocol {
@@ -11,26 +12,15 @@ public protocol ReceiptVerificationServiceProtocol {
     context: VerificationReceiptContext) async throws
 }
 
-public enum VerificationReceiptError: Error, LocalizedError {
+@Loggable
+public enum VerificationReceiptError: Error {
   case invalidReceipt
   case noReceiptItemOnServer
   case noReceiptItemOnLocal
   case receiptDidNotChangeLocally
-
-  public var errorDescription: String? {
-    switch self {
-    case .invalidReceipt:
-      "The receipt is invalid"
-    case .noReceiptItemOnServer:
-      "The receipt is not known by server"
-    case .noReceiptItemOnLocal:
-      "The receipt is not available in app bundle"
-    case .receiptDidNotChangeLocally:
-      "The receipt has not change since last check"
-    }
-  }
 }
 
+@Loggable
 public enum VerificationReceiptContext {
   case purchasing
   case postLaunch
@@ -168,7 +158,7 @@ public struct ReceiptVerificationService: ReceiptVerificationServiceProtocol {
   ) async throws {
 
     guard remainingRetry > 0 else {
-      let errorMessage = "Verification failed. context: \(context)"
+      let errorMessage: LogMessage = "Verification failed. context: \(context)"
       switch context {
       case .purchasing:
         logger.fatal(errorMessage, error: error)
@@ -220,7 +210,7 @@ extension UserDeviceAPIClient.Payments.VerifyApplestoreReceipt.Body {
     self.init(
       receipt: receiptData.base64EncodedString(),
       amount: amount,
-      billingCountry: transaction?.storefrontCountryCode,
+      billingCountry: transaction?.storefront.countryCode,
       context: Context(context),
       currency: subscription?.priceFormatStyle.currencyCode,
       transactionIdentifier: transaction.map { String($0.id) })

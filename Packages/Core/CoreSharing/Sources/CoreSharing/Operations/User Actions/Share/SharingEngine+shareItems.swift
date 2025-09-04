@@ -1,5 +1,5 @@
+import CoreTypes
 import CyrilKit
-import DashTypes
 import DashlaneAPI
 import Foundation
 
@@ -12,7 +12,7 @@ extension SharingEngine {
     userGroupIds: [Identifier],
     permission: SharingPermission,
     limitPerUser: Int?,
-    makeActivityLogDetails: @escaping ([Identifier]) -> AuditLogDetails?
+    userAuditLogDetails: [Identifier: AuditLogDetails]
   ) async throws {
     try await execute { updateRequest in
 
@@ -31,9 +31,9 @@ extension SharingEngine {
       }
 
       for group in existingItemGroups {
-        let keys = group.itemKeyPairs.map(\.id)
-        let auditLogDetails = makeActivityLogDetails(keys)
-        ids.subtract(group.itemKeyPairs.map(\.id))
+        let itemIds = group.itemKeyPairs.map(\.id)
+        let auditLogDetails: AuditLogDetails? = itemIds.first.flatMap { userAuditLogDetails[$0] }
+        ids.subtract(itemIds)
         try await add(
           into: group,
           recipients: recipients,
@@ -46,7 +46,7 @@ extension SharingEngine {
 
       let contents = try await personalDataDB.createSharingContents(for: Array(ids))
       for content in contents {
-        let auditLogDetails = makeActivityLogDetails([content.id])
+        let auditLogDetails = userAuditLogDetails[content.id]
         try await createSharing(
           for: content,
           recipients: recipients,

@@ -1,6 +1,8 @@
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 
+@Loggable
 @PersonalData("SECURENOTE_CATEGORY")
 public struct SecureNoteCategory: Equatable, Identifiable {
 

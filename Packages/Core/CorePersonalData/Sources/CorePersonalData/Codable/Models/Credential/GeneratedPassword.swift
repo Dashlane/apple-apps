@@ -1,6 +1,8 @@
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 
+@Loggable
 @PersonalData("GENERATED_PASSWORD")
 public struct GeneratedPassword: Equatable {
   public static let searchCategory: SearchCategory = .credential

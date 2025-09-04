@@ -10,32 +10,42 @@ struct VPNTeamFeatureDisabledView: View {
   private var dismiss
 
   var body: some View {
-    VStack {
-      VPNPaywallHeaderView(
-        title: L10n.Localizable.vpnTeamPaywallTitle,
-        description: .text(L10n.Localizable.vpnTeamPaywallSubtitle)
-      )
-      .frame(maxWidth: .infinity, alignment: Device.isIpadOrMac ? .center : .leading)
+    VStack(alignment: .center, spacing: 24) {
+      Spacer()
+
+      DS.ExpressiveIcon(.ds.feature.vpn.outlined)
+        .controlSize(.extraLarge)
+        .style(mood: .neutral, intensity: .quiet)
+        .fiberAccessibilityHidden(true)
+
+      VStack(alignment: .center, spacing: 8) {
+        Text(L10n.Localizable.vpnTeamPaywallTitle)
+          .textStyle(.title.section.large)
+          .fixedSize(horizontal: false, vertical: true)
+          .foregroundStyle(Color.ds.text.neutral.catchy)
+
+        Text(L10n.Localizable.vpnTeamPaywallSubtitle)
+          .textStyle(.body.reduced.regular)
+          .fixedSize(horizontal: false, vertical: true)
+          .foregroundStyle(Color.ds.text.neutral.standard)
+          .multilineTextAlignment(.center)
+      }
+
+      Spacer()
+
+      Button(CoreL10n.kwButtonClose) {
+        dismiss()
+      }
+      .buttonStyle(.designSystem(.titleOnly))
+
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
-    .overlay(
-      alignment: .topLeading,
-      content: {
-        Button(
-          action: { dismiss() },
-          title: CoreLocalization.L10n.Core.kwButtonClose
-        )
-        .foregroundColor(.ds.text.brand.standard)
-      }
-    )
     .padding(16)
-    .backgroundColorIgnoringSafeArea(.ds.container.agnostic.neutral.standard)
+    .background(Color.ds.container.agnostic.neutral.standard, ignoresSafeAreaEdges: .all)
     .reportPageAppearance(.paywallVpn)
   }
 }
 
-struct VPNTeamFeatureDisabledView_Previews: PreviewProvider {
-  static var previews: some View {
-    VPNTeamFeatureDisabledView()
-  }
+#Preview {
+  VPNTeamFeatureDisabledView()
 }

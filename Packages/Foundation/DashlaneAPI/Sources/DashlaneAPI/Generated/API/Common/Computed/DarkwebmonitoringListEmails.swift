@@ -1,6 +1,6 @@
 import Foundation
 
-public struct DarkwebmonitoringListEmails: Codable, Equatable, Sendable {
+public struct DarkwebmonitoringListEmails: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case email = "email"
     case state = "state"

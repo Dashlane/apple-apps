@@ -1,9 +1,10 @@
 import CoreFeature
 import CorePremium
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
+import UserTrackingFoundation
 
 public struct PlanPurchaseServicesContainer {
   let purchaseService: PurchaseService
@@ -12,11 +13,17 @@ public struct PlanPurchaseServicesContainer {
   let screenLocker: ScreenLocker?
   let activityReporter: ActivityReporterProtocol
   let vaultStateService: VaultStateServiceProtocol?
+  let deeplinkingService: PremiumKitDeepLinkingServiceProtocol
+  let premiumStatusProvider: PremiumStatusProvider
 
   public init(
-    purchaseService: PurchaseService, userDeviceAPIClient: UserDeviceAPIClient, logger: Logger,
-    screenLocker: ScreenLocker?, activityReporter: ActivityReporterProtocol,
-    vaultStateService: VaultStateServiceProtocol?
+    purchaseService: PurchaseService,
+    userDeviceAPIClient: UserDeviceAPIClient,
+    logger: Logger, screenLocker: ScreenLocker?,
+    activityReporter: ActivityReporterProtocol,
+    vaultStateService: VaultStateServiceProtocol?,
+    deeplinkingService: PremiumKitDeepLinkingServiceProtocol,
+    premiumStatusProvider: PremiumStatusProvider
   ) {
     self.purchaseService = purchaseService
     self.userDeviceAPIClient = userDeviceAPIClient
@@ -24,6 +31,8 @@ public struct PlanPurchaseServicesContainer {
     self.screenLocker = screenLocker
     self.activityReporter = activityReporter
     self.vaultStateService = vaultStateService
+    self.deeplinkingService = deeplinkingService
+    self.premiumStatusProvider = premiumStatusProvider
   }
 }
 
@@ -32,14 +41,12 @@ extension PlanPurchaseServicesContainer {
     return PurchaseViewModel(purchaseService: purchaseService)
   }
 
-  #if canImport(UIKit)
-    func makePurchaseProcessViewModel(with plan: PurchasePlan) -> PurchaseProcessViewModel {
-      return PurchaseProcessViewModel(
-        purchaseService: purchaseService,
-        userDeviceAPIClient: userDeviceAPIClient,
-        purchasePlan: plan,
-        logger: logger
-      )
-    }
-  #endif
+  func makePurchaseProcessViewModel(with plan: PurchasePlan) -> PurchaseProcessViewModel {
+    return PurchaseProcessViewModel(
+      purchaseService: purchaseService,
+      userDeviceAPIClient: userDeviceAPIClient,
+      purchasePlan: plan,
+      logger: logger
+    )
+  }
 }

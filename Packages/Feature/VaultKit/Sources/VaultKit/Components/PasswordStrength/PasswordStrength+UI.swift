@@ -16,19 +16,19 @@ extension Color {
   }
 }
 
-extension L10n.Core {
+extension CoreL10n {
   public static func passwordDetailText(for passwordStrength: PasswordStrength) -> String {
     switch passwordStrength {
     case .tooGuessable:
-      return L10n.Core.securityDashboardStrengthTrivial
+      return CoreL10n.securityDashboardStrengthTrivial
     case .veryGuessable:
-      return L10n.Core.securityDashboardStrengthWeak
+      return CoreL10n.securityDashboardStrengthWeak
     case .somewhatGuessable:
-      return L10n.Core.kwPasswordNotSoSafe
+      return CoreL10n.kwPasswordNotSoSafe
     case .safelyUnguessable:
-      return L10n.Core.kwPasswordSafe
+      return CoreL10n.kwPasswordSafe
     case .veryUnguessable:
-      return L10n.Core.kwPasswordSuperSafe
+      return CoreL10n.kwPasswordSuperSafe
     }
   }
 }

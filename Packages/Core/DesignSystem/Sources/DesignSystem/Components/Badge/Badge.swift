@@ -30,7 +30,7 @@ public struct Badge: View {
         makeIconView(icon: icon)
       }
     }
-    ._foregroundStyle(.text)
+    .foregroundStyle(.ds.text)
     .transformEnvironment(\.style) { style in
       style = Style(
         mood: style.mood,
@@ -51,7 +51,7 @@ public struct Badge: View {
         .stroke(borderColor, lineWidth: 1)
     } else {
       RoundedRectangle(cornerRadius: backgroundCornerRadius, style: .continuous)
-        ._foregroundStyle(.expressiveContainer)
+        .foregroundStyle(.ds.expressiveContainer)
     }
   }
 

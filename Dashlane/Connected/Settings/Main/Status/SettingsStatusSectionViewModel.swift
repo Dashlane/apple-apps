@@ -1,5 +1,6 @@
 import CoreFeature
 import CorePremium
+import CoreTypes
 import SwiftUI
 
 @MainActor
@@ -42,7 +43,7 @@ extension SettingsStatusSectionViewModel {
   static func mock(status: CorePremium.Status) -> SettingsStatusSectionViewModel {
     .init(
       premiumStatusProvider: .mock(status: status),
-      vaultStateService: .mock,
+      vaultStateService: .mock(),
       deepLinkingService: DeepLinkingService.fakeService)
   }
 }

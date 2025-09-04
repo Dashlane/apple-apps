@@ -1,5 +1,6 @@
+import CorePersonalData
 import CoreSharing
-import DashTypes
+import CoreTypes
 import DesignSystem
 import SwiftUI
 import UIComponents
@@ -21,32 +22,20 @@ struct SharingItemsUserGroupDetailView: View {
   @State
   var selectedItem: VaultItem?
 
-  @State
-  var titleHeight: CGFloat? = DetailDimension.defaultNavigationBarHeight
-
   init(model: @escaping @autoclosure () -> SharingItemsUserGroupDetailViewModel) {
     self._model = .init(wrappedValue: model())
   }
 
   var body: some View {
-    ZStack(alignment: .top) {
-      DetailList(offsetEnabled: true, titleHeight: $titleHeight) {
-        usersRow
-        items
-      }
-      NavigationBar(
-        leading: leadingButton,
-        title: title,
-        titleAccessory: titleAccessory,
-        trailing: EmptyView(),
-        height: titleHeight
-      )
-
+    DetailList(title: title) {
+      usersRow
+      items
+    } titleAccessory: {
+      titleAccessory
     }
     .alert(item: $model.alertMessage) { message in
       Alert(title: Text(message))
     }
-    .navigationBarHidden(true)
     .reportPageAppearance(.sharingGroupItemList)
     .navigation(item: $selectedItem) { vaultItem in
       VaultDetailView(
@@ -55,17 +44,8 @@ struct SharingItemsUserGroupDetailView: View {
     }
   }
 
-  var leadingButton: some View {
-    BackButton(label: L10n.Localizable.tabContactsTitle, color: .ds.text.brand.standard) {
-      dismiss()
-    }
-    .accentColor(.ds.text.brand.standard)
-  }
-
-  var title: some View {
+  var title: Text {
     Text(model.userGroup.name)
-      .lineLimit(1)
-      .foregroundColor(.ds.text.neutral.catchy)
   }
 
   private var titleAccessory: some View {
@@ -89,15 +69,15 @@ struct SharingItemsUserGroupDetailView: View {
             }
           }
         }
-        .listStyle(.insetGrouped)
+        .listStyle(.ds.insetGrouped)
+        .headerProminence(.increased)
         .navigationTitle(L10n.Localizable.kwSharingCenterSectionIndividuals)
-        .navigationBarHidden(false)
         .reportPageAppearance(.sharingGroupMemberList)
       }
-      .foregroundColor(.ds.text.neutral.catchy)
+      .foregroundStyle(Color.ds.text.neutral.catchy)
     } else {
       Text(L10n.Localizable.kwSharingUserGroupNotAMember)
-        .foregroundColor(.ds.text.neutral.quiet)
+        .foregroundStyle(Color.ds.text.neutral.quiet)
     }
   }
 

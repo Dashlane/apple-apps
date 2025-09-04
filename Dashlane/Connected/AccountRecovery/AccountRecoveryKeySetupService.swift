@@ -1,11 +1,12 @@
 import CorePasswords
 import CorePersonalData
 import CoreSession
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import LoginKit
+import UserTrackingFoundation
 import VaultKit
 
 struct AccountRecoveryKeySetupService {
@@ -20,6 +21,7 @@ struct AccountRecoveryKeySetupService {
   let activityReporter: ActivityReporterProtocol
   let cryptoEngineProvider: CoreSession.CryptoEngineProvider
 
+  @Loggable
   enum Error: Swift.Error {
     case couldNotConvertMasterKey
     case couldNotConvertToString
@@ -120,7 +122,7 @@ extension AccountRecoveryKeySetupService {
       syncService: .mock(),
       syncedSettingsService: .mock,
       masterKey: .masterPassword("_"),
-      logger: LoggerMock(),
+      logger: .mock,
       activityReporter: .mock)
   }
 }

@@ -43,13 +43,13 @@ public struct LastpassImportBanner: View {
 
   public var body: some View {
     Infobox(
-      L10n.Core.importFromLastpassBannerTitle,
-      description: L10n.Core.importFromLastpassBannerDescription
+      CoreL10n.importFromLastpassBannerTitle,
+      description: CoreL10n.importFromLastpassBannerDescription
     ) {
-      Button(L10n.Core.importFromLastpassBannerPrimaryCta) {
+      Button(CoreL10n.importFromLastpassBannerPrimaryCta) {
         self.model.showLastpassImport()
       }
-      Button(L10n.Core.importFromLastpassBannerSecondaryCta) {
+      Button(CoreL10n.importFromLastpassBannerSecondaryCta) {
         self.model.dismiss()
       }
     }

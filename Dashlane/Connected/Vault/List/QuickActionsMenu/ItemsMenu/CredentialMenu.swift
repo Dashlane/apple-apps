@@ -1,8 +1,8 @@
 import CoreFeature
 import CorePersonalData
-import CoreUserTracking
 import SwiftUI
 import TOTPGenerator
+import UserTrackingFoundation
 
 struct CredentialMenu: View {
   let credential: Credential

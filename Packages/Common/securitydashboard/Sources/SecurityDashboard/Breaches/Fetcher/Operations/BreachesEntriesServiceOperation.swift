@@ -1,8 +1,10 @@
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 
 final class BreachesEntriesServiceFetcher {
 
+  @Loggable
   enum ErrorType: Error {
     case downloadError(error: Error)
     case processingError

@@ -1,5 +1,5 @@
 import CoreSession
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 
@@ -15,10 +15,8 @@ public class LostOTPSheetViewModel: ObservableObject {
   @Published
   public var alertStep: AlertStep?
 
-  #if canImport(UIKit)
-    @Published
-    var textfieldAlertItem: RecoveryTextfieldAlertModifier.Item?
-  #endif
+  @Published
+  var textfieldAlertItem: RecoveryTextfieldAlertModifier.Item?
 
   @Published
   public var recoverConfirmationError: Error? {
@@ -39,17 +37,15 @@ public class LostOTPSheetViewModel: ObservableObject {
     self.login = login
   }
 
-  #if canImport(UIKit)
-    public func recoverCodes() {
-      Task {
-        do {
-          try await appAPIClient.authentication.requestOtpRecoveryCodesByPhone(login: login.email)
-          self.textfieldAlertItem = .smsCode
-        } catch {
-          self.recoverConfirmationError = error
-        }
-
+  public func recoverCodes() {
+    Task {
+      do {
+        try await appAPIClient.authentication.requestOtpRecoveryCodesByPhone(login: login.email)
+        self.textfieldAlertItem = .smsCode
+      } catch {
+        self.recoverConfirmationError = error
       }
+
     }
-  #endif
+  }
 }

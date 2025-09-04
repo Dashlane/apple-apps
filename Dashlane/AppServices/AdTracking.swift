@@ -3,20 +3,18 @@ import StoreKit
 
 class AdTracking {
   static func start() {
-    SKAdNetwork.registerAppForAdNetworkAttribution()
+    #if !os(visionOS)
+      SKAdNetwork.registerAppForAdNetworkAttribution()
+    #endif
   }
 
-  static func registerAccountCreation() {
-    SKAdNetwork.updateConversionValue(.accountCreation)
-  }
-}
-
-extension SKAdNetwork {
-  fileprivate enum ConversionValue: Int {
+  enum ConversionValue: Int {
     case accountCreation = 0
   }
 
-  fileprivate static func updateConversionValue(_ conversionValue: ConversionValue) {
-    SKAdNetwork.updatePostbackConversionValue(conversionValue.rawValue) { _ in }
+  static func registerAccountCreation() {
+    #if !os(visionOS)
+      SKAdNetwork.updatePostbackConversionValue(ConversionValue.accountCreation.rawValue) { _ in }
+    #endif
   }
 }

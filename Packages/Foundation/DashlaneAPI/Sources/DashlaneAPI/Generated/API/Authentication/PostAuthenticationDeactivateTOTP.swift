@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Authentication {
-  public struct DeactivateTOTP: APIRequest {
+  public struct DeactivateTOTP: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/authentication/DeactivateTOTP"
 
     public let api: UserDeviceAPIClient

@@ -1,6 +1,6 @@
 import Foundation
 
-public struct SyncUploadDataResponse: Codable, Equatable, Sendable {
+public struct SyncUploadDataResponse: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case timestamp = "timestamp"
   }

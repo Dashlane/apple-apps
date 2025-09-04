@@ -1,5 +1,5 @@
 import Combine
-import DashTypes
+import CoreTypes
 import Foundation
 
 public enum UserSettingsKey: String, CaseIterable, LocalSettingsKey {
@@ -12,8 +12,6 @@ public enum UserSettingsKey: String, CaseIterable, LocalSettingsKey {
   case resetMasterPasswordWithBiometricsReactivationNeeded =
     "ResetMasterPasswordWithBiometricsReactivationNeeded"
   case deviceTokenForRemoteNotifications
-  case guidedOnboardingData
-  case hasSkippedGuidedOnboarding
   case hasSkippedPasswordOnboarding
   case m2wDidFinishOnce
   case publicUserId
@@ -32,7 +30,6 @@ public enum UserSettingsKey: String, CaseIterable, LocalSettingsKey {
   case fastLocalSetupForRemoteLoginDisplayed
   case hasUsedPasswordChanger
   case automaticallyLoggedOut
-  case hasSeenDWMExperience
   case trialStartedHasBeenShown
   case lastpassImportPopupHasBeenShown
   case autofillActivationPopUpHasBeenShown
@@ -51,7 +48,6 @@ public enum UserSettingsKey: String, CaseIterable, LocalSettingsKey {
       .hasSeenSecureWifiOnboarding,
       .clipboardOverrideEnabled,
       .resetMasterPasswordWithBiometricsReactivationNeeded,
-      .hasSkippedGuidedOnboarding,
       .hasSkippedPasswordOnboarding,
       .m2wDidFinishOnce,
       .chromeImportDidFinishOnce,
@@ -63,7 +59,6 @@ public enum UserSettingsKey: String, CaseIterable, LocalSettingsKey {
       .fastLocalSetupForRemoteLoginDisplayed,
       .hasUsedPasswordChanger,
       .automaticallyLoggedOut,
-      .hasSeenDWMExperience,
       .trialStartedHasBeenShown,
       .lastpassImportPopupHasBeenShown,
       .autofillActivationPopUpHasBeenShown,
@@ -87,8 +82,6 @@ public enum UserSettingsKey: String, CaseIterable, LocalSettingsKey {
       return [String].self
     case .clipboardExpirationDelay:
       return TimeInterval.self
-    case .guidedOnboardingData:
-      return [GuidedOnboardingSettingsData].self
     case .rateAppDeclineResponseCount:
       return Int.self
     case .passwordGeneratorPreferences:

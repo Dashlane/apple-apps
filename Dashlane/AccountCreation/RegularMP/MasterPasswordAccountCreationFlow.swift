@@ -19,33 +19,29 @@ struct MasterPasswordAccountCreationFlow: View {
       switch step {
       case .fastLocalSetup:
         FastLocalSetupView(model: model.makeFastLocalSetup())
-      case .userConsent:
+      case let .userConsent(email, password):
         UserConsentView(model: model.makeUserContentViewModel()) {
-          MasterPasswordCreationRecapSection(
-            email: model.configuration.email.address, masterPassword: model.configuration.password)
+          MasterPasswordCreationRecapSection(email: email, masterPassword: password)
         }
       }
     }
     .alert(using: $model.error) { (error: Error) in
       if case AccountCreationError.expiredVersion = error {
-        return VersionValidityAlert.errorAlert()
+        return Alert(
+          title: Text(CoreL10n.validityStatusExpiredVersionNoUpdateTitle),
+          message: Text(CoreL10n.validityStatusExpiredVersionNoUpdateDesc),
+          dismissButton: .cancel(Text(L10n.Localizable.validityStatusExpiredVersionNoUpdateClose)))
       } else {
-        let title = CoreLocalization.L10n.errorMessage(for: error)
+        let title = CoreL10n.errorMessage(for: error)
         return Alert(
           title: Text(title),
           dismissButton: .cancel(
-            Text(CoreLocalization.L10n.Core.kwButtonOk),
+            Text(CoreL10n.kwButtonOk),
             action: {
               model.cancel()
             }))
       }
     }
 
-  }
-}
-
-extension MasterPasswordAccountCreationFlow: NavigationBarStyleProvider {
-  var navigationBarStyle: UIComponents.NavigationBarStyle {
-    .transparent(tintColor: .ds.text.neutral.standard, statusBarStyle: .default)
   }
 }

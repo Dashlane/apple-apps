@@ -1,6 +1,6 @@
 import Foundation
 
-public struct SecurefileSecureFileResponse: Codable, Equatable, Sendable {
+public struct SecurefileSecureFileResponse: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case quota = "quota"
   }

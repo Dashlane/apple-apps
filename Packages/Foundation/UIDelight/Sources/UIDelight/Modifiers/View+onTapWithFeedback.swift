@@ -13,7 +13,7 @@ extension View {
         }
       )
       .buttonStyle(DefaultButtonStyle())
-      .foregroundColor(.primary)
+      .foregroundStyle(.primary)
 
     #else
       Button(
@@ -22,7 +22,7 @@ extension View {
           self
             .contentShape(Rectangle())
         }
-      ).foregroundColor(.primary)
+      ).foregroundStyle(.primary)
     #endif
 
   }

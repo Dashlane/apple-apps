@@ -1,5 +1,6 @@
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 
 public final class KeyedSecureStore<Key: StoreKey>: KeyedStore, Sendable {
   let cryptoEngine: CryptoEngine
@@ -34,6 +35,7 @@ public final class KeyedSecureStore<Key: StoreKey>: KeyedStore, Sendable {
   }
 }
 
+@Loggable
 public enum CryptoError: Error {
   case encryptionFailure
   case decryptionFailure

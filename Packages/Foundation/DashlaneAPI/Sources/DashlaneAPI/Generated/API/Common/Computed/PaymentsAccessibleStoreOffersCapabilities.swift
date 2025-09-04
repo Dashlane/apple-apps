@@ -1,11 +1,12 @@
 import Foundation
 
-public struct PaymentsAccessibleStoreOffersCapabilities: Codable, Equatable, Sendable {
+public struct PaymentsAccessibleStoreOffersCapabilities: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case activeDirectorySync = "activeDirectorySync"
     case activityLog = "activityLog"
     case adminPolicies = "adminPolicies"
     case autofillWithPhishingPrevention = "autofillWithPhishingPrevention"
+    case canSeeCustomerSupportContacts = "canSeeCustomerSupportContacts"
     case collectionSharing = "collectionSharing"
     case creditMonitoring = "creditMonitoring"
     case dataLeak = "dataLeak"
@@ -13,12 +14,14 @@ public struct PaymentsAccessibleStoreOffersCapabilities: Codable, Equatable, Sen
     case groupSharing = "groupSharing"
     case identityRestoration = "identityRestoration"
     case identityTheftProtection = "identityTheftProtection"
+    case inAppNudges = "inAppNudges"
     case internalSharingOnly = "internalSharingOnly"
-    case messageIntegrations = "messageIntegrations"
     case multipleAccounts = "multipleAccounts"
+    case nudges = "nudges"
     case passwordChanger = "passwordChanger"
     case passwordsLimit = "passwordsLimit"
     case phoneSupport = "phoneSupport"
+    case riskDetection = "riskDetection"
     case samlProvisioning = "samlProvisioning"
     case scim = "scim"
     case secretManagement = "secretManagement"
@@ -33,7 +36,7 @@ public struct PaymentsAccessibleStoreOffersCapabilities: Codable, Equatable, Sen
     case yubikey = "yubikey"
   }
 
-  public struct MessageIntegrations: Codable, Equatable, Sendable {
+  public struct CanSeeCustomerSupportContacts: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case enabled = "enabled"
       case info = "info"
@@ -54,7 +57,28 @@ public struct PaymentsAccessibleStoreOffersCapabilities: Codable, Equatable, Sen
     }
   }
 
-  public struct SecretManagement: Codable, Equatable, Sendable {
+  public struct Nudges: Codable, Hashable, Sendable {
+    public enum CodingKeys: String, CodingKey {
+      case enabled = "enabled"
+      case info = "info"
+    }
+
+    public let enabled: Bool
+    public let info: PaymentsAccessibleStoreOffersInfo2?
+
+    public init(enabled: Bool, info: PaymentsAccessibleStoreOffersInfo2? = nil) {
+      self.enabled = enabled
+      self.info = info
+    }
+
+    public func encode(to encoder: Encoder) throws {
+      var container = encoder.container(keyedBy: CodingKeys.self)
+      try container.encode(enabled, forKey: .enabled)
+      try container.encodeIfPresent(info, forKey: .info)
+    }
+  }
+
+  public struct SecretManagement: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case enabled = "enabled"
       case info = "info"
@@ -79,6 +103,7 @@ public struct PaymentsAccessibleStoreOffersCapabilities: Codable, Equatable, Sen
   public let activityLog: CapabilitySchema?
   public let adminPolicies: PaymentsAccessibleStoreOffersAdminPolicies?
   public let autofillWithPhishingPrevention: CapabilitySchema?
+  public let canSeeCustomerSupportContacts: CanSeeCustomerSupportContacts?
   public let collectionSharing: CapabilitySchema?
   public let creditMonitoring: CapabilitySchema?
   public let dataLeak: CapabilitySchema?
@@ -86,12 +111,14 @@ public struct PaymentsAccessibleStoreOffersCapabilities: Codable, Equatable, Sen
   public let groupSharing: PaymentsAccessibleStoreOffersGroupSharing?
   public let identityRestoration: CapabilitySchema?
   public let identityTheftProtection: CapabilitySchema?
+  public let inAppNudges: PaymentsAccessibleStoreOffersInAppNudges?
   public let internalSharingOnly: CapabilitySchema?
-  public let messageIntegrations: MessageIntegrations?
   public let multipleAccounts: CapabilitySchema?
+  public let nudges: Nudges?
   public let passwordChanger: CapabilitySchema?
   public let passwordsLimit: CapabilitySchema?
   public let phoneSupport: CapabilitySchema?
+  public let riskDetection: PaymentsAccessibleStoreOffersRiskDetection?
   public let samlProvisioning: CapabilitySchema?
   public let scim: CapabilitySchema?
   public let secretManagement: SecretManagement?
@@ -109,13 +136,16 @@ public struct PaymentsAccessibleStoreOffersCapabilities: Codable, Equatable, Sen
     activeDirectorySync: CapabilitySchema? = nil, activityLog: CapabilitySchema? = nil,
     adminPolicies: PaymentsAccessibleStoreOffersAdminPolicies? = nil,
     autofillWithPhishingPrevention: CapabilitySchema? = nil,
+    canSeeCustomerSupportContacts: CanSeeCustomerSupportContacts? = nil,
     collectionSharing: CapabilitySchema? = nil, creditMonitoring: CapabilitySchema? = nil,
     dataLeak: CapabilitySchema? = nil, devicesLimit: CapabilitySchema? = nil,
     groupSharing: PaymentsAccessibleStoreOffersGroupSharing? = nil,
     identityRestoration: CapabilitySchema? = nil, identityTheftProtection: CapabilitySchema? = nil,
-    internalSharingOnly: CapabilitySchema? = nil, messageIntegrations: MessageIntegrations? = nil,
-    multipleAccounts: CapabilitySchema? = nil, passwordChanger: CapabilitySchema? = nil,
+    inAppNudges: PaymentsAccessibleStoreOffersInAppNudges? = nil,
+    internalSharingOnly: CapabilitySchema? = nil, multipleAccounts: CapabilitySchema? = nil,
+    nudges: Nudges? = nil, passwordChanger: CapabilitySchema? = nil,
     passwordsLimit: CapabilitySchema? = nil, phoneSupport: CapabilitySchema? = nil,
+    riskDetection: PaymentsAccessibleStoreOffersRiskDetection? = nil,
     samlProvisioning: CapabilitySchema? = nil, scim: CapabilitySchema? = nil,
     secretManagement: SecretManagement? = nil, secureFiles: CapabilitySchema? = nil,
     secureNotes: CapabilitySchema? = nil, secureWiFi: CapabilitySchema? = nil,
@@ -127,6 +157,7 @@ public struct PaymentsAccessibleStoreOffersCapabilities: Codable, Equatable, Sen
     self.activityLog = activityLog
     self.adminPolicies = adminPolicies
     self.autofillWithPhishingPrevention = autofillWithPhishingPrevention
+    self.canSeeCustomerSupportContacts = canSeeCustomerSupportContacts
     self.collectionSharing = collectionSharing
     self.creditMonitoring = creditMonitoring
     self.dataLeak = dataLeak
@@ -134,12 +165,14 @@ public struct PaymentsAccessibleStoreOffersCapabilities: Codable, Equatable, Sen
     self.groupSharing = groupSharing
     self.identityRestoration = identityRestoration
     self.identityTheftProtection = identityTheftProtection
+    self.inAppNudges = inAppNudges
     self.internalSharingOnly = internalSharingOnly
-    self.messageIntegrations = messageIntegrations
     self.multipleAccounts = multipleAccounts
+    self.nudges = nudges
     self.passwordChanger = passwordChanger
     self.passwordsLimit = passwordsLimit
     self.phoneSupport = phoneSupport
+    self.riskDetection = riskDetection
     self.samlProvisioning = samlProvisioning
     self.scim = scim
     self.secretManagement = secretManagement
@@ -161,6 +194,8 @@ public struct PaymentsAccessibleStoreOffersCapabilities: Codable, Equatable, Sen
     try container.encodeIfPresent(adminPolicies, forKey: .adminPolicies)
     try container.encodeIfPresent(
       autofillWithPhishingPrevention, forKey: .autofillWithPhishingPrevention)
+    try container.encodeIfPresent(
+      canSeeCustomerSupportContacts, forKey: .canSeeCustomerSupportContacts)
     try container.encodeIfPresent(collectionSharing, forKey: .collectionSharing)
     try container.encodeIfPresent(creditMonitoring, forKey: .creditMonitoring)
     try container.encodeIfPresent(dataLeak, forKey: .dataLeak)
@@ -168,12 +203,14 @@ public struct PaymentsAccessibleStoreOffersCapabilities: Codable, Equatable, Sen
     try container.encodeIfPresent(groupSharing, forKey: .groupSharing)
     try container.encodeIfPresent(identityRestoration, forKey: .identityRestoration)
     try container.encodeIfPresent(identityTheftProtection, forKey: .identityTheftProtection)
+    try container.encodeIfPresent(inAppNudges, forKey: .inAppNudges)
     try container.encodeIfPresent(internalSharingOnly, forKey: .internalSharingOnly)
-    try container.encodeIfPresent(messageIntegrations, forKey: .messageIntegrations)
     try container.encodeIfPresent(multipleAccounts, forKey: .multipleAccounts)
+    try container.encodeIfPresent(nudges, forKey: .nudges)
     try container.encodeIfPresent(passwordChanger, forKey: .passwordChanger)
     try container.encodeIfPresent(passwordsLimit, forKey: .passwordsLimit)
     try container.encodeIfPresent(phoneSupport, forKey: .phoneSupport)
+    try container.encodeIfPresent(riskDetection, forKey: .riskDetection)
     try container.encodeIfPresent(samlProvisioning, forKey: .samlProvisioning)
     try container.encodeIfPresent(scim, forKey: .scim)
     try container.encodeIfPresent(secretManagement, forKey: .secretManagement)

@@ -14,12 +14,6 @@ extension TextDetailField: CopiableDetailField {
   }
 }
 
-extension TOTPDetailField: CopiableDetailField {
-  public var copiableValue: Binding<String> {
-    $code
-  }
-}
-
 extension SecureDetailField: CopiableDetailField {
   public var copiableValue: Binding<String> {
     $text
@@ -33,12 +27,6 @@ extension NotesDetailField: CopiableDetailField {
 }
 
 extension BreachTextField: CopiableDetailField {
-  public var copiableValue: Binding<String> {
-    $text
-  }
-}
-
-extension BreachPasswordField: CopiableDetailField {
   public var copiableValue: Binding<String> {
     $text
   }

@@ -1,6 +1,6 @@
 import CoreCrypto
 import CorePersonalData
-import DashTypes
+import CoreTypes
 import Foundation
 
 extension DatabaseDriver {

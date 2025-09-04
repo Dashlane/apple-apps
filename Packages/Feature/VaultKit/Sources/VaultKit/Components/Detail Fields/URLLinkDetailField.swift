@@ -23,13 +23,13 @@ public struct URLLinkDetailField: DetailField {
   @ViewBuilder
   public var body: some View {
     personalDataURL.openableURL.map { url in
-      DS.TextField(
+      DS.DisplayField(
         "",
-        text: .constant("\(personalDataURL.displayedScheme)\(personalDataURL.displayDomain)"),
+        text: "\(personalDataURL.displayedScheme)\(personalDataURL.displayDomain)",
         actions: {
           if canOpen {
             DS.FieldAction.Button(
-              L10n.Core.openWebsite,
+              CoreL10n.openWebsite,
               image: .ds.action.openExternalLink.outlined
             ) {
               openURL(url)
@@ -38,10 +38,9 @@ public struct URLLinkDetailField: DetailField {
           }
         }
       )
-      .listRowInsets(.init(top: 0, leading: 20, bottom: 0, trailing: 20))
-      .editionDisabled()
-      .fieldLabelPersistencyDisabled()
-      .textColorHighlightingMode(.url)
+      .listRowInsets(.init(top: 0, leading: 16, bottom: 0, trailing: 16))
+      .fieldLabelHiddenOnFocus()
+      .textFieldColorHighlightingMode(.url)
     }
   }
 }

@@ -2,7 +2,7 @@ import Combine
 import CoreFeature
 import CoreSession
 import CoreSettings
-import DashTypes
+import CoreTypes
 import Foundation
 import SwiftTreats
 
@@ -126,7 +126,7 @@ public class HomeTopBannerViewModel: ObservableObject, HomeAnnouncementsServices
 
 extension AutofillActivationStatus {
   public var showAutofillBanner: Bool {
-    guard !Device.isMac else {
+    guard !Device.is(.mac) else {
       return false
     }
     guard let isEnabled else {
@@ -143,7 +143,7 @@ extension HomeTopBannerViewModel {
       deeplinkingService: NotificationKitDeepLinkingServiceMock(),
       userSettings: .mock,
       featureService: .mock(),
-      vaultStateService: .mock,
+      vaultStateService: .mock(),
       isLastpassInstalled: false,
       credentialsCount: 6,
       premiumFactory: .init { _ in .mock(announcements: [.premiumExpiredAnnouncement]) }

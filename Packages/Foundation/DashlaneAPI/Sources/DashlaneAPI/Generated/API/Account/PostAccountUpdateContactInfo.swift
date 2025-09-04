@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Account {
-  public struct UpdateContactInfo: APIRequest {
+  public struct UpdateContactInfo: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/account/UpdateContactInfo"
 
     public let api: UserDeviceAPIClient
@@ -29,7 +29,7 @@ extension UserDeviceAPIClient.Account {
 }
 
 extension UserDeviceAPIClient.Account.UpdateContactInfo {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case contactEmail = "contactEmail"
       case contactPhone = "contactPhone"

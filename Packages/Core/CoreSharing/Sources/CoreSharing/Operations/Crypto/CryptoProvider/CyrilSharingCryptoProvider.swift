@@ -1,5 +1,5 @@
+import CoreTypes
 import CyrilKit
-import DashTypes
 import Foundation
 
 public struct CyrilSharingCryptoProvider: SharingCryptoProvider {

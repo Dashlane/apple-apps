@@ -1,5 +1,5 @@
 import CoreSession
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 import LoginKit
@@ -26,8 +26,17 @@ class DeviceTransferPendingRequestViewModel: ObservableObject, SessionServicesIn
     L10n.Localizable.Mpless.D2d.Universal.Trusted.loadingChallenge)
 
   var displayLocation: String {
-    "\(pendingTransfer.receiver.city)" + ", "
-      + "\(Locale.current.localizedString(forRegionCode: pendingTransfer.receiver.countryCode ?? System.country) ?? "")"
+    var location = [String]()
+    if pendingTransfer.receiver.city != nil {
+      location.append(pendingTransfer.receiver.city!)
+    }
+    let country =
+      (Locale.current.localizedString(
+        forRegionCode: pendingTransfer.receiver.countryCode ?? System.country) ?? "")
+    if !country.isEmpty {
+      location.append(country)
+    }
+    return location.joined(separator: ", ")
   }
 
   init(

@@ -72,7 +72,7 @@ public struct CollectionAdditionView: View {
     NavigationView {
       List {
         Section {
-          TextField(L10n.Core.KWVaultItem.Collections.add, text: $newCollectionName)
+          TextField(CoreL10n.KWVaultItem.Collections.add, text: $newCollectionName)
             .submitLabel(.done)
             .focused($textFieldFocus)
             .textInputAutocapitalization(.words)
@@ -88,13 +88,11 @@ public struct CollectionAdditionView: View {
           }
         }
       }
-      .listStyle(.insetGrouped)
-      .background(Color.ds.background.alternate)
-      .scrollContentBackground(.hidden)
+      .listStyle(.ds.insetGrouped)
       .padding(.top, -16)
       .toolbar {
         ToolbarItem(placement: .navigationBarLeading) {
-          Button(action: { completion(.cancel) }, title: L10n.Core.cancel)
+          Button(CoreL10n.cancel) { completion(.cancel) }
         }
       }
       .tint(.ds.text.brand.standard)
@@ -106,27 +104,27 @@ public struct CollectionAdditionView: View {
       }
       .alert(isPresented: $showLimitedRightsErrorMessage) {
         Alert(
-          title: Text(L10n.Core.KWVaultItem.Collections.Sharing.LimitedRights.Addition.Error.title),
+          title: Text(CoreL10n.KWVaultItem.Collections.Sharing.LimitedRights.Addition.Error.title),
           message: Text(
-            L10n.Core.KWVaultItem.Collections.Sharing.LimitedRights.Addition.Error.message),
-          dismissButton: .default(Text(L10n.Core.kwButtonOk))
+            CoreL10n.KWVaultItem.Collections.Sharing.LimitedRights.Addition.Error.message),
+          dismissButton: .default(Text(CoreL10n.kwButtonOk))
         )
       }
       .confirmationDialog(
-        L10n.Core.KWVaultItem.Collections.Sharing.AdditionAlert.title(item.localizedTitle),
+        CoreL10n.KWVaultItem.Collections.Sharing.AdditionAlert.title(item.localizedTitle),
         isPresented: $showSharedCollectionDialog,
         titleVisibility: .visible,
         presenting: collectionToModify,
         actions: { collection in
-          Button(L10n.Core.KWVaultItem.Collections.Sharing.AdditionAlert.button) {
+          Button(CoreL10n.KWVaultItem.Collections.Sharing.AdditionAlert.button) {
             completion(.select(collection: collection))
           }
         },
         message: { collection in
-          Text(L10n.Core.KWVaultItem.Collections.Sharing.AdditionAlert.message(collection.name))
+          Text(CoreL10n.KWVaultItem.Collections.Sharing.AdditionAlert.message(collection.name))
         }
       )
-      .onChange(of: newCollectionName) { name in
+      .onChange(of: newCollectionName) { _, name in
         guard name.count > VaultCollection.maxNameLength else {
           return
         }
@@ -141,10 +139,10 @@ public struct CollectionAdditionView: View {
       action: { completion(.create(collectionName: name)) },
       label: {
         HStack {
-          Text(L10n.Core.KWVaultItem.Collections.create)
+          Text(CoreL10n.KWVaultItem.Collections.create)
             .font(.body)
             .lineLimit(1)
-            .foregroundColor(.ds.text.brand.standard)
+            .foregroundStyle(Color.ds.text.brand.standard)
 
           Tag(name)
             .frame(maxWidth: .infinity, alignment: .leading)

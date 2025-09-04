@@ -1,8 +1,9 @@
 import CoreFeature
 import CoreLocalization
+import CorePersonalData
 import CorePremium
 import CoreSharing
-import DashTypes
+import CoreTypes
 import Foundation
 import SwiftUI
 import VaultKit
@@ -114,7 +115,7 @@ class ShareFlowViewModel: ObservableObject, SessionServicesInjecting, MockVaultC
         errorMessage = L10n.Localizable.kwSharingPremiumLimit
       } catch let urlError as URLError where urlError.code == .notConnectedToInternet {
         state = .composing
-        errorMessage = CoreLocalization.L10n.Core.kwNoInternet
+        errorMessage = CoreL10n.kwNoInternet
       } catch {
         state = .composing
         errorMessage = L10n.Localizable.lockAlreadyAcquired

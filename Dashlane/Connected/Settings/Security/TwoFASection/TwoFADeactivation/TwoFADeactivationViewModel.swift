@@ -4,12 +4,13 @@ import CoreKeychain
 import CorePersonalData
 import CoreSession
 import CoreSync
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import LoginKit
 import TOTPGenerator
+import UserTrackingFoundation
 import VaultKit
 
 @MainActor
@@ -163,7 +164,7 @@ extension TwoFADeactivationViewModel {
         to: .masterPassword(session.authenticationMethod.userMasterPassword!, serverKey: nil),
         remoteKey: nil,
         cryptoConfig: CryptoRawConfig.masterPasswordBasedDefault,
-        accountMigrationType: .masterPasswordToMasterPassword, loginOTPOption: nil)
+        loginOTPOption: nil)
 
       let postCryptoChangeHandler = PostMasterKeyChangerHandler(
         keychainService: keychainService,
@@ -171,6 +172,7 @@ extension TwoFADeactivationViewModel {
         syncService: syncService)
 
       accountCryptoChangerService = try AccountCryptoChangerService(
+        mode: .masterKeyChange,
         reportedType: .masterPasswordChange,
         migratingSession: migratingSession,
         syncService: syncService,
@@ -193,8 +195,10 @@ extension TwoFADeactivationViewModel {
           switch state {
           case let .inProgress(progression):
             self.didProgress(progression)
-          case let .finished(result):
-            self.didFinish(with: result)
+          case .completed(let session):
+            self.didComplete(with: session)
+          case .failed(let error):
+            self.didFail(with: error)
           }
         }.store(in: &subscriptions)
       accountCryptoChangerService?.start()
@@ -209,21 +213,20 @@ extension TwoFADeactivationViewModel {
     logger.debug("Otp2 deactivation in progress: \(progression)")
   }
 
-  func didFinish(with result: Result<Session, AccountCryptoChangerError>) {
-    switch result {
-    case .success(let session):
-      try? self.keychainService.removeServerKey(for: session.login)
-      self.logger.info("Otp2 deactivation is sucessful")
-      progressState = .completed(
-        L10n.Localizable.twofaDeactivationFinalMessage,
-        { [weak self] in
-          self?.sessionLifeCycleHandler?.logoutAndPerform(
-            action: .startNewSession(session, reason: .masterPasswordChanged))
-        })
-    case let .failure(error):
-      self.logger.fatal("Otp2 deactivation failed", error: error)
-      state = .failure
-    }
+  func didComplete(with session: Session) {
+    try? self.keychainService.removeServerKey(for: session.login)
+    self.logger.info("Otp2 deactivation is sucessful")
+    progressState = .completed(
+      L10n.Localizable.twofaDeactivationFinalMessage,
+      { [weak self] in
+        self?.sessionLifeCycleHandler?.logoutAndPerform(
+          action: .startNewSession(session, reason: .masterPasswordChanged))
+      })
+  }
+
+  func didFail(with error: Error) {
+    self.logger.fatal("Otp2 deactivation failed", error: error)
+    state = .failure
   }
 }
 
@@ -232,12 +235,12 @@ extension TwoFADeactivationViewModel {
     let services = MockServicesContainer()
     let model = TwoFADeactivationViewModel(
       session: .mock,
-      sessionsContainer: FakeSessionsContainer(),
+      sessionsContainer: .mock,
       appAPIClient: .fake,
       userAPIClient: .fake,
-      logger: LoggerMock(),
+      logger: .mock,
       syncService: services.syncService,
-      keychainService: .fake,
+      keychainService: .mock,
       sessionCryptoUpdater: .mock,
       activityReporter: .mock,
       resetMasterPasswordService: ResetMasterPasswordService.mock,

@@ -1,5 +1,5 @@
 import CoreRegion
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 import VaultKit

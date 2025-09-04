@@ -1,6 +1,6 @@
 import Foundation
 
-public struct AuthenticationCompleteAuthTicketRemoteKeys: Codable, Equatable, Sendable {
+public struct AuthenticationCompleteAuthTicketRemoteKeys: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case uuid = "uuid"
     case key = "key"

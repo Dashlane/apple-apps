@@ -1,5 +1,5 @@
 import Combine
-import DashTypes
+import CoreTypes
 import Foundation
 import NotificationKit
 import UIKit

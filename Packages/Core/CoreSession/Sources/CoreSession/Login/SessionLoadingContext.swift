@@ -1,9 +1,15 @@
 import Foundation
+import UserTrackingFoundation
 
 public enum SessionLoadingContext: Sendable {
+  public enum LocalContextOrigin: Sendable {
+    case regular(reportedLoginMode: Definition.Mode)
+    case afterLogout(reason: SessionServicesUnloadReason)
+  }
+
   case accountCreation
-  case localLogin(_ isRecoveryKeyUsed: Bool = false)
-  case remoteLogin(_ isRecoveryKeyUsed: Bool = false)
+  case localLogin(LocalContextOrigin, isRecoveryKeyUsed: Bool = false)
+  case remoteLogin(isRecoveryKeyUsed: Bool = false)
 
   public var isFirstLogin: Bool {
     switch self {
@@ -16,7 +22,7 @@ public enum SessionLoadingContext: Sendable {
 
   public var isAccountRecoveryLogin: Bool {
     switch self {
-    case let .localLogin(isRecoveryKeyUsed):
+    case let .localLogin(_, isRecoveryKeyUsed):
       return isRecoveryKeyUsed
     case let .remoteLogin(isRecoveryKeyUsed):
       return isRecoveryKeyUsed

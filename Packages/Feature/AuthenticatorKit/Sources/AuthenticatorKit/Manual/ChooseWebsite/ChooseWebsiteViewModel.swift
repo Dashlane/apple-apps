@@ -2,10 +2,10 @@ import Combine
 import CoreCategorizer
 import CoreNetworking
 import CoreSync
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import Foundation
 import IconLibrary
+import UserTrackingFoundation
 
 public class ChooseWebsiteViewModel: ObservableObject, AuthenticatorServicesInjecting,
   AuthenticatorMockInjecting

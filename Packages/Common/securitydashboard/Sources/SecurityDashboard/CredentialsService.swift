@@ -1,6 +1,7 @@
 import Combine
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 
 protocol CredentialsServiceDelegate: AnyObject {
   func credentialsServiceDidUpdate()
@@ -127,4 +128,12 @@ extension CredentialsService: IdentityDashboardCredentialsUpdates {
       self.refreshCompromisedAndCache(credentials)
     }
   }
+
+  func isCredentialCompromised(credentialID: String) -> Bool {
+    guard let credential = cachedCredentials.first(where: { $0.identifier == credentialID }) else {
+      return false
+    }
+    return !credential.compromisedIn.isEmpty
+  }
+
 }

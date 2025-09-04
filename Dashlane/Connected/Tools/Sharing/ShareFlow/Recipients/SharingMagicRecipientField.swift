@@ -9,14 +9,16 @@ struct SharingMagicRecipientField: View {
   @FocusState
   var isFocused: Bool
 
+  var placeholderText: String
+
   var body: some View {
     HStack {
       TextField("", text: $text)
-        .accessibility(label: Text(L10n.Localizable.kwSharingComposeMessageToFieldPlaceholder))
+        .accessibility(label: Text(placeholderText))
         .background(alignment: .leading) {
           if text.isEmpty {
-            Text(L10n.Localizable.kwSharingComposeMessageToFieldPlaceholder)
-              .foregroundColor(.ds.text.neutral.quiet)
+            Text(placeholderText)
+              .foregroundStyle(Color.ds.text.neutral.quiet)
               .accessibilityHidden(true)
           }
         }
@@ -34,8 +36,8 @@ struct SharingMagicRecipientField: View {
             .resizable()
             .frame(width: 16.0, height: 16.0)
         }
-        .foregroundColor(.ds.text.neutral.quiet)
-        .fiberAccessibilityLabel(Text(CoreLocalization.L10n.Core.accessibilityClearSearchTextField))
+        .foregroundStyle(Color.ds.text.neutral.quiet)
+        .fiberAccessibilityLabel(Text(CoreL10n.accessibilityClearSearchTextField))
       }
     }
     .padding(.horizontal, 10)
@@ -48,9 +50,11 @@ struct SharingMagicRecipientField: View {
 
 struct SharingRecipientFilterField_Previews: PreviewProvider {
   static var previews: some View {
-    SharingMagicRecipientField(text: .constant(""))
+    SharingMagicRecipientField(text: .constant(""), placeholderText: "Dashlane email address")
       .previewLayout(.sizeThatFits)
-    SharingMagicRecipientField(text: .constant("Email"))
-      .previewLayout(.sizeThatFits)
+    SharingMagicRecipientField(
+      text: .constant("Email"), placeholderText: "Dashlane email address or Group"
+    )
+    .previewLayout(.sizeThatFits)
   }
 }

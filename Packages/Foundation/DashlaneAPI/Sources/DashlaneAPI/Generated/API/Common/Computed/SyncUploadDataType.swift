@@ -1,6 +1,6 @@
 import Foundation
 
-public enum SyncUploadDataType: String, Sendable, Equatable, CaseIterable, Codable {
+public enum SyncUploadDataType: String, Sendable, Hashable, Codable, CaseIterable {
   case sso = "sso"
   case masterPassword = "master_password"
   case undecodable

@@ -2,12 +2,13 @@ import Combine
 import CoreLocalization
 import CoreSession
 import CoreSettings
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import StateMachine
 import SwiftTreats
+import UserTrackingFoundation
 
 @MainActor
 public final class MasterPasswordInputRemoteViewModel: LoginKitServicesInjecting,
@@ -54,28 +55,25 @@ public final class MasterPasswordInputRemoteViewModel: LoginKitServicesInjecting
   @Published
   var viewState: ViewState
 
-  public var stateMachine: MasterPasswordRemoteStateMachine
-  let loginMetricsReporter: LoginMetricsReporterProtocol
+  @Published public var stateMachine: MasterPasswordInputRemoteStateMachine
+  @Published public var isPerformingEvent: Bool = false
+
   let completion: (RemoteLoginSession) -> Void
   let logger: Logger
   let activityReporter: ActivityReporterProtocol
   private let recoveryKeyLoginFlowModelFactory: AccountRecoveryKeyLoginFlowModel.Factory
 
   public init(
-    state: MasterPasswordRemoteStateMachine.State,
+    stateMachine: MasterPasswordInputRemoteStateMachine,
     login: Login,
-    loginMetricsReporter: LoginMetricsReporterProtocol,
     activityReporter: ActivityReporterProtocol,
     data: DeviceRegistrationData,
     logger: Logger,
     recoveryKeyLoginFlowModelFactory: AccountRecoveryKeyLoginFlowModel.Factory,
-    masterPasswordRemoteStateMachineFactory: MasterPasswordRemoteStateMachine.Factory,
     completion: @escaping (RemoteLoginSession) -> Void
   ) {
     self.login = login
-    self.loginMetricsReporter = loginMetricsReporter
-    self.stateMachine = masterPasswordRemoteStateMachineFactory.make(
-      state: state, login: login, data: data)
+    self.stateMachine = stateMachine
     self.logger = logger
     self.completion = completion
     self.activityReporter = activityReporter
@@ -86,10 +84,22 @@ public final class MasterPasswordInputRemoteViewModel: LoginKitServicesInjecting
     }
   }
 
+  public func willPerform(_ event: MasterPasswordInputRemoteStateMachine.Event) async {
+    switch event {
+    case .validateMasterPassword:
+      inProgress = true
+      showWrongPasswordError = false
+
+    case .fetchAccountRecoveryKeyStatus, .startAccountRecovery, .accountRecoveryDidFinish,
+      .cancelAccountRecovery:
+      break
+    }
+  }
+
   public func update(
-    for event: CoreSession.MasterPasswordRemoteStateMachine.Event,
-    from oldState: MasterPasswordRemoteStateMachine.State,
-    to newState: MasterPasswordRemoteStateMachine.State
+    for event: CoreSession.MasterPasswordInputRemoteStateMachine.Event,
+    from oldState: MasterPasswordInputRemoteStateMachine.State,
+    to newState: MasterPasswordInputRemoteStateMachine.State
   ) async {
     switch (state, event) {
     case (let .completed(remoteLoginSession), .accountRecoveryDidFinish):
@@ -103,13 +113,11 @@ public final class MasterPasswordInputRemoteViewModel: LoginKitServicesInjecting
       self.viewState = .accountRecovery(authTicket)
     case (.failed, let .accountRecoveryDidFinish(data)):
       self.viewState = .masterPassword
-      self.errorMessage = CoreLocalization.L10n.errorMessage(
-        for: RemoteLoginStateMachine.Error.wrongMasterKey)
+      self.errorMessage = CoreL10n.errorMessage(for: RemoteLoginStateMachine.Error.wrongMasterKey)
       self.logLoginStatus(
         .errorUnknown, isBackupCode: data.isBackupCode, verificationMethod: data.verificationMethod)
     case (let .failed(error, isBackupCode, verificationMethod), _):
       self.inProgress = false
-      self.loginMetricsReporter.resetTimer(.login)
       self.attempts += 1
       switch error.underlyingError {
       case RemoteLoginStateMachine.Error.wrongMasterKey:
@@ -117,7 +125,7 @@ public final class MasterPasswordInputRemoteViewModel: LoginKitServicesInjecting
         self.logLoginStatus(
           .errorWrongPassword, isBackupCode: isBackupCode, verificationMethod: verificationMethod)
       default:
-        self.errorMessage = CoreLocalization.L10n.errorMessage(for: error)
+        self.errorMessage = CoreL10n.errorMessage(for: error.underlyingError)
         self.logLoginStatus(
           .errorUnknown, isBackupCode: isBackupCode, verificationMethod: verificationMethod)
       }
@@ -127,9 +135,6 @@ public final class MasterPasswordInputRemoteViewModel: LoginKitServicesInjecting
   }
 
   public func validate() async {
-    self.showWrongPasswordError = false
-    inProgress = true
-    loginMetricsReporter.startLoginTimer(from: .masterPassword)
     await self.perform(.validateMasterPassword(password))
   }
 
@@ -180,8 +185,8 @@ extension MasterPasswordInputRemoteViewModel {
   func makeAccountRecoveryFlowModel(authTicket: AuthTicket) -> AccountRecoveryKeyLoginFlowModel {
     return recoveryKeyLoginFlowModelFactory.make(
       login: login,
-      accountType: .masterPassword,
-      loginType: .remote(authTicket),
+      stateMachine: stateMachine.makeAccountRecoveryKeyLoginFlowStateMachine(
+        loginType: .remote(authTicket)),
       completion: { [weak self] result in
         guard let self = self else {
           return
@@ -206,16 +211,12 @@ extension MasterPasswordInputRemoteViewModel {
 extension MasterPasswordInputRemoteViewModel {
   static var mock: MasterPasswordInputRemoteViewModel {
     MasterPasswordInputRemoteViewModel(
-      state: .waitingForUserInput(false),
+      stateMachine: .mock,
       login: Login("_"),
-      loginMetricsReporter: .fake,
       activityReporter: .mock,
       data: .mock,
-      logger: LoggerMock(),
-      recoveryKeyLoginFlowModelFactory: .init { _, _, _, _ in .mock },
-      masterPasswordRemoteStateMachineFactory: .init { _, _, _ in
-        .mock
-      },
+      logger: .mock,
+      recoveryKeyLoginFlowModelFactory: .init { _, _, _ in .mock },
       completion: { _ in
       }
     )

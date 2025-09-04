@@ -1,8 +1,5 @@
 import Foundation
-
-#if canImport(UIKit)
-  import UIKit
-#endif
+import UIKit
 
 public protocol SelectionFeedbackGenerator {
   func prepare()
@@ -14,6 +11,10 @@ public protocol ImpactFeedbackGenerator {
   func impactOccurred(intensity: CGFloat)
 }
 
+public protocol NotificationFeedbackGenerator {
+
+}
+
 struct NoOpFeedbackGenerator: SelectionFeedbackGenerator, ImpactFeedbackGenerator {
   func prepare() {}
   func selectionChanged() {}
@@ -23,7 +24,7 @@ struct NoOpFeedbackGenerator: SelectionFeedbackGenerator, ImpactFeedbackGenerato
 
 public struct UserFeedbackGenerator {
   public static func makeSelectionFeedbackGenerator() -> SelectionFeedbackGenerator {
-    #if canImport(UIKit)
+    #if os(iOS)
       return UISelectionFeedbackGenerator()
     #else
       return NoOpFeedbackGenerator()
@@ -31,7 +32,7 @@ public struct UserFeedbackGenerator {
   }
 
   public static func makeImpactGenerator() -> ImpactFeedbackGenerator {
-    #if canImport(UIKit)
+    #if os(iOS)
       return UIImpactFeedbackGenerator()
     #else
       return NoOpFeedbackGenerator()
@@ -39,7 +40,7 @@ public struct UserFeedbackGenerator {
   }
 }
 
-#if canImport(UIKit)
+#if os(iOS)
   extension UISelectionFeedbackGenerator: SelectionFeedbackGenerator {}
   extension UIImpactFeedbackGenerator: ImpactFeedbackGenerator {}
 #endif

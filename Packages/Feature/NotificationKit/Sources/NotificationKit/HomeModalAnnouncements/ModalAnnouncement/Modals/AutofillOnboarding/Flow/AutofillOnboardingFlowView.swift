@@ -15,9 +15,6 @@ public struct AutofillOnboardingFlowView: View {
       switch step {
       case .intro:
         AutofillOnboardingIntroView(model: model.makeAutofillOnboardingIntroViewModel())
-      case .instructions:
-        AutofillOnboardingInstructionsView(
-          model: model.makeAutofillOnboardingInstructionsViewModel())
       case .success:
         AutofillOnboardingSuccessView(action: { model.finish() })
       }

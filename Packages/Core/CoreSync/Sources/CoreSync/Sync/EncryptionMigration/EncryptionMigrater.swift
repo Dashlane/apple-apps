@@ -1,68 +1,52 @@
 import Combine
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 
 public typealias AllDataForMasterPasswordChange = UserDeviceAPIClient.Sync
   .GetDataForMasterPasswordChange.Response
 public typealias DownloadedTransactions = UserDeviceAPIClient.Sync.GetLatestContent.Response
 
-public class EncryptionMigrater<Delegate: EncryptionMigraterDelegate> {
-  public typealias Output = Delegate.Output
-
-  let decryptEngine: DecryptEngine
-  let encryptEngine: EncryptEngine
+public class EncryptionMigrater {
+  let cryptoEngine: CryptoChangerEngine
   let apiClient: UserDeviceAPIClient
   let authTicket: AuthTicket?
-  let remoteKeys: [SyncUploadDataRemoteKeys]?
+  let remoteKeys: SyncUploadDataRemoteKeys?
   let cryptoSettings: CryptoRawConfig?
   let logger: Logger
   let mode: MigrationUploadMode
   let database: MigrationCryptoDatabase
-  weak var delegate: Delegate?
+  private var progression: Progression = .downloading
+  public var progressionPublisher = PassthroughSubject<Progression, Never>()
 
-  public enum Progression {
-    public enum State {
-      case inProgress(completedFraction: Double)
-      case completed
-    }
-
-    case downloading(_ state: State)
-    case decrypting(_ state: State)
-    case reEncrypting(_ state: State)
-    case uploading(_ state: State)
+  @Loggable
+  public enum Progression: Sendable {
+    case downloading
+    case decrypting
+    case encrypting
+    case uploading
     case finalizing
   }
 
-  public struct MigraterError: Error {
-    public enum Step {
-      case downloading
-      case reEncrypting
-      case uploading
-      case delegateCompleting
-      case notifyingMasterKeyDone
-    }
-
-    public let step: Step
+  @Loggable
+  public struct MigrationError: Error {
+    public let progression: Progression
     public let internalError: Error
   }
 
   public init(
     mode: MigrationUploadMode = .masterKeyChange,
-    delegate: Delegate,
-    decryptEngine: DecryptEngine,
-    encryptEngine: EncryptEngine,
+    cryptoEngine: CryptoChangerEngine,
     database: MigrationCryptoDatabase,
     apiClient: UserDeviceAPIClient,
     authTicket: AuthTicket?,
-    remoteKeys: [SyncUploadDataRemoteKeys]?,
-    logger: Logger,
-    cryptoSettings: CryptoRawConfig?
+    remoteKeys: SyncUploadDataRemoteKeys?,
+    cryptoSettings: CryptoRawConfig?,
+    logger: Logger
   ) {
     self.mode = mode
-    self.delegate = delegate
-    self.decryptEngine = decryptEngine
-    self.encryptEngine = encryptEngine
+    self.cryptoEngine = cryptoEngine
     self.database = database
     self.apiClient = apiClient
     self.authTicket = authTicket
@@ -71,101 +55,86 @@ public class EncryptionMigrater<Delegate: EncryptionMigraterDelegate> {
     self.logger = logger
   }
 
-  public convenience init(
-    mode: MigrationUploadMode = .masterKeyChange,
-    delegate: Delegate,
-    decryptEngine: DecryptEngine,
-    encryptEngine: EncryptEngine,
-    database: MigrationCryptoDatabase,
-    apiClient: UserDeviceAPIClient,
-    authTicket: AuthTicket?,
-    remoteKeys: [SyncUploadDataRemoteKeys]?,
-    cryptoSettings: CryptoRawConfig?,
-    logger: Logger
-  ) {
-    self.init(
-      mode: mode,
-      delegate: delegate,
-      decryptEngine: decryptEngine,
-      encryptEngine: encryptEngine,
-      database: database,
-      apiClient: apiClient,
-      authTicket: authTicket,
-      remoteKeys: remoteKeys,
-      logger: logger,
-      cryptoSettings: cryptoSettings
-    )
-  }
-
-  public func start() async {
+  public func startMigration() async throws(MigrationError) -> Timestamp {
     do {
-      await self.delegate?.didProgress(.downloading(.inProgress(completedFraction: 0)))
+      report(progression: .downloading)
       let dataContainer = try await apiClient.sync.getDataForMasterPasswordChange()
-      await self.delegate?.didProgress(.downloading(.completed))
-      await self.reEncryptAndUpload(dataContainer)
+
+      let transactions = try await self.decrypt(dataContainer)
+
+      let keys = try await encrypt(keys: dataContainer.data.sharingKeys)
+
+      let timestamp = Timestamp(dataContainer.timestamp)
+
+      try await uploadAll(
+        transactions,
+        timestamp: timestamp,
+        sharingKeys: keys
+      )
+
+      report(progression: .finalizing)
+
+      return timestamp
     } catch {
-      await self.delegate?.didFinish(
-        with: .failure(MigraterError(step: .downloading, internalError: error)))
+      throw MigrationError(progression: progression, internalError: error)
     }
   }
 
-  private func reEncryptAndUpload(_ downloadedDataContainer: AllDataForMasterPasswordChange) async {
+  public func completeMigration() async throws(MigrationError) {
     do {
-      let sharingKeys = downloadedDataContainer.data.sharingKeys
-      let downloadedTransactions = downloadedDataContainer.data.transactions
-      let transactionsCount = downloadedTransactions.count
-
-      let keepEditTransactions:
-        (
-          UserDeviceAPIClient.Sync.GetDataForMasterPasswordChange.Response.DataValue
-            .TransactionsElement
-        ) -> Bool = {
-          $0.action == .backupEdit
-        }
-
-      var reEncryptedTransactions = [UploadMigrationTransaction]()
-
-      for (offset, transaction) in downloadedTransactions.filter(keepEditTransactions).enumerated()
-      {
-        let completedFraction = Double(offset) / Double(transactionsCount)
-        await delegate?.didProgress(.decrypting(.inProgress(completedFraction: completedFraction)))
-
-        if let transaction = try transaction.transformContent(
-          from: self.decryptEngine,
-          to: self.encryptEngine,
-          database: database,
-          logger: self.logger,
-          cryptoSettings: self.cryptoSettings
-        ) {
-          reEncryptedTransactions.append(transaction)
-        }
+      if case .masterKeyChange = mode {
+        try await changeMasterKeyDone()
       }
-      await delegate?.didProgress(.decrypting(.completed))
-
-      await delegate?.didProgress(.reEncrypting(.inProgress(completedFraction: 0)))
-      let reEncryptedSharingKeys = try sharingKeys.convertCrypto(
-        from: self.decryptEngine,
-        to: self.encryptEngine
-      )
-      await delegate?.didProgress(.reEncrypting(.completed))
-
-      await delegate?.didProgress(.uploading(.inProgress(completedFraction: 0)))
-      await self.uploadAll(
-        reEncryptedTransactions,
-        timestamp: Timestamp(downloadedDataContainer.timestamp),
-        sharingKeys: reEncryptedSharingKeys)
-      await delegate?.didProgress(.uploading(.completed))
     } catch {
-      await self.delegate?.didFinish(
-        with: .failure(MigraterError(step: .reEncrypting, internalError: error)))
+      throw MigrationError(progression: progression, internalError: error)
     }
+  }
+
+  private func decrypt(_ downloadedDataContainer: AllDataForMasterPasswordChange) async throws
+    -> [UploadMigrationTransaction]
+  {
+    report(progression: .decrypting)
+    let downloadedTransactions = downloadedDataContainer.data.transactions
+
+    let keepEditTransactions:
+      (
+        UserDeviceAPIClient.Sync.GetDataForMasterPasswordChange.Response.DataValue
+          .TransactionsElement
+      ) -> Bool = {
+        $0.action == .backupEdit
+      }
+
+    var reEncryptedTransactions = [UploadMigrationTransaction]()
+
+    for transaction in downloadedTransactions.filter(keepEditTransactions) {
+
+      if let transaction = try transaction.transformContent(
+        using: cryptoEngine,
+        database: database,
+        logger: self.logger,
+        cryptoSettings: self.cryptoSettings
+      ) {
+        reEncryptedTransactions.append(transaction)
+      }
+    }
+
+    return reEncryptedTransactions
+  }
+
+  private func encrypt(keys: SyncSharingKeys) async throws -> SyncSharingKeys {
+    report(progression: .encrypting)
+    return SyncSharingKeys(
+      privateKey: try cryptoEngine.recryptBase64Encoded(keys.privateKey),
+      publicKey: keys.publicKey
+    )
   }
 
   private func uploadAll(
     _ transactions: [UploadMigrationTransaction],
     timestamp: Timestamp,
     sharingKeys: SyncSharingKeys
-  ) async {
+  ) async throws {
+    report(progression: .uploading)
     let data = DataForMasterPasswordChange(
       timestamp: timestamp,
       new2FASetting: nil,
@@ -173,85 +142,35 @@ public class EncryptionMigrater<Delegate: EncryptionMigraterDelegate> {
       transactions: transactions,
       authTicket: authTicket?.token,
       remoteKeys: remoteKeys,
-      updateVerification: authTicket?.verification)
+      updateVerification: authTicket?.verification
+    )
 
-    do {
+    try await Task.sleep(for: .milliseconds(1100))
+    let response = try await apiClient.sync.upload(using: mode, content: data)
 
-      try await Task.sleep(for: .milliseconds(1100))
-      let response = try await apiClient.sync.upload(using: mode, content: data)
+    let timestamp = Timestamp(response.timestamp)
+    let transactionIDs = transactions.map { Identifier($0.identifier) }
+    try self.database.updateSyncTimestamp(timestamp, for: transactionIDs)
 
-      let timestamp = Timestamp(response.timestamp)
-      let transactionIDs = transactions.map { Identifier($0.identifier) }
-      try self.database.updateSyncTimestamp(timestamp, for: transactionIDs)
-
-      if let cryptoSettings = self.cryptoSettings {
-        try self.database.save(cryptoSettings)
-      }
-
-      await self.delegate?.complete(with: timestamp) { result in
-        switch result {
-        case let .success(output):
-          await self.completeProcess(with: output)
-        case let .failure(error):
-          self.delegate?.didFinish(
-            with: .failure(MigraterError(step: .delegateCompleting, internalError: error)))
-        }
-      }
-
-    } catch {
-      await self.delegate?.didFinish(
-        with: .failure(MigraterError(step: .uploading, internalError: error)))
-    }
-  }
-
-  private func completeProcess(with output: Output) async {
-    await delegate?.didProgress(.finalizing)
-    switch mode {
-    case .masterKeyChange:
-      do {
-        try await changeMasterKeyDone()
-        await delegate?.didFinish(with: .success(output))
-      } catch {
-        await delegate?.didFinish(
-          with: .failure(MigraterError(step: .notifyingMasterKeyDone, internalError: error)))
-      }
-    case .cryptoConfigChange:
-      await delegate?.didFinish(with: .success(output))
+    if let cryptoSettings = self.cryptoSettings {
+      try self.database.save(cryptoSettings)
     }
   }
 
   private func changeMasterKeyDone() async throws {
     _ = try await apiClient.sync.confirmMasterPasswordChangeDone()
   }
-}
 
-struct CryptoConverterHelper {
-  enum Error: Swift.Error {
-    case invalidData
-    case failedReEncrypting
-    case couldNotDecryptData
-  }
-
-  static func reEncrypt(
-    _ stringData: String,
-    from decryptEngine: DecryptEngine,
-    to encryptEngine: EncryptEngine
-  ) throws -> String {
-    guard let encryptedData = Data(base64Encoded: stringData) else {
-      throw Error.invalidData
-    }
-    guard let decryptedData = try? decryptEngine.decrypt(encryptedData) else {
-      throw Error.couldNotDecryptData
-    }
-    guard let reEncryptedData = try? encryptEngine.encrypt(decryptedData) else {
-      throw Error.failedReEncrypting
-    }
-    return reEncryptedData.base64EncodedString()
+  private func report(progression: Progression) {
+    self.progression = progression
+    progressionPublisher.send(progression)
   }
 }
+
 extension UserDeviceAPIClient.Sync.GetDataForMasterPasswordChange.Response.DataValue
   .TransactionsElement
 {
+  @Loggable
   fileprivate enum CryptoConverterError: Error {
     case invalidData
     case failedReEncrypting(id: Identifier, specificError: Error)
@@ -260,8 +179,7 @@ extension UserDeviceAPIClient.Sync.GetDataForMasterPasswordChange.Response.DataV
   }
 
   fileprivate func transformContent(
-    from decryptEngine: DecryptEngine,
-    to encryptEngine: EncryptEngine,
+    using cryptoEngine: CryptoChangerEngine,
     database: MigrationCryptoDatabase,
     logger: Logger,
     cryptoSettings: CryptoRawConfig?
@@ -277,11 +195,11 @@ extension UserDeviceAPIClient.Sync.GetDataForMasterPasswordChange.Response.DataV
       if type == .settings, let cryptoSettings = cryptoSettings,
         let content = Data(base64Encoded: content)
       {
-        let content = try content.decrypt(using: decryptEngine)
+        let content = try content.decrypt(using: cryptoEngine)
         let newContent = try database.updateSettingsTransactionContent(
           content, with: cryptoSettings
         )
-        .encrypt(using: encryptEngine)
+        .encrypt(using: cryptoEngine)
 
         return UploadMigrationTransaction(
           identifier: identifier,
@@ -290,13 +208,10 @@ extension UserDeviceAPIClient.Sync.GetDataForMasterPasswordChange.Response.DataV
           type: self.type,
           action: .backupEdit)
       } else {
-        let newContent = try CryptoConverterHelper.reEncrypt(
-          content, from: decryptEngine, to: encryptEngine)
-
         return UploadMigrationTransaction(
           identifier: identifier,
           time: time,
-          content: newContent,
+          content: try cryptoEngine.recryptBase64Encoded(content),
           type: self.type,
           action: .backupEdit)
       }
@@ -308,31 +223,5 @@ extension UserDeviceAPIClient.Sync.GetDataForMasterPasswordChange.Response.DataV
       logger.error("Cannot reencrypt transaction \(self.type)>\(identifier): \(error)")
       return nil
     }
-  }
-}
-
-public enum MigrationKeysError: Swift.Error {
-  case missingKeys
-  case failedDecryptingPrivateKey
-  case failedReEncryptingPrivateKey
-}
-
-extension SyncSharingKeys {
-
-  fileprivate func convertCrypto(from decryptEngine: DecryptEngine, to encryptEngine: EncryptEngine)
-    throws -> SyncSharingKeys
-  {
-    guard let encryptedPrivateKeyData = Data.init(base64Encoded: privateKey),
-      let privateKey = try? decryptEngine.decrypt(encryptedPrivateKeyData)
-    else {
-      throw MigrationKeysError.failedDecryptingPrivateKey
-    }
-
-    guard let reEncryptedPrivatekey = try? encryptEngine.encrypt(privateKey) else {
-      throw MigrationKeysError.failedReEncryptingPrivateKey
-    }
-
-    return SyncSharingKeys(
-      privateKey: reEncryptedPrivatekey.base64EncodedString(), publicKey: self.publicKey)
   }
 }

@@ -1,10 +1,10 @@
 import CorePasswords
 import CorePersonalData
 import CoreSession
-import CoreUserTracking
 import DashlaneAPI
 import Foundation
 import LoginKit
+import UserTrackingFoundation
 
 enum AccountRecoveryActivationContext {
   case onboarding

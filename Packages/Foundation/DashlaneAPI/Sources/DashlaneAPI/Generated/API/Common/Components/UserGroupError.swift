@@ -1,6 +1,6 @@
 import Foundation
 
-public struct UserGroupError: Codable, Equatable, Sendable {
+public struct UserGroupError: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case groupId = "groupId"
     case message = "message"

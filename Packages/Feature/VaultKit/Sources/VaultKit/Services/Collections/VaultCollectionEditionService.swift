@@ -1,9 +1,10 @@
 import Combine
-import CoreActivityLogs
 import CorePersonalData
 import CoreSharing
-import CoreUserTracking
-import DashTypes
+import CoreTeamAuditLogs
+import CoreTypes
+import LogFoundation
+import UserTrackingFoundation
 
 public final class VaultCollectionEditionService: ObservableObject, VaultKitServicesInjecting {
 
@@ -11,7 +12,7 @@ public final class VaultCollectionEditionService: ObservableObject, VaultKitServ
 
   private let logger: Logger
   private let activityReporter: ActivityReporterProtocol
-  private let activityLogsService: ActivityLogsServiceProtocol
+  private let teamAuditLogsService: TeamAuditLogsServiceProtocol
   private let sharingService: SharingServiceProtocol
   private let vaultCollectionDatabase: VaultCollectionDatabaseProtocol
   private let vaultCollectionsStore: VaultCollectionsStore
@@ -20,7 +21,7 @@ public final class VaultCollectionEditionService: ObservableObject, VaultKitServ
     collection: VaultCollection,
     logger: Logger,
     activityReporter: ActivityReporterProtocol,
-    activityLogsService: ActivityLogsServiceProtocol,
+    teamAuditLogsService: TeamAuditLogsServiceProtocol,
     vaultCollectionDatabase: VaultCollectionDatabaseProtocol,
     vaultCollectionsStore: VaultCollectionsStore,
     sharingService: SharingServiceProtocol
@@ -28,7 +29,7 @@ public final class VaultCollectionEditionService: ObservableObject, VaultKitServ
     self.collection = collection
     self.logger = logger
     self.activityReporter = activityReporter
-    self.activityLogsService = activityLogsService
+    self.teamAuditLogsService = teamAuditLogsService
     self.vaultCollectionDatabase = vaultCollectionDatabase
     self.vaultCollectionsStore = vaultCollectionsStore
     self.sharingService = sharingService
@@ -39,7 +40,7 @@ public final class VaultCollectionEditionService: ObservableObject, VaultKitServ
     case .private(var collection):
       let oldCollectionName = collection.name
       collection.name = name
-      activityLogsService.logRename(collection, oldCollectionName: oldCollectionName)
+      teamAuditLogsService.logRename(collection, oldCollectionName: oldCollectionName)
       self.collection = try await vaultCollectionDatabase.save(.init(collection: collection))
     case .shared(var collectionItems, _):
       collectionItems.collection.name = name
@@ -102,9 +103,9 @@ extension VaultCollectionEditionService {
   public static func mock(_ collection: VaultCollection) -> VaultCollectionEditionService {
     VaultCollectionEditionService(
       collection: collection,
-      logger: LoggerMock(),
+      logger: .mock,
       activityReporter: ActivityReporterMock(),
-      activityLogsService: .mock(),
+      teamAuditLogsService: .mock(),
       vaultCollectionDatabase: VaultCollectionDatabase.mock(),
       vaultCollectionsStore: VaultCollectionsStoreImpl.mock(),
       sharingService: SharingServiceMock()

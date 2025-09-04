@@ -1,6 +1,6 @@
 import CorePersonalData
 import CorePremium
-import DashTypes
+import CoreTypes
 import Foundation
 import LoginKit
 import PremiumKit
@@ -102,7 +102,7 @@ enum DeepLink {
     }
 
     let components = url.pathComponents.filter {
-      return $0 != "/" && !DashTypes.Email($0).isValid
+      return $0 != "/" && !CoreTypes.Email($0).isValid
     }
 
     guard components.count > 0 else {
@@ -140,6 +140,8 @@ enum PremiumDeepLinkComponent {
       let capability = CapabilityKey(rawValue: paywallValue)
     {
       self = .planPurchase(initialView: .paywall(trigger: .capability(key: capability)))
+    } else if (queryParameters?["frozen"]) != nil {
+      self = .planPurchase(initialView: .paywall(trigger: .frozenAccount))
     } else {
       self = .getPremium
     }

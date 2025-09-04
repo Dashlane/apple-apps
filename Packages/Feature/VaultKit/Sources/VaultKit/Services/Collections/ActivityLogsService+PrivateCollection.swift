@@ -1,61 +1,58 @@
-import CoreActivityLogs
 import CorePersonalData
+import CoreTeamAuditLogs
+import DashlaneAPI
 
-extension ActivityLogsServiceProtocol {
+extension TeamAuditLogsServiceProtocol {
 
   func logCreate(_ collection: PrivateCollection) {
     logCreate([collection])
   }
 
   public func logCreate(_ collections: [PrivateCollection]) {
-    guard isEnabled else { return }
     for collection in collections {
-      guard let info = collection.reportableInfo(), !collection.isSaved else {
+      guard !collection.isSaved else {
         return
       }
-      try? report(.creation, for: info)
+      try? report(
+        collection.generateReportableInfo(with: .create)
+      )
     }
   }
 
   public func logRename(_ collection: PrivateCollection, oldCollectionName: String) {
-    guard isEnabled, let info = collection.reportableInfo(oldCollectionName: oldCollectionName),
-      collection.isSaved
-    else {
+    guard collection.isSaved else {
       return
     }
-    try? report(.update, for: info)
+    try? report(
+      collection.generateReportableInfo(with: .update(oldCollectionName: oldCollectionName))
+    )
   }
 
   func logDelete(_ collection: PrivateCollection) {
-    guard isEnabled, let info = collection.reportableInfo() else {
-      return
-    }
-    try? report(.deletion, for: info)
+    try? report(
+      collection.generateReportableInfo(with: .delete)
+    )
   }
 
   public func logImport(_ collections: [PrivateCollection]) {
     for collection in collections {
-      guard isEnabled, let info = collection.reportableInfo(credentialCount: collection.items.count)
-      else {
-        return
-      }
-
-      try? report(.importCollection, for: info)
+      try? report(
+        collection.generateReportableInfo(
+          with: .importCollection(credentialCount: collection.items.count))
+      )
     }
   }
 
   public func logAddCredentialToCollection(_ collection: PrivateCollection, domainURL: String) {
-    guard isEnabled, let info = collection.reportableInfo(domainURL: domainURL) else {
-      return
-    }
-    try? report(.addCredential, for: info)
+    try? report(
+      collection.generateReportableInfo(with: .addCredential(domainURL: domainURL))
+    )
   }
 
   public func logDeleteCredentialToCollection(_ collection: PrivateCollection, domainURL: String) {
-    guard isEnabled, let info = collection.reportableInfo(domainURL: domainURL) else {
-      return
-    }
-    try? report(.deleteCredential, for: info)
+    try? report(
+      collection.generateReportableInfo(with: .deleteCredential(domainURL: domainURL))
+    )
   }
 
   func logUpdate(

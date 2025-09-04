@@ -1,7 +1,7 @@
 import CoreLocalization
 import CoreSettings
-import CoreUserTracking
 import Foundation
+import UserTrackingFoundation
 
 public struct PlanRecommandationViewModel: HomeAnnouncementsServicesInjecting {
 

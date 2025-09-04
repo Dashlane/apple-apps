@@ -11,18 +11,17 @@ struct SharingPendingUserGroupsSection: View {
 
   var body: some View {
     if let groups = model.pendingUserGroups, !groups.isEmpty {
-      LargeHeaderSection(title: L10n.Localizable.kwSharingCenterSectionPendingUserGroups) {
+      Section(L10n.Localizable.kwSharingCenterSectionPendingUserGroups) {
         ForEach(groups) { userGroup in
           PendingSharingRow { action in
             try await model.perform(action, on: userGroup)
           } label: {
             Thumbnail.User.group
-              .controlSize(.small)
 
             Text(userGroup.userGroupInfo.name)
               .font(.body)
               .lineLimit(1)
-              .foregroundColor(.ds.text.neutral.catchy)
+              .foregroundStyle(Color.ds.text.neutral.catchy)
           }
         }
       }
@@ -55,7 +54,7 @@ struct SharingPendingUserGroupsSection_Previews: PreviewProvider {
         model: .init(userSpacesService: userSpacesService, sharingService: sharingService))
     }
     .previewDisplayName("Two Pending Groups")
-    .listStyle(.insetGrouped)
+    .listStyle(.ds.insetGrouped)
 
     List {
       SharingPendingUserGroupsSection(
@@ -64,6 +63,6 @@ struct SharingPendingUserGroupsSection_Previews: PreviewProvider {
           sharingService: SharingServiceMock(pendingUserGroups: [])))
     }
     .previewDisplayName("Empty")
-    .listStyle(.insetGrouped)
+    .listStyle(.ds.insetGrouped)
   }
 }

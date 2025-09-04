@@ -16,14 +16,13 @@ struct DeviceTransferSecurityChallengeIntroView: View {
   var body: some View {
     ZStack {
       if model.isLoading {
-        ProgressionView(state: $model.progressState)
+        LottieProgressionFeedbacksView(state: model.progressState)
       } else {
         mainView
         overlayView
       }
     }
-    .navigationBarStyle(.transparent)
-    .navigationTitle(L10n.Core.deviceToDeviceNavigationTitle)
+    .navigationTitle(CoreL10n.deviceToDeviceNavigationTitle)
     .navigationBarTitleDisplayMode(.inline)
     .loginAppearance()
     .reportPageAppearance(.loginDeviceTransferSecurityChallenge)
@@ -32,28 +31,28 @@ struct DeviceTransferSecurityChallengeIntroView: View {
   var mainView: some View {
     ScrollView {
       VStack(alignment: .leading, spacing: 24) {
-        Text(L10n.Core.Mpless.D2d.Universal.untrustedIntroTitle)
-          .foregroundColor(.ds.text.neutral.catchy)
+        Text(CoreL10n.Mpless.D2d.Universal.untrustedIntroTitle)
+          .foregroundStyle(Color.ds.text.neutral.catchy)
           .font(.title)
-        Infobox(L10n.Core.Mpless.D2d.Universal.untrustedIntroInfoboxTitle)
+        Infobox(CoreL10n.Mpless.D2d.Universal.untrustedIntroInfoboxTitle)
         InstructionsCardView(
           cardContent: [
-            L10n.Core.Mpless.D2d.Universal.untrustedIntroMessage1,
-            L10n.Core.Mpless.D2d.Universal.untrustedIntroMessage2,
-            L10n.Core.Mpless.D2d.Universal.untrustedIntroMessage3,
+            CoreL10n.Mpless.D2d.Universal.untrustedIntroMessage1,
+            CoreL10n.Mpless.D2d.Universal.untrustedIntroMessage2,
+            CoreL10n.Mpless.D2d.Universal.untrustedIntroMessage3,
           ]
         )
         Spacer()
       }
       .padding(24)
     }
-    .backgroundColorIgnoringSafeArea(.ds.background.alternate)
+    .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
   }
 
   var overlayView: some View {
     VStack {
       Spacer()
-      Button(L10n.Core.Mpless.D2d.Universal.untrustedIntroCta) {
+      Button(CoreL10n.Mpless.D2d.Universal.untrustedIntroCta) {
         Task {
           await model.recover()
         }

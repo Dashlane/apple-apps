@@ -1,14 +1,7 @@
 import SwiftUI
 
-enum TextFieldIsSecureValueRevealedKey: EnvironmentKey {
-  static let defaultValue = false
-}
-
 extension EnvironmentValues {
-  var textFieldIsSecureValueRevealed: Bool {
-    get { self[TextFieldIsSecureValueRevealedKey.self] }
-    set { self[TextFieldIsSecureValueRevealedKey.self] = newValue }
-  }
+  @Entry var textFieldIsSecureValueRevealed: Bool = false
 }
 
 extension View {

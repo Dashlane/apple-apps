@@ -95,12 +95,12 @@ extension UIAlertController {
       preferredStyle: .alert)
     alert.addAction(
       .init(
-        title: CoreLocalization.L10n.Core.cancel,
+        title: CoreL10n.cancel,
         style: .cancel,
         handler: { _ in completion(false) }))
     alert.addAction(
       UIAlertAction(
-        title: CoreLocalization.L10n.Core.kwButtonOk, style: .default,
+        title: CoreL10n.kwButtonOk, style: .default,
         handler: { _ in
           completion(true)
         }))

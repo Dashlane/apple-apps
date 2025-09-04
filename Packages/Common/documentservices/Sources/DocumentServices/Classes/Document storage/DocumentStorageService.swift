@@ -1,7 +1,7 @@
 import Combine
 import CoreNetworking
 import CorePersonalData
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 import SwiftUI
@@ -14,7 +14,7 @@ public final class DocumentStorageService {
   public private(set) var downloads: [DocumentDownload] = []
 
   public let documentCache: DocumentCache = DocumentCache()
-  public let documentDeleteService: DocumentDeleteService
+  public let documentUpdateService: DocumentUpdateService
   let database: ApplicationDatabase
   let userDeviceAPIClient: UserDeviceAPIClient
   let cryptoProvider: DocumentCryptoProvider
@@ -33,7 +33,7 @@ public final class DocumentStorageService {
     self.database = database
     self.userDeviceAPIClient = userDeviceAPIClient
     self.cryptoProvider = cryptoProvider
-    self.documentDeleteService = DocumentDeleteService(
+    self.documentUpdateService = DocumentUpdateService(
       database: database,
       userDeviceAPIClient: userDeviceAPIClient)
     self.login = login

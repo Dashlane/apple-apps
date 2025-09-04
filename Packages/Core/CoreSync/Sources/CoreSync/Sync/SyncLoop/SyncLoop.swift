@@ -1,8 +1,10 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import SwiftTreats
 
+@Loggable
 public enum SyncError: Swift.Error {
   case unknownUserDevice
   case offline

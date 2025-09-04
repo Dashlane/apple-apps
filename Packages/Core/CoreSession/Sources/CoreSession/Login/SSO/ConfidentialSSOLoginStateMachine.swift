@@ -1,19 +1,20 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import StateMachine
 
-@MainActor
 public struct ConfidentialSSOLoginStateMachine: StateMachine {
 
-  public struct SSOInfo: Hashable {
+  public struct SSOInfo: Hashable, Sendable {
     public let idpAuthorizeUrl: URL
     public let injectionScript: String
     public let domainName: String
     public let teamUuid: String
   }
 
-  public enum State: Hashable {
+  @Loggable
+  public enum State: Hashable, Sendable {
     case waitingForUserInput
     case ssoInfoReceived(SSOInfo)
     case receivedCallbackInfo(SSOCallbackInfos)
@@ -21,7 +22,8 @@ public struct ConfidentialSSOLoginStateMachine: StateMachine {
     case cancelled
   }
 
-  public enum Event {
+  @Loggable
+  public enum Event: Sendable {
     case fetchSSOInfo
     case didReceiveCallback(Result<String, Error>)
     case cancel
@@ -36,11 +38,11 @@ public struct ConfidentialSSOLoginStateMachine: StateMachine {
   public init(
     login: Login,
     nitroClient: NitroSSOAPIClient,
-    tunnelCreator: NitroSecureTunnelCreator,
+    nitroSecureTunnelCreatorType: NitroSecureTunnelCreator.Type,
     logger: Logger
   ) async throws {
-    let tunnel = try await tunnelCreator.createTunnel()
-    let secureNitroClient = nitroClient.makeSecureNitroSSOAPIClient(secureTunnel: tunnel)
+    let secureNitroClient = try await nitroClient.createSecureNitroSSOAPIClient(
+      using: nitroSecureTunnelCreatorType)
     self.init(login: login, secureNitroClient: secureNitroClient, logger: logger)
   }
 
@@ -54,8 +56,8 @@ public struct ConfidentialSSOLoginStateMachine: StateMachine {
     self.logger = logger
   }
 
-  public mutating func transition(with event: Event) async {
-    logger.logInfo("Received event \(event)")
+  public mutating func transition(with event: Event) async throws {
+    logger.info("Received event \(event)")
     switch (state, event) {
     case (_, .fetchSSOInfo):
       await fetchSSOInfo()
@@ -64,9 +66,12 @@ public struct ConfidentialSSOLoginStateMachine: StateMachine {
     case (_, .cancel):
       state = .cancelled
     default:
-      logger.error("Invalid event \(event)")
+      let errorMessage: LogMessage = "Unexpected \(event) event for the state \(state)"
+      logger.fatal(errorMessage)
+      throw InvalidTransitionError<Self>(event: event, state: state)
     }
-    logger.logInfo("Transition to state \(state)")
+    let state = state
+    logger.info("Transition to state \(state)")
   }
 
   private mutating func fetchSSOInfo() async {

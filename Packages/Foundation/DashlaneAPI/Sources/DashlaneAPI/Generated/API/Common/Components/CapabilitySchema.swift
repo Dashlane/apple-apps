@@ -1,23 +1,24 @@
 import Foundation
 
-public struct CapabilitySchema: Codable, Equatable, Sendable {
+public struct CapabilitySchema: Codable, Hashable, Sendable {
   public enum CodingKeys: String, CodingKey {
     case enabled = "enabled"
     case info = "info"
   }
 
-  public struct Info: Codable, Equatable, Sendable {
+  public struct Info: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case action = "action"
       case excludedPolicies = "excludedPolicies"
       case limit = "limit"
       case maxFileSize = "maxFileSize"
+      case nudgeTypes = "nudgeTypes"
       case quota = "quota"
       case reason = "reason"
       case whoCanShare = "whoCanShare"
     }
 
-    public enum Action: String, Sendable, Equatable, CaseIterable, Codable {
+    public enum Action: String, Sendable, Hashable, Codable, CaseIterable {
       case enforceFreeze = "enforce_freeze"
       case undecodable
       public init(from decoder: Decoder) throws {
@@ -27,7 +28,19 @@ public struct CapabilitySchema: Codable, Equatable, Sendable {
       }
     }
 
-    public struct Quota: Codable, Equatable, Sendable {
+    public enum NudgeTypesElement: String, Sendable, Hashable, Codable, CaseIterable {
+      case compromised = "compromised"
+      case weak = "weak"
+      case reused = "reused"
+      case undecodable
+      public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let rawValue = try container.decode(String.self)
+        self = Self(rawValue: rawValue) ?? .undecodable
+      }
+    }
+
+    public struct Quota: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case max = "max"
         case remaining = "remaining"
@@ -48,7 +61,7 @@ public struct CapabilitySchema: Codable, Equatable, Sendable {
       }
     }
 
-    public enum Reason: String, Sendable, Equatable, CaseIterable, Codable {
+    public enum Reason: String, Sendable, Hashable, Codable, CaseIterable {
       case inTeam = "in_team"
       case notPremium = "not_premium"
       case noPayment = "no_payment"
@@ -68,7 +81,7 @@ public struct CapabilitySchema: Codable, Equatable, Sendable {
       }
     }
 
-    public enum WhoCanShare: String, Sendable, Equatable, CaseIterable, Codable {
+    public enum WhoCanShare: String, Sendable, Hashable, Codable, CaseIterable {
       case adminOnly = "admin_only"
       case everyone = "everyone"
       case undecodable
@@ -83,19 +96,21 @@ public struct CapabilitySchema: Codable, Equatable, Sendable {
     public let excludedPolicies: [String]?
     public let limit: Int?
     public let maxFileSize: Int?
+    public let nudgeTypes: [NudgeTypesElement]?
     public let quota: Quota?
     public let reason: Reason?
     public let whoCanShare: WhoCanShare?
 
     public init(
       action: Action? = nil, excludedPolicies: [String]? = nil, limit: Int? = nil,
-      maxFileSize: Int? = nil, quota: Quota? = nil, reason: Reason? = nil,
-      whoCanShare: WhoCanShare? = nil
+      maxFileSize: Int? = nil, nudgeTypes: [NudgeTypesElement]? = nil, quota: Quota? = nil,
+      reason: Reason? = nil, whoCanShare: WhoCanShare? = nil
     ) {
       self.action = action
       self.excludedPolicies = excludedPolicies
       self.limit = limit
       self.maxFileSize = maxFileSize
+      self.nudgeTypes = nudgeTypes
       self.quota = quota
       self.reason = reason
       self.whoCanShare = whoCanShare
@@ -107,6 +122,7 @@ public struct CapabilitySchema: Codable, Equatable, Sendable {
       try container.encodeIfPresent(excludedPolicies, forKey: .excludedPolicies)
       try container.encodeIfPresent(limit, forKey: .limit)
       try container.encodeIfPresent(maxFileSize, forKey: .maxFileSize)
+      try container.encodeIfPresent(nudgeTypes, forKey: .nudgeTypes)
       try container.encodeIfPresent(quota, forKey: .quota)
       try container.encodeIfPresent(reason, forKey: .reason)
       try container.encodeIfPresent(whoCanShare, forKey: .whoCanShare)

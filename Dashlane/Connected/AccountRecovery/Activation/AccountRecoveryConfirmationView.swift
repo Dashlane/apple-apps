@@ -1,5 +1,6 @@
 import CoreLocalization
 import DesignSystem
+import DesignSystemExtra
 import Foundation
 import LoginKit
 import SwiftUI
@@ -23,15 +24,15 @@ struct AccountRecoveryConfirmationView: View {
     ZStack {
       mainView
       if model.inProgress {
-        ProgressionView(state: $model.progressState)
+        LottieProgressionFeedbacksView(state: model.progressState)
       }
     }
     .animation(.default, value: model.progressState)
-    .navigationTitle(CoreLocalization.L10n.Core.recoveryKeySettingsLabel)
+    .navigationTitle(CoreL10n.recoveryKeySettingsLabel)
     .toolbar {
       ToolbarItem(placement: .navigationBarLeading) {
         if !model.inProgress {
-          BackButton(color: .accentColor) {
+          NativeNavigationBarBackButton {
             showAlert = true
           }
         }
@@ -42,15 +43,14 @@ struct AccountRecoveryConfirmationView: View {
       isPresented: $showAlert,
       content: {
         Alert(
-          title: Text(CoreLocalization.L10n.Core.accountRecoveryKeyCancelAlertTitle),
-          message: Text(CoreLocalization.L10n.Core.accountRecoveryKeyCancelAlertMessage),
+          title: Text(CoreL10n.accountRecoveryKeyCancelAlertTitle),
+          message: Text(CoreL10n.accountRecoveryKeyCancelAlertMessage),
           primaryButton: Alert.Button.destructive(
-            Text(CoreLocalization.L10n.Core.accountRecoveryKeyCancelAlertCta),
+            Text(CoreL10n.accountRecoveryKeyCancelAlertCta),
             action: {
               dismiss()
             }),
-          secondaryButton: .cancel(
-            Text(CoreLocalization.L10n.Core.accountRecoveryKeyCancelAlertCancelCta)))
+          secondaryButton: .cancel(Text(CoreL10n.accountRecoveryKeyCancelAlertCancelCta)))
       }
     )
     .loginAppearance()
@@ -69,8 +69,8 @@ struct AccountRecoveryConfirmationView: View {
                   }
                 },
                 label: {
-                  Text(CoreLocalization.L10n.Core.kwNext)
-                    .foregroundColor(.ds.text.brand.standard)
+                  Text(CoreL10n.kwNext)
+                    .foregroundStyle(Color.ds.text.brand.standard)
                 })
             }
           }
@@ -85,21 +85,14 @@ struct AccountRecoveryConfirmationView: View {
         .multilineTextAlignment(.leading)
         .lineLimit(nil)
         .fixedSize(horizontal: false, vertical: true)
-        .font(
-          .custom(
-            GTWalsheimPro.regular.name,
-            size: 28,
-            relativeTo: .title
-          )
-          .weight(.medium)
-        )
-        .foregroundColor(.ds.text.neutral.catchy)
+        .textStyle(.title.section.large)
+        .foregroundStyle(Color.ds.text.neutral.catchy)
       Text(L10n.Localizable.recoveryKeyActivationConfirmationMessage)
         .multilineTextAlignment(.leading)
         .lineLimit(nil)
         .fixedSize(horizontal: false, vertical: true)
-        .foregroundColor(.ds.text.neutral.standard)
-        .font(.body)
+        .foregroundStyle(Color.ds.text.neutral.standard)
+        .textStyle(.body.standard.regular)
         .padding(.bottom, 16)
       AccountRecoveryKeyTextField(
         recoveryKey: $model.userRecoveryKey, showNoMatchError: $model.showNoMatchError

@@ -18,20 +18,21 @@ struct AccountRecoveryKeyStatusView: View {
     case .loading:
       AccountRecoveryKeyStatus {
         ProgressView()
+          .progressViewStyle(.indeterminate)
       }
     case .error:
       AccountRecoveryKeyStatus {
         Image.ds.feedback.fail.outlined
           .resizable()
           .frame(width: 16, height: 16)
-          .foregroundColor(.ds.text.danger.quiet)
+          .foregroundStyle(Color.ds.text.danger.quiet)
       }
     case .noInternet:
       AccountRecoveryKeyStatus {
         Image.ds.noNetwork.outlined
           .resizable()
           .frame(width: 16, height: 16)
-          .foregroundColor(.ds.text.danger.quiet)
+          .foregroundStyle(Color.ds.text.danger.quiet)
       }
     case let .keySatus(isEnabled):
       NavigationLink(
@@ -46,7 +47,7 @@ struct AccountRecoveryKeyStatusView: View {
                 ? L10n.Localizable.recoveryKeySettingsOnLabel
                 : L10n.Localizable.recoveryKeySettingsOffLabel
             )
-            .foregroundColor(.ds.text.neutral.quiet)
+            .foregroundStyle(Color.ds.text.neutral.quiet)
           }
         }
       ).onAppear {
@@ -59,13 +60,13 @@ struct AccountRecoveryKeyStatusView: View {
 
   func errorView(_ image: Image) -> some View {
     HStack {
-      Text(CoreLocalization.L10n.Core.recoveryKeySettingsLabel)
-        .foregroundColor(.ds.text.neutral.standard)
+      Text(CoreL10n.recoveryKeySettingsLabel)
+        .foregroundStyle(Color.ds.text.neutral.standard)
       Spacer()
       image
         .resizable()
         .frame(width: 16, height: 16)
-        .foregroundColor(.ds.text.danger.quiet)
+        .foregroundStyle(Color.ds.text.danger.quiet)
     }
   }
 }
@@ -79,8 +80,8 @@ private struct AccountRecoveryKeyStatus<Content: View>: View {
 
   var body: some View {
     HStack {
-      Text(CoreLocalization.L10n.Core.recoveryKeySettingsLabel)
-        .foregroundColor(.ds.text.neutral.standard)
+      Text(CoreL10n.recoveryKeySettingsLabel)
+        .foregroundStyle(Color.ds.text.neutral.standard)
       Spacer()
       content()
     }
@@ -94,7 +95,7 @@ struct AccountRecoveryKeyStatusView_Previews: PreviewProvider {
         session: .mock,
         appAPIClient: .fake,
         userAPIClient: .fake,
-        reachability: NetworkReachability(isConnected: false),
+        reachability: .mock(),
         recoveryKeyStatusDetailViewModelFactory: AccountRecoveryKeyStatusDetailViewModel.Factory({
           _ in
           AccountRecoveryKeyStatusDetailViewModel.mock
@@ -103,7 +104,7 @@ struct AccountRecoveryKeyStatusView_Previews: PreviewProvider {
       model: AccountRecoveryKeyStatusViewModel(
         session: .mock,
         appAPIClient: .fake,
-        userAPIClient: .fake, reachability: NetworkReachability(isConnected: true),
+        userAPIClient: .fake, reachability: .mock(),
         recoveryKeyStatusDetailViewModelFactory: AccountRecoveryKeyStatusDetailViewModel.Factory({
           _ in
           AccountRecoveryKeyStatusDetailViewModel.mock

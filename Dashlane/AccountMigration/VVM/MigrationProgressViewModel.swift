@@ -3,36 +3,48 @@ import CoreLocalization
 import CoreNetworking
 import CorePersonalData
 import CoreSession
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
+import StateMachine
 import SwiftTreats
+import UserTrackingFoundation
 
-class MigrationProgressViewModel: ObservableObject, SessionServicesInjecting {
+@MainActor
+class MigrationProgressViewModel: StateMachineBasedObservableObject, SessionServicesInjecting {
 
   enum Context {
     case changeMP
     case accountRecovery
     case accountTypeMigration
 
-    var successText: String {
+    fileprivate var successText: String {
       switch self {
       case .changeMP:
         return L10n.Localizable.changeMasterPasswordSuccessHeadline
       case .accountTypeMigration:
         return L10n.Localizable.accountMigrationProgressFinished
       case .accountRecovery:
-        return CoreLocalization.L10n.Core.recoveryKeyLoginSuccessMessage
+        return CoreL10n.recoveryKeyLoginSuccessMessage
       }
     }
 
-    var reason: UserDeviceAPIClient.Accountrecovery.Deactivate.Body.Reason {
+    fileprivate var reason: UserDeviceAPIClient.Accountrecovery.Deactivate.Body.Reason {
       switch self {
       case .accountRecovery:
         return .keyUsed
       case .changeMP, .accountTypeMigration:
         return .vaultKeyChange
+      }
+    }
+
+    fileprivate var isMasterPasswordContext: Bool {
+      return switch self {
+      case .changeMP, .accountRecovery:
+        true
+      case .accountTypeMigration:
+        false
       }
     }
   }
@@ -52,100 +64,78 @@ class MigrationProgressViewModel: ObservableObject, SessionServicesInjecting {
   }
 
   @Published
-  var isProgress: Bool
+  private(set) var isProgress = true
 
   @Published
-  var isSuccess: Bool
+  private(set) var isSuccess = false
 
   @Published
-  var progressionText: String
+  private(set) var progressionText: String
 
   @Published
   var currentAlert: MigrationAlert?
 
-  let completion: (Result<Session, Error>) -> Void
-  let type: MigrationType
-  let activityReporter: ActivityReporterProtocol
-  let accountCryptoChangerService: AccountCryptoChangerServiceProtocol
-  var subscriptions = Set<AnyCancellable>()
-  let context: Context
-  let userDeviceAPIClient: UserDeviceAPIClient
-  let syncedSettings: SyncedSettingsService
-  let logger: Logger
-  let accountRecoveryKeyService: AccountRecoveryKeySetupService
+  private let context: Context
+  private let completion: (Result<Session, Error>) -> Void
+
+  var stateMachine: AccountTypeMigrationStateMachine
+  var isPerformingEvent = false
+
   init(
-    type: MigrationType,
-    accountCryptoChangerService: AccountCryptoChangerServiceProtocol,
-    accountRecoveryKeyService: AccountRecoveryKeySetupService,
-    userDeviceAPIClient: UserDeviceAPIClient,
-    activityReporter: ActivityReporterProtocol,
-    syncedSettings: SyncedSettingsService,
     context: MigrationProgressViewModel.Context,
-    logger: Logger,
-    isProgress: Bool = true,
-    isSuccess: Bool = true,
+    stateMachine: AccountTypeMigrationStateMachine,
     completion: @escaping (Result<Session, Error>) -> Void
   ) {
-    self.type = type
-    self.completion = completion
-    self.isProgress = isProgress
-    self.isSuccess = isSuccess
-    self.activityReporter = activityReporter
-    self.syncedSettings = syncedSettings
-    self.userDeviceAPIClient = userDeviceAPIClient
     self.context = context
-    self.logger = logger
-    self.accountCryptoChangerService = accountCryptoChangerService
-    self.accountRecoveryKeyService = accountRecoveryKeyService
+    self.stateMachine = stateMachine
+    self.completion = completion
     progressionText =
       context == .accountRecovery
-      ? CoreLocalization.L10n.Core.recoveryKeyLoginProgressMessage
+      ? CoreL10n.recoveryKeyLoginProgressMessage
       : L10n.Localizable.accountMigrationProgressDownLoading
-    accountCryptoChangerService.progressPublisher.receive(on: DispatchQueue.main).sink {
-      [weak self] state in
-      guard let self = self else {
-        return
-      }
-      switch state {
-      case let .inProgress(progression):
-        self.didProgress(progression)
-      case let .finished(result):
-        self.didFinish(with: result)
-      }
-    }.store(in: &subscriptions)
   }
 
-  private func didComplete(_ session: Session) {
-    logChangeMasterPasswordStep(.complete)
+  func start() {
     Task {
-      do {
-        _ = try await accountRecoveryKeyService.deactivateAccountRecoveryKey(for: context.reason)
-        if context == .accountRecovery {
-          activityReporter.report(UserEvent.UseAccountRecoveryKey(flowStep: .complete))
+      let (progressStream, progressContinuation) = AccountTypeMigrationStateMachine.ProgressStream
+        .makeStream()
+
+      Task {
+        for await progress in progressStream {
+          self.didProgress(progress)
         }
-      } catch {
-        logger.fatal("Account Recovery Key auto disabling failed", error: error)
       }
+
+      await self.perform(.migrate(context.reason, progressContinuation))
     }
-    self.completion(.success(session))
   }
 
-  private func didFail(_ error: AccountCryptoChangerError) {
-    logChangeMasterPasswordError(error)
-    self.completion(.failure(AccountError.unknown))
+  func update(
+    for event: AccountTypeMigrationStateMachine.Event,
+    from oldState: AccountTypeMigrationStateMachine.State,
+    to newState: AccountTypeMigrationStateMachine.State
+  ) async {
+    switch newState {
+    case .initial:
+      break
+    case .complete(let session):
+      complete(with: session)
+    case .failed(let error):
+      complete(with: error.underlyingError)
+    }
   }
 }
 
 extension MigrationProgressViewModel {
-  func didProgress(_ progression: AccountCryptoChangerService.Progression) {
+  func didProgress(_ progression: AccountTypeMigrationStateMachine.Progress) {
     guard context != .accountRecovery else {
-      progressionText = CoreLocalization.L10n.Core.recoveryKeyLoginProgressMessage
+      progressionText = CoreL10n.recoveryKeyLoginProgressMessage
       return
     }
     switch progression {
     case .downloading:
       progressionText = L10n.Localizable.accountMigrationProgressDownLoading
-    case .decrypting, .reEncrypting:
+    case .decrypting, .encrypting:
       progressionText = L10n.Localizable.accountMigrationProgressEncrypting
     case .uploading: break
     case .finalizing:
@@ -153,82 +143,67 @@ extension MigrationProgressViewModel {
     }
   }
 
-  func didFinish(with result: Result<Session, AccountCryptoChangerError>) {
+  private func complete(with session: Session) {
     self.isProgress = false
-    switch result {
-    case let .success(session):
-      self.isSuccess = true
-      self.progressionText = context.successText
-      DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
-        guard let self = self else {
-          return
-        }
-
-        if self.type.isMasterPasswordToMasterPassword && Device.isMac {
-          self.currentAlert = .init(reason: .masterPasswordSuccess) { [weak self] in
-            self?.didComplete(session)
-          }
-        } else {
-          self.didComplete(session)
-        }
+    self.isSuccess = true
+    self.progressionText = context.successText
+    DispatchQueue.main.asyncAfter(deadline: .now() + 2) { [weak self] in
+      guard let self = self else {
+        return
       }
-    case let .failure(error):
-      self.isSuccess = false
-      self.progressionText = L10n.Localizable.changeMasterPasswordErrorTitle
-      self.didFail(error)
+
+      if context.isMasterPasswordContext, Device.is(.mac) {
+        self.currentAlert = .init(reason: .masterPasswordSuccess) { [weak self] in
+          self?.completion(.success(session))
+        }
+      } else {
+        completion(.success(session))
+      }
     }
   }
 
-  func logChangeMasterPasswordError(_ error: AccountCryptoChangerError) {
-    activityReporter.report(
-      UserEvent.ChangeMasterPassword(errorName: error.userTrackingErrorName, flowStep: .error))
-  }
-
-  func logChangeMasterPasswordStep(_ step: Definition.FlowStep) {
-    guard case .masterPasswordToMasterPassword = type else {
-      return
-    }
-    activityReporter.report(UserEvent.ChangeMasterPassword(flowStep: step))
+  private func complete(with error: any Error) {
+    self.isProgress = false
+    self.isSuccess = false
+    self.progressionText = L10n.Localizable.changeMasterPasswordErrorTitle
+    self.completion(.failure(AccountError.unknown))
   }
 }
 
 extension AccountCryptoChangerError {
 
   fileprivate var userTrackingErrorName: Definition.ChangeMasterPasswordError {
-    guard case let .encryptionError(accountMigraterError) = self else {
+    switch self {
+    case .syncFailed:
       return .syncFailedError
-    }
-    switch accountMigraterError.step {
-    case .downloading:
-      return .downloadError
-    case .reEncrypting:
-      return .cipherError
-    case .uploading:
-      return .uploadError
-    case .delegateCompleting, .notifyingMasterKeyDone:
+
+    case .finalizationFailed:
       return .confirmationError
+
+    case .encryptionError(let error):
+      switch error.progression {
+      case .downloading:
+        return .downloadError
+      case .decrypting:
+        return .decipherError
+      case .encrypting:
+        return .cipherError
+      case .uploading:
+        return .uploadError
+      case .finalizing:
+        return .confirmationError
+      }
     }
   }
 }
 
 extension MigrationProgressViewModel {
-  @MainActor
-  static func mock(
-    inProgress: Bool = true,
-    isSuccess: Bool = true
-  ) -> MigrationProgressViewModel {
-    MigrationProgressViewModel(
-      type: .masterPasswordToMasterPassword,
-      accountCryptoChangerService: AccountCryptoChangerService.mock,
-      accountRecoveryKeyService: .mock,
-      userDeviceAPIClient: .fake,
-      activityReporter: .mock,
-      syncedSettings: .mock,
-      context: .changeMP,
-      logger: LoggerMock(),
-      isProgress: inProgress,
-      isSuccess: isSuccess,
-      completion: { _ in }
-    )
+  static func mock(complete: Bool = false) -> MigrationProgressViewModel {
+    let mock = MigrationProgressViewModel(
+      context: .changeMP, stateMachine: .mock(accountMigrationConfiguration: .mock)
+    ) { _ in }
+    mock.isProgress = complete == false
+    mock.isSuccess = complete
+    return mock
   }
 }

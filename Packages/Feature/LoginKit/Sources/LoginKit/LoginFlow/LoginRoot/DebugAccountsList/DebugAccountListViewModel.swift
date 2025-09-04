@@ -1,11 +1,11 @@
 import CoreKeychain
 import CoreSession
-import DashTypes
+import CoreTypes
 import Foundation
 import UIDelight
 
 public class DebugAccountListViewModel: ObservableObject, LoginKitServicesInjecting {
-  let sessionCleaner: SessionCleaner
+  let sessionCleaner: SessionCleanerProtocol
   let sessionsContainer: SessionsContainerProtocol
 
   @Published
@@ -15,7 +15,7 @@ public class DebugAccountListViewModel: ObservableObject, LoginKitServicesInject
   var testAccounts: [AccountInfo] = []
 
   public init(
-    sessionCleaner: SessionCleaner,
+    sessionCleaner: SessionCleanerProtocol,
     sessionsContainer: SessionsContainerProtocol
   ) {
     self.sessionCleaner = sessionCleaner
@@ -38,10 +38,7 @@ public class DebugAccountListViewModel: ObservableObject, LoginKitServicesInject
 extension DebugAccountListViewModel {
   static var mock: DebugAccountListViewModel {
     .init(
-      sessionCleaner: .init(
-        keychainService: .fake,
-        sessionsContainer: FakeSessionsContainer(),
-        logger: LoggerMock()),
-      sessionsContainer: FakeSessionsContainer())
+      sessionCleaner: .mock,
+      sessionsContainer: .mock)
   }
 }

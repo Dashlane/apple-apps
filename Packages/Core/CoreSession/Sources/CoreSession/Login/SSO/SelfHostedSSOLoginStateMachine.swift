@@ -1,18 +1,20 @@
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 import StateMachine
 
-@MainActor
 public struct SelfHostedSSOLoginStateMachine: StateMachine {
 
-  public enum State: Hashable {
+  @Loggable
+  public enum State: Hashable, Sendable {
     case waitingForUserInput
     case receivedcallbackInfo(SSOCallbackInfos)
     case failed
     case cancelled
   }
 
-  public enum Event {
+  @Loggable
+  public enum Event: Sendable {
     case didReceiveCallback(URL?, Error?)
     case cancel
   }
@@ -30,18 +32,20 @@ public struct SelfHostedSSOLoginStateMachine: StateMachine {
     self.logger = logger
   }
 
-  public mutating func transition(with event: Event) async {
-    logger.logInfo("Received event \(event)")
+  public mutating func transition(with event: Event) async throws {
+    logger.info("Received event \(event)")
     switch (state, event) {
     case (.waitingForUserInput, let .didReceiveCallback(url, error)):
       await handleCallback(url, error: error)
     case (_, .cancel):
       state = .cancelled
     default:
-      let errorMessage = "Unexpected \(event) event for the state \(state)"
-      logger.error(errorMessage)
+      let errorMessage: LogMessage = "Unexpected \(event) event for the state \(state)"
+      logger.fatal(errorMessage)
+      throw InvalidTransitionError<Self>(event: event, state: state)
     }
-    logger.logInfo("Transition to state: \(state)")
+    let state = state
+    logger.info("Transition to state: \(state)")
   }
 
   private mutating func handleCallback(_ callbackURL: URL?, error: Error?) async {

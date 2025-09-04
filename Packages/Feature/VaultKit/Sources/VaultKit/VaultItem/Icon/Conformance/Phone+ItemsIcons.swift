@@ -4,10 +4,6 @@ import Foundation
 import SwiftUI
 
 extension Phone {
-  public var listIcon: VaultItemIcon {
-    .phoneNumber
-  }
-
   public var icon: VaultItemIcon {
     .phoneNumber
   }

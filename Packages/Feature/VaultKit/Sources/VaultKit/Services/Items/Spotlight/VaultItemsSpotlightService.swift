@@ -1,4 +1,5 @@
 import Combine
+import CorePersonalData
 import CoreSession
 import CoreSettings
 import CoreSpotlight

@@ -15,7 +15,7 @@ class ImportMethodService: ImportMethodServiceProtocol {
   let mode: ImportMethodMode
 
   var methods: [ImportMethodSection] {
-    return [bestImportMethods(), fatestImportMethods(), otherImportMethods()]
+    return [bestImportMethods(), otherImportMethods()]
       .compactMap { $0 }
       .map { ImportMethodSection(section: ($0.0, $0.1)) }
   }
@@ -27,51 +27,23 @@ class ImportMethodService: ImportMethodServiceProtocol {
     self.mode = mode
   }
 
-  private func bestImportMethods() -> (String, [ImportMethod])? {
-    switch mode {
-    case .firstPassword:
-      return (L10n.Localizable.guidedOnboardingImportMethodBest, [.manual])
-    case .browser:
-      return nil
-    }
+  private func bestImportMethods() -> (String, [LegacyImportMethod])? {
+    return (L10n.Localizable.guidedOnboardingImportMethodBest, [.manual])
   }
 
-  private func fatestImportMethods() -> (String, [ImportMethod])? {
-    switch mode {
-    case .firstPassword:
-      return nil
-    case .browser:
-      return (L10n.Localizable.guidedOnboardingImportMethodFastest, [.chrome])
+  private func otherImportMethods() -> (String, [LegacyImportMethod]) {
+    var methods: [LegacyImportMethod] = []
+    methods.append(.chrome)
+    if featureService.isEnabled(.dashImport) {
+      methods.append(.dash)
     }
-  }
-
-  private func otherImportMethods() -> (String, [ImportMethod]) {
-    var methods: [ImportMethod] = []
-    switch mode {
-    case .firstPassword:
-      methods.append(.chrome)
-      if featureService.isEnabled(.dashImport) {
-        methods.append(.dash)
-      }
-      if featureService.isEnabled(.keychainImport) {
-        methods.append(.keychainCSV)
-      } else {
-        methods.append(.keychain)
-      }
-    case .browser:
-      if featureService.isEnabled(.dashImport) {
-        methods.append(.dash)
-      }
-      if featureService.isEnabled(.keychainImport) {
-        methods.append(.keychainCSV)
-      } else {
-        methods.append(.keychain)
-      }
-      methods.append(.manual)
+    if featureService.isEnabled(.keychainImport) {
+      methods.append(.keychainCSV)
+    } else {
+      methods.append(.keychain)
     }
     return (L10n.Localizable.guidedOnboardingImportMethodOther, methods)
   }
-
 }
 
 extension ImportMethodService {

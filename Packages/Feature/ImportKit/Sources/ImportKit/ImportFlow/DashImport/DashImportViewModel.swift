@@ -1,13 +1,15 @@
 import Combine
 import CorePersonalData
 import CorePremium
-import CoreUserTracking
+import IconLibrary
+import LogFoundation
 import SwiftUI
 import UniformTypeIdentifiers
-import VaultKit
+import UserTrackingFoundation
 
-public class DashImportViewModel: ImportViewModel, ObservableObject, ImportKitServicesInjecting {
+public class DashImportViewModel: OldImportViewModel, ObservableObject, ImportKitServicesInjecting {
 
+  @Loggable
   enum ValidationError: Error {
     case wrongPassword
     case extractionFailed

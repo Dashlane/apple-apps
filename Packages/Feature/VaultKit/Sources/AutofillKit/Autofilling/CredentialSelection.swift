@@ -1,12 +1,13 @@
 import AuthenticationServices
 import CorePersonalData
-import CoreUserTracking
 import Foundation
+import UserTrackingFoundation
 
 public struct CredentialSelection {
 
   public enum SelectedCredential {
-    case credential(Credential)
+    case password(Credential)
+    case otp(Credential)
     case passkey(Passkey)
   }
 

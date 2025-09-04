@@ -1,7 +1,10 @@
 import CyrilKit
 import Foundation
+import LogFoundation
 
+@Loggable
 public struct PBKDF2Configuration: Hashable, Sendable {
+  @Loggable
   public enum HashAlgorithm: String, Sendable {
     case sha1 = "sha1"
     case sha224 = "sha224"

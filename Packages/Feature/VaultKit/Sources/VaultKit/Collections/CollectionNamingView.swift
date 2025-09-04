@@ -2,10 +2,10 @@ import Combine
 import CoreLocalization
 import CorePersonalData
 import CorePremium
-import CoreUserTracking
 import DesignSystem
 import SwiftUI
 import UIComponents
+import UserTrackingFoundation
 
 public struct CollectionNamingView: View {
 
@@ -40,8 +40,8 @@ public struct CollectionNamingView: View {
     NavigationView {
       List {
         DS.TextField(
-          L10n.Core.KWVaultItem.Collections.Naming.Field.title,
-          placeholder: L10n.Core.KWVaultItem.Collections.Naming.Field.placeholder,
+          CoreL10n.KWVaultItem.Collections.Naming.Field.title,
+          placeholder: CoreL10n.KWVaultItem.Collections.Naming.Field.placeholder,
           text: $viewModel.collectionName,
           actions: {
             DS.FieldAction.ClearContent(text: $viewModel.collectionName)
@@ -75,17 +75,15 @@ public struct CollectionNamingView: View {
           .spaceSelectorSectionFeedback(viewModel.collectionUserSpace.feedbackMessage)
         }
       }
-      .fieldAppearance(.grouped)
-      .backgroundColorIgnoringSafeArea(.ds.background.alternate)
-      .scrollContentBackground(.hidden)
+      .listStyle(.ds.insetGrouped)
       .navigationBarTitle(viewModel.mode.navigationTitle)
       .navigationBarTitleDisplayMode(.inline)
       .toolbar {
         ToolbarItem(placement: .navigationBarLeading) {
-          Button(L10n.Core.cancel) {
+          Button(CoreL10n.cancel) {
             viewModel.cancel(completion: completion)
           }
-          .foregroundColor(.ds.text.brand.standard)
+          .foregroundStyle(Color.ds.text.brand.standard)
         }
 
         ToolbarItem(placement: .navigationBarTrailing) {
@@ -93,8 +91,8 @@ public struct CollectionNamingView: View {
             Button(viewModel.mode.navigationBarTrailingButtonTitle) {
               viewModel.createOrSave(with: toast, completion: completion)
             }
-            .loading(isLoading: viewModel.inProgress)
-            .foregroundColor(.ds.text.brand.standard)
+            .loading(viewModel.inProgress)
+            .foregroundStyle(Color.ds.text.brand.standard)
           }
         }
       }
@@ -118,18 +116,17 @@ public struct CollectionNamingView: View {
       ),
       items: viewModel.availableUserSpaces
     )
-    .buttonStyle(ColoredButtonStyle(color: .ds.text.neutral.catchy))
-    .navigationBarTitle(L10n.Core.KWAuthentifiantIOS.spaceId)
+    .navigationBarTitle(CoreL10n.KWAuthentifiantIOS.spaceId)
     .navigationBarTitleDisplayMode(.inline)
     .scrollContentBackground(.hidden)
-    .backgroundColorIgnoringSafeArea(.ds.background.alternate)
+    .background(Color.ds.background.alternate, ignoresSafeAreaEdges: .all)
   }
 
   private var sameNameErrorMessage: String {
     if viewModel.availableUserSpaces.count > 1 {
-      return L10n.Core.KWVaultItem.Collections.Naming.SameNameInSpace.message
+      return CoreL10n.KWVaultItem.Collections.Naming.SameNameInSpace.message
     } else {
-      return L10n.Core.KWVaultItem.Collections.Naming.SameName.message
+      return CoreL10n.KWVaultItem.Collections.Naming.SameName.message
     }
   }
 }
@@ -138,7 +135,7 @@ extension CollectionNamingViewModel.Mode {
   fileprivate var navigationTitle: String {
     switch self {
     case .addition:
-      return L10n.Core.KWVaultItem.Collections.Naming.Addition.title
+      return CoreL10n.KWVaultItem.Collections.Naming.Addition.title
     case .edition:
       return ""
     }
@@ -147,9 +144,9 @@ extension CollectionNamingViewModel.Mode {
   fileprivate var navigationBarTrailingButtonTitle: String {
     switch self {
     case .addition:
-      return L10n.Core.KWVaultItem.Collections.create
+      return CoreL10n.KWVaultItem.Collections.create
     case .edition:
-      return L10n.Core.kwSave
+      return CoreL10n.kwSave
     }
   }
 
@@ -167,9 +164,9 @@ extension UserSpace {
   fileprivate var feedbackMessage: String {
     switch self {
     case .personal, .both:
-      return L10n.Core.KWVaultItem.Collections.Naming.ForcedPersonalSpace.message
+      return CoreL10n.KWVaultItem.Collections.Naming.ForcedPersonalSpace.message
     case .team:
-      return L10n.Core.KWVaultItem.Collections.Naming.ForcedSpace.message(teamName)
+      return CoreL10n.KWVaultItem.Collections.Naming.ForcedSpace.message(teamName)
     }
   }
 }

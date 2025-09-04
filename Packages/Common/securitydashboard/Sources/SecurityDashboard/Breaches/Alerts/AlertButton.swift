@@ -1,6 +1,6 @@
 import Foundation
 
-public enum AlertButton {
+public enum AlertButton: Equatable {
   case close
   case view
   case cancel

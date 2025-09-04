@@ -12,10 +12,18 @@ struct AddRecipientRow<Label: View>: View {
     HStack {
       label()
         .onTapWithFeedback(perform: action)
-      Button(L10n.Localizable.kwAddButton, action: action)
-        .controlSize(.mini)
-        .style(mood: .neutral, intensity: .catchy)
-        .fixedSize(horizontal: true, vertical: false)
+      Button(
+        action: {
+          action()
+        },
+        label: {
+          Text(L10n.Localizable.kwAddButton)
+            .foregroundStyle(Color.ds.text.neutral.catchy)
+        }
+      )
+      .controlSize(.mini)
+      .style(mood: .neutral, intensity: .catchy)
+      .fixedSize(horizontal: true, vertical: false)
     }
     .frame(maxWidth: .infinity, alignment: .leading)
 

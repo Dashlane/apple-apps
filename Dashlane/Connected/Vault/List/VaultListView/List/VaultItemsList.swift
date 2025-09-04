@@ -1,4 +1,3 @@
-import NotificationKit
 import SwiftTreats
 import SwiftUI
 import VaultKit
@@ -28,15 +27,15 @@ struct VaultItemsList<Header: View>: View {
       listContent(for: configuration)
     } header: {
       header
-        .listRowBackground(Color.ds.background.default)
     } footer: {
       count
-        .listRowBackground(Color.ds.background.default)
+        .id(model.activeFilter)
     }
     .indexed(shouldHideIndexes: !model.activeFilter.supportIndexes, priority: .indexedList)
     .vaultItemsListDelete(.init(model.delete))
     .vaultItemsListDeleteBehaviour(.init(model.itemDeleteBehaviour))
     .overlay(placeholder, alignment: .bottom)
+    .animation(.default, value: model.isLoading)
   }
 
   func listContent(for configuration: ItemRowViewConfiguration) -> some View {
@@ -56,7 +55,6 @@ struct VaultItemsList<Header: View>: View {
           count: model.count(for: origin))
       )
     }
-    .padding(.trailing, model.sections.count > 1 ? 10 : 0)
     .draggableItem(configuration.vaultItem)
     .vaultItemRowCollectionActions([.addToACollection, .removeFromACollection])
     .vaultItemRowEditAction(
@@ -72,22 +70,20 @@ struct VaultItemsList<Header: View>: View {
 
   @ViewBuilder
   private var placeholder: some View {
-    if model.sections.isEmpty {
+    if model.sections.isEmpty && !model.isLoading {
       ListPlaceholder(
         vaultListFilter: model.activeFilter,
-        canEditSecureNotes: !model.isSecureNoteDisabled,
+        canAddSecureNotes: !model.isSecureNoteDisabled,
         action: model.add
       )
-      .frame(maxWidth: .infinity)
-      .background(Color.ds.background.default)
     }
   }
 
   @ViewBuilder
   private var count: some View {
-    if !Device.isIpadOrMac && model.count(for: .regularList) > 0 {
+    if !Device.is(.pad, .mac, .vision) && model.count(for: .regularList) > 0 {
       Text(model.sectionNameForFooter())
-        .textStyle(.body.standard.regular)
+        .textStyle(.body.reduced.regular)
         .foregroundStyle(Color.ds.text.neutral.quiet)
         .frame(maxWidth: .infinity, alignment: .center)
     }

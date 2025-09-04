@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Vpn {
-  public struct GetCredentials: APIRequest {
+  public struct GetCredentials: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/vpn/GetCredentials"
 
     public let api: UserDeviceAPIClient
@@ -23,7 +23,7 @@ extension UserDeviceAPIClient.Vpn {
 }
 
 extension UserDeviceAPIClient.Vpn.GetCredentials {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case email = "email"
     }
@@ -42,7 +42,7 @@ extension UserDeviceAPIClient.Vpn.GetCredentials {
 }
 
 extension UserDeviceAPIClient.Vpn.GetCredentials {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case password = "password"
     }

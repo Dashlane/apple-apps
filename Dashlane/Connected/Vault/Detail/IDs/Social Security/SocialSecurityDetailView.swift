@@ -1,5 +1,6 @@
 import CoreLocalization
 import CorePersonalData
+import DesignSystem
 import SwiftUI
 import UIDelight
 import VaultKit
@@ -16,20 +17,21 @@ struct SocialSecurityDetailView: View {
       Section {
         if model.mode.isEditing {
           PickerDetailField(
-            title: CoreLocalization.L10n.Core.KWSocialSecurityStatementIOS.localeFormat,
+            title: CoreL10n.KWSocialSecurityStatementIOS.localeFormat,
             selection: $model.item.country,
             elements: CountryCodeNamePair.countries,
             content: { country in
               Text(country?.name ?? "")
             })
         } else {
-          Text(model.item.country?.name ?? CountryCodeNamePair.defaultCountry.name)
-            .labeled(CoreLocalization.L10n.Core.KWSocialSecurityStatementIOS.localeFormat)
+          DS.DisplayField(
+            CoreL10n.KWSocialSecurityStatementIOS.localeFormat,
+            text: model.item.country?.name ?? CountryCodeNamePair.defaultCountry.name)
         }
 
         if model.mode.isEditing {
           PickerDetailField(
-            title: CoreLocalization.L10n.Core.KWSocialSecurityStatementIOS.linkedIdentity,
+            title: CoreL10n.KWSocialSecurityStatementIOS.linkedIdentity,
             selection: $model.item.linkedIdentity,
             elements: model.identities,
             allowEmptySelection: true,
@@ -39,38 +41,40 @@ struct SocialSecurityDetailView: View {
         }
 
         if !model.mode.isEditing {
-          Text(model.displayFullName).labeled(
-            CoreLocalization.L10n.Core.KWSocialSecurityStatementIOS.socialSecurityFullname)
+          DS.DisplayField(
+            CoreL10n.KWSocialSecurityStatementIOS.socialSecurityFullname,
+            text: model.displayFullName)
         }
 
         if model.item.linkedIdentity == nil {
           if model.mode.isEditing {
             TextDetailField(
-              title: CoreLocalization.L10n.Core.KWSocialSecurityStatementIOS.socialSecurityFullname,
+              title: CoreL10n.KWSocialSecurityStatementIOS.socialSecurityFullname,
               text: $model.item.fullname)
 
             PickerDetailField(
-              title: CoreLocalization.L10n.Core.KWSocialSecurityStatementIOS.sex,
+              title: CoreL10n.KWSocialSecurityStatementIOS.sex,
               selection: $model.item.sex,
               elements: Gender.allCases,
               content: { gender in
                 Text(gender?.localized ?? "")
               })
           } else if model.item.sex != nil {
-            Text(model.item.genderString).labeled(
-              CoreLocalization.L10n.Core.KWSocialSecurityStatementIOS.sex)
+            DS.DisplayField(
+              CoreL10n.KWSocialSecurityStatementIOS.sex, text: model.item.genderString)
           }
 
           DateDetailField(
-            title: CoreLocalization.L10n.Core.KWSocialSecurityStatementIOS.dateOfBirth,
+            title: CoreL10n.KWSocialSecurityStatementIOS.dateOfBirth,
             date: $model.item.dateOfBirth,
             range: .past)
         }
 
         SecureDetailField(
-          title: CoreLocalization.L10n.Core.KWSocialSecurityStatementIOS.socialSecurityNumber,
+          title: CoreL10n.KWSocialSecurityStatementIOS.socialSecurityNumber,
           text: $model.item.number,
           onRevealAction: model.sendUsageLog,
+          format: .obfuscated(),
           actions: [.copy(model.copy)]
         )
         .actions([.copy(model.copy), .largeDisplay])

@@ -3,7 +3,7 @@ import PackageDescription
 let package = Package(
   name: "SecurityDashboard",
   platforms: [
-    .iOS(.v16)
+    .iOS(.v17)
   ],
   products: [
     .library(
@@ -11,22 +11,24 @@ let package = Package(
       targets: ["SecurityDashboard"])
   ],
   dependencies: [
-    .package(path: "../../Foundation/DashTypes"),
+    .package(path: "../../Core/CoreTypes"),
+    .package(path: "../../Foundation/LogFoundation"),
     .package(path: "../../Foundation/DashlaneAPI"),
   ],
   targets: [
     .target(
       name: "SecurityDashboard",
       dependencies: [
-        .product(name: "DashTypes", package: "DashTypes"),
+        .product(name: "CoreTypes", package: "CoreTypes"),
         .product(name: "DashlaneAPI", package: "DashlaneAPI"),
+        .product(name: "LogFoundation", package: "LogFoundation"),
       ]
     ),
     .testTarget(
       name: "SecurityDashboardTests",
       dependencies: [
         "SecurityDashboard",
-        .product(name: "DashTypes", package: "DashTypes"),
+        .product(name: "CoreTypes", package: "CoreTypes"),
         .product(name: "DashlaneAPI", package: "DashlaneAPI"),
       ],
       exclude: [

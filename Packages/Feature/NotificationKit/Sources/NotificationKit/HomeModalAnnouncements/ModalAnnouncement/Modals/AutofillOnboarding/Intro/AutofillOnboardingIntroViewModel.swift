@@ -1,5 +1,5 @@
-import CoreUserTracking
 import Foundation
+import UserTrackingFoundation
 
 @MainActor
 public struct AutofillOnboardingIntroViewModel: HomeAnnouncementsServicesInjecting {

@@ -1,6 +1,8 @@
 import Combine
 import CorePersonalData
-import DashTypes
+import CoreTypes
+import DashlaneAPI
+import LogFoundation
 
 public protocol VaultItemDatabaseProtocol {
   func itemsPublisher<Output: VaultItem>(for output: Output.Type) -> AnyPublisher<[Output], Never>
@@ -26,14 +28,21 @@ public protocol VaultItemDatabaseProtocol {
 }
 
 extension VaultItemDatabaseProtocol where Self == VaultItemDatabase {
-  static func mock(driver: DatabaseDriver = InMemoryDatabaseDriver()) -> VaultItemDatabase {
+  public static func mock(driver: DatabaseDriver = InMemoryDatabaseDriver()) -> VaultItemDatabase {
     return .init(
-      logger: LoggerMock(),
+      logger: .mock,
       database: .mock(driver: driver),
       sharingService: SharedVaultHandlerMock(),
       featureService: .mock(),
       userSpacesService: .mock(),
-      activityLogsService: .mock()
+      teamAuditLogsService: .mock(),
+      cloudPasskeyService: .fake
     )
+  }
+}
+
+extension UserSecureNitroEncryptionAPIClient.Passkeys {
+  public static var fake: UserSecureNitroEncryptionAPIClient.Passkeys {
+    UserSecureNitroEncryptionAPIClient.fake.passkeys
   }
 }

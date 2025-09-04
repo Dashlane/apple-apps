@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppAPIClient.Features {
-  public struct ListAvailableLabs: APIRequest {
+  public struct ListAvailableLabs: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/features/ListAvailableLabs"
 
     public let api: AppAPIClient
@@ -26,12 +26,12 @@ extension AppAPIClient.Features.ListAvailableLabs {
 }
 
 extension AppAPIClient.Features.ListAvailableLabs {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case labs = "labs"
     }
 
-    public struct LabsElement: Codable, Equatable, Sendable {
+    public struct LabsElement: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case featureName = "featureName"
         case displayName = "displayName"

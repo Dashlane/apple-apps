@@ -1,5 +1,5 @@
-import CoreUserTracking
 import Foundation
+import UserTrackingFoundation
 
 public enum VaultSelectionOrigin {
   case searchResult

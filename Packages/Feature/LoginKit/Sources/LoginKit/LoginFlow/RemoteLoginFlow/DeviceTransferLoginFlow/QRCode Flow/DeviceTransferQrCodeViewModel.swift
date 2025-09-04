@@ -1,11 +1,11 @@
 import CoreCrypto
 import CoreLocalization
 import CoreSession
-import CoreUserTracking
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 import StateMachine
+import UserTrackingFoundation
 
 @MainActor
 public class DeviceTransferQrCodeViewModel: ObservableObject, LoginKitServicesInjecting {
@@ -34,21 +34,20 @@ public class DeviceTransferQrCodeViewModel: ObservableObject, LoginKitServicesIn
 
   private let completion: (DeviceTransferCompletion) -> Void
 
-  public var stateMachine: QRCodeScanStateMachine
+  @Published public var stateMachine: QRCodeScanStateMachine
+  @Published public var isPerformingEvent: Bool = false
 
   private let activityReporter: ActivityReporterProtocol
 
   public init(
     login: Login?,
-    state: QRCodeScanStateMachine.State,
+    stateMachine: QRCodeScanStateMachine,
     activityReporter: ActivityReporterProtocol,
-    deviceTransferQRCodeStateMachineFactory: QRCodeScanStateMachine.Factory,
     completion: @escaping (DeviceTransferCompletion) -> Void
   ) {
     self.completion = completion
     self.activityReporter = activityReporter
-    self.stateMachine = deviceTransferQRCodeStateMachineFactory.make(
-      login: login, state: state, qrDeviceTransferCrypto: ECDH())
+    self.stateMachine = stateMachine
     Task {
       await start()
     }
@@ -101,9 +100,9 @@ extension DeviceTransferQrCodeViewModel: StateMachineBasedObservableObject {
       inProgress = false
       await self.perform(.beginTransfer(withID: info.transferId))
     case let .transferring(info):
-      progressState = .inProgress(L10n.Core.deviceToDeviceLoadingProgress)
+      progressState = .inProgress(CoreL10n.deviceToDeviceLoadingProgress)
       inProgress = true
-      await perform(.sendTransferData(response: info))
+      await perform(.sendTransferData(info))
     case let .transferCompleted(data):
       self.completion(.completed(data))
     case .transferError:

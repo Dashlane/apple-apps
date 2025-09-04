@@ -1,4 +1,5 @@
 import Foundation
+import SwiftUI
 
 struct AppIcon: Identifiable, Equatable, Comparable {
   static func < (lhs: AppIcon, rhs: AppIcon) -> Bool {
@@ -32,6 +33,8 @@ struct AppIcon: Identifiable, Equatable, Comparable {
 
   let name: String
   let category: Category
+
+  let image: Image
 }
 
 extension AppIcon {
@@ -41,9 +44,9 @@ extension AppIcon {
       let iconFiles = primaryIcon["CFBundleIconFiles"] as? [String],
       let lastIcon = iconFiles.last
     else {
-      return AppIcon(name: "AppIcon", category: .primary)
+      return AppIcon(name: "AppIcon", category: .primary, image: Image(.primaryAppIcon))
     }
-    return AppIcon(name: lastIcon, category: .primary)
+    return AppIcon(name: lastIcon, category: .primary, image: Image(.primaryAppIcon))
   }
 
   static func alternateIcons() -> [AppIcon] {
@@ -61,7 +64,8 @@ extension AppIcon {
         return nil
       }
 
-      return AppIcon(name: icon, category: AppIcon.Category(alternativeName: icon))
+      let image = Image(icon + "Image")
+      return AppIcon(name: icon, category: AppIcon.Category(alternativeName: icon), image: image)
     }
   }
 }

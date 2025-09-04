@@ -4,7 +4,7 @@ public struct SecureNitroSSOAPIClient: APIClient {
   let engine: APIClientEngine
 
   public init(engine: APIClientEngine, secureTunnel: SecureTunnel) {
-    self.engine = engine.secured(with: secureTunnel)
+    self.engine = NitroSSOSecuredAPIClientEngine(baseEngine: engine, secureTunnel: secureTunnel)
   }
 
   init(engine: APIClientEngine) {

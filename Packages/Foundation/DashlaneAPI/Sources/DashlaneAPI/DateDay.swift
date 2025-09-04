@@ -1,6 +1,6 @@
 import Foundation
 
-public struct DateDay: Codable, Comparable, Sendable {
+public struct DateDay: Codable, Comparable, Hashable, Sendable {
 
   public static let dateFormatter: DateFormatter = {
     let formatter = DateFormatter()

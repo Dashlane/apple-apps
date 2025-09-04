@@ -2,7 +2,7 @@ import Foundation
 
 extension AppNitroEncryptionAPIClient {
 
-  public struct Tunnel {
+  public struct Tunnel: Sendable {
     let api: AppNitroEncryptionAPIClient
   }
   public var tunnel: Tunnel {
@@ -12,7 +12,7 @@ extension AppNitroEncryptionAPIClient {
 
 extension UnsignedNitroEncryptionAPIClient {
 
-  public struct Time {
+  public struct Time: Sendable {
     let api: UnsignedNitroEncryptionAPIClient
   }
   public var time: Time {
@@ -22,10 +22,24 @@ extension UnsignedNitroEncryptionAPIClient {
 
 extension UserSecureNitroEncryptionAPIClient {
 
-  public struct Logs {
+  public struct Logs: Sendable {
     let api: UserSecureNitroEncryptionAPIClient
   }
   public var logs: Logs {
     Logs(api: self)
+  }
+
+  public struct Passkeys: Sendable {
+    let api: UserSecureNitroEncryptionAPIClient
+  }
+  public var passkeys: Passkeys {
+    Passkeys(api: self)
+  }
+
+  public struct Uvvs: Sendable {
+    let api: UserSecureNitroEncryptionAPIClient
+  }
+  public var uvvs: Uvvs {
+    Uvvs(api: self)
   }
 }

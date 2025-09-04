@@ -1,6 +1,6 @@
 import Foundation
 
-public struct Attachment: Codable, Hashable {
+public struct Attachment: Codable, Hashable, Identifiable {
 
   public let id: String
   public let version: Int

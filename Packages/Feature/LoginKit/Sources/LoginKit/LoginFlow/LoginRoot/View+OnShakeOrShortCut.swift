@@ -8,11 +8,9 @@ extension View {
         action()
       }
       .background {
-        Button(
-          action: {
-            action()
-          }, title: ""
-        )
+        Button("") {
+          action()
+        }
         .hidden()
         .keyboardShortcut("D", modifiers: [.shift, .command])
       }

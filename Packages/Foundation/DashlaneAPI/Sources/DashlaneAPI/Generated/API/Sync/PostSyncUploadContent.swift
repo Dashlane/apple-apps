@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Sync {
-  public struct UploadContent: APIRequest {
+  public struct UploadContent: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/sync/UploadContent"
 
     public let api: UserDeviceAPIClient
@@ -25,14 +25,14 @@ extension UserDeviceAPIClient.Sync {
 }
 
 extension UserDeviceAPIClient.Sync.UploadContent {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case timestamp = "timestamp"
       case transactions = "transactions"
       case sharingKeys = "sharingKeys"
     }
 
-    public struct TransactionsElement: Codable, Equatable, Sendable {
+    public struct TransactionsElement: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case identifier = "identifier"
         case time = "time"
@@ -68,27 +68,6 @@ extension UserDeviceAPIClient.Sync.UploadContent {
       }
     }
 
-    public struct SharingKeys: Codable, Equatable, Sendable {
-      public enum CodingKeys: String, CodingKey {
-        case privateKey = "privateKey"
-        case publicKey = "publicKey"
-      }
-
-      public let privateKey: String
-      public let publicKey: String
-
-      public init(privateKey: String, publicKey: String) {
-        self.privateKey = privateKey
-        self.publicKey = publicKey
-      }
-
-      public func encode(to encoder: Encoder) throws {
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        try container.encode(privateKey, forKey: .privateKey)
-        try container.encode(publicKey, forKey: .publicKey)
-      }
-    }
-
     public let timestamp: Int
     public let transactions: [TransactionsElement]
     public let sharingKeys: SyncSharingKeys?
@@ -111,7 +90,7 @@ extension UserDeviceAPIClient.Sync.UploadContent {
 }
 
 extension UserDeviceAPIClient.Sync.UploadContent {
-  public struct Response: Codable, Equatable, Sendable {
+  public struct Response: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case timestamp = "timestamp"
       case summary = "summary"

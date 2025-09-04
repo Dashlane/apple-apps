@@ -1,12 +1,12 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
+import LogFoundation
 import StateMachine
 
-@MainActor
 public struct SecurityChallengeFlowStateMachine: StateMachine {
 
-  public enum State: Hashable {
+  public enum State: Hashable, Sendable {
     case startSecurityChallengeTransfer(SecurityChallengeTransferStateMachine.State)
 
     case startPassphraseVerification(
@@ -19,7 +19,8 @@ public struct SecurityChallengeFlowStateMachine: StateMachine {
     case challengeFailed
   }
 
-  public enum Event {
+  @Loggable
+  public enum Event: Sendable {
     case startTransfer
 
     case keysAndPassphraseReady(SecurityChallengeKeys)
@@ -45,34 +46,50 @@ public struct SecurityChallengeFlowStateMachine: StateMachine {
     self.appAPIClient = appAPIClient
   }
 
-  mutating public func transition(with event: Event) async {
+  mutating public func transition(with event: Event) async throws {
+    logger.info("Received event \(event)")
     switch (state, event) {
     case (.startSecurityChallengeTransfer, .startTransfer):
       state = .startSecurityChallengeTransfer(.initializing)
     case (.startSecurityChallengeTransfer, let .keysAndPassphraseReady(keys)):
       state = .startPassphraseVerification(.initializing, keys)
     case (.startPassphraseVerification, let .transferDataReceived(data)):
-      do {
-        state = .transferComplete(data)
-      } catch {
-        state = .challengeFailed
-      }
+      state = .transferComplete(data)
     case (_, .cancelChallenge):
       state = .challengeCancelled
     case (_, .errorEncountered):
       state = .challengeFailed
     default:
-      let errorMessage = "Unexpected \(event) event for the state \(state)"
-      logger.error(errorMessage)
+      let errorMessage: LogMessage = "Unexpected \(event) event for the state \(state)"
+      logger.fatal(errorMessage)
+      throw InvalidTransitionError<Self>(event: event, state: state)
     }
-    logger.logInfo("\(event) received, changes to state \(state)")
+    let state = state
+    logger.info("Transition to state: \(state)")
   }
 }
 
 extension SecurityChallengeFlowStateMachine {
   public static var mock: SecurityChallengeFlowStateMachine {
     SecurityChallengeFlowStateMachine(
-      state: .startSecurityChallengeTransfer(.initializing), appAPIClient: .fake,
-      logger: LoggerMock())
+      state: .startSecurityChallengeTransfer(.initializing), appAPIClient: .fake, logger: .mock)
+  }
+}
+
+extension SecurityChallengeFlowStateMachine {
+  public func makePassphraseVerificationStateMachine(
+    state: PassphraseVerificationStateMachine.State, transferId: String,
+    secretBox: DeviceTransferSecretBox
+  ) -> PassphraseVerificationStateMachine {
+    PassphraseVerificationStateMachine(
+      initialState: state, apiClient: appAPIClient, transferId: transferId, secretBox: secretBox,
+      logger: logger)
+  }
+
+  public func makeSecurityChallengeTransferStateMachine(
+    login: Login, cryptoProvider: DeviceTransferCryptoKeysProvider
+  ) -> SecurityChallengeTransferStateMachine {
+    SecurityChallengeTransferStateMachine(
+      login: login, apiClient: appAPIClient, cryptoProvider: cryptoProvider, logger: logger)
   }
 }

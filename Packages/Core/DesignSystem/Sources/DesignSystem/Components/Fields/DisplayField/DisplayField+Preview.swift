@@ -9,7 +9,7 @@ struct DisplayFieldPreview: View {
           DS.FieldAction.CopyContent { print("Copy action.") }
           FieldAction.Button("Open", image: .ds.action.openExternalLink.outlined) {}
         }
-        .fieldLabelPersistencyDisabled()
+        .fieldLabelHiddenOnFocus()
 
         DS.TextField(
           "Label", text: .constant("_"),
@@ -17,8 +17,8 @@ struct DisplayFieldPreview: View {
             DS.FieldAction.CopyContent { print("Copy action.") }
           }
         )
-        .fieldAppearance(.grouped)
-        .fieldLabelPersistencyDisabled()
+        .containerContext(.list(.insetGrouped))
+        .fieldLabelHiddenOnFocus()
       }
 
       Section("w/ placeholder value") {

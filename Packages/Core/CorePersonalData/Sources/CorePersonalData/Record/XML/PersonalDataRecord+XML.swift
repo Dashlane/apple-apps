@@ -1,18 +1,19 @@
-import DashTypes
+import CoreTypes
 import Foundation
 import SwiftTreats
 
 extension PersonalDataRecord {
   func makeXML() throws -> Data {
-    let type = XMLDataType(metadata.contentType)
-    let exceptions = metadata.contentType.personalDataType.xmlRuleExceptions
-    let data = """
-      <?xml version=\"1.0\" encoding=\"UTF-8\"?><root><\(type.rawValue)>\(content.makeXML(exceptions: exceptions))</\(type.rawValue)></root>
-      """.data(using: .utf8)
+    try makeXML(exceptions: metadata.contentType.personalDataType.xmlRuleExceptions)
+  }
 
-    guard let data = data else {
-      throw PersonalDataRecord.TransactionError.cannotCreateUTF8DataFromXML
-    }
+  @inline(__always)
+  func makeXML(exceptions: [String: XMLRuleException]) throws -> Data {
+    let type = XMLDataType(metadata.contentType)
+    let data = Data(
+      """
+      <?xml version=\"1.0\" encoding=\"UTF-8\"?><root><\(type.rawValue)>\(content.makeXML(exceptions: exceptions))</\(type.rawValue)></root>
+      """.utf8)
 
     return data
   }
@@ -27,13 +28,10 @@ extension Sequence where Element == PersonalDataRecord {
       return "<\(type.rawValue)>\(item.content.makeXML(exceptions: exceptions))</\(type.rawValue)>"
     }.joined()
 
-    let data = """
+    let data = Data(
+      """
       <?xml version=\"1.0\" encoding=\"UTF-8\"?><root><KWDataList>\(items)</KWDataList></root>
-      """.data(using: .utf8)
-
-    guard let data = data else {
-      throw PersonalDataRecord.TransactionError.cannotCreateUTF8DataFromXML
-    }
+      """.utf8)
 
     return data
   }

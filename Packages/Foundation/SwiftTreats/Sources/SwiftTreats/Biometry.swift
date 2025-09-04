@@ -1,17 +1,25 @@
 import Foundation
 import LocalAuthentication
 
-public enum Biometry: String {
+public enum Biometry: String, Sendable {
   case touchId = "Touch ID"
   case faceId = "Face ID"
+  case opticId = "Optic ID"
 
   public var displayableName: String {
     return rawValue
   }
 }
 
-extension Biometry {
-  public static func authenticate(
+public protocol BiometryValidatorProtocol: Sendable {
+  func authenticate(using context: LAContext, reasonTitle: String, fallbackTitle: String)
+    async throws
+}
+
+public struct BiometryValidator: BiometryValidatorProtocol {
+  public init() {}
+
+  public func authenticate(
     using context: LAContext = LAContext(), reasonTitle: String, fallbackTitle: String
   ) async throws {
     var error: NSError?
@@ -26,5 +34,14 @@ extension Biometry {
     context.localizedFallbackTitle = fallbackTitle
     try await context.evaluatePolicy(
       .deviceOwnerAuthenticationWithBiometrics, localizedReason: reasonTitle)
+  }
+}
+
+public final class BiometryValidatorMock: BiometryValidatorProtocol, Sendable {
+  public init() {}
+
+  public func authenticate(using context: LAContext, reasonTitle: String, fallbackTitle: String)
+    async throws
+  {
   }
 }

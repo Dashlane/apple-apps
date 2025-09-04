@@ -1,10 +1,10 @@
-import DashTypes
+import CoreTypes
 import DashlaneAPI
 import Foundation
 
 public typealias EncryptedRemoteKey = AuthenticationCompleteAuthTicketRemoteKeys
 
-public struct DeviceRegistrationData: Equatable, Hashable {
+public struct DeviceRegistrationData: Equatable, Hashable, Sendable {
   var initialSettings: String
 
   public let deviceAccessKey: String

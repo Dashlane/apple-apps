@@ -1,7 +1,9 @@
-import DashTypes
+import CoreTypes
 import Foundation
+import LogFoundation
 import SwiftTreats
 
+@Loggable
 @PersonalData("AUTHENTIFIANT")
 public struct Credential: Equatable, Identifiable, DatedPersonalData {
   public static let searchCategory: SearchCategory = .credential
@@ -43,6 +45,7 @@ public struct Credential: Equatable, Identifiable, DatedPersonalData {
   public var url: PersonalDataURL?
   public var userSelectedUrl: PersonalDataURL?
   public var useFixedUrl: Bool
+
   public var subdomainOnly: Bool
   public var trustedUrlGroup: [TrustedURL]
 
@@ -129,6 +132,7 @@ public struct Credential: Equatable, Identifiable, DatedPersonalData {
     autoLogin: Bool = true,
     numberOfUse: Int = 0,
     lastUseDate: Date? = nil,
+    lastLocalUseDate: Date? = nil,
     note: String = "",
     passwordModificationDate: Date? = nil,
     creationDatetime: Date? = .init(),
@@ -145,7 +149,7 @@ public struct Credential: Equatable, Identifiable, DatedPersonalData {
     self.id = id
     metadata = RecordMetadata(
       id: .temporary, contentType: .credential, syncStatus: syncStatus, isShared: isShared,
-      sharingPermission: sharingPermission)
+      sharingPermission: sharingPermission, lastLocalUseDate: lastLocalUseDate)
     self.login = login
     self.secondaryLogin = secondaryLogin
     self.title = title
@@ -192,11 +196,11 @@ extension Credential {
   }
 
   public mutating func prepareForSaving() {
-    let mail = DashTypes.Email(login)
+    let mail = CoreTypes.Email(login)
     if mail.isValid && email.isEmptyOrWhitespaces() {
       email = login
       login = ""
-    } else if !(DashTypes.Email(email)).isValid && login.isEmptyOrWhitespaces() {
+    } else if !(CoreTypes.Email(email)).isValid && login.isEmptyOrWhitespaces() {
       login = email
       email = ""
     }

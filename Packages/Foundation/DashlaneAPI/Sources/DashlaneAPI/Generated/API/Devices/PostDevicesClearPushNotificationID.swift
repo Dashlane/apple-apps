@@ -1,7 +1,7 @@
 import Foundation
 
 extension UserDeviceAPIClient.Devices {
-  public struct ClearPushNotificationID: APIRequest {
+  public struct ClearPushNotificationID: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/devices/ClearPushNotificationID"
 
     public let api: UserDeviceAPIClient
@@ -25,7 +25,7 @@ extension UserDeviceAPIClient.Devices {
 }
 
 extension UserDeviceAPIClient.Devices.ClearPushNotificationID {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case pushID = "pushID"
     }

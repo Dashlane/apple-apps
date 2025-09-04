@@ -1,7 +1,7 @@
 import Foundation
 
 extension AppAPIClient.DarkwebmonitoringQA {
-  public struct AddTestLeak: APIRequest {
+  public struct AddTestLeak: APIRequest, Sendable {
     public static let endpoint: Endpoint = "/darkwebmonitoring-qa/AddTestLeak"
 
     public let api: AppAPIClient
@@ -25,12 +25,12 @@ extension AppAPIClient.DarkwebmonitoringQA {
 }
 
 extension AppAPIClient.DarkwebmonitoringQA.AddTestLeak {
-  public struct Body: Codable, Equatable, Sendable {
+  public struct Body: Codable, Hashable, Sendable {
     public enum CodingKeys: String, CodingKey {
       case leak = "leak"
     }
 
-    public struct Leak: Codable, Equatable, Sendable {
+    public struct Leak: Codable, Hashable, Sendable {
       public enum CodingKeys: String, CodingKey {
         case uuid = "uuid"
         case email = "email"
@@ -38,13 +38,13 @@ extension AppAPIClient.DarkwebmonitoringQA.AddTestLeak {
         case types = "types"
       }
 
-      public struct FieldsElement: Codable, Equatable, Sendable {
+      public struct FieldsElement: Codable, Hashable, Sendable {
         public enum CodingKeys: String, CodingKey {
           case field = "field"
           case value = "value"
         }
 
-        public enum Field: String, Sendable, Equatable, CaseIterable, Codable {
+        public enum Field: String, Sendable, Hashable, Codable, CaseIterable {
           case password = "password"
           case passwordPlaintext = "password_plaintext"
           case salt = "salt"
@@ -111,7 +111,7 @@ extension AppAPIClient.DarkwebmonitoringQA.AddTestLeak {
         }
       }
 
-      public enum TypesElement: String, Sendable, Equatable, CaseIterable, Codable {
+      public enum TypesElement: String, Sendable, Hashable, Codable, CaseIterable {
         case phone = "phone"
         case password = "password"
         case email = "email"

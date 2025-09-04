@@ -21,6 +21,7 @@ public struct FieldButtonAction: View {
           .aspectRatio(contentMode: .fit)
       }
     }
+    .accessibilityLabel(title)
   }
 }
 
